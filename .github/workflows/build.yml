@@ -1,0 +1,76 @@
+name: Build
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+
+permissions:
+  contents: read
+
+jobs:
+  gradle:
+    name: Core, pipeline and Android
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          java-version: 21
+          distribution: temurin
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      # ANDROID_HOME is preset on GitHub's Ubuntu runners, so apps:android is part of the build.
+      - run: ./gradlew check :apps:android:assembleDebug
+
+      - uses: actions/upload-artifact@v7
+        if: github.event_name == 'push'
+        with:
+          name: android-debug-apk
+          path: apps/android/build/outputs/apk/debug/*.apk
+
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: gradle-test-reports
+          path: '**/build/reports/tests/'
+
+  ios:
+    name: Core on iOS and iOS app
+    runs-on: macos-latest
+
+    steps:
+
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          java-version: 21
+          distribution: temurin
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - run: ./gradlew :modules:core:iosSimulatorArm64Test
+
+      - run: brew install xcodegen
+
+      - run: xcodegen --spec apps/ios/project.yml
+
+      - run: >
+          xcodebuild build
+          -project apps/ios/KnoopByKnoop.xcodeproj
+          -scheme KnoopByKnoop
+          -configuration Debug
+          -destination 'generic/platform=iOS Simulator'
+          CODE_SIGNING_ALLOWED=NO

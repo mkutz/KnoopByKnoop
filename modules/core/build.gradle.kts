@@ -1,0 +1,18 @@
+plugins { alias(libs.plugins.kotlin.multiplatform) }
+
+kotlin {
+  jvmToolchain(21)
+
+  // The JVM target is consumed by the Android app and the data pipeline.
+  jvm { testRuns["test"].executionTask.configure { useJUnitPlatform() } }
+
+  // The iOS app links this framework, see apps/ios/project.yml.
+  listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
+    target.binaries.framework {
+      baseName = "KnoopByKnoopCore"
+      isStatic = true
+    }
+  }
+
+  sourceSets { commonTest.dependencies { implementation(libs.kotlin.test) } }
+}

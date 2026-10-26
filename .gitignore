@@ -1,0 +1,16 @@
+# Gradle / Kotlin
+.gradle/
+.kotlin/
+build/
+local.properties
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Xcode (the project is generated from apps/ios/project.yml by XcodeGen)
+apps/ios/*.xcodeproj/
+DerivedData/
+xcuserdata/
