@@ -19,6 +19,9 @@ class NetworkGraph(knots: Collection<Knot>, connections: Collection<Connection>)
   /** All knots of this network by their [Knot.id]. */
   val knots: Map<Long, Knot> = knots.associateBy { it.id }
 
+  /** All connections between the knots of this network. */
+  val connections: List<Connection> = connections.toList()
+
   /** The type shared by all knots of this network, or `null` for an empty network. */
   val network: NetworkType? = knots.firstOrNull()?.network
 

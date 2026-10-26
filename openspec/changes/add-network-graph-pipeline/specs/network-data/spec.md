@@ -17,6 +17,17 @@ The pipeline SHALL extract every knot (a node with `rcn_ref` or `rwn_ref` in a `
 - **WHEN** a node-to-node route is extracted
 - **THEN** its length in meters is computed from the geometry of its ways
 
+### Requirement: One knot per signposted junction
+Nodes of the same network with the same number that belong to one junction SHALL become one knot. Knots with the same number that are separate places SHALL stay separate knots.
+
+#### Scenario: Junction tagged on several nodes
+- **WHEN** knot 30 is tagged on two nodes within 100 m of each other, e.g. on both sides of a dual carriageway, and no route connects these two nodes
+- **THEN** they become one knot 30, and routes arriving at either node meet there
+
+#### Scenario: Equal numbers on both banks of a river
+- **WHEN** knot 30 is tagged on both banks of a river and a route of its own (e.g. a ferry) connects the two
+- **THEN** they stay two knots 30, connected by that route, so riders can choose which one to go to
+
 ### Requirement: Compact versioned graph files
 Each graph file SHALL state its format version, its network type, its region, the date of the OSM data and the ODbL attribution.
 

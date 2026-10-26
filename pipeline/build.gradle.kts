@@ -9,6 +9,7 @@ application { mainClass = "com.knoopbyknoop.pipeline.MainKt" }
 
 dependencies {
   implementation(project(":modules:core"))
+  implementation(libs.osmpbf)
   testImplementation(libs.kotlin.test)
 }
 

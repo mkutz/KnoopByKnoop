@@ -124,6 +124,24 @@ class RouteTest {
     assertEquals(1, summary.knots.count { it == knot30 })
   }
 
+  // Requirement: Waypoints are knots, not numbers
+
+  @Test
+  fun `choose between knots with equal numbers`() {
+    // Knot 30 exists on both banks of a river; the banks are connected only by a 400 m ferry.
+    val nearBank = knot30.copy(id = 301)
+    val farBank = knot30.copy(id = 302, latitude = 52.104)
+    val riverGraph =
+      NetworkGraph(
+        knots = listOf(knot12, nearBank, farBank),
+        connections = listOf(Connection(12, 301, 2000), Connection(301, 302, 400)),
+      )
+
+    val route = Route.plan(listOf(knot12, nearBank), ShortestPathRouter(riverGraph))
+
+    assertEquals(RouteSummary.Complete(listOf(knot12, nearBank), 2000), route.summary)
+  }
+
   // Task 3.2: recompute only the legs next to a change
 
   @Test

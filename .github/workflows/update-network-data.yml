@@ -1,0 +1,101 @@
+name: Update Network Data
+
+on:
+  schedule:
+    # Mondays, after Geofabrik's nightly extracts are ready
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: network-data
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build ${{ matrix.region }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - region: netherlands
+            extract: europe/netherlands
+          - region: belgium
+            extract: europe/belgium
+          - region: nordrhein-westfalen
+            extract: europe/germany/nordrhein-westfalen
+
+    steps:
+
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          java-version: 21
+          distribution: temurin
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Download extract
+        run: >
+          curl --fail --silent --show-error --location --retry 3
+          --output "$RUNNER_TEMP/extract.osm.pbf"
+          "https://download.geofabrik.de/${{ matrix.extract }}-latest.osm.pbf"
+
+      - name: Build graph files
+        run: >
+          ./gradlew :pipeline:run
+          --args="build ${{ matrix.region }} $RUNNER_TEMP/extract.osm.pbf $GITHUB_WORKSPACE/network-data"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: graph-${{ matrix.region }}
+          path: network-data/*.graph
+          if-no-files-found: error
+
+  # Runs only when every region was built, so a failed run keeps the last publication.
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          java-version: 21
+          distribution: temurin
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: graph-*
+          merge-multiple: true
+          path: network-data
+
+      - name: Check size budget
+        run: |
+          size=$(stat --format=%s network-data/netherlands-cycling.graph)
+          echo "netherlands-cycling.graph: $size bytes (budget: 5000000)"
+          test "$size" -lt 5000000
+
+      - name: Write index
+        run: ./gradlew :pipeline:run --args="index $GITHUB_WORKSPACE/network-data"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! gh release view network-data > /dev/null 2>&1; then
+            gh release create network-data --latest=false --title "Network data" \
+              --notes "Knooppunt network graphs for the apps, rebuilt weekly. Data © OpenStreetMap contributors, ODbL 1.0."
+          fi
+          gh release upload network-data network-data/* --clobber
