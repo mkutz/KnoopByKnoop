@@ -19,4 +19,4 @@
 
 ## 4. Wrap-up
 
-- [ ] 4.1 `./gradlew check` passes, including `iosSimulatorArm64Test` in CI
+- [x] 4.1 `./gradlew check` passes, including `iosSimulatorArm64Test` in CI
