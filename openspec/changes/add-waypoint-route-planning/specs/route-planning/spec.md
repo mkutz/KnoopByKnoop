@@ -21,6 +21,10 @@ A route SHALL be defined by an ordered list of at least two waypoints, each a kn
 - **WHEN** a waypoint cannot be reached from the previous waypoint over the network
 - **THEN** the route reports which leg is unreachable instead of returning a partial route
 
+#### Scenario: Waypoints of different networks
+- **WHEN** the waypoints include a cycling knot and a hiking knot
+- **THEN** the route is rejected
+
 ### Requirement: Insert a stop between start and end
 The user SHALL be able to insert a stop at any position between the first and the last waypoint without changing the other waypoints.
 
@@ -31,6 +35,10 @@ The user SHALL be able to insert a stop at any position between the first and th
 #### Scenario: Insert a stop into the best leg
 - **WHEN** the user adds a stop without choosing a position
 - **THEN** the stop is inserted into the leg where it adds the least distance to the route
+
+#### Scenario: Insert an unreachable stop without a position
+- **WHEN** the user adds a stop without choosing a position and the stop cannot be reached from any leg
+- **THEN** the stop is inserted right before the end and the route reports the unreachable leg
 
 ### Requirement: Reorder and remove stops
 The user SHALL be able to move any waypoint to another position and to remove any stop, as long as at least two waypoints remain.
