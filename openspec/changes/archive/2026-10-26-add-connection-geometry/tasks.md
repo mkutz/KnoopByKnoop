@@ -21,7 +21,7 @@
 ## 4. Publication
 
 - [x] 4.1 The workflow uploads geometry files and fails if the Dutch cycling geometry is 10 MB or larger ("Geometry size budget")
-- [ ] 4.2 Run the workflow once and check the published index lists a geometry file for every graph file
+- [x] 4.2 Run the workflow once and check the published index lists a geometry file for every graph file
 
 ## 5. Follow-up in other changes
 
