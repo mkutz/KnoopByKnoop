@@ -53,7 +53,9 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: graph-${{ matrix.region }}
-          path: network-data/*.graph
+          path: |
+            network-data/*.graph
+            network-data/*.geometry
           if-no-files-found: error
 
   # Runs only when every region was built, so a failed run keeps the last publication.
@@ -81,11 +83,15 @@ jobs:
           merge-multiple: true
           path: network-data
 
-      - name: Check size budget
+      - name: Check size budgets
         run: |
-          size=$(stat --format=%s network-data/netherlands-cycling.graph)
-          echo "netherlands-cycling.graph: $size bytes (budget: 5000000)"
-          test "$size" -lt 5000000
+          check() {
+            size=$(stat --format=%s "network-data/$1")
+            echo "$1: $size bytes (budget: $2)"
+            test "$size" -lt "$2"
+          }
+          check netherlands-cycling.graph 5000000
+          check netherlands-cycling.geometry 10000000
 
       - name: Write index
         run: ./gradlew :pipeline:run --args="index $GITHUB_WORKSPACE/network-data"

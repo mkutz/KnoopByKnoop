@@ -1,7 +1,9 @@
 package com.knoopbyknoop.pipeline
 
 import com.knoopbyknoop.core.GraphFile
+import com.knoopbyknoop.core.IndexedFileKind
 import com.knoopbyknoop.core.IndexedNetworkType
+import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkIndex
 import com.knoopbyknoop.core.NetworkIndexEntry
 import com.knoopbyknoop.core.sha256Hex
@@ -12,12 +14,16 @@ import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
+import kotlin.io.path.exists
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 import kotlin.io.path.readBytes
 import kotlin.io.path.writeBytes
 import kotlin.io.path.writeText
 import kotlin.system.exitProcess
+
+/** How far a drawn course may deviate from the OpenStreetMap ways, see `network-data`. */
+const val COURSE_TOLERANCE_METERS = 5.0
 
 const val ATTRIBUTION =
   "© OpenStreetMap contributors, ODbL 1.0, https://www.openstreetmap.org/copyright"
@@ -46,7 +52,14 @@ fun build(region: String, extract: Path, outputDirectory: Path) {
   outputDirectory.createDirectories()
   for ((network, graph) in result.graphs) {
     val file = outputDirectory.resolve(graphFileName(region, IndexedNetworkType.of(network)))
-    file.writeBytes(GraphFile(network, region, dataDate.toString(), ATTRIBUTION, graph).toBytes())
+    val graphBytes = GraphFile(network, region, dataDate.toString(), ATTRIBUTION, graph).toBytes()
+    file.writeBytes(graphBytes)
+    val networkCourses = result.courses.getValue(network)
+    val courses =
+      graph.connections.map { simplify(networkCourses.getValue(it), COURSE_TOLERANCE_METERS) }
+    val geometryFile =
+      outputDirectory.resolve(geometryFileName(region, IndexedNetworkType.of(network)))
+    geometryFile.writeBytes(NetworkGeometry(graph, courses).toBytes(sha256Hex(graphBytes)))
     val lengths = graph.connections.map { it.lengthMeters }.sorted()
     val connectedKnotIds = graph.connections.flatMap { listOf(it.fromId, it.toId) }.toSet()
     println(
@@ -54,6 +67,11 @@ fun build(region: String, extract: Path, outputDirectory: Path) {
         "${file.toFile().length()} bytes, " +
         "median connection ${lengths.getOrElse(lengths.size / 2) { 0 }} m, " +
         "${graph.knots.size - connectedKnotIds.size} knots without connections"
+    )
+    println(
+      "${geometryFile.name}: ${courses.sumOf { it.size }} points " +
+        "(${networkCourses.values.sumOf { it.size }} before simplification), " +
+        "${geometryFile.toFile().length()} bytes"
     )
   }
   for ((reason, count) in result.skippedRoutes.toSortedMap()) {
@@ -66,17 +84,33 @@ fun index(directory: Path) {
     directory
       .listDirectoryEntries("*.graph")
       .sortedBy { it.name }
-      .map { file ->
+      .flatMap { file ->
         val bytes = file.readBytes()
         val graphFile = GraphFile.read(bytes)
-        NetworkIndexEntry(
-          region = graphFile.region,
-          network = IndexedNetworkType.of(graphFile.network),
-          file = file.name,
-          sizeBytes = bytes.size.toLong(),
-          sha256 = sha256Hex(bytes),
-          dataDate = graphFile.dataDate,
-        )
+        val network = IndexedNetworkType.of(graphFile.network)
+        val graphEntry =
+          NetworkIndexEntry(
+            region = graphFile.region,
+            network = network,
+            file = file.name,
+            sizeBytes = bytes.size.toLong(),
+            sha256 = sha256Hex(bytes),
+            dataDate = graphFile.dataDate,
+            kind = IndexedFileKind.GRAPH,
+          )
+        val geometryFile = directory.resolve(geometryFileName(graphFile.region, network))
+        val geometryBytes = geometryFile.takeIf { it.exists() }?.readBytes()
+        if (geometryBytes == null || !NetworkGeometry.belongsTo(geometryBytes, graphEntry.sha256)) {
+          error("${geometryFile.name} is missing or does not belong to ${file.name}")
+        }
+        val geometryEntry =
+          graphEntry.copy(
+            file = geometryFile.name,
+            sizeBytes = geometryBytes.size.toLong(),
+            sha256 = sha256Hex(geometryBytes),
+            kind = IndexedFileKind.GEOMETRY,
+          )
+        listOf(graphEntry, geometryEntry)
       }
   val index =
     NetworkIndex(
@@ -90,3 +124,6 @@ fun index(directory: Path) {
 
 fun graphFileName(region: String, network: IndexedNetworkType) =
   "$region-${network.name.lowercase()}.graph"
+
+fun geometryFileName(region: String, network: IndexedNetworkType) =
+  "$region-${network.name.lowercase()}.geometry"

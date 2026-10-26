@@ -1,6 +1,7 @@
 package com.knoopbyknoop.pipeline
 
 import com.knoopbyknoop.core.Connection
+import com.knoopbyknoop.core.GeoPoint
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.NetworkGraph
 import com.knoopbyknoop.core.NetworkType
@@ -55,31 +56,34 @@ class NetworkExtraction {
       NetworkType.entries.associateWith { network ->
         mergeSameKnots(knots.getValue(network).values, separateNodeIds(network))
       }
-    val connections = NetworkType.entries.associateWith { HashMap<Pair<Long, Long>, Connection>() }
+    val connections =
+      NetworkType.entries.associateWith { HashMap<Pair<Long, Long>, RouteOutcome.Connected>() }
     val skippedRoutes = HashMap<SkipReason, Int>()
     for (route in routes) {
-      val connection =
+      val connected =
         when (val outcome = connectionOf(route, knotsByNodeId.getValue(route.network))) {
-          is RouteOutcome.Connected -> outcome.connection
+          is RouteOutcome.Connected -> outcome
           is RouteOutcome.Skipped -> {
             skippedRoutes.merge(outcome.reason, 1, Int::plus)
             continue
           }
         }
+      val connection = connected.connection
       val key =
         minOf(connection.fromId, connection.toId) to maxOf(connection.fromId, connection.toId)
-      connections.getValue(route.network).merge(key, connection) { existing, new ->
-        if (new.lengthMeters < existing.lengthMeters) new else existing
+      connections.getValue(route.network).merge(key, connected) { existing, new ->
+        if (new.connection.lengthMeters < existing.connection.lengthMeters) new else existing
       }
     }
-    val graphs =
-      NetworkType.entries
-        .filter { knots.getValue(it).isNotEmpty() }
-        .associateWith {
-          val networkKnots = knotsByNodeId.getValue(it).values.distinct()
-          NetworkGraph(networkKnots, connections.getValue(it).values)
-        }
-    return ExtractionResult(graphs, skippedRoutes)
+    val networks = NetworkType.entries.filter { knots.getValue(it).isNotEmpty() }
+    val graphs = networks.associateWith {
+      val networkKnots = knotsByNodeId.getValue(it).values.distinct()
+      NetworkGraph(networkKnots, connections.getValue(it).values.map { kept -> kept.connection })
+    }
+    val courses = networks.associateWith {
+      connections.getValue(it).values.associate { kept -> kept.connection to kept.course }
+    }
+    return ExtractionResult(graphs, courses, skippedRoutes)
   }
 
   /**
@@ -137,7 +141,7 @@ class NetworkExtraction {
 
   /**
    * The connection between the two knots on [route], with the shortest distance between them along
-   * the route's ways, unless the route does not connect exactly two knots.
+   * the route's ways and its course, unless the route does not connect exactly two knots.
    */
   private fun connectionOf(route: NetworkRoute, knotsByNodeId: Map<Long, Knot>): RouteOutcome {
     val ways = route.wayIds.mapNotNull { wayNodeIds[it] }
@@ -163,29 +167,42 @@ class NetworkExtraction {
     val (start, end) = routeKnots
     val startNodeIds = knotNodeIds.filter { knotsByNodeId[it] == start }
     val endNodeIds = knotNodeIds.filter { knotsByNodeId[it] == end }.toSet()
-    val length =
-      shortestDistance(neighbors, startNodeIds, endNodeIds)
+    val (length, nodeIds) =
+      shortestPath(neighbors, startNodeIds, endNodeIds)
         ?: return RouteOutcome.Skipped(SkipReason.KNOTS_NOT_CONNECTED)
-    return RouteOutcome.Connected(Connection(start.id, end.id, length.roundToInt()))
+    // A merged junction is drawn at its representative node, so the course is extended to it.
+    val course = buildList {
+      add(GeoPoint(start.latitude, start.longitude))
+      addAll(nodeIds.mapNotNull { coordinates.pointOf(it) })
+      add(GeoPoint(end.latitude, end.longitude))
+    }
+    return RouteOutcome.Connected(
+      Connection(start.id, end.id, length.roundToInt()),
+      course.filterIndexed { index, point -> index == 0 || point != course[index - 1] },
+    )
   }
 
-  /** The shortest distance from any of [startNodeIds] to any of [endNodeIds]. */
-  private fun shortestDistance(
+  /** The shortest path from any of [startNodeIds] to any of [endNodeIds], with its node IDs. */
+  private fun shortestPath(
     neighbors: Map<Long, List<Pair<Long, Double>>>,
     startNodeIds: Collection<Long>,
     endNodeIds: Set<Long>,
-  ): Double? {
+  ): Pair<Double, List<Long>>? {
     val distances = startNodeIds.associateWithTo(HashMap()) { 0.0 }
+    val predecessors = HashMap<Long, Long>()
     val queue = PriorityQueue<Pair<Double, Long>>(compareBy { it.first })
     startNodeIds.forEach { queue.add(0.0 to it) }
     while (queue.isNotEmpty()) {
       val (distance, nodeId) = queue.poll()
-      if (nodeId in endNodeIds) return distance
+      if (nodeId in endNodeIds) {
+        return distance to generateSequence(nodeId) { predecessors[it] }.toList().asReversed()
+      }
       if (distance > distances.getValue(nodeId)) continue
       for ((neighborId, length) in neighbors[nodeId].orEmpty()) {
         val neighborDistance = distance + length
         if (neighborDistance < (distances[neighborId] ?: Double.MAX_VALUE)) {
           distances[neighborId] = neighborDistance
+          predecessors[neighborId] = nodeId
           queue.add(neighborDistance to neighborId)
         }
       }
@@ -194,7 +211,8 @@ class NetworkExtraction {
   }
 
   private sealed interface RouteOutcome {
-    data class Connected(val connection: Connection) : RouteOutcome
+    /** @property course the path from the connection's `from` to its `to` knot, not simplified */
+    data class Connected(val connection: Connection, val course: List<GeoPoint>) : RouteOutcome
 
     data class Skipped(val reason: SkipReason) : RouteOutcome
   }
@@ -219,10 +237,12 @@ class NetworkExtraction {
 
 /**
  * @property graphs the extracted network per network type, only for types found in the extract
+ * @property courses per network type, the unsimplified course of each connection of its graph
  * @property skippedRoutes the number of node network routes that could not become a connection
  */
 data class ExtractionResult(
   val graphs: Map<NetworkType, NetworkGraph>,
+  val courses: Map<NetworkType, Map<Connection, List<GeoPoint>>>,
   val skippedRoutes: Map<SkipReason, Int>,
 )
 
@@ -253,6 +273,11 @@ private class NodeCoordinates(nodeIds: Collection<LongArray>) {
     if (index < 0) return
     latitudes[index] = latitude
     longitudes[index] = longitude
+  }
+
+  fun pointOf(id: Long): GeoPoint? {
+    val index = ids.binarySearch(id).takeIf { it >= 0 && !latitudes[it].isNaN() } ?: return null
+    return GeoPoint(latitudes[index], longitudes[index])
   }
 
   /** The great-circle distance between two nodes, or `null` if a node's coordinates are unknown. */
@@ -286,4 +311,4 @@ internal fun haversineMeters(
   return 2 * EARTH_RADIUS_METERS * asin(sqrt(a))
 }
 
-private const val EARTH_RADIUS_METERS = 6_371_008.8
+internal const val EARTH_RADIUS_METERS = 6_371_008.8

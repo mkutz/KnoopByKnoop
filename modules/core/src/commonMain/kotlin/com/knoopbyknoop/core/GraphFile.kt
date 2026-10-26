@@ -111,18 +111,10 @@ class GraphFile(
         }
       return GraphFile(network, region, dataDate, attribution, NetworkGraph(knots, connections))
     }
-
-    private fun toMicrodegrees(degrees: Double): Long = (degrees * 1_000_000).roundToLong()
-
-    private fun fromMicrodegrees(microdegrees: Long): Double = microdegrees / 1_000_000.0
-
-    private fun zigzag(value: Long): Long = (value shl 1) xor (value shr 63)
-
-    private fun unzigzag(value: Long): Long = (value ushr 1) xor -(value and 1)
   }
 }
 
-private class ByteWriter {
+internal class ByteWriter {
 
   private val buffer = ArrayList<Byte>()
 
@@ -153,7 +145,7 @@ private class ByteWriter {
   fun toByteArray(): ByteArray = buffer.toByteArray()
 }
 
-private class ByteReader(private val bytes: ByteArray) {
+internal class ByteReader(private val bytes: ByteArray) {
 
   private var position = 0
 
@@ -188,3 +180,11 @@ private class ByteReader(private val bytes: ByteArray) {
 
   fun string(): String = bytes(count()).decodeToString()
 }
+
+internal fun toMicrodegrees(degrees: Double): Long = (degrees * 1_000_000).roundToLong()
+
+internal fun fromMicrodegrees(microdegrees: Long): Double = microdegrees / 1_000_000.0
+
+internal fun zigzag(value: Long): Long = (value shl 1) xor (value shr 63)
+
+internal fun unzigzag(value: Long): Long = (value ushr 1) xor -(value and 1)

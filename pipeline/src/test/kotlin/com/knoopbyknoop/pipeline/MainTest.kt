@@ -1,7 +1,8 @@
 package com.knoopbyknoop.pipeline
 
 import com.knoopbyknoop.core.GraphFile
-import com.knoopbyknoop.core.IndexedNetworkType
+import com.knoopbyknoop.core.IndexedFileKind
+import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkIndex
 import com.knoopbyknoop.core.NetworkType
 import kotlin.io.path.createTempDirectory
@@ -18,7 +19,7 @@ class MainTest {
   private val nodeNetwork = mapOf("network:type" to "node_network")
 
   @Test
-  fun `build writes one graph file per network and index lists them`() {
+  fun `build writes graph and geometry files per network and index lists them`() {
     val extract = directory.resolve("utrecht.osm.pbf")
     PbfWriter.write(
       extract,
@@ -47,13 +48,28 @@ class MainTest {
 
     val index = NetworkIndex.parse(output.resolve("index.json").readText())
     assertEquals(
-      listOf("utrecht-cycling.graph", "utrecht-hiking.graph"),
+      listOf(
+        "utrecht-cycling.graph",
+        "utrecht-cycling.geometry",
+        "utrecht-hiking.graph",
+        "utrecht-hiking.geometry",
+      ),
       index.files.map { it.file },
     )
     assertEquals(
-      listOf(IndexedNetworkType.CYCLING, IndexedNetworkType.HIKING),
-      index.files.map { it.network },
+      listOf(
+        IndexedFileKind.GRAPH,
+        IndexedFileKind.GEOMETRY,
+        IndexedFileKind.GRAPH,
+        IndexedFileKind.GEOMETRY,
+      ),
+      index.files.map { it.kind },
     )
+    for ((graphEntry, geometryEntry) in index.files.chunked(2).map { it[0] to it[1] }) {
+      assertEquals(graphEntry.network, geometryEntry.network)
+      val geometryBytes = output.resolve(geometryEntry.file).readBytes()
+      assertTrue(NetworkGeometry.belongsTo(geometryBytes, graphEntry.sha256), geometryEntry.file)
+    }
     index.files.forEach { entry ->
       assertTrue(entry.matches(output.resolve(entry.file).readBytes()), "${entry.file} matches")
     }

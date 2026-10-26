@@ -63,4 +63,27 @@ class NetworkIndexTest {
       sha256Hex(ByteArray(0)),
     )
   }
+
+  @Test
+  fun `index lists geometry`() {
+    val geometryEntry =
+      entry.copy(file = "netherlands-cycling.geometry", kind = IndexedFileKind.GEOMETRY)
+    val index = NetworkIndex(1, "2026-10-26T03:00:00Z", listOf(entry, geometryEntry))
+
+    val json = index.toJson()
+
+    assertTrue("\"kind\": \"geometry\"" in json, json)
+    assertTrue("\"kind\": \"graph\"" in json, json)
+    assertEquals(index, NetworkIndex.parse(json))
+  }
+
+  @Test
+  fun `an index without kinds lists graph files`() {
+    val json =
+      """{"formatVersion": 1, "generatedAt": "2026-10-26T03:00:00Z", "files": [
+        {"region": "netherlands", "network": "cycling", "file": "netherlands-cycling.graph",
+         "sizeBytes": 5, "sha256": "${entry.sha256}", "dataDate": "2026-10-25"}]}"""
+
+    assertEquals(IndexedFileKind.GRAPH, NetworkIndex.parse(json).files.single().kind)
+  }
 }
