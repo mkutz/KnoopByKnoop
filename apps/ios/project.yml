@@ -20,6 +20,7 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Knoop by Knoop
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         # The Kotlin core framework, built by the pre-build script below.
         FRAMEWORK_SEARCH_PATHS: $(SRCROOT)/../../modules/core/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
         OTHER_LDFLAGS: -framework KnoopByKnoopCore
