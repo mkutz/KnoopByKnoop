@@ -41,11 +41,14 @@ object PbfWriter {
     val wayGroup = Osmformat.PrimitiveGroup.newBuilder()
     for (way in ways) {
       var previousNodeId = 0L
-      wayGroup.addWays(
+      val builder =
         Osmformat.Way.newBuilder()
           .setId(way.id)
           .addAllRefs(way.nodeIds.map { (it - previousNodeId).also { _ -> previousNodeId = it } })
-      )
+      way.tags.forEach { (key, value) ->
+        builder.addKeys(strings.id(key)).addVals(strings.id(value))
+      }
+      wayGroup.addWays(builder)
     }
 
     val relationGroup = Osmformat.PrimitiveGroup.newBuilder()

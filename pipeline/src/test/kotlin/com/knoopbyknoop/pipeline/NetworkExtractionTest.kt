@@ -116,9 +116,12 @@ class NetworkExtractionTest {
     assertEquals(listOf(), result.graphs.getValue(NetworkType.CYCLING).connections)
   }
 
+  private fun knot30(id: Long, latitude: Double) =
+    OsmNode(id, latitude, 5.0, mapOf("rcn_ref" to "30", "network:type" to "node_network"))
+
   @Test
-  fun `nearby nodes with the same ref are one knot`() {
-    // Junction 30 is tagged on both sides of a dual carriageway (nodes 2 and 3, 33 m apart).
+  fun `junction tagged on several nodes`() {
+    // Junction 30 is tagged on both sides of a wide junction (nodes 2 and 3, about 330 m apart).
     // Route 12-30 arrives at node 2, route 30-45 leaves from node 3.
     val result =
       extract(
@@ -127,9 +130,9 @@ class NetworkExtractionTest {
         nodes =
           listOf(
             cyclingKnot(1, 0, "12"),
-            cyclingKnot(2, 1, "30"),
-            OsmNode(3, 52.0013, 5.0, mapOf("rcn_ref" to "30", "network:type" to "node_network")),
-            cyclingKnot(4, 3, "45"),
+            knot30(2, 52.001),
+            knot30(3, 52.004),
+            cyclingKnot(4, 5, "45"),
           ),
       )
 
@@ -139,9 +142,8 @@ class NetworkExtractionTest {
   }
 
   @Test
-  fun `knots with equal numbers connected by their own route stay apart`() {
-    // Knot 30 on both banks of a river (nodes 2 and 3, 55 m apart, so within the merge distance),
-    // linked by a ferry route.
+  fun `connector inside a junction`() {
+    // A short route of its own (relation 11) links the two nodes tagged 30, without a ferry.
     val result =
       extract(
         relations = listOf(route(10, "rcn", 100), route(11, "rcn", 101), route(12, "rcn", 102)),
@@ -150,9 +152,36 @@ class NetworkExtractionTest {
         nodes =
           listOf(
             cyclingKnot(1, 0, "12"),
-            cyclingKnot(2, 1, "30"),
-            OsmNode(3, 52.0015, 5.0, mapOf("rcn_ref" to "30", "network:type" to "node_network")),
+            knot30(2, 52.001),
+            knot30(3, 52.0013),
             cyclingKnot(4, 3, "45"),
+          ),
+      )
+
+    val graph = result.graphs.getValue(NetworkType.CYCLING)
+    assertEquals(listOf("12", "30", "45"), graph.knots.values.map { it.ref }.sorted())
+    assertEquals(setOf(1L to 2L, 2L to 4L), graph.connections.map { it.fromId to it.toId }.toSet())
+    assertEquals(mapOf(SkipReason.ONE_KNOT to 1), result.skippedRoutes)
+  }
+
+  @Test
+  fun `equal numbers on both banks of a river`() {
+    // Knot 30 on both banks (nodes 2 and 3, within the merge distance), linked by a ferry route.
+    val result =
+      extract(
+        relations = listOf(route(10, "rcn", 100), route(11, "rcn", 101), route(12, "rcn", 102)),
+        ways =
+          listOf(
+            OsmWay(100, listOf(1, 2)),
+            OsmWay(101, listOf(2, 3), mapOf("route" to "ferry")),
+            OsmWay(102, listOf(3, 4)),
+          ),
+        nodes =
+          listOf(
+            cyclingKnot(1, 0, "12"),
+            knot30(2, 52.001),
+            knot30(3, 52.003),
+            cyclingKnot(4, 5, "45"),
           ),
       )
 
@@ -165,12 +194,35 @@ class NetworkExtractionTest {
   }
 
   @Test
+  fun `a ferry relation keeps equal numbers apart too`() {
+    val ferry =
+      OsmRelation(
+        11,
+        mapOf(
+          "type" to "route",
+          "route" to "ferry",
+          "network" to "rcn",
+          "network:type" to "node_network",
+        ),
+        listOf(101),
+      )
+    val result =
+      extract(
+        relations = listOf(ferry),
+        ways = listOf(OsmWay(101, listOf(2, 3))),
+        nodes = listOf(knot30(2, 52.001), knot30(3, 52.003)),
+      )
+
+    assertEquals(2, result.graphs.getValue(NetworkType.CYCLING).knots.size)
+  }
+
+  @Test
   fun `distant nodes with the same ref are different knots`() {
     val result =
       extract(
         relations = listOf(),
         ways = listOf(),
-        nodes = listOf(cyclingKnot(1, 0, "12"), cyclingKnot(2, 10, "12")),
+        nodes = listOf(cyclingKnot(1, 0, "12"), cyclingKnot(2, 10, "12")), // about 1.1 km apart
       )
 
     assertEquals(2, result.graphs.getValue(NetworkType.CYCLING).knots.size)

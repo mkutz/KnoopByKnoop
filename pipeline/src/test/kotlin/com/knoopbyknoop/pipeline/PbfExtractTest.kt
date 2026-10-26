@@ -49,4 +49,25 @@ class PbfExtractTest {
       1.0,
     )
   }
+
+  @Test
+  fun `reads ferries from way tags`() {
+    val file = directory.resolve("ferry.osm.pbf")
+    val knot30 = nodeNetwork + ("rcn_ref" to "30")
+    PbfWriter.write(
+      file,
+      replicationTimestamp = 1_793_000_000,
+      nodes = listOf(OsmNode(2, 52.001, 5.0, knot30), OsmNode(3, 52.003, 5.0, knot30)),
+      ways = listOf(OsmWay(101, listOf(2, 3), mapOf("route" to "ferry"))),
+      relations =
+        listOf(
+          OsmRelation(11, nodeNetwork + mapOf("type" to "route", "network" to "rcn"), listOf(101))
+        ),
+    )
+    val extraction = NetworkExtraction()
+
+    PbfExtract(file).readInto(extraction)
+
+    assertEquals(2, extraction.result().graphs.getValue(NetworkType.CYCLING).knots.size)
+  }
 }

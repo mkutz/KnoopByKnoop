@@ -88,7 +88,11 @@ class PbfExtract(private val path: Path) {
 
     fun toOsmWay(way: Osmformat.Way): OsmWay {
       var nodeId = 0L
-      return OsmWay(way.id, way.refsList.map { delta -> (nodeId + delta).also { nodeId = it } })
+      return OsmWay(
+        way.id,
+        way.refsList.map { delta -> (nodeId + delta).also { nodeId = it } },
+        tags(way.keysList, way.valsList),
+      )
     }
 
     fun toOsmNode(node: Osmformat.Node): OsmNode =

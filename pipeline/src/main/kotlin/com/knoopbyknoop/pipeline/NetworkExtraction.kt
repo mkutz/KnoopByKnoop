@@ -21,6 +21,7 @@ class NetworkExtraction {
 
   private val routes = mutableListOf<NetworkRoute>()
   private val wayNodeIds = HashMap<Long, LongArray>()
+  private val ferryWayIds = HashSet<Long>()
   private val knots = NetworkType.entries.associateWith { HashMap<Long, Knot>() }
 
   private val wantedWayIds by lazy { routes.flatMapTo(HashSet()) { it.wayIds } }
@@ -30,11 +31,14 @@ class NetworkExtraction {
     if (relation.tags["type"] != "route") return
     if (relation.tags["network:type"] != "node_network") return
     val network = NETWORKS_BY_TAG[relation.tags["network"]] ?: return
-    routes.add(NetworkRoute(relation.id, network, relation.memberWayIds))
+    val isFerry = relation.tags["route"] == "ferry"
+    routes.add(NetworkRoute(relation.id, network, relation.memberWayIds, isFerry))
   }
 
   fun acceptWay(way: OsmWay) {
-    if (way.id in wantedWayIds) wayNodeIds[way.id] = way.nodeIds.toLongArray()
+    if (way.id !in wantedWayIds) return
+    wayNodeIds[way.id] = way.nodeIds.toLongArray()
+    if (way.tags["route"] == "ferry") ferryWayIds.add(way.id)
   }
 
   fun acceptNode(node: OsmNode) {
@@ -79,13 +83,14 @@ class NetworkExtraction {
   }
 
   /**
-   * Pairs of knot nodes with the same ref that a route of their own connects, e.g. a ferry between
-   * both banks of a river. They are different knots, so riders can choose which one to go to.
+   * Pairs of knot nodes with the same ref that a route with a ferry connects, e.g. on both banks of
+   * a river. They are different knots, so riders can choose which one to go to. Routes without a
+   * ferry between nodes with the same ref are connectors inside one junction.
    */
   private fun separateNodeIds(network: NetworkType): Set<Pair<Long, Long>> {
     val networkKnots = knots.getValue(network)
     return routes
-      .filter { it.network == network }
+      .filter { it.network == network && (it.isFerry || it.wayIds.any { id -> id in ferryWayIds }) }
       .flatMapTo(HashSet()) { route ->
         val knotNodeIds = knotNodeIdsOf(route, networkKnots.keys)
         val refs = knotNodeIds.map { networkKnots.getValue(it).ref }.distinct()
@@ -198,13 +203,17 @@ class NetworkExtraction {
     val relationId: Long,
     val network: NetworkType,
     val wayIds: List<Long>,
+    val isFerry: Boolean,
   )
 
   companion object {
     private val NETWORKS_BY_TAG = mapOf("rcn" to NetworkType.CYCLING, "rwn" to NetworkType.HIKING)
 
-    /** Nodes with the same ref within this distance are one knot, see [mergeSameKnots]. */
-    const val SAME_KNOT_DISTANCE_METERS = 100.0
+    /**
+     * Nodes with the same ref within this distance are one knot, see [mergeSameKnots]. In the Dutch
+     * extract, nodes of one junction are up to about 500 m apart, e.g. at wide junctions.
+     */
+    const val SAME_KNOT_DISTANCE_METERS = 500.0
   }
 }
 

@@ -8,6 +8,6 @@ data class OsmNode(
   val tags: Map<String, String> = mapOf(),
 )
 
-data class OsmWay(val id: Long, val nodeIds: List<Long>)
+data class OsmWay(val id: Long, val nodeIds: List<Long>, val tags: Map<String, String> = mapOf())
 
 data class OsmRelation(val id: Long, val tags: Map<String, String>, val memberWayIds: List<Long>)
