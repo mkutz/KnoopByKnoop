@@ -17,7 +17,7 @@ Normal start: knots within target, the map 64 ms over. First start offline: the 
 
 ### iPhone
 
-To be measured by the maintainer.
+Skipped by the maintainer's decision.
 
 ## After the change
 
@@ -36,4 +36,4 @@ Not a reference device. Normal start: map 386–402 ms, knots 609–1048 ms, cou
 
 ### iPhone
 
-To be measured by the maintainer.
+No numbers recorded. Started from the home screen (release build, without the debugger), the maintainer "hardly saw the load screen". Started from Xcode with the debugger attached, the first start took about 10 s; the launch screen with the app icon now covers that time.

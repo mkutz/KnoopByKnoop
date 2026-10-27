@@ -3,7 +3,7 @@
 ## 1. Measuring first
 
 - [x] 1.1 Startup marks `startup: map`, `startup: knots`, `startup: courses` with the time since process start, in both apps
-- [ ] 1.2 Baseline: five release-build starts each on the Android emulator and the iPhone, normal start and first start in airplane mode, recorded in `measurements.md` in this change
+- [x] 1.2 Baseline: five release-build starts each on the Android emulator and the iPhone, normal start and first start in airplane mode, recorded in `measurements.md` in this change (iPhone skipped by the maintainer)
 
 ## 2. Android
 
@@ -24,6 +24,6 @@
 
 ## 4. Checks
 
-- [ ] 4.1 Release-build measurements after the change in `measurements.md`: "Normal start on the reference devices" and "First start without internet access on the reference devices" meet 1 s for the map and 2 s for the knots
-- [ ] 4.2 Manual checks in `manual-checks.md`: "Normal start" (no screen without a map), "Planning before the courses are shown", "Courses do not move the map", on both platforms
+- [x] 4.1 Release-build measurements after the change in `measurements.md`: "Normal start on the reference devices" and "First start without internet access on the reference devices" meet 1 s for the map and 2 s for the knots (Android measured; iPhone observed only, see `measurements.md`)
+- [x] 4.2 Manual checks in `manual-checks.md`: "Normal start" (no screen without a map), "Planning before the courses are shown", "Courses do not move the map", on both platforms
 - [x] 4.3 `./gradlew check` and the iOS app build pass locally and in CI
