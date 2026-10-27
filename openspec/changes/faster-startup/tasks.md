@@ -1,0 +1,28 @@
+# Tasks
+
+## 1. Measuring first
+
+- [ ] 1.1 Startup marks `startup: map`, `startup: knots`, `startup: courses` with the time since process start, in both apps
+- [ ] 1.2 Baseline: five release-build starts each on the Android emulator and the iPhone, normal start and first start in airplane mode, recorded in `measurements.md` in this change
+
+## 2. Android
+
+- [ ] 2.1 `NetworkStorage.mapLayer` returns files; `NetworkMap` sets knots and connections sources by file URI
+- [ ] 2.2 The map is composed before the session exists, at the saved camera position (`camera.json`, written when the app goes to the background) or the network's center at knot zoom
+- [ ] 2.3 Without internet access at start, the offline style is used right away
+- [ ] 2.4 `loadNetwork` in two steps: graph (knots, straight connections, restored route) and geometry (courses, route redrawn); the session and the camera stay across step 2
+- [ ] 2.5 Bundled graphs are installed without delaying the map; the note over the map replaces the loading screen
+- [ ] 2.6 `./gradlew :apps:android:assembleRelease` passes (unsigned) and `assembleDebug` passes
+
+## 3. iOS
+
+- [ ] 3.1 The map view exists before the session, at the saved camera position or the network's center at knot zoom
+- [ ] 3.2 Without internet access at start, the offline style is used right away
+- [ ] 3.3 `loadNetwork` in two steps as on Android
+- [ ] 3.4 The iOS app builds in Debug and Release for the simulator
+
+## 4. Checks
+
+- [ ] 4.1 Release-build measurements after the change in `measurements.md`: "Normal start on the reference devices" and "First start without internet access on the reference devices" meet 1 s for the map and 2 s for the knots
+- [ ] 4.2 Manual checks in `manual-checks.md`: "Normal start" (no screen without a map), "Planning before the courses are shown", "Courses do not move the map", on both platforms
+- [ ] 4.3 `./gradlew check` and the iOS app build pass locally and in CI
