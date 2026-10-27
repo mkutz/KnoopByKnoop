@@ -21,4 +21,4 @@
 
 - [x] 4.1 Run `update-network-data`; record the logged ferry coverage in `manual-checks.md`
 - [ ] 4.2 Manual checks in `manual-checks.md` with a real route over a ferry, on the Android emulator and by the maintainer on iOS: "Route over a ferry", "Ferry without known times", "Several ferries", "Route without ferries", "Offline"
-- [ ] 4.3 CI passes
+- [x] 4.3 CI passes
