@@ -31,6 +31,13 @@ Hits with the same name and the same town that lie within 500 m of each other ar
 
 *Alternative:* call Photon only from the apps. Then the rules for description and merging would be written twice and tested on neither platform.
 
+### Two requests: important places and nearby hits
+Photon's location bias either favors nearby hits or important ones, and no single strength serves both. Tried during implementation, with the map at Helmond, "Sluis" found only locks and bridges in Helmond with a strong bias. With a weak one (`zoom=10`), it found the town of Sluis in Zeeland, but "Stationsstraat" near the Zeeland border then listed one in Borgloon first. So every search sends two requests:
+- a **prominent** one with `zoom=10`
+- a **nearby** one with Photon's default bias
+
+The list shows up to three important places from the prominent response first: towns (`place`, `boundary`), stations, stops and airports. A town's `place` wins over its municipality's `boundary`, because its position is the town's center. Then come the nearby hits, with duplicates across both lists merged. If one request fails, the other's hits are shown. Only if both fail does the list say search is not available. This doubles the requests to Photon; both are cancelled together by the next keystroke.
+
 ### Apps: typing, requests, marker
 - **Requests:** sent 300 ms after the last keystroke and from 3 characters on. A newer query cancels the running request. Requests carry a `User-Agent` naming the app and its repository, as Photon asks.
 - **Results:** shown in a list right under the search field, over the map. The first plan was to show them in place of the waypoint sheet's content, but in portrait the keyboard covers the sheet, so the hits would not be visible while typing.

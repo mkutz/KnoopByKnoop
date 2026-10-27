@@ -70,10 +70,14 @@ struct PlannerView: View {
         onTap: model.tap(latitude:longitude:radiusMeters:),
         online: model.online,
         initialPlace: model.initialPlace,
-        onLeave: model.saveCamera
+        onLeave: model.saveCamera,
+        marker: model.marker,
+        onMove: model.mapMoved
       )
       .ignoresSafeArea()
-      HStack {
+      VStack(spacing: 8) {
+        PlaceSearchView(model: model)
+        HStack {
         Picker("Knot network", selection: networkBinding) {
           Text("Cycling").tag(IndexedNetworkType.cycling)
           Text("Hiking").tag(IndexedNetworkType.hiking)
@@ -81,9 +85,11 @@ struct PlannerView: View {
         .pickerStyle(.segmented)
         .frame(width: 200)
         infoButton
+        }
+        .padding(8)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
       }
-      .padding(8)
-      .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+      .padding(.horizontal, 12)
       .padding(.top, 8)
       if model.layers == nil {
         // Only without bundled graphs, e.g. a debug build that was built without internet access,
@@ -93,9 +99,9 @@ struct PlannerView: View {
             ? "The knot networks need an internet connection once"
             : "Loading the \(model.network.name.lowercased()) knot network…"
         )
-        .padding(.top, 64)
+        .padding(.top, 120)
       } else if !model.status.hasGeometry {
-        CoursesNote(online: model.online).padding(.top, 64)
+        CoursesNote(online: model.online).padding(.top, 120)
       }
     }
     .overlay(alignment: .bottomTrailing) {

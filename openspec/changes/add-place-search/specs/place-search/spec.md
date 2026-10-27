@@ -26,11 +26,15 @@ The map SHALL offer a search field. While the user types, the app SHALL list mat
 - **THEN** the list says that nothing was found
 
 ### Requirement: Hits in the covered area
-Search SHALL only show hits inside the area covered by the knot networks, and SHALL rank hits near the part of the map being shown first.
+Search SHALL only show hits inside the area covered by the knot networks. Towns and stations of that name SHALL be listed first, wherever they are in the covered area; other hits SHALL be ranked near the part of the map being shown first.
 
 #### Scenario: Same name in several towns
 - **WHEN** the map shows Zeeland and the user types "Stationsstraat"
 - **THEN** streets of that name in Zeeland are listed before those farther away
+
+#### Scenario: Town far away
+- **WHEN** the map shows Helmond and the user types "Sluis"
+- **THEN** the town of Sluis in Zeeland is listed first, before locks named "Sluis" near Helmond
 
 #### Scenario: Place outside the covered area
 - **WHEN** the user types the name of a place that only exists outside the covered area, e.g. "Paris"

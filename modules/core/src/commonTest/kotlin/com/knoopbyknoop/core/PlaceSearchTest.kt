@@ -21,6 +21,9 @@ class PlaceSearchTest {
   private val venlo = 51.3704 to 6.1724
   private val assenede = 51.2300 to 3.7100
   private val eeklo = 51.1850 to 3.5650
+  private val sluis = 51.3084 to 3.3874
+  private val helmond = 51.4660 to 5.6625
+  private val borgloon = 50.8103 to 5.3418
 
   private val area = GeoBounds(49.5, 2.5, 53.6, 9.5)
 
@@ -98,6 +101,55 @@ class PlaceSearchTest {
       listOf("Assenede", "Eeklo"),
       hits.map { it.description.substringAfterLast(", ") }.distinct(),
     )
+  }
+
+  @Test
+  fun `towns of that name come before nearby hits`() {
+    val hits =
+      PlaceSearch.merge(
+        PhotonResponses.SLUIS_PROMINENT,
+        PhotonResponses.SLUIS_NEARBY,
+        networkAt(sluis, helmond),
+      )
+
+    assertEquals("Sluis" to "Zeeland, Netherlands", hits.first().let { it.name to it.description })
+    assertEquals(3.3874159, hits.first().longitude, 0.0001, "the village, not the municipality")
+    assertEquals(1, hits.count { it.description == "Zeeland, Netherlands" })
+    assertEquals(
+      "Bridge, Helmond",
+      hits.first { it.name == "Sluis 8" }.description,
+      "nearby hits follow",
+    )
+  }
+
+  @Test
+  fun `nearby streets come before streets of that name far away`() {
+    val hits =
+      PlaceSearch.merge(
+        PhotonResponses.STATIONSSTRAAT_PROMINENT,
+        PhotonResponses.STATIONSSTRAAT_NEARBY,
+        networkAt(assenede, eeklo, borgloon),
+      )
+
+    assertTrue(hits.first().description.endsWith("Assenede"), "$hits")
+  }
+
+  @Test
+  fun `one failed request still gives hits`() {
+    val hits = PlaceSearch.merge(null, PhotonResponses.STATIONSSTRAAT_NEARBY, networkAt(assenede))
+
+    assertTrue(hits.isNotEmpty())
+    assertFailsWith<IllegalArgumentException> {
+      PlaceSearch.merge(null, "<html>", networkAt(assenede))
+    }
+  }
+
+  @Test
+  fun `the prominent request has a wide location bias`() {
+    val requests = PlaceSearch.requests("Sluis", 51.48, 5.66, area, "en")
+
+    assertTrue(requests.prominent.endsWith("&zoom=10"), requests.prominent)
+    assertTrue("zoom" !in requests.nearby, requests.nearby)
   }
 
   @Test

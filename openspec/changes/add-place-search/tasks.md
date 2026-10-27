@@ -4,7 +4,7 @@
 
 - [x] 1.1 `PlaceSearch.requestUrl(query, center, coveredArea, language)` with `limit`, `lang`, `bbox` and bias; tests for the URL, including an unsupported language
 - [x] 1.2 `PlaceSearch.parse(json)` into `PlaceHit`s with name, description and coordinates; tests with recorded Photon responses for "Station", "Address", "Business" and "No hits"
-- [x] 1.3 Merging duplicates (same name and town within 500 m); test with the recorded "Utrecht Centraal" response giving one hit
+- [x] 1.3 Two requests (prominent and nearby) merged with important places first, see design; tests for "Town far away" and "Same name in several towns". Merging duplicates (same name and town within 500 m); test with the recorded "Utrecht Centraal" response giving one hit
 - [x] 1.4 The covered area: the `bbox` from the installed graph's extent, and only hits within 3 km of a knot (the `bbox` alone let "Paris" shops in Lower Saxony through, see design); test that a hit outside it is not returned ("Place outside the covered area")
 
 ## 2. Android
@@ -16,9 +16,9 @@
 
 ## 3. iOS
 
-- [ ] 3.1 Search field, hit list, debounce, cancellation and `User-Agent` as on Android
-- [ ] 3.2 Tapping a hit, marker and clearing as on Android
-- [ ] 3.3 Disabled field offline, error message, attribution; the iOS app builds
+- [x] 3.1 Search field, hit list, debounce, cancellation and `User-Agent` as on Android
+- [x] 3.2 Tapping a hit, marker and clearing as on Android
+- [x] 3.3 Disabled field offline, error message, attribution; the iOS app builds
 
 ## 4. Checks
 

@@ -23,10 +23,12 @@ import com.knoopbyknoop.core.PlanningSession
 import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteKnot
 import com.knoopbyknoop.core.RouteSnapshot
-import java.io.IOException
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -159,8 +161,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     searchJob = viewModelScope.launch {
       delay(SEARCH_DELAY_MILLIS)
       state = state.copy(searchResult = SearchResult.Searching)
-      val url =
-        PlaceSearch.requestUrl(
+      val requests =
+        PlaceSearch.requests(
           query,
           center?.latitude ?: (area.minLatitude + area.maxLatitude) / 2,
           center?.longitude ?: (area.minLongitude + area.maxLongitude) / 2,
@@ -169,14 +171,17 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         )
       val result =
         try {
-          val hits =
-            withContext(Dispatchers.Default) {
-              PlaceSearch.parse(PlaceSearchClient.fetch(url), locator)
+          val (prominent, nearby) =
+            coroutineScope {
+              listOf(requests.prominent, requests.nearby)
+                .map { url -> async { runCatching { PlaceSearchClient.fetch(url) }.getOrNull() } }
+                .awaitAll()
             }
+          val hits =
+            withContext(Dispatchers.Default) { PlaceSearch.merge(prominent, nearby, locator) }
           if (hits.isEmpty()) SearchResult.NoHits else SearchResult.Hits(hits)
-        } catch (exception: IOException) {
-          SearchResult.Unavailable
         } catch (exception: IllegalArgumentException) {
+          // Neither request was answered.
           SearchResult.Unavailable
         }
       state = state.copy(searchResult = result)

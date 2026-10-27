@@ -15,6 +15,9 @@ private let offlineStyle = """
 /// How long the base map may take to load before the offline style is used.
 private let baseMapTimeout: TimeInterval = 3
 
+/// The zoom level a search hit is shown at: streets and knots around it are easy to tap.
+private let searchHitZoom = 14.0
+
 /// Knots are drawn and can be tapped from this zoom level on.
 private let knotMinimumZoom = 10.0
 
@@ -46,6 +49,10 @@ struct NetworkMapView: UIViewRepresentable {
   let initialPlace: CameraPlace?
   /// Called with the map's place when the app goes to the background.
   let onLeave: (CameraPlace) -> Void
+  /// The chosen search hit, shown with a marker; the map moves there, see `place-search`.
+  let marker: PlaceHit?
+  /// Called with the map's place whenever it stopped moving.
+  let onMove: (CameraPlace) -> Void
 
   func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -110,6 +117,8 @@ struct NetworkMapView: UIViewRepresentable {
   func updateUIView(_ mapView: MLNMapView, context: Context) {
     context.coordinator.onTap = onTap
     context.coordinator.onLeave = onLeave
+    context.coordinator.onMove = onMove
+    context.coordinator.showMarker(marker, on: mapView)
     if online && context.coordinator.usesOfflineStyle {
       context.coordinator.usesOfflineStyle = false
       mapView.styleURL = baseMapStyle
@@ -122,6 +131,37 @@ struct NetworkMapView: UIViewRepresentable {
 
     var onTap: (Double, Double, Double) -> Void = { _, _, _ in }
     var onLeave: (CameraPlace) -> Void = { _ in }
+    var onMove: (CameraPlace) -> Void = { _ in }
+    private var marker: PlaceHit?
+
+    func showMarker(_ newMarker: PlaceHit?, on mapView: MLNMapView) {
+      guard newMarker != marker else { return }
+      marker = newMarker
+      updateMarker()
+      if let newMarker {
+        mapView.setCenter(
+          CLLocationCoordinate2D(latitude: newMarker.latitude, longitude: newMarker.longitude),
+          zoomLevel: searchHitZoom, animated: true)
+      }
+    }
+
+    private func updateMarker() {
+      guard let source = style?.source(withIdentifier: "marker") as? MLNShapeSource else { return }
+      if let marker {
+        let point = MLNPointFeature()
+        point.coordinate = CLLocationCoordinate2D(latitude: marker.latitude, longitude: marker.longitude)
+        source.shape = point
+      } else {
+        source.shape = nil
+      }
+    }
+
+    func mapView(_ mapView: MLNMapView, regionDidChangeAnimated animated: Bool) {
+      onMove(
+        CameraPlace(
+          latitude: mapView.centerCoordinate.latitude, longitude: mapView.centerCoordinate.longitude,
+          zoom: mapView.zoomLevel))
+    }
     /// Whether the map already shows a place to keep, e.g. the one saved when the app was left.
     var hasPlace = false
     private var leaving: NSObjectProtocol?
@@ -277,6 +317,17 @@ struct NetworkMapView: UIViewRepresentable {
       // Not "arrow": the base map's sprite has an image of that name for one-way streets.
       style.setImage(KnotBadges.arrow(), forName: "route-arrow")
       sources.forEach(style.addSource)
+
+      // The chosen search hit, drawn under connections, route and knots, so it never hides a knot.
+      let markerSource = MLNShapeSource(identifier: "marker", shape: nil)
+      style.addSource(markerSource)
+      let markerLayer = MLNCircleStyleLayer(identifier: "marker", source: markerSource)
+      markerLayer.circleRadius = NSExpression(forConstantValue: 12)
+      markerLayer.circleColor = NSExpression(forConstantValue: UIColor(red: 0.85, green: 0.19, blue: 0.15, alpha: 1))
+      markerLayer.circleStrokeColor = NSExpression(forConstantValue: UIColor.white)
+      markerLayer.circleStrokeWidth = NSExpression(forConstantValue: 3)
+      style.addLayer(markerLayer)
+      updateMarker()
 
       let connections = MLNLineStyleLayer(identifier: "connections", source: sources[0])
       connections.lineColor = NSExpression(forConstantValue: UIColor(Color.knoopGreen))

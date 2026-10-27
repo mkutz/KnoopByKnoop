@@ -56,6 +56,10 @@ final class AppModel: ObservableObject {
   @Published private(set) var routeDescription: RouteDescription = RouteDescriptionEmpty.shared
   @Published private(set) var loading = false
   @Published var message: String?
+  @Published private(set) var searchQuery = ""
+  @Published private(set) var searchResult: SearchResult = .none
+  /// The chosen search hit, shown with a marker on the map.
+  @Published private(set) var marker: PlaceHit?
 
   var status: NetworkStatus { catalog.status(network: network) }
 
@@ -253,6 +257,64 @@ final class AppModel: ObservableObject {
 
   func saveCamera(_ place: CameraPlace) {
     storage.saveCamera(place)
+  }
+
+  // MARK: Place search, see `place-search`
+
+  private var searchTask: Task<Void, Never>?
+  private var mapCenter: CameraPlace?
+
+  /// The map's current place, to rank search hits near it.
+  func mapMoved(_ place: CameraPlace) {
+    mapCenter = place
+  }
+
+  /// Searches `query` once the user stopped typing for a moment; newer queries replace older ones.
+  func search(_ query: String) {
+    searchTask?.cancel()
+    searchQuery = query
+    guard query.trimmingCharacters(in: .whitespaces).count >= Int(PlaceSearch.shared.MIN_QUERY_LENGTH),
+      let locator = loaded?.locator, let graph = session?.graph, let area = GeoBounds.companion.of(graph: graph)
+    else {
+      searchResult = .none
+      return
+    }
+    let center = mapCenter ?? initialPlace
+    searchTask = Task {
+      try? await Task.sleep(for: .milliseconds(300))
+      guard !Task.isCancelled else { return }
+      searchResult = .searching
+      let requests = PlaceSearch.shared.requests(
+        query: query,
+        centerLatitude: center?.latitude ?? (area.minLatitude + area.maxLatitude) / 2,
+        centerLongitude: center?.longitude ?? (area.minLongitude + area.maxLongitude) / 2,
+        area: area, language: Locale.current.language.languageCode?.identifier ?? "en")
+      async let prominent = PlaceSearchClient.fetch(requests.prominent)
+      async let nearby = PlaceSearchClient.fetch(requests.nearby)
+      let responses = await (prominent, nearby)
+      guard !Task.isCancelled else { return }
+      // Neither request was answered when merging fails.
+      if let hits = try? PlaceSearch.shared.merge(prominent: responses.0, nearby: responses.1, network: locator) {
+        searchResult = hits.isEmpty ? .noHits : .hits(hits)
+      } else {
+        searchResult = .unavailable
+      }
+    }
+  }
+
+  /// Moves the map to `hit` and marks it; the route stays as it is.
+  func choose(_ hit: PlaceHit) {
+    searchTask?.cancel()
+    searchQuery = hit.name
+    searchResult = .none
+    marker = hit
+  }
+
+  func clearSearch() {
+    searchTask?.cancel()
+    searchQuery = ""
+    searchResult = .none
+    marker = nil
   }
 
   private func refreshCatalog() {

@@ -33,6 +33,11 @@ struct InfoSheet: View {
               + "(ODbL 1.0), openstreetmap.org/copyright"
           )
           .font(.footnote)
+          Text(
+            "Search by Photon (komoot), data © OpenStreetMap contributors. What you type and the map's "
+              + "center are sent to photon.komoot.io."
+          )
+          .font(.footnote)
         }
       }
       .navigationTitle("Info")

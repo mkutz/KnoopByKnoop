@@ -21,6 +21,9 @@ data class PlaceHit(
   val longitude: Double,
 )
 
+/** The two requests of one search, see [PlaceSearch.requests]. */
+data class PlaceSearchRequests(val prominent: String, val nearby: String)
+
 /** The extent of a network, to limit searches to the area it covers. */
 data class GeoBounds(
   val minLatitude: Double,
@@ -60,16 +63,45 @@ object PlaceSearch {
 
   private val LANGUAGES = setOf("de", "en", "fr")
 
+  /** Photon's `zoom` for the prominent request: a wide, weak location bias. */
+  private const val PROMINENT_ZOOM = 10
+
+  private const val MAX_IMPORTANT_HITS = 3
+
+  private const val MAX_HITS = 10
+
+  /** Kinds of places that are found wherever they are: towns, municipalities, stations. */
+  private val IMPORTANT_KEYS = setOf("place", "boundary", "railway", "public_transport", "aeroway")
+
+  private val IMPORTANT_VALUES = setOf("train_station")
+
   /** Kinds of places that are shown with their address rather than their kind. */
   private val ADDRESSED_KEYS = setOf("amenity", "shop", "craft", "office", "tourism", "leisure")
 
   private val json = Json { ignoreUnknownKeys = true }
 
   /**
-   * The request for [query], ranked around the map's center and limited to [area].
+   * The two requests for [query], see [merge]: one ranked by importance, so that towns and stations
+   * of that name are found wherever they are, and one ranked by nearness to the map's center, so
+   * that nearby streets and businesses come first.
    *
    * @param language the device's language code, e.g. `nl`; Photon only knows some languages
    */
+  fun requests(
+    query: String,
+    centerLatitude: Double,
+    centerLongitude: Double,
+    area: GeoBounds,
+    language: String,
+  ): PlaceSearchRequests =
+    PlaceSearchRequests(
+      prominent =
+        requestUrl(query, centerLatitude, centerLongitude, area, language) +
+          "&zoom=$PROMINENT_ZOOM",
+      nearby = requestUrl(query, centerLatitude, centerLongitude, area, language),
+    )
+
+  /** A request ranked by nearness to the map's center, with Photon's default strength. */
   fun requestUrl(
     query: String,
     centerLatitude: Double,
@@ -92,36 +124,89 @@ object PlaceSearch {
   }
 
   /**
-   * The hits of a Photon response, in Photon's order, without hits outside the area of [network]
+   * The hits of both [requests]' responses: up to three important places (towns, stations, …) of
+   * the [prominent] response first, then the [nearby] response's hits, without hits outside the
+   * area of [network] and with duplicates merged. A response is `null` when its request failed.
+   *
+   * @throws IllegalArgumentException if no response is a Photon response
+   */
+  fun merge(prominent: String?, nearby: String?, network: KnotLocator): List<PlaceHit> {
+    val prominentCandidates = prominent?.let { runCatching { candidates(it, network) }.getOrNull() }
+    val nearbyCandidates = nearby?.let { runCatching { candidates(it, network) }.getOrNull() }
+    require(prominentCandidates != null || nearbyCandidates != null) { "No Photon response" }
+    val important =
+      prominentCandidates
+        .orEmpty()
+        .filter { it.isImportant }
+        // A town's place is its center; its boundary's position is somewhere in the municipality.
+        .sortedBy { it.key == "boundary" }
+        .distinctBy { it.hit.name to it.hit.description }
+        .take(MAX_IMPORTANT_HITS)
+    return distinct(important + nearbyCandidates.orEmpty())
+      .filterNot { candidate ->
+        candidate !in important &&
+          important.any {
+            it.hit.name == candidate.hit.name && it.hit.description == candidate.hit.description
+          }
+      }
+      .take(MAX_HITS)
+      .map { it.hit }
+  }
+
+  /**
+   * The hits of one Photon response, in Photon's order, without hits outside the area of [network]
    * and with duplicates merged.
    *
    * @throws IllegalArgumentException if [response] is not a Photon response
    */
-  fun parse(response: String, network: KnotLocator): List<PlaceHit> {
+  fun parse(response: String, network: KnotLocator): List<PlaceHit> =
+    distinct(candidates(response, network)).map { it.hit }
+
+  private class Candidate(val hit: PlaceHit, val city: String?, val key: String?, value: String?) {
+    val isImportant = key in IMPORTANT_KEYS || value in IMPORTANT_VALUES
+  }
+
+  private fun candidates(response: String, network: KnotLocator): List<Candidate> {
     val features =
       try {
         json.parseToJsonElement(response).jsonObject.getValue("features").jsonArray
       } catch (exception: RuntimeException) {
         throw IllegalArgumentException("Not a Photon response", exception)
       }
-    val hits = mutableListOf<Pair<PlaceHit, String?>>()
-    for (feature in features) {
-      val properties = feature.jsonObject["properties"]?.jsonObject ?: continue
+    return features.mapNotNull { feature ->
+      val properties = feature.jsonObject["properties"]?.jsonObject ?: return@mapNotNull null
       val coordinates =
-        feature.jsonObject["geometry"]?.jsonObject?.get("coordinates")?.jsonArray ?: continue
+        feature.jsonObject["geometry"]?.jsonObject?.get("coordinates")?.jsonArray
+          ?: return@mapNotNull null
       val longitude = coordinates[0].jsonPrimitive.double
       val latitude = coordinates[1].jsonPrimitive.double
-      if (network.nearest(latitude, longitude, MAX_DISTANCE_TO_NETWORK_METERS) == null) continue
-      val hit = hitOf(properties, latitude, longitude) ?: continue
-      val city = properties.text("city")
-      val isDuplicate = hits.any { (other, otherCity) ->
-        other.name == hit.name &&
-          otherCity == city &&
-          distanceMeters(other.latitude, other.longitude, latitude, longitude) < SAME_PLACE_METERS
+      if (network.nearest(latitude, longitude, MAX_DISTANCE_TO_NETWORK_METERS) == null) {
+        return@mapNotNull null
       }
-      if (!isDuplicate) hits.add(hit to city)
+      val hit = hitOf(properties, latitude, longitude) ?: return@mapNotNull null
+      Candidate(
+        hit,
+        properties.text("city"),
+        properties.text("osm_key"),
+        properties.text("osm_value"),
+      )
     }
-    return hits.map { it.first }
+  }
+
+  /** Hits of the same name and town close to each other are one place, e.g. a station's hall. */
+  private fun distinct(candidates: List<Candidate>): List<Candidate> {
+    val kept = mutableListOf<Candidate>()
+    for (candidate in candidates) {
+      val hit = candidate.hit
+      val isDuplicate = kept.any {
+        it.hit.name == hit.name &&
+          it.city == candidate.city &&
+          distanceMeters(it.hit.latitude, it.hit.longitude, hit.latitude, hit.longitude) <
+            SAME_PLACE_METERS
+      }
+      if (!isDuplicate) kept.add(candidate)
+    }
+    return kept
   }
 
   private fun hitOf(properties: JsonObject, latitude: Double, longitude: Double): PlaceHit? {
@@ -134,7 +219,7 @@ object PlaceSearch {
     val key = properties.text("osm_key")
     val description =
       when {
-          key == "place" && properties.text("name") != null ->
+          (key == "place" || key == "boundary") && properties.text("name") != null ->
             listOfNotNull(properties.text("state"), properties.text("country"))
           key in ADDRESSED_KEYS || name == street ->
             listOfNotNull(street.takeIf { it != name }, city)
@@ -147,16 +232,18 @@ object PlaceSearch {
 
   /**
    * E.g. "Train station" for `osm_value=train_station`. Roads are just streets, whatever their road
-   * class (`residential`, `tertiary`, …), and `yes` says nothing about the kind.
+   * class (`residential`, `tertiary`, …). Where the value says little (`yes`, `movable`), the key
+   * tells the kind, e.g. "Bridge".
    */
-  private fun kindOf(properties: JsonObject): String? =
-    if (properties.text("osm_key") == "highway") "Street"
-    else
-      properties
-        .text("osm_value")
-        ?.takeIf { it != "yes" }
-        ?.replace('_', ' ')
-        ?.replaceFirstChar { it.uppercase() }
+  private fun kindOf(properties: JsonObject): String? {
+    val key = properties.text("osm_key")
+    if (key == "highway") return "Street"
+    val value = properties.text("osm_value")
+    val kind = if (value == null || value in VAGUE_VALUES) key else value
+    return kind?.replace('_', ' ')?.replaceFirstChar { it.uppercase() }
+  }
+
+  private val VAGUE_VALUES = setOf("yes", "movable")
 
   private fun JsonObject.text(key: String): String? =
     this[key]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() }

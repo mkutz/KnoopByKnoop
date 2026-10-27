@@ -47,3 +47,24 @@ targets:
       - name: Build Kotlin core
         basedOnDependencyAnalysis: false
         script: '"$SRCROOT/build-core.sh"'
+
+# Defined here, so they survive regenerating the project; schemes edited in Xcode do not.
+schemes:
+  KnoopByKnoop:
+    build:
+      targets:
+        KnoopByKnoop: all
+    run:
+      config: Debug
+    archive:
+      config: Release
+  # For measuring startup times (`faster-startup`): a release build without the debugger, which
+  # Xcode installs and then waits for the app to be started from the home screen.
+  KnoopByKnoop Startup:
+    build:
+      targets:
+        KnoopByKnoop: all
+    run:
+      config: Release
+      debugEnabled: false
+      askForAppToLaunch: true
