@@ -72,11 +72,11 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
       horizontalAlignment = Alignment.CenterHorizontally,
     ) {
       if (state.status.dataDate == null && !state.online) {
-        Text("The networks need network access once.", textAlign = TextAlign.Center)
+        Text("The knot networks need an internet connection once.", textAlign = TextAlign.Center)
       } else {
         CircularProgressIndicator()
         Text(
-          "Loading the ${state.network.name.lowercase()} network…",
+          "Loading the ${state.network.name.lowercase()} knot network…",
           modifier = Modifier.padding(top = 16.dp),
         )
       }

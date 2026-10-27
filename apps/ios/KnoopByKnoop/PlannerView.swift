@@ -1,30 +1,35 @@
 import KnoopByKnoopCore
 import SwiftUI
 
-/// The map with the network, the network switch, the waypoint sheet and the info sheet, see
-/// `map-planning` and `network-sync`.
+/// The map with the network, the network switch and the waypoint sheet, which also shows the info,
+/// see `map-planning` and `network-sync`.
 struct PlannerView: View {
 
   @ObservedObject var model: AppModel
   @State private var pendingNetwork: IndexedNetworkType?
   @State private var showInfo = false
+  @State private var detent: PresentationDetent = .height(170)
 
   var body: some View {
     if let session = model.session, let layers = model.layers, !model.loading {
       ZStack(alignment: .top) {
         NetworkMapView(
           graph: session.graph, layers: layers, focus: focus(session),
-          onTap: model.tap(latitude:longitude:radiusMeters:)
+          onTap: model.tap(latitude:longitude:radiusMeters:),
+          online: model.online
         )
         .ignoresSafeArea()
         HStack {
-          Picker("Network", selection: networkBinding(session)) {
+          Picker("Knot network", selection: networkBinding(session)) {
             Text("Cycling").tag(IndexedNetworkType.cycling)
             Text("Hiking").tag(IndexedNetworkType.hiking)
           }
           .pickerStyle(.segmented)
           .frame(width: 200)
-          Button("Info") { showInfo = true }
+          Button("Info") {
+            showInfo = true
+            detent = .medium
+          }
         }
         .padding(8)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
@@ -42,10 +47,16 @@ struct PlannerView: View {
           .padding(.trailing, 4)
       }
       .sheet(isPresented: .constant(true)) {
-        WaypointSheet(model: model, session: session)
-          // Presented from the waypoint sheet, which is always shown.
-          .sheet(isPresented: $showInfo) { InfoSheet(model: model) }
-          .presentationDetents([.height(170), .medium, .large])
+        // The info is shown in this sheet, which is always presented: a second sheet on top of it
+        // is not reliably shown and can dismiss this one.
+        Group {
+          if showInfo {
+            InfoSheet(model: model, onDone: { showInfo = false })
+          } else {
+            WaypointSheet(model: model, session: session)
+          }
+        }
+        .presentationDetents([.height(170), .medium, .large], selection: $detent)
           .presentationBackgroundInteraction(.enabled(upThrough: .medium))
           .interactiveDismissDisabled()
       }
@@ -61,19 +72,21 @@ struct PlannerView: View {
         Text("The current route will be discarded.")
       }
     } else {
-      // Only without bundled graphs, e.g. a debug build that was built without network access.
+      // Only without bundled graphs, e.g. a debug build that was built without internet access.
       VStack(spacing: 16) {
         if model.status.dataDate == nil && !model.online {
-          Text("The networks need network access once.").multilineTextAlignment(.center)
+          Text("The knot networks need an internet connection once.").multilineTextAlignment(.center)
         } else {
           ProgressView()
-          Text("Loading the \(model.network.name.lowercased()) network…")
+          Text("Loading the \(model.network.name.lowercased()) knot network…")
         }
         Button("Info") { showInfo = true }
       }
       .padding(32)
       .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .sheet(isPresented: $showInfo) { InfoSheet(model: model) }
+      .sheet(isPresented: $showInfo) {
+        InfoSheet(model: model, onDone: { showInfo = false }).presentationDetents([.medium])
+      }
     }
   }
 

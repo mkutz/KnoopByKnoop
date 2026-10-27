@@ -18,13 +18,15 @@ import androidx.compose.ui.unit.dp
 import com.knoopbyknoop.core.NetworkState
 import com.knoopbyknoop.core.NetworkStatus
 
-/** Data dates, download state and attribution of the networks, see `network-sync` "Info sheet". */
+/**
+ * Data dates, download state and attribution of the knot networks, see `network-sync` "Info sheet".
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InfoSheet(state: AppState, viewModel: AppViewModel, onDismiss: () -> Unit) {
   ModalBottomSheet(onDismissRequest = onDismiss) {
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp)) {
-      Text("Network data", style = MaterialTheme.typography.titleLarge)
+      Text("Knot network data", style = MaterialTheme.typography.titleLarge)
       state.catalog.networks.forEach { status ->
         Row(
           modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
@@ -48,7 +50,8 @@ fun InfoSheet(state: AppState, viewModel: AppViewModel, onDismiss: () -> Unit) {
         )
       }
       Text(
-        "Network data © OpenStreetMap contributors, available under the Open Database License " +
+        "Knot network data © OpenStreetMap contributors, available under the Open Database " +
+          "License " +
           "(ODbL 1.0), openstreetmap.org/copyright",
         style = MaterialTheme.typography.bodySmall,
         modifier = Modifier.padding(top = 24.dp, bottom = 24.dp),
@@ -63,7 +66,7 @@ private fun describe(status: NetworkStatus, online: Boolean): String {
     when {
       status.lastAttemptFailed -> "the last download failed"
       status.state == NetworkState.DOWNLOADING -> "downloading"
-      !status.hasGeometry && !online -> "courses need network access"
+      !status.hasGeometry && !online -> "courses need an internet connection"
       !status.hasGeometry -> "courses are loading"
       status.state == NetworkState.UPDATABLE -> "update pending"
       else -> null
@@ -75,7 +78,7 @@ private fun describe(status: NetworkStatus, online: Boolean): String {
 @Composable
 fun CoursesNote(online: Boolean, modifier: Modifier = Modifier) {
   Text(
-    if (online) "Loading the courses…" else "The courses need network access once",
+    if (online) "Loading the courses…" else "The courses need an internet connection once",
     style = MaterialTheme.typography.labelLarge,
     modifier =
       modifier

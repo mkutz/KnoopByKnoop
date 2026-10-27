@@ -5,11 +5,15 @@ import SwiftUI
 /// OpenStreetMap-based base map without API key, see the design of `add-planning-screens`.
 private let baseMapStyle = URL(string: "https://tiles.openfreemap.org/styles/liberty")!
 
-/// Used when the base map cannot be loaded, e.g. offline: the network layers still show.
+/// Used when the base map cannot be loaded, e.g. offline on first start: the network layers still
+/// show. Offline, MapLibre takes long to fail, so it is used after a timeout.
 private let offlineStyle = """
   {"version": 8, "sources": {}, "layers": [{"id": "background", "type": "background", \
   "paint": {"background-color": "#EEF1EA"}}]}
   """
+
+/// How long the base map may take to load before the offline style is used.
+private let baseMapTimeout: TimeInterval = 3
 
 /// Knots are drawn and can be tapped from this zoom level on.
 private let knotMinimumZoom = 10.0
@@ -26,6 +30,8 @@ struct NetworkMapView: UIViewRepresentable {
   /// The knots to show when a network is opened, e.g. those of a restored route.
   let focus: [Knot]
   let onTap: (Double, Double, Double) -> Void
+  /// Whether the device has internet access; the base map is loaded again once it is back.
+  let online: Bool
 
   func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -42,6 +48,9 @@ struct NetworkMapView: UIViewRepresentable {
     }
     mapView.addGestureRecognizer(tap)
     addZoomButtons(to: mapView, coordinator: context.coordinator)
+    DispatchQueue.main.asyncAfter(deadline: .now() + baseMapTimeout) { [weak mapView] in
+      if let mapView, context.coordinator.style == nil { context.coordinator.useOfflineStyle(on: mapView) }
+    }
     return mapView
   }
 
@@ -75,6 +84,10 @@ struct NetworkMapView: UIViewRepresentable {
 
   func updateUIView(_ mapView: MLNMapView, context: Context) {
     context.coordinator.onTap = onTap
+    if online && context.coordinator.usesOfflineStyle {
+      context.coordinator.usesOfflineStyle = false
+      mapView.styleURL = baseMapStyle
+    }
     context.coordinator.show(graph: graph, layers: layers, focus: focus, on: mapView)
   }
 
@@ -83,7 +96,7 @@ struct NetworkMapView: UIViewRepresentable {
 
     var onTap: (Double, Double, Double) -> Void = { _, _, _ in }
     private weak var mapView: MLNMapView?
-    private var style: MLNStyle?
+    private(set) var style: MLNStyle?
     private var graph: NetworkGraph?
     private var layers: MapLayers?
     private var focus: [Knot] = []
@@ -131,6 +144,15 @@ struct NetworkMapView: UIViewRepresentable {
     }
 
     func mapViewDidFailLoadingMap(_ mapView: MLNMapView, withError error: Error) {
+      useOfflineStyle(on: mapView)
+    }
+
+    /// Whether the offline style is shown, so the base map is loaded once internet access is back.
+    var usesOfflineStyle = false
+
+    func useOfflineStyle(on mapView: MLNMapView) {
+      guard !usesOfflineStyle else { return }
+      usesOfflineStyle = true
       let file = FileManager.default.temporaryDirectory.appendingPathComponent("offline-style.json")
       try? Data(offlineStyle.utf8).write(to: file)
       mapView.styleURL = file
