@@ -60,7 +60,17 @@ struct CoursesNote: View {
   let online: Bool
 
   var body: some View {
-    Text(online ? "Loading the courses…" : "The courses need an internet connection once")
+    LoadingNote(text: online ? "Loading the courses…" : "The courses need an internet connection once")
+  }
+}
+
+/// A short note over the map about something that is still loading.
+struct LoadingNote: View {
+
+  let text: String
+
+  var body: some View {
+    Text(text)
       .font(.callout)
       .padding(.horizontal, 12)
       .padding(.vertical, 6)

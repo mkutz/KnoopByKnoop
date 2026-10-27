@@ -16,10 +16,10 @@
 
 ## 3. iOS
 
-- [ ] 3.1 The map view exists before the session, at the saved camera position or the network's center at knot zoom
-- [ ] 3.2 Without internet access at start, the offline style is used right away
-- [ ] 3.3 `loadNetwork` in two steps as on Android
-- [ ] 3.4 The iOS app builds in Debug and Release for the simulator
+- [x] 3.1 The map view exists before the session, at the saved camera position or the network's center at knot zoom
+- [x] 3.2 Without internet access at start, the offline style is used right away
+- [x] 3.3 `loadNetwork` in two steps as on Android
+- [x] 3.4 The iOS app builds in Debug and Release for the simulator
 
 ## 4. Checks
 

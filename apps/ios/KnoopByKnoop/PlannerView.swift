@@ -62,53 +62,50 @@ struct PlannerView: View {
     }
   }
 
-  @ViewBuilder private func content(landscape: Bool) -> some View {
-    if let session = model.session, let layers = model.layers, !model.loading {
-      ZStack(alignment: .top) {
-        NetworkMapView(
-          graph: session.graph, layers: layers, focus: focus(session),
-          onTap: model.tap(latitude:longitude:radiusMeters:),
-          online: model.online
-        )
-        .ignoresSafeArea()
-        HStack {
-          Picker("Knot network", selection: networkBinding(session)) {
-            Text("Cycling").tag(IndexedNetworkType.cycling)
-            Text("Hiking").tag(IndexedNetworkType.hiking)
-          }
-          .pickerStyle(.segmented)
-          .frame(width: 200)
-          infoButton
+  /// The map is shown right away; the network follows when it is loaded, see `map-planning`.
+  private func content(landscape: Bool) -> some View {
+    ZStack(alignment: .top) {
+      NetworkMapView(
+        graph: model.session?.graph, layers: model.layers, focus: model.session.map(focus) ?? [],
+        onTap: model.tap(latitude:longitude:radiusMeters:),
+        online: model.online,
+        initialPlace: model.initialPlace,
+        onLeave: model.saveCamera
+      )
+      .ignoresSafeArea()
+      HStack {
+        Picker("Knot network", selection: networkBinding) {
+          Text("Cycling").tag(IndexedNetworkType.cycling)
+          Text("Hiking").tag(IndexedNetworkType.hiking)
         }
-        .padding(8)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
-        .padding(.top, 8)
-        if !model.status.hasGeometry {
-          CoursesNote(online: model.online).padding(.top, 64)
-        }
-      }
-      .overlay(alignment: .bottomTrailing) {
-        Text("© OpenStreetMap contributors")
-          .font(.caption2)
-          .padding(.horizontal, 4)
-          .background(.white.opacity(0.7))
-          // Above the sheet in portrait.
-          .padding(.bottom, landscape ? 4 : 132)
-          .padding(.trailing, 4)
-      }
-    } else {
-      // Only without bundled graphs, e.g. a debug build that was built without internet access.
-      VStack(spacing: 16) {
-        if model.status.dataDate == nil && !model.online {
-          Text("The knot networks need an internet connection once.").multilineTextAlignment(.center)
-        } else {
-          ProgressView()
-          Text("Loading the \(model.network.name.lowercased()) knot network…")
-        }
+        .pickerStyle(.segmented)
+        .frame(width: 200)
         infoButton
       }
-      .padding(32)
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
+      .padding(8)
+      .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+      .padding(.top, 8)
+      if model.layers == nil {
+        // Only without bundled graphs, e.g. a debug build that was built without internet access,
+        // or for the moment it takes to read the graph.
+        LoadingNote(
+          text: model.status.dataDate == nil && !model.online
+            ? "The knot networks need an internet connection once"
+            : "Loading the \(model.network.name.lowercased()) knot network…"
+        )
+        .padding(.top, 64)
+      } else if !model.status.hasGeometry {
+        CoursesNote(online: model.online).padding(.top, 64)
+      }
+    }
+    .overlay(alignment: .bottomTrailing) {
+      Text("© OpenStreetMap contributors")
+        .font(.caption2)
+        .padding(.horizontal, 4)
+        .background(.white.opacity(0.7))
+        // Above the sheet in portrait.
+        .padding(.bottom, landscape ? 4 : 132)
+        .padding(.trailing, 4)
     }
   }
 
@@ -124,12 +121,12 @@ struct PlannerView: View {
     (session.route?.summary as? RouteSummaryComplete)?.knots ?? session.waypoints
   }
 
-  private func networkBinding(_ session: PlanningSession) -> Binding<IndexedNetworkType> {
+  private var networkBinding: Binding<IndexedNetworkType> {
     Binding(
-      get: { IndexedNetworkType.companion.of(network: session.network) },
+      get: { model.network },
       set: { network in
-        if network == IndexedNetworkType.companion.of(network: session.network) { return }
-        if session.waypoints.isEmpty { model.switchNetwork(network) } else { pendingNetwork = network }
+        if network == model.network { return }
+        if model.session?.waypoints.isEmpty ?? true { model.switchNetwork(network) } else { pendingNetwork = network }
       })
   }
 }

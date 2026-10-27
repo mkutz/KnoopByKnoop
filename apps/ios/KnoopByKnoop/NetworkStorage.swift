@@ -10,12 +10,14 @@ final class NetworkStorage: @unchecked Sendable {
   private let networksDirectory: URL
   private let installedFile: URL
   private let routeFile: URL
+  private let cameraFile: URL
 
   init() {
     directory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
     networksDirectory = directory.appendingPathComponent("networks")
     installedFile = networksDirectory.appendingPathComponent("installed.json")
     routeFile = directory.appendingPathComponent("route.json")
+    cameraFile = directory.appendingPathComponent("camera.json")
     try? FileManager.default.createDirectory(at: networksDirectory, withIntermediateDirectories: true)
   }
 
@@ -46,8 +48,11 @@ final class NetworkStorage: @unchecked Sendable {
 
   /// A map layer of an installed network as a GeoJSON file, built by `build` only once per
   /// installed data: building it for hundreds of thousands of points takes seconds on a phone.
-  func mapLayer(network: IndexedNetworkType, name: String, build: () -> String) -> URL {
-    let dataKey = [IndexedFileKind.graph, IndexedFileKind.geometry]
+  /// `withGeometry` tells whether the layer depends on the installed geometry as well as on the
+  /// graph, so straight lines and courses are cached separately.
+  func mapLayer(network: IndexedNetworkType, name: String, withGeometry: Bool, build: () -> String) -> URL {
+    let kinds: [IndexedFileKind] = withGeometry ? [.graph, .geometry] : [.graph]
+    let dataKey = kinds
       .map { entry(network, $0).map { String($0.sha256.prefix(12)) } ?? "none" }
       .joined(separator: "-")
     let prefix = "\(network.name.lowercased())-\(name)-"
@@ -74,9 +79,23 @@ final class NetworkStorage: @unchecked Sendable {
     try? FileManager.default.removeItem(at: directory.appendingPathComponent("regions"))
     let installedFiles = Set(installed().map(\.file))
     for name in (try? FileManager.default.contentsOfDirectory(atPath: networksDirectory.path)) ?? []
-    where (name.hasSuffix(".graph") || name.hasSuffix(".geometry")) && !installedFiles.contains(name) {
+    where ((name.hasSuffix(".graph") || name.hasSuffix(".geometry")) && !installedFiles.contains(name))
+      // Map layer caches from before lines and courses were cached separately.
+      || name.contains("-connections-")
+    {
       try? FileManager.default.removeItem(at: networksDirectory.appendingPathComponent(name))
     }
+  }
+
+  /// The place the map showed when the app was left last, see `faster-startup`.
+  func camera() -> CameraPlace? {
+    guard let data = try? Data(contentsOf: cameraFile) else { return nil }
+    return try? JSONDecoder().decode(CameraPlace.self, from: data)
+  }
+
+  func saveCamera(_ place: CameraPlace) {
+    guard let data = try? JSONEncoder().encode(place) else { return }
+    try? data.write(to: cameraFile, options: .atomic)
   }
 
   func route() -> RouteSnapshot? {

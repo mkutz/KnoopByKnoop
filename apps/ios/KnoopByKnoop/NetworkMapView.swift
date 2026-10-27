@@ -21,23 +21,46 @@ private let knotMinimumZoom = 10.0
 /// The touch target around a tap within which the nearest knot is picked.
 private let touchTargetPoints = 24.0
 
+/// A place on the map, saved when the app goes to the background, see `faster-startup`.
+struct CameraPlace: Codable {
+  let latitude: Double
+  let longitude: Double
+  let zoom: Double
+}
+
 /// The map with the network and the route. Taps are reported with the touch target in meters at
 /// the current zoom level, so the core's knot locator can pick the knot.
+///
+/// The map is shown before a network is loaded (`graph` and `layers` `nil`), at `initialPlace` if
+/// there is one, see `map-planning` "Map, knots and courses one after the other".
 struct NetworkMapView: UIViewRepresentable {
 
-  let graph: NetworkGraph
-  let layers: MapLayers
+  let graph: NetworkGraph?
+  let layers: MapLayers?
   /// The knots to show when a network is opened, e.g. those of a restored route.
   let focus: [Knot]
   let onTap: (Double, Double, Double) -> Void
   /// Whether the device has internet access; the base map is loaded again once it is back.
   let online: Bool
+  /// Where the map opens: where it was when the app was left last.
+  let initialPlace: CameraPlace?
+  /// Called with the map's place when the app goes to the background.
+  let onLeave: (CameraPlace) -> Void
 
   func makeCoordinator() -> Coordinator { Coordinator() }
 
   func makeUIView(context: Context) -> MLNMapView {
-    let mapView = MLNMapView(frame: .zero, styleURL: baseMapStyle)
+    // Offline, MapLibre would wait for the base map, and nothing can be drawn without a style.
+    let mapView = MLNMapView(frame: .zero, styleURL: online ? baseMapStyle : nil)
     mapView.delegate = context.coordinator
+    if !online { context.coordinator.useOfflineStyle(on: mapView) }
+    if let initialPlace {
+      mapView.setCenter(
+        CLLocationCoordinate2D(latitude: initialPlace.latitude, longitude: initialPlace.longitude),
+        zoomLevel: initialPlace.zoom, animated: false)
+      context.coordinator.hasPlace = true
+    }
+    context.coordinator.observeLeaving(of: mapView)
     mapView.compassView.isHidden = true
     let tap = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tapped(_:)))
     // Double taps zoom the map and must not select knots.
@@ -48,8 +71,10 @@ struct NetworkMapView: UIViewRepresentable {
     }
     mapView.addGestureRecognizer(tap)
     addZoomButtons(to: mapView, coordinator: context.coordinator)
-    DispatchQueue.main.asyncAfter(deadline: .now() + baseMapTimeout) { [weak mapView] in
-      if let mapView, context.coordinator.style == nil { context.coordinator.useOfflineStyle(on: mapView) }
+    if online {
+      DispatchQueue.main.asyncAfter(deadline: .now() + baseMapTimeout) { [weak mapView] in
+        if let mapView, context.coordinator.style == nil { context.coordinator.useOfflineStyle(on: mapView) }
+      }
     }
     return mapView
   }
@@ -84,6 +109,7 @@ struct NetworkMapView: UIViewRepresentable {
 
   func updateUIView(_ mapView: MLNMapView, context: Context) {
     context.coordinator.onTap = onTap
+    context.coordinator.onLeave = onLeave
     if online && context.coordinator.usesOfflineStyle {
       context.coordinator.usesOfflineStyle = false
       mapView.styleURL = baseMapStyle
@@ -95,6 +121,23 @@ struct NetworkMapView: UIViewRepresentable {
   final class Coordinator: NSObject, MLNMapViewDelegate {
 
     var onTap: (Double, Double, Double) -> Void = { _, _, _ in }
+    var onLeave: (CameraPlace) -> Void = { _ in }
+    /// Whether the map already shows a place to keep, e.g. the one saved when the app was left.
+    var hasPlace = false
+    private var leaving: NSObjectProtocol?
+
+    /// Saves the map's place whenever the app goes to the background.
+    func observeLeaving(of mapView: MLNMapView) {
+      leaving = NotificationCenter.default.addObserver(
+        forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main
+      ) { [weak self, weak mapView] _ in
+        guard let self, let mapView else { return }
+        self.onLeave(
+          CameraPlace(
+            latitude: mapView.centerCoordinate.latitude, longitude: mapView.centerCoordinate.longitude,
+            zoom: mapView.zoomLevel))
+      }
+    }
     private weak var mapView: MLNMapView?
     private(set) var style: MLNStyle?
     private var graph: NetworkGraph?
@@ -104,7 +147,7 @@ struct NetworkMapView: UIViewRepresentable {
     private var shownNetwork: URL?
     private var shownRoute: String?
 
-    func show(graph: NetworkGraph, layers: MapLayers, focus: [Knot], on mapView: MLNMapView) {
+    func show(graph: NetworkGraph?, layers: MapLayers?, focus: [Knot], on mapView: MLNMapView) {
       self.mapView = mapView
       self.graph = graph
       self.layers = layers
@@ -197,14 +240,13 @@ struct NetworkMapView: UIViewRepresentable {
         shownRoute = layers.route + layers.routeKnots
       }
       if shownGraph !== graph, let graph {
-        // A new network shows the route if there is one. Without, the first network opens on its
-        // center and another network, e.g. after switching to hiking, keeps the place. Either way
-        // knots must be shown, see `map-planning`.
-        if focus.count >= 2 {
-          fit(to: focus, animated: false)
-        } else if shownGraph == nil {
-          fit(to: Array(graph.knots.values), animated: false)
+        // The map keeps its place: the one saved when the app was left, or the one before
+        // switching to another network. Without one, it shows the route if there is one, or the
+        // network's center. Either way knots must be shown, see `map-planning`.
+        if !hasPlace {
+          fit(to: focus.count >= 2 ? focus : Array(graph.knots.values), animated: false)
         }
+        hasPlace = true
         if let mapView, mapView.zoomLevel < knotMinimumZoom {
           mapView.setZoomLevel(knotMinimumZoom, animated: false)
         }

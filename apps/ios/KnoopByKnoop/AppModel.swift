@@ -180,38 +180,79 @@ final class AppModel: ObservableObject {
   private func loadNetwork(_ network: IndexedNetworkType, snapshot: RouteSnapshot?) async {
     loading = session == nil
     let storage = self.storage
-    let result: (LoadedNetwork, PlanningSession, [String])? = await Task.detached {
+    // Step 1, the graph: knots, straight connections and the route, so planning can start.
+    let prepared: (GraphFile, LoadedNetwork)? = await Task.detached {
       guard let graphEntry = storage.graphEntry(network: network), let graphFile = storage.graph(network: network)
       else { return nil }
       let graph = graphFile.graph
-      let installedGeometry = storage.geometry(network: network, graphFile: graphFile)
-      let geometry = installedGeometry ?? NetworkGeometry.companion.straightLines(graph: graph)
+      let lines = NetworkGeometry.companion.straightLines(graph: graph)
       let knots = Array(graph.knots.values)
-      let loaded = LoadedNetwork(
-        graphSha256: graphEntry.sha256,
-        hasGeometry: installedGeometry != nil,
-        geometry: geometry,
-        locator: KnotLocator(knots: knots),
-        knots: storage.mapLayer(network: network, name: "knots") {
-          MapFeatures.shared.knots(graph: graph)
-        },
-        connections: storage.mapLayer(network: network, name: "connections") {
-          MapFeatures.shared.connections(geometry: geometry)
-        },
-        refs: Set(knots.map(\.ref)))
+      return (
+        graphFile,
+        LoadedNetwork(
+          graphSha256: graphEntry.sha256,
+          hasGeometry: false,
+          geometry: lines,
+          locator: KnotLocator(knots: knots),
+          knots: storage.mapLayer(network: network, name: "knots", withGeometry: false) {
+            MapFeatures.shared.knots(graph: graph)
+          },
+          connections: storage.mapLayer(network: network, name: "lines", withGeometry: false) {
+            MapFeatures.shared.connections(geometry: lines)
+          },
+          refs: Set(knots.map(\.ref)))
+      )
+    }.value
+    guard let (graphFile, withoutCourses) = prepared else {
+      loading = false
+      return
+    }
+    let graph = graphFile.graph
+    let restored: (PlanningSession, [String]) = await Task.detached {
       if let snapshot, snapshot.network == network {
         let restored = snapshot.restore(graph: graph)
-        return (loaded, restored.session, restored.removedWaypoints)
+        return (restored.session, restored.removedWaypoints)
       }
-      return (loaded, PlanningSession.companion.start(graph: graph, waypoints: []), [])
+      return (PlanningSession.companion.start(graph: graph, waypoints: []), [])
     }.value
     loading = false
-    guard let (loadedNetwork, newSession, removedWaypoints) = result, network == self.network else { return }
-    loaded = loadedNetwork
-    show(newSession)
-    if !removedWaypoints.isEmpty {
-      message = "Waypoint \(removedWaypoints.joined(separator: ", ")) no longer exists and was removed from the route."
+    guard network == self.network else { return }
+    loaded = withoutCourses
+    show(restored.0)
+    if !restored.1.isEmpty {
+      message = "Waypoint \(restored.1.joined(separator: ", ")) no longer exists and was removed from the route."
     }
+    await addCourses(network, graphFile: graphFile, to: withoutCourses)
+  }
+
+  /// Step 2 of `loadNetwork`, the geometry: the connections and the route are redrawn along their
+  /// course. The session stays, so planning goes on, and so does the map's place.
+  private func addCourses(_ network: IndexedNetworkType, graphFile: GraphFile, to withoutCourses: LoadedNetwork) async {
+    let storage = self.storage
+    let withCourses: LoadedNetwork? = await Task.detached {
+      guard let geometry = storage.geometry(network: network, graphFile: graphFile) else { return nil }
+      return LoadedNetwork(
+        graphSha256: withoutCourses.graphSha256,
+        hasGeometry: true,
+        geometry: geometry,
+        locator: withoutCourses.locator,
+        knots: withoutCourses.knots,
+        connections: storage.mapLayer(network: network, name: "courses", withGeometry: true) {
+          MapFeatures.shared.connections(geometry: geometry)
+        },
+        refs: withoutCourses.refs)
+    }.value
+    // Another network or newer data may have been loaded meanwhile.
+    guard let withCourses, network == self.network, loaded?.connections == withoutCourses.connections else { return }
+    loaded = withCourses
+    if let session { show(session) }
+  }
+
+  /// Where the map opens: where it was when the app was left last.
+  lazy var initialPlace: CameraPlace? = storage.camera()
+
+  func saveCamera(_ place: CameraPlace) {
+    storage.saveCamera(place)
   }
 
   private func refreshCatalog() {

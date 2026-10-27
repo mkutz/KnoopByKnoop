@@ -21,4 +21,19 @@ To be measured by the maintainer.
 
 ## After the change
 
-To be measured.
+### Android emulator `Medium_Phone_API_37.0`, 2026-10-27
+
+| Start | map | knots | courses |
+|---|---|---|---|
+| Normal (installed, online) | 796, 759, 776, 795, 805 ms | 1623, 1439, 1738, 1623, 1448 ms | 1626, 1561, 1743, 1643, 1452 ms |
+| First start, airplane mode | 343, 383, 367, 405, 349 ms | 1430, 1529, 1453, 1517, 1502 ms | – |
+
+Both targets met: the map within 1 s (slowest 805 ms), the knots within 2 s (slowest 1738 ms). The first start offline improved most, from about 4 s to 0.4 s for the map and from 4.4 s to 1.5 s for the knots, because the offline style is used right away.
+
+### iOS simulator (iPhone 18 Pro), for comparison only
+
+Not a reference device. Normal start: map 386–402 ms, knots 609–1048 ms, courses 626–1048 ms.
+
+### iPhone
+
+To be measured by the maintainer.
