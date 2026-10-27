@@ -8,6 +8,7 @@ import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,9 +40,15 @@ import org.maplibre.android.style.sources.GeoJsonSource
 /** OpenStreetMap-based base map without API key, see the design of `add-planning-screens`. */
 private const val BASE_MAP_STYLE = "https://tiles.openfreemap.org/styles/liberty"
 
-/** Used when the base map cannot be loaded, e.g. offline: the network layers still show. */
+/**
+ * Used when the base map cannot be loaded, e.g. offline on first start: the network layers still
+ * show. Offline, MapLibre waits for the network instead of failing, so it is used after a timeout.
+ */
 private const val OFFLINE_STYLE =
   """{"version": 8, "sources": {}, "layers": [{"id": "background", "type": "background", "paint": {"background-color": "#EEF1EA"}}]}"""
+
+/** How long the base map may take to load before the offline style is used. */
+private const val BASE_MAP_TIMEOUT_MILLIS = 3_000L
 
 /** Knots are drawn and can be tapped from this zoom level on; below it the route is a line only. */
 private const val KNOT_MIN_ZOOM = 10.0
@@ -62,6 +69,7 @@ fun NetworkMap(
   layers: MapLayers,
   focus: List<Knot>,
   onTap: (latitude: Double, longitude: Double, radiusMeters: Double) -> Unit,
+  online: Boolean,
   modifier: Modifier = Modifier,
 ) {
   val context = LocalContext.current
@@ -91,15 +99,16 @@ fun NetworkMap(
           holder.onTap(point.latitude, point.longitude, metersPerPixel * touchTargetPixels)
           true
         }
-        addOnDidFailLoadingMapListener {
-          map.setStyle(Style.Builder().fromJson(OFFLINE_STYLE)) { holder.onStyle(it) }
-        }
-        map.setStyle(Style.Builder().fromUri(BASE_MAP_STYLE)) { holder.onStyle(it) }
+        addOnDidFailLoadingMapListener { holder.useOfflineStyle() }
+        holder.loadBaseMap()
+        postDelayed({ if (!holder.hasStyle) holder.useOfflineStyle() }, BASE_MAP_TIMEOUT_MILLIS)
       }
     }
   }
   holder.onTap = onTap
   holder.show(graph, layers, focus)
+  // The offline style has no base map; it is loaded as soon as network access is back.
+  LaunchedEffect(online) { if (online && holder.usesOfflineStyle) holder.loadBaseMap() }
 
   val lifecycle = LocalLifecycleOwner.current.lifecycle
   DisposableEffect(lifecycle) {
@@ -141,13 +150,35 @@ private class MapHolder {
   var map: MapLibreMap? = null
   var onTap: (Double, Double, Double) -> Unit = { _, _, _ -> }
   private var style: Style? = null
+
+  /** Whether a style is loaded, the base map or the offline style. */
+  val hasStyle: Boolean
+    get() = style != null
+
+  var usesOfflineStyle = false
+    private set
+
   private var graph: NetworkGraph? = null
   private var layers: MapLayers? = null
   private var focus: List<Knot> = listOf()
   private var shownGraph: NetworkGraph? = null
   private var shownLayers: MapLayers? = null
 
-  fun onStyle(loaded: Style) {
+  fun loadBaseMap() {
+    map?.setStyle(Style.Builder().fromUri(BASE_MAP_STYLE)) {
+      usesOfflineStyle = false
+      onStyle(it)
+    }
+  }
+
+  fun useOfflineStyle() {
+    map?.setStyle(Style.Builder().fromJson(OFFLINE_STYLE)) {
+      usesOfflineStyle = true
+      onStyle(it)
+    }
+  }
+
+  private fun onStyle(loaded: Style) {
     style = loaded
     shownLayers = null
     addLayers(loaded)

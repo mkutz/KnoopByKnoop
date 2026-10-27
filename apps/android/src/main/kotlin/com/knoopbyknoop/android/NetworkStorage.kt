@@ -70,11 +70,19 @@ class NetworkStorage(private val directory: File) {
   }
 
   /**
-   * Deletes the networks installed per region by earlier app versions, see `network-sync`. The
-   * saved route stays and is restored on the new networks.
+   * Deletes data that is no longer installed: the networks installed per region by earlier app
+   * versions, see `network-sync`, and files replaced by files of another name. The saved route
+   * stays and is restored on the new networks.
    */
-  fun removeLegacyRegions() {
+  fun removeStaleData() {
     File(directory, "regions").deleteRecursively()
+    val installedFiles = installed().map { it.file }.toSet()
+    networksDirectory
+      .listFiles { file ->
+        (file.name.endsWith(".graph") || file.name.endsWith(".geometry")) &&
+          file.name !in installedFiles
+      }
+      ?.forEach { it.delete() }
   }
 
   fun route(): RouteSnapshot? =

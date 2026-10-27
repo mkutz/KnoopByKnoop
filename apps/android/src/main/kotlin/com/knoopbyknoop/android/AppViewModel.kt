@@ -82,8 +82,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
       refreshCatalog()
       restoreRoute()
       if (sync.isDue()) NetworkSyncWorker.enqueue(application)
+      // Only after the route is restored, so a reload cannot replace it with an empty one.
+      watchSync()
     }
-    viewModelScope.launch { watchSync() }
     connectivity.registerDefaultNetworkCallback(
       object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
@@ -111,7 +112,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     storage.saveRoute(null)
     loaded = null
     state = state.copy(network = network, session = null, layers = null)
-    viewModelScope.launch { loadNetwork(network, waypointsFrom = null) }
+    viewModelScope.launch { loadNetwork(network, waypointsFrom = { null }) }
   }
 
   /** Handles a tap on the map; [radiusMeters] is the touch target at the current zoom level. */
@@ -151,23 +152,27 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val snapshot = storage.route()
     val network = snapshot?.network ?: IndexedNetworkType.CYCLING
     state = state.copy(network = network)
-    loadNetwork(network, waypointsFrom = snapshot)
+    loadNetwork(network, waypointsFrom = { snapshot })
   }
 
   /**
    * Loads a network off the main thread: reading it and preparing its map layers takes time.
    *
-   * @param waypointsFrom the route to continue with, e.g. after a restart or a data update
+   * @param waypointsFrom the route to continue with, e.g. after a restart or a data update; read
+   *   once the network is prepared
    */
-  private suspend fun loadNetwork(network: IndexedNetworkType, waypointsFrom: RouteSnapshot?) {
+  private suspend fun loadNetwork(
+    network: IndexedNetworkType,
+    waypointsFrom: () -> RouteSnapshot?,
+  ) {
     state = state.copy(loading = state.session == null)
-    val result =
+    val prepared =
       withContext(Dispatchers.Default) {
         val graphEntry = storage.graphEntry(network) ?: return@withContext null
         val graphFile = storage.graph(network) ?: return@withContext null
         val installedGeometry = storage.geometry(network, graphFile)
         val geometry = installedGeometry ?: NetworkGeometry.straightLines(graphFile.graph)
-        val loadedNetwork =
+        graphFile to
           LoadedNetwork(
             graphSha256 = graphEntry.sha256,
             hasGeometry = installedGeometry != null,
@@ -178,18 +183,21 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
               storage.mapLayer(network, "connections") { MapFeatures.connections(geometry) },
             refs = graphFile.graph.knots.values.map { it.ref }.toSet(),
           )
+      }
+    // Read only now, so changes to the route while the network was prepared are kept.
+    val snapshot = waypointsFrom()
+    val result = prepared?.let { (graphFile, loadedNetwork) ->
+      withContext(Dispatchers.Default) {
         val restored =
-          if (waypointsFrom != null && waypointsFrom.network == network) {
-            waypointsFrom.restore(graphFile.graph)
-          } else {
-            null
-          }
+          if (snapshot != null && snapshot.network == network) snapshot.restore(graphFile.graph)
+          else null
         Triple(
           loadedNetwork,
           restored?.session ?: PlanningSession.start(graphFile.graph),
           restored?.removedWaypoints,
         )
       }
+    }
     if (result == null || state.network != network) {
       state = state.copy(loading = false)
       return
@@ -248,7 +256,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             current.graphSha256 != graphEntry.sha256 ||
             current.hasGeometry != hasGeometry
         ) {
-          loadNetwork(state.network, waypointsFrom = state.session?.let(RouteSnapshot::of))
+          loadNetwork(state.network, waypointsFrom = { state.session?.let(RouteSnapshot::of) })
         }
       }
   }

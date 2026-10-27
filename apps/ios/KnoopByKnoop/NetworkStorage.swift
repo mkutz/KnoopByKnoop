@@ -67,10 +67,16 @@ final class NetworkStorage: @unchecked Sendable {
     try saveInstalled(installed().filter { $0.network != entry.network || $0.kind != entry.kind } + [entry])
   }
 
-  /// Deletes the networks installed per region by earlier app versions, see `network-sync`. The
-  /// saved route stays and is restored on the new networks.
-  func removeLegacyRegions() {
+  /// Deletes data that is no longer installed: the networks installed per region by earlier app
+  /// versions, see `network-sync`, and files replaced by files of another name. The saved route
+  /// stays and is restored on the new networks.
+  func removeStaleData() {
     try? FileManager.default.removeItem(at: directory.appendingPathComponent("regions"))
+    let installedFiles = Set(installed().map(\.file))
+    for name in (try? FileManager.default.contentsOfDirectory(atPath: networksDirectory.path)) ?? []
+    where (name.hasSuffix(".graph") || name.hasSuffix(".geometry")) && !installedFiles.contains(name) {
+      try? FileManager.default.removeItem(at: networksDirectory.appendingPathComponent(name))
+    }
   }
 
   func route() -> RouteSnapshot? {

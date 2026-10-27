@@ -145,6 +145,21 @@ class NetworkSyncTest {
   }
 
   @Test
+  fun `per-region data is replaced although its data date is newer`() {
+    // Before the networks were merged, each region was installed on its own, and the merged data
+    // has the oldest date of its extracts.
+    val perRegion = publication("2026-10-27").files.map { it.copy(area = "netherlands") }
+
+    val catalog = NetworkCatalog(index, perRegion)
+
+    assertEquals(
+      listOf("cycling.graph", "hiking.graph"),
+      catalog.bundledToInstall(bundled).map { it.file },
+    )
+    assertEquals(4, catalog.filesToFetch.size)
+  }
+
+  @Test
   fun `data date of a release`() {
     val catalog = NetworkCatalog(index = null, installed = bundled.files)
 

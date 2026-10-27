@@ -66,6 +66,8 @@ final class AppModel: ObservableObject {
   private var rejected: Set<IndexedNetworkType> = []
   /// Whether the sync could not fetch the index yet, so it runs when network access is back.
   private var syncPending = false
+  /// Whether the saved route was restored; reloads before that would replace it with an empty one.
+  private var restored = false
 
   init() {
     downloads.onChange = { [weak self] in self?.installFinished() }
@@ -78,6 +80,8 @@ final class AppModel: ObservableObject {
       await installBundled()
       refreshCatalog()
       await restoreRoute()
+      restored = true
+      await reloadIfChanged()
       if isSyncDue() { await sync() }
     }
   }
@@ -215,7 +219,7 @@ final class AppModel: ObservableObject {
 
   /// Reloads the selected network when its files changed, keeping the route, see `network-sync`.
   private func reloadIfChanged() async {
-    guard let graphEntry = storage.graphEntry(network: network) else { return }
+    guard restored, let graphEntry = storage.graphEntry(network: network) else { return }
     if loaded?.graphSha256 != graphEntry.sha256 || loaded?.hasGeometry != status.hasGeometry {
       await loadNetwork(network, snapshot: session.map { RouteSnapshot.companion.of(session: $0) })
     }
@@ -232,8 +236,10 @@ final class AppModel: ObservableObject {
       || catalog.networks.contains { !$0.hasGeometry }
   }
 
-  /// Installs the bundled graphs of networks that have no installed graph or only an older one.
+  /// Installs the bundled graphs of networks that have no installed graph or only an older one, and
+  /// removes stale data, e.g. networks installed per region by earlier app versions.
   private func installBundled() async {
+    defer { storage.removeStaleData() }
     guard let directory = Bundle.main.url(forResource: "bundled-networks", withExtension: nil),
       let text = try? String(contentsOf: directory.appendingPathComponent(NetworkIndex.companion.BUNDLED_INDEX_FILE), encoding: .utf8),
       let bundled = try? NetworkIndex.companion.parse(text: text)
@@ -248,7 +254,6 @@ final class AppModel: ObservableObject {
         else { continue }
         try? storage.install(entry, data: data)
       }
-      if !toInstall.isEmpty { storage.removeLegacyRegions() }
     }.value
   }
 
@@ -305,7 +310,7 @@ final class AppModel: ObservableObject {
           if let rejected = check as? InstallCheckRejected { return rejected.reason }
           do {
             try storage.install(entry, data: data)
-            storage.removeLegacyRegions()
+            storage.removeStaleData()
             return nil
           } catch {
             return RejectionReason.corrupted

@@ -10,10 +10,10 @@
 
 ## 2. Workflow: build and publish the merged files
 
-- [ ] 2.1 `update-network-data.yml`: one build job downloading all three extracts and running a single `build`; a failed extract download fails the job before `publish` ("Failed rebuild keeps old data")
-- [ ] 2.2 Size budgets on `cycling.graph` (5 MB) and `cycling.geometry` (10 MB): "Size budget", "Geometry size budget"
-- [ ] 2.3 `publish` deletes release assets that are not part of the new set, after the upload succeeded
-- [ ] 2.4 Run the workflow manually; the `network-data` release lists exactly `cycling.*`, `hiking.*` and `index.json`, and `index.json` lists each graph with its geometry ("Index lists geometry")
+- [x] 2.1 `update-network-data.yml`: one build job downloading all three extracts and running a single `build`; a failed extract download fails the job before `publish` ("Failed rebuild keeps old data")
+- [x] 2.2 Size budgets on `cycling.graph` (5 MB) and `cycling.geometry` (10 MB): "Size budget", "Geometry size budget"
+- [x] 2.3 `publish` deletes release assets that are not part of the new set, after the upload succeeded
+- [x] 2.4 Run the workflow manually; the `network-data` release lists exactly `cycling.*`, `hiking.*` and `index.json`, and `index.json` lists each graph with its geometry ("Index lists geometry")
 
 ## 3. Core: networks instead of regions
 

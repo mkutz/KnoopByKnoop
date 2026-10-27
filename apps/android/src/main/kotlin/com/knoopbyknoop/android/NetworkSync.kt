@@ -57,8 +57,19 @@ class NetworkSync(private val context: Context) {
       catalog.networks.any { !it.hasGeometry }
   }
 
-  /** Installs the bundled graphs of networks that have no installed graph or only an older one. */
+  /**
+   * Installs the bundled graphs of networks that have no installed graph or only an older one, and
+   * removes stale data, e.g. networks installed per region by earlier app versions.
+   */
   fun installBundled() {
+    try {
+      installBundledGraphs()
+    } finally {
+      storage.removeStaleData()
+    }
+  }
+
+  private fun installBundledGraphs() {
     val bundled =
       try {
         context.assets.open("$BUNDLED_DIRECTORY/${NetworkIndex.BUNDLED_INDEX_FILE}").use {
@@ -74,7 +85,6 @@ class NetworkSync(private val context: Context) {
         storage.install(entry, bytes)
       }
     }
-    if (toInstall.isNotEmpty()) storage.removeLegacyRegions()
   }
 
   /**
@@ -103,7 +113,7 @@ class NetworkSync(private val context: Context) {
           is InstallCheck.Valid -> {
             storage.install(entry, bytes)
             setNetworks(KEY_FAILED, failed - entry.network)
-            storage.removeLegacyRegions()
+            storage.removeStaleData()
             onInstalled(entry)
           }
           is InstallCheck.Rejected -> {

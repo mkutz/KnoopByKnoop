@@ -98,6 +98,7 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
         // When a network opens, the map shows the whole route if there is one.
         focus = (session.route?.summary as? RouteSummary.Complete)?.knots ?: session.waypoints,
         onTap = viewModel::tap,
+        online = state.online,
         modifier = Modifier.fillMaxSize(),
       )
       Row(

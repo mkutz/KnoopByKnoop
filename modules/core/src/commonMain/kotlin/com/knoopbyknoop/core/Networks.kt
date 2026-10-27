@@ -49,7 +49,8 @@ class NetworkCatalog(
   /**
    * The published files the device still needs, cycling first and each graph before its geometry:
    * files of a network and kind that are not installed, or that differ from the installed file and
-   * are not older than it.
+   * are not older than it. Installed files of another area, e.g. of one region from before the
+   * networks were merged, cannot be compared by date and are always replaced.
    */
   val filesToFetch: List<NetworkIndexEntry> =
     index?.files.orEmpty().filter { isNeeded(it) }.sortedWith(FETCH_ORDER)
@@ -79,14 +80,16 @@ class NetworkCatalog(
 
   /**
    * The bundled graphs to install on start, see `network-sync` "Bundled graphs": those whose
-   * network has no installed graph yet, or only an older one.
+   * network has no installed graph yet, only an older one, or one of another area.
    */
   fun bundledToInstall(bundled: NetworkIndex): List<NetworkIndexEntry> =
     bundled.files
       .filter { it.kind == IndexedFileKind.GRAPH }
       .filter { entry ->
         val installedGraph = installedFile(entry.network, IndexedFileKind.GRAPH)
-        installedGraph == null || installedGraph.dataDate < entry.dataDate
+        installedGraph == null ||
+          installedGraph.area != entry.area ||
+          installedGraph.dataDate < entry.dataDate
       }
       .sortedWith(FETCH_ORDER)
 
@@ -97,6 +100,7 @@ class NetworkCatalog(
 
   private fun isNeeded(published: NetworkIndexEntry): Boolean {
     val installedFile = installedFile(published.network, published.kind) ?: return true
+    if (installedFile.area != published.area) return true
     return installedFile.sha256 != published.sha256 && published.dataDate >= installedFile.dataDate
   }
 
