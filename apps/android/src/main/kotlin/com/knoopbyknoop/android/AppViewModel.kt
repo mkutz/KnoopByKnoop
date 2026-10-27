@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
+import com.knoopbyknoop.core.GeoBounds
 import com.knoopbyknoop.core.GraphFile
 import com.knoopbyknoop.core.IndexedNetworkType
 import com.knoopbyknoop.core.KnotLocator
@@ -16,11 +17,17 @@ import com.knoopbyknoop.core.MapFeatures
 import com.knoopbyknoop.core.NetworkCatalog
 import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkStatus
+import com.knoopbyknoop.core.PlaceHit
+import com.knoopbyknoop.core.PlaceSearch
 import com.knoopbyknoop.core.PlanningSession
 import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteKnot
 import com.knoopbyknoop.core.RouteSnapshot
+import java.io.IOException
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -52,11 +59,30 @@ data class AppState(
   val description: RouteDescription = RouteDescription.Empty,
   /** Where the map opens: where it was when the app was left last. */
   val initialPlace: CameraPlace? = null,
+  val searchQuery: String = "",
+  val searchResult: SearchResult = SearchResult.None,
+  /** The chosen search hit, shown with a marker on the map. */
+  val marker: PlaceHit? = null,
   val message: String? = null,
   val loading: Boolean = false,
 ) {
   val status: NetworkStatus
     get() = catalog.status(network)
+}
+
+/** What the place search shows below its field, see `place-search`. */
+sealed interface SearchResult {
+  /** Nothing to show: no query, or a hit was chosen. */
+  data object None : SearchResult
+
+  data object Searching : SearchResult
+
+  data class Hits(val hits: List<PlaceHit>) : SearchResult
+
+  data object NoHits : SearchResult
+
+  /** Photon did not answer or answered with an error. */
+  data object Unavailable : SearchResult
 }
 
 /** The installed data of one network, prepared for planning and drawing. */
@@ -107,6 +133,65 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
   fun saveCamera(place: CameraPlace) {
     storage.saveCamera(place)
+  }
+
+  private var searchJob: Job? = null
+  private var mapCenter: CameraPlace? = null
+
+  /** The map's current place, to rank search hits near it. */
+  fun mapMoved(place: CameraPlace) {
+    mapCenter = place
+  }
+
+  /**
+   * Searches [query] once the user stopped typing for a moment; newer queries replace older ones.
+   */
+  fun search(query: String) {
+    searchJob?.cancel()
+    state = state.copy(searchQuery = query)
+    val locator = loaded?.locator
+    val area = state.session?.graph?.let(GeoBounds::of)
+    val center = mapCenter ?: state.initialPlace
+    if (query.trim().length < PlaceSearch.MIN_QUERY_LENGTH || locator == null || area == null) {
+      state = state.copy(searchResult = SearchResult.None)
+      return
+    }
+    searchJob = viewModelScope.launch {
+      delay(SEARCH_DELAY_MILLIS)
+      state = state.copy(searchResult = SearchResult.Searching)
+      val url =
+        PlaceSearch.requestUrl(
+          query,
+          center?.latitude ?: (area.minLatitude + area.maxLatitude) / 2,
+          center?.longitude ?: (area.minLongitude + area.maxLongitude) / 2,
+          area,
+          Locale.getDefault().language,
+        )
+      val result =
+        try {
+          val hits =
+            withContext(Dispatchers.Default) {
+              PlaceSearch.parse(PlaceSearchClient.fetch(url), locator)
+            }
+          if (hits.isEmpty()) SearchResult.NoHits else SearchResult.Hits(hits)
+        } catch (exception: IOException) {
+          SearchResult.Unavailable
+        } catch (exception: IllegalArgumentException) {
+          SearchResult.Unavailable
+        }
+      state = state.copy(searchResult = result)
+    }
+  }
+
+  /** Moves the map to [hit] and marks it; the route stays as it is. */
+  fun choose(hit: PlaceHit) {
+    searchJob?.cancel()
+    state = state.copy(searchQuery = hit.name, searchResult = SearchResult.None, marker = hit)
+  }
+
+  fun clearSearch() {
+    searchJob?.cancel()
+    state = state.copy(searchQuery = "", searchResult = SearchResult.None, marker = null)
   }
 
   fun dismissMessage() {
@@ -316,5 +401,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
           loadNetwork(state.network, waypointsFrom = { state.session?.let(RouteSnapshot::of) })
         }
       }
+  }
+
+  private companion object {
+    const val SEARCH_DELAY_MILLIS = 300L
   }
 }

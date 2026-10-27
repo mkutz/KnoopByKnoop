@@ -25,13 +25,15 @@ Photon (`https://photon.komoot.io/api/`) answers with GeoJSON features. Their pr
 
 `PlaceHit` holds the name, a description line and the coordinates. The description is the address (street with house number, town) for addresses and businesses, the type and town for stations and other places (e.g. "Train station, Utrecht"), or the region for towns.
 
+The `bbox` alone does not limit hits to the covered area: it is a rectangle around the Netherlands, Belgium and Nordrhein-Westfalen and also contains parts of Lower Saxony, France and Luxembourg without knots. During implementation, "Paris" found shops of that name in Nordhorn and elsewhere. So a hit only counts when a knot of the selected network lies within 3 km of it, which the core's `KnotLocator` answers. The ranking stays Photon's: with the bias near the Zeeland border, "Stationsstraat" in Assenede comes first.
+
 Hits with the same name and the same town that lie within 500 m of each other are merged into the first. That covers Photon's duplicate buildings and halls; separate places of the same name stay apart. All of this is pure Kotlin and tested in `commonTest` with recorded Photon responses.
 
 *Alternative:* call Photon only from the apps. Then the rules for description and merging would be written twice and tested on neither platform.
 
 ### Apps: typing, requests, marker
 - **Requests:** sent 300 ms after the last keystroke and from 3 characters on. A newer query cancels the running request. Requests carry a `User-Agent` naming the app and its repository, as Photon asks.
-- **Results:** shown in a list that replaces the waypoint sheet's content while the search field has focus.
+- **Results:** shown in a list right under the search field, over the map. The first plan was to show them in place of the waypoint sheet's content, but in portrait the keyboard covers the sheet, so the hits would not be visible while typing.
 - **Tapping a hit:** closes the list, moves the camera to the hit at zoom 14 (knots are shown from 10, and at 14 single streets and knots are easy to tap), and shows a marker. The marker is a GeoJSON source and layer of its own, drawn under the knots so it never hides one.
 - **Clearing the search:** removes the marker.
 - **Offline:** the field is disabled with the placeholder "Search needs an internet connection", driven by the existing `online` state.

@@ -23,6 +23,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.NetworkGraph
+import com.knoopbyknoop.core.PlaceHit
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
@@ -31,6 +32,7 @@ import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
 import org.maplibre.android.style.expressions.Expression
+import org.maplibre.android.style.layers.CircleLayer
 import org.maplibre.android.style.layers.LineLayer
 import org.maplibre.android.style.layers.Property
 import org.maplibre.android.style.layers.PropertyFactory
@@ -49,6 +51,11 @@ private const val OFFLINE_STYLE =
 
 /** How long the base map may take to load before the offline style is used. */
 private const val BASE_MAP_TIMEOUT_MILLIS = 3_000L
+
+/** The zoom level a search hit is shown at: streets and knots around it are easy to tap. */
+private const val SEARCH_HIT_ZOOM = 14.0
+
+private const val MARKER_RED = "#D93025"
 
 /** Knots are drawn and can be tapped from this zoom level on; below it the route is a line only. */
 private const val KNOT_MIN_ZOOM = 10.0
@@ -78,6 +85,8 @@ fun NetworkMap(
   online: Boolean,
   initialPlace: CameraPlace?,
   onLeave: (CameraPlace) -> Unit,
+  marker: PlaceHit?,
+  onMove: (CameraPlace) -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val context = LocalContext.current
@@ -90,6 +99,7 @@ fun NetworkMap(
       addOnDidFinishRenderingFrameListener { _, _, _ -> holder.markVisibleLayers(width, height) }
       getMapAsync { map ->
         holder.map = map
+        map.addOnCameraIdleListener { holder.place()?.let { holder.onMove(it) } }
         map.addOnMapClickListener { point ->
           if (map.cameraPosition.zoom < KNOT_MIN_ZOOM) {
             // Zoomed out, knots are not shown: a tap on the route zooms to it.
@@ -127,7 +137,10 @@ fun NetworkMap(
     }
   }
   holder.onTap = onTap
+  holder.onMove = onMove
   holder.show(graph, layers, focus)
+  // A chosen search hit: the map moves there, close enough to tap knots, see `place-search`.
+  LaunchedEffect(marker) { holder.showMarker(marker) }
   // The offline style has no base map; it is loaded as soon as network access is back.
   LaunchedEffect(online) { if (online && holder.usesOfflineStyle) holder.loadBaseMap() }
 
@@ -223,7 +236,33 @@ private class MapHolder {
     style = loaded
     shownLayers = null
     addLayers(loaded)
+    updateMarker(loaded)
     update()
+  }
+
+  var onMove: (CameraPlace) -> Unit = {}
+  private var marker: PlaceHit? = null
+
+  fun showMarker(newMarker: PlaceHit?) {
+    marker = newMarker
+    style?.let { updateMarker(it) }
+    if (newMarker != null) {
+      map?.animateCamera(
+        CameraUpdateFactory.newLatLngZoom(
+          LatLng(newMarker.latitude, newMarker.longitude),
+          SEARCH_HIT_ZOOM,
+        )
+      )
+    }
+  }
+
+  private fun updateMarker(style: Style) {
+    val point = marker?.let {
+      """{"type": "Point", "coordinates": [${it.longitude}, ${it.latitude}]}"""
+    }
+    style
+      .getSourceAs<GeoJsonSource>("marker")
+      ?.setGeoJson(point ?: """{"type": "FeatureCollection", "features": []}""")
   }
 
   /** Whether the map already shows a place to keep, e.g. the one saved when the app was left. */
@@ -305,10 +344,20 @@ private class MapHolder {
   }
 
   private fun addLayers(style: Style) {
-    listOf("connections", "route", "route-knots", "knots").forEach {
+    listOf("connections", "marker", "route", "route-knots", "knots").forEach {
       style.addSource(GeoJsonSource(it))
     }
     style.addImage("route-arrow", arrowBitmap())
+    // The chosen search hit, drawn under route and knots, so it never hides a knot.
+    style.addLayer(
+      CircleLayer("marker", "marker")
+        .withProperties(
+          PropertyFactory.circleRadius(12f),
+          PropertyFactory.circleColor(MARKER_RED),
+          PropertyFactory.circleStrokeColor("#FFFFFF"),
+          PropertyFactory.circleStrokeWidth(3f),
+        )
+    )
     style.addLayer(
       LineLayer("connections", "connections")
         .withProperties(

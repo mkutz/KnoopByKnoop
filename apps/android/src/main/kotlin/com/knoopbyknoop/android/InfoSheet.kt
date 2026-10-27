@@ -54,7 +54,13 @@ fun InfoSheet(state: AppState, viewModel: AppViewModel, onDismiss: () -> Unit) {
           "License " +
           "(ODbL 1.0), openstreetmap.org/copyright",
         style = MaterialTheme.typography.bodySmall,
-        modifier = Modifier.padding(top = 24.dp, bottom = 24.dp),
+        modifier = Modifier.padding(top = 24.dp),
+      )
+      Text(
+        "Search by Photon (komoot), data © OpenStreetMap contributors. What you type and the " +
+          "map's center are sent to photon.komoot.io.",
+        style = MaterialTheme.typography.bodySmall,
+        modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
       )
     }
   }

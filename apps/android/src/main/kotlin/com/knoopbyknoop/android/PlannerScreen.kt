@@ -148,29 +148,33 @@ private fun MapArea(
       online = state.online,
       initialPlace = state.initialPlace,
       onLeave = viewModel::saveCamera,
+      marker = state.marker,
+      onMove = viewModel::mapMoved,
       modifier = Modifier.fillMaxSize(),
     )
-    Row(
-      modifier =
-        Modifier.align(Alignment.TopStart)
-          .padding(12.dp)
-          .background(Color.White.copy(alpha = 0.85f), MaterialTheme.shapes.medium)
-          .padding(horizontal = 8.dp),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      IndexedNetworkType.entries.forEach { network ->
-        FilterChip(
-          selected = state.network == network,
-          onClick = {
-            if (state.network == network) return@FilterChip
-            if (session?.waypoints.isNullOrEmpty()) viewModel.switchNetwork(network)
-            else onSwitch(network)
-          },
-          label = { Text(network.name.lowercase().replaceFirstChar { it.uppercase() }) },
-          modifier = Modifier.padding(end = 8.dp),
-        )
+    Column(modifier = Modifier.align(Alignment.TopStart).padding(12.dp)) {
+      PlaceSearchField(state, viewModel)
+      Row(
+        modifier =
+          Modifier.padding(top = 8.dp)
+            .background(Color.White.copy(alpha = 0.85f), MaterialTheme.shapes.medium)
+            .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        IndexedNetworkType.entries.forEach { network ->
+          FilterChip(
+            selected = state.network == network,
+            onClick = {
+              if (state.network == network) return@FilterChip
+              if (session?.waypoints.isNullOrEmpty()) viewModel.switchNetwork(network)
+              else onSwitch(network)
+            },
+            label = { Text(network.name.lowercase().replaceFirstChar { it.uppercase() }) },
+            modifier = Modifier.padding(end = 8.dp),
+          )
+        }
+        TextButton(onClick = onInfo) { Text("Info") }
       }
-      TextButton(onClick = onInfo) { Text("Info") }
     }
     if (layers == null) {
       // Only without bundled graphs, e.g. a debug build that was built without internet access,
@@ -180,12 +184,12 @@ private fun MapArea(
           if (state.status.dataDate == null && !state.online)
             "The knot networks need an internet connection once"
           else "Loading the ${state.network.name.lowercase()} knot network…",
-        modifier = Modifier.align(Alignment.TopCenter).padding(top = 72.dp),
+        modifier = Modifier.align(Alignment.TopCenter).padding(top = 140.dp),
       )
     } else if (!state.status.hasGeometry) {
       CoursesNote(
         online = state.online,
-        modifier = Modifier.align(Alignment.TopCenter).padding(top = 72.dp),
+        modifier = Modifier.align(Alignment.TopCenter).padding(top = 140.dp),
       )
     }
     Text(
