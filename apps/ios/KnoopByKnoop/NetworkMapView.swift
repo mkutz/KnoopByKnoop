@@ -41,7 +41,36 @@ struct NetworkMapView: UIViewRepresentable {
       }
     }
     mapView.addGestureRecognizer(tap)
+    addZoomButtons(to: mapView, coordinator: context.coordinator)
     return mapView
+  }
+
+  /// Buttons to zoom in and out, in addition to the gestures.
+  private func addZoomButtons(to mapView: MLNMapView, coordinator: Coordinator) {
+    let buttons = [("plus", #selector(Coordinator.zoomIn)), ("minus", #selector(Coordinator.zoomOut))].map {
+      symbol, action in
+      let button = UIButton(type: .system)
+      button.setImage(UIImage(systemName: symbol), for: .normal)
+      button.tintColor = UIColor(Color.knoopGreen)
+      button.backgroundColor = .white
+      button.layer.cornerRadius = 20
+      button.layer.shadowOpacity = 0.2
+      button.layer.shadowRadius = 2
+      button.layer.shadowOffset = CGSize(width: 0, height: 1)
+      button.widthAnchor.constraint(equalToConstant: 40).isActive = true
+      button.heightAnchor.constraint(equalToConstant: 40).isActive = true
+      button.addTarget(coordinator, action: action, for: .touchUpInside)
+      return button
+    }
+    let stack = UIStackView(arrangedSubviews: buttons)
+    stack.axis = .vertical
+    stack.spacing = 8
+    stack.translatesAutoresizingMaskIntoConstraints = false
+    mapView.addSubview(stack)
+    NSLayoutConstraint.activate([
+      stack.trailingAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+      stack.centerYAnchor.constraint(equalTo: mapView.centerYAnchor),
+    ])
   }
 
   func updateUIView(_ mapView: MLNMapView, context: Context) {
@@ -61,7 +90,6 @@ struct NetworkMapView: UIViewRepresentable {
     private var shownGraph: NetworkGraph?
     private var shownNetwork: URL?
     private var shownRoute: String?
-    private var shownWaypoints: String?
 
     func show(graph: NetworkGraph, layers: MapLayers, focus: [Knot], on mapView: MLNMapView) {
       self.mapView = mapView
@@ -71,9 +99,25 @@ struct NetworkMapView: UIViewRepresentable {
       update()
     }
 
+    @objc func zoomIn() { zoom(by: 1) }
+
+    @objc func zoomOut() { zoom(by: -1) }
+
+    private func zoom(by delta: Double) {
+      guard let mapView else { return }
+      mapView.setZoomLevel(mapView.zoomLevel + delta, animated: true)
+    }
+
     @objc func tapped(_ recognizer: UITapGestureRecognizer) {
-      guard let mapView, mapView.zoomLevel >= knotMinimumZoom else { return }
-      let coordinate = mapView.convert(recognizer.location(in: mapView), toCoordinateFrom: mapView)
+      guard let mapView else { return }
+      let point = recognizer.location(in: mapView)
+      if mapView.zoomLevel < knotMinimumZoom {
+        // Zoomed out, knots are not shown: a tap on the route zooms to it.
+        let area = CGRect(x: point.x - touchTargetPoints, y: point.y - touchTargetPoints, width: 2 * touchTargetPoints, height: 2 * touchTargetPoints)
+        if !mapView.visibleFeatures(in: area, styleLayerIdentifiers: ["route"]).isEmpty { fit(to: focus, animated: true) }
+        return
+      }
+      let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
       let metersPerPoint = mapView.metersPerPoint(atLatitude: coordinate.latitude)
       onTap(coordinate.latitude, coordinate.longitude, metersPerPoint * touchTargetPoints)
     }
@@ -82,7 +126,6 @@ struct NetworkMapView: UIViewRepresentable {
       self.style = style
       shownNetwork = nil
       shownRoute = nil
-      shownWaypoints = nil
       addLayers(to: style)
       update()
     }
@@ -96,30 +139,31 @@ struct NetworkMapView: UIViewRepresentable {
     private func update() {
       guard let style, let layers else { return }
       if shownNetwork != layers.connections {
-        for ref in layers.refs where style.image(forName: "knot-\(ref)") == nil {
-          style.setImage(badge(ref), forName: "knot-\(ref)")
+        for ref in layers.refs where style.image(forName: KnotBadges.name(nil, ref)) == nil {
+          style.setImage(KnotBadges.image(nil, ref), forName: KnotBadges.name(nil, ref))
         }
         (style.source(withIdentifier: "knots") as? MLNShapeSource)?.url = layers.knots
         (style.source(withIdentifier: "connections") as? MLNShapeSource)?.url = layers.connections
         shownNetwork = layers.connections
       }
-      if shownRoute != layers.route {
+      if shownRoute != layers.route + layers.routeKnots {
+        // Route knots change without the route, e.g. when only the start is set.
+        for routeKnot in layers.routeKnotList {
+          let name = KnotBadges.name(routeKnot.role, routeKnot.knot.ref)
+          if style.image(forName: name) == nil { style.setImage(KnotBadges.image(routeKnot.role, routeKnot.knot.ref), forName: name) }
+        }
         (style.source(withIdentifier: "route") as? MLNShapeSource)?.shape = shape(layers.route)
-        shownRoute = layers.route
-      }
-      // Waypoints change without the route, e.g. when only the start is set.
-      if shownWaypoints != layers.waypoints {
-        (style.source(withIdentifier: "waypoints") as? MLNShapeSource)?.shape = shape(layers.waypoints)
-        shownWaypoints = layers.waypoints
+        (style.source(withIdentifier: "route-knots") as? MLNShapeSource)?.shape = shape(layers.routeKnots)
+        shownRoute = layers.route + layers.routeKnots
       }
       if shownGraph !== graph, let graph {
         // A new network shows the restored route if there is one, the whole network otherwise.
-        fit(to: focus.count >= 2 ? focus : Array(graph.knots.values))
+        fit(to: focus.count >= 2 ? focus : Array(graph.knots.values), animated: false)
         shownGraph = graph
       }
     }
 
-    private func fit(to knots: [Knot]) {
+    private func fit(to knots: [Knot], animated: Bool) {
       guard knots.count >= 2, let mapView else { return }
       let coordinates = knots.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
       let bounds = MLNCoordinateBounds(
@@ -128,7 +172,7 @@ struct NetworkMapView: UIViewRepresentable {
         ne: CLLocationCoordinate2D(
           latitude: coordinates.map(\.latitude).max()!, longitude: coordinates.map(\.longitude).max()!))
       mapView.setVisibleCoordinateBounds(
-        bounds, edgePadding: UIEdgeInsets(top: 140, left: 40, bottom: 220, right: 40), animated: false,
+        bounds, edgePadding: UIEdgeInsets(top: 140, left: 40, bottom: 220, right: 60), animated: animated,
         completionHandler: nil)
     }
 
@@ -138,7 +182,9 @@ struct NetworkMapView: UIViewRepresentable {
 
     private func addLayers(to style: MLNStyle) {
       // Large network layers come from files, so the map parses them off the main thread.
-      let sources = ["connections", "route", "waypoints", "knots"].map { MLNShapeSource(identifier: $0, shape: nil) }
+      let sources = ["connections", "route", "route-knots", "knots"].map { MLNShapeSource(identifier: $0, shape: nil) }
+      // Not "arrow": the base map's sprite has an image of that name for one-way streets.
+      style.setImage(KnotBadges.arrow(), forName: "route-arrow")
       sources.forEach(style.addSource)
 
       let connections = MLNLineStyleLayer(identifier: "connections", source: sources[0])
@@ -150,7 +196,7 @@ struct NetworkMapView: UIViewRepresentable {
       let route = MLNLineStyleLayer(identifier: "route", source: sources[1])
       route.predicate = NSPredicate(format: "reachable == YES")
       route.lineColor = NSExpression(forConstantValue: UIColor(Color.knoopOrange))
-      route.lineWidth = NSExpression(forConstantValue: 6)
+      route.lineWidth = NSExpression(forConstantValue: 8)
       route.lineCap = NSExpression(forConstantValue: "round")
       route.lineJoin = NSExpression(forConstantValue: "round")
       style.addLayer(route)
@@ -162,12 +208,15 @@ struct NetworkMapView: UIViewRepresentable {
       unreachable.lineDashPattern = NSExpression(forConstantValue: [2, 2])
       style.addLayer(unreachable)
 
-      let waypoints = MLNCircleStyleLayer(identifier: "waypoints", source: sources[2])
-      waypoints.circleRadius = NSExpression(forConstantValue: 16)
-      waypoints.circleColor = NSExpression(forConstantValue: UIColor(Color.knoopOrange))
-      waypoints.circleStrokeColor = NSExpression(forConstantValue: UIColor.white)
-      waypoints.circleStrokeWidth = NSExpression(forConstantValue: 3)
-      style.addLayer(waypoints)
+      // Arrows along the route show the riding direction: each leg runs from its start to its end.
+      let direction = MLNSymbolStyleLayer(identifier: "route-direction", source: sources[1])
+      direction.predicate = NSPredicate(format: "reachable == YES")
+      direction.symbolPlacement = NSExpression(forConstantValue: "line")
+      direction.symbolSpacing = NSExpression(forConstantValue: 48)
+      direction.iconImageName = NSExpression(forConstantValue: "route-arrow")
+      direction.iconAllowsOverlap = NSExpression(forConstantValue: true)
+      direction.iconIgnoresPlacement = NSExpression(forConstantValue: true)
+      style.addLayer(direction)
 
       let knots = MLNSymbolStyleLayer(identifier: "knots", source: sources[3])
       knots.iconImageName = NSExpression(format: "mgl_join({'knot-', ref})")
@@ -175,28 +224,15 @@ struct NetworkMapView: UIViewRepresentable {
       knots.iconIgnoresPlacement = NSExpression(forConstantValue: true)
       knots.minimumZoomLevel = Float(knotMinimumZoom)
       style.addLayer(knots)
+
+      // Route knots are drawn above the network's knots, with a badge per role.
+      let routeKnots = MLNSymbolStyleLayer(identifier: "route-knots", source: sources[2])
+      routeKnots.iconImageName = NSExpression(format: "mgl_join({'route-', role, '-', ref})")
+      routeKnots.iconAllowsOverlap = NSExpression(forConstantValue: true)
+      routeKnots.iconIgnoresPlacement = NSExpression(forConstantValue: true)
+      routeKnots.minimumZoomLevel = Float(knotMinimumZoom)
+      style.addLayer(routeKnots)
     }
 
-    /// A round badge with the knot's number, drawn locally so numbers show without network access.
-    private func badge(_ ref: String) -> UIImage {
-      let size = CGSize(width: 22, height: 22)
-      return UIGraphicsImageRenderer(size: size).image { context in
-        let circle = CGRect(origin: .zero, size: size).insetBy(dx: 1.5, dy: 1.5)
-        UIColor.white.setFill()
-        context.cgContext.fillEllipse(in: circle)
-        UIColor(Color.knoopGreen).setStroke()
-        context.cgContext.setLineWidth(2)
-        context.cgContext.strokeEllipse(in: circle)
-        let attributes: [NSAttributedString.Key: Any] = [
-          .font: UIFont.boldSystemFont(ofSize: ref.count > 2 ? 7 : 9),
-          .foregroundColor: UIColor(Color.knoopGreen),
-        ]
-        let text = ref as NSString
-        let textSize = text.size(withAttributes: attributes)
-        text.draw(
-          at: CGPoint(x: (size.width - textSize.width) / 2, y: (size.height - textSize.height) / 2),
-          withAttributes: attributes)
-      }
-    }
   }
 }

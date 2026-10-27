@@ -21,6 +21,7 @@ import com.knoopbyknoop.core.RegionState
 import com.knoopbyknoop.core.RegionStatus
 import com.knoopbyknoop.core.RejectionReason
 import com.knoopbyknoop.core.RouteDescription
+import com.knoopbyknoop.core.RouteKnot
 import com.knoopbyknoop.core.RouteSnapshot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -37,7 +38,8 @@ data class MapLayers(
   val knots: String,
   val connections: String,
   val route: String,
-  val waypoints: String,
+  val routeKnots: String,
+  val routeKnotList: List<RouteKnot>,
   val refs: Set<String>,
 )
 
@@ -147,6 +149,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     state.session?.let { update(it.clear()) }
   }
 
+  fun returnToStart() {
+    state.session?.takeIf { it.canReturnToStart }?.let { update(it.returnToStart()) }
+  }
+
   private fun update(session: PlanningSession) {
     storage.saveRoute(RouteSnapshot.of(session))
     state =
@@ -232,7 +238,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
       knots = network.knots,
       connections = network.connections,
       route = MapFeatures.route(session, network.geometry),
-      waypoints = MapFeatures.waypoints(session),
+      routeKnots = MapFeatures.routeKnotsLayer(session),
+      routeKnotList = MapFeatures.routeKnotMarkers(session),
       refs = network.refs,
     )
   }

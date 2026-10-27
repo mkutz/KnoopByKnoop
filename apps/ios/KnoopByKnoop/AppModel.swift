@@ -12,7 +12,8 @@ struct MapLayers {
   let knots: URL
   let connections: URL
   let route: String
-  let waypoints: String
+  let routeKnots: String
+  let routeKnotList: [RouteKnot]
   let refs: Set<String>
 }
 
@@ -23,6 +24,23 @@ private struct LoadedNetwork {
   let knots: URL
   let connections: URL
   let refs: Set<String>
+}
+
+/// A planning session with everything the screens show of it, prepared off the main thread.
+private struct PreparedSession: @unchecked Sendable {
+  let session: PlanningSession
+  let description: RouteDescription
+  let route: String
+  let routeKnots: String
+  let routeKnotMarkers: [RouteKnot]
+
+  init(_ session: PlanningSession, geometry: NetworkGeometry) {
+    self.session = session
+    description = MapFeatures.shared.describe(session: session)
+    route = MapFeatures.shared.route(session: session, geometry: geometry)
+    routeKnots = MapFeatures.shared.routeKnotsLayer(session: session)
+    routeKnotMarkers = MapFeatures.shared.routeKnotMarkers(session: session)
+  }
 }
 
 /// Connects the screens with storage, downloads and the core's planning logic.
@@ -90,38 +108,64 @@ final class AppModel: ObservableObject {
 
   /// Handles a tap on the map; `radiusMeters` is the touch target at the current zoom level.
   func tap(latitude: Double, longitude: Double, radiusMeters: Double) {
-    guard let session,
-      let knot = loaded?.locator.nearest(latitude: latitude, longitude: longitude, radiusMeters: radiusMeters)
-    else { return }
-    update(session.tap(knot: knot))
+    guard let locator = loaded?.locator else { return }
+    change { session in
+      locator.nearest(latitude: latitude, longitude: longitude, radiusMeters: radiusMeters)
+        .map { session.tap(knot: $0) }
+    }
   }
 
   func moveWaypoint(from: Int, to: Int) {
-    if let session { update(session.moveWaypoint(from: Int32(from), to: Int32(to))) }
+    change { $0.moveWaypoint(from: Int32(from), to: Int32(to)) }
   }
 
   func removeWaypoint(at position: Int) {
-    if let session, session.canRemoveWaypoints { update(session.removeWaypoint(position: Int32(position))) }
+    change { $0.canRemoveWaypoints ? $0.removeWaypoint(position: Int32(position)) : nil }
   }
 
   func clear() {
-    if let session { update(session.clear()) }
+    change { $0.clear() }
   }
 
-  private func update(_ newSession: PlanningSession) {
-    storage.saveRoute(RouteSnapshot.companion.of(session: newSession))
-    show(newSession)
+  func returnToStart() {
+    change { $0.canReturnToStart ? $0.returnToStart() : nil }
+  }
+
+  private var changes: Task<Void, Never>?
+
+  /// Applies a planning change and prepares its map layers off the main thread: routing on a large
+  /// network takes long enough to make the screen stutter. Changes run one after the other.
+  private func change(_ apply: @escaping @Sendable (PlanningSession) -> PlanningSession?) {
+    let previous = changes
+    changes = Task {
+      await previous?.value
+      guard let current = session, let loaded else { return }
+      let geometry = loaded.geometry
+      let prepared = await Task.detached { () -> PreparedSession? in
+        apply(current).map { PreparedSession($0, geometry: geometry) }
+      }.value
+      // A network switch while preparing replaces the session; the change no longer applies.
+      guard let prepared, session === current else { return }
+      storage.saveRoute(RouteSnapshot.companion.of(session: prepared.session))
+      show(prepared)
+    }
   }
 
   private func show(_ newSession: PlanningSession) {
-    session = newSession
-    routeDescription = MapFeatures.shared.describe(session: newSession)
+    guard let loaded else { return }
+    show(PreparedSession(newSession, geometry: loaded.geometry))
+  }
+
+  private func show(_ prepared: PreparedSession) {
+    session = prepared.session
+    routeDescription = prepared.description
     if let loaded {
       layers = MapLayers(
         knots: loaded.knots,
         connections: loaded.connections,
-        route: MapFeatures.shared.route(session: newSession, geometry: loaded.geometry),
-        waypoints: MapFeatures.shared.waypoints(session: newSession),
+        route: prepared.route,
+        routeKnots: prepared.routeKnots,
+        routeKnotList: prepared.routeKnotMarkers,
         refs: loaded.refs)
     }
   }

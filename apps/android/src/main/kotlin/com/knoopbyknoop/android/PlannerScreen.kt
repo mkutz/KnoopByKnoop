@@ -2,16 +2,20 @@ package com.knoopbyknoop.android
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.CircularProgressIndicator
@@ -38,8 +42,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.knoopbyknoop.core.IndexedNetworkType
 import com.knoopbyknoop.core.Knot
+import com.knoopbyknoop.core.KnotRole
 import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteSummary
 import kotlin.math.roundToInt
@@ -61,7 +67,7 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
   var pendingNetwork by remember { mutableStateOf<IndexedNetworkType?>(null) }
 
   BottomSheetScaffold(
-    sheetPeekHeight = 112.dp,
+    sheetPeekHeight = 150.dp,
     snackbarHost = { SnackbarHost(snackbarHostState) },
     sheetContent = { WaypointSheet(state, viewModel) },
   ) { padding ->
@@ -128,6 +134,7 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
   }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
   val session = state.session ?: return
@@ -144,7 +151,15 @@ private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
             )
           is RouteDescription.Complete -> {
             Text(description.distance, style = MaterialTheme.typography.titleLarge)
-            Text(description.knots, style = MaterialTheme.typography.bodyMedium)
+            // The route's knots like on the map; the chosen waypoints stand out.
+            FlowRow(
+              horizontalArrangement = Arrangement.spacedBy(4.dp),
+              verticalArrangement = Arrangement.spacedBy(4.dp),
+              itemVerticalAlignment = Alignment.CenterVertically,
+              modifier = Modifier.padding(top = 4.dp),
+            ) {
+              description.knots.forEach { (knot, role) -> KnotBadge(knot.ref, role) }
+            }
           }
           is RouteDescription.Unreachable ->
             Text(
@@ -154,7 +169,12 @@ private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
             )
         }
       }
-      if (session.waypoints.isNotEmpty()) TextButton(onClick = viewModel::clear) { Text("Clear") }
+      Column(horizontalAlignment = Alignment.End) {
+        if (session.waypoints.isNotEmpty()) TextButton(onClick = viewModel::clear) { Text("Clear") }
+        if (session.canReturnToStart) {
+          TextButton(onClick = viewModel::returnToStart) { Text("Back to start") }
+        }
+      }
     }
     Spacer(modifier = Modifier.height(8.dp))
     WaypointList(session.waypoints, session.canRemoveWaypoints, viewModel)
@@ -162,16 +182,23 @@ private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
   }
 }
 
-/** Waypoints in order: long-press and drag to move one, swipe to remove one. */
+/**
+ * Waypoints in order: long-press and drag to move one, swipe to remove one. While dragging, the
+ * list already shows the new order, so the other waypoints make room for the dragged one.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WaypointList(waypoints: List<Knot>, canRemove: Boolean, viewModel: AppViewModel) {
   val rowHeightPixels = with(LocalDensity.current) { WAYPOINT_ROW_HEIGHT.toPx() }
-  var draggedIndex by remember { mutableStateOf<Int?>(null) }
-  var dragOffset by remember { mutableFloatStateOf(0f) }
+  // Indices into [waypoints] in the order shown; differs from 0, 1, 2, … only while dragging.
+  var order by remember(waypoints) { mutableStateOf(waypoints.indices.toList()) }
+  var dragged by remember(waypoints) { mutableStateOf<Int?>(null) }
+  var dragOffset by remember(waypoints) { mutableFloatStateOf(0f) }
 
   LazyColumn(modifier = Modifier.height(WAYPOINT_ROW_HEIGHT * minOf(waypoints.size, 5))) {
-    itemsIndexed(waypoints, key = { index, knot -> "$index-${knot.id}" }) { index, knot ->
+    items(order, key = { it }) { index ->
+      val knot = waypoints[index]
+      val isDragged = dragged == index
       val dismissState =
         rememberSwipeToDismissBoxState(
           confirmValueChange = { value ->
@@ -186,53 +213,70 @@ private fun WaypointList(waypoints: List<Knot>, canRemove: Boolean, viewModel: A
       SwipeToDismissBox(
         state = dismissState,
         backgroundContent = {},
-        enableDismissFromStartToEnd = canRemove,
-        enableDismissFromEndToStart = canRemove,
+        enableDismissFromStartToEnd = canRemove && dragged == null,
+        enableDismissFromEndToStart = canRemove && dragged == null,
+        modifier =
+          (if (isDragged) Modifier.zIndex(1f) else Modifier.animateItem()).graphicsLayer {
+            translationY = if (isDragged) dragOffset else 0f
+            shadowElevation = if (isDragged) 8f else 0f
+          },
       ) {
         Row(
           verticalAlignment = Alignment.CenterVertically,
           modifier =
             Modifier.fillMaxWidth()
               .height(WAYPOINT_ROW_HEIGHT)
-              .graphicsLayer { translationY = if (draggedIndex == index) dragOffset else 0f }
               .background(MaterialTheme.colorScheme.surface)
-              .pointerInput(index, waypoints.size) {
+              .pointerInput(index, waypoints) {
                 detectDragGesturesAfterLongPress(
                   onDragStart = {
-                    draggedIndex = index
+                    dragged = index
                     dragOffset = 0f
                   },
                   onDrag = { change, amount ->
                     change.consume()
                     dragOffset += amount.y
+                    // Move the dragged waypoint in the shown order as soon as it covers a neighbor.
+                    val current = order.indexOf(index)
+                    val target =
+                      (current + (dragOffset / rowHeightPixels).roundToInt()).coerceIn(
+                        0,
+                        order.lastIndex,
+                      )
+                    if (target != current) {
+                      order = order.toMutableList().apply { add(target, removeAt(current)) }
+                      dragOffset -= (target - current) * rowHeightPixels
+                    }
                   },
                   onDragEnd = {
-                    val target =
-                      (index + (dragOffset / rowHeightPixels).roundToInt()).coerceIn(
-                        0,
-                        waypoints.lastIndex,
-                      )
-                    draggedIndex = null
+                    val target = order.indexOf(index)
+                    dragged = null
                     dragOffset = 0f
                     if (target != index) viewModel.moveWaypoint(index, target)
                   },
                   onDragCancel = {
-                    draggedIndex = null
+                    order = waypoints.indices.toList()
+                    dragged = null
                     dragOffset = 0f
                   },
                 )
               },
         ) {
+          // Read here, so the role follows the shown order while dragging.
+          val role =
+            when (order.indexOf(index)) {
+              0 -> KnotRole.START
+              order.lastIndex -> KnotRole.END
+              else -> KnotRole.STOP
+            }
+          Box(modifier = Modifier.width(44.dp), contentAlignment = Alignment.Center) {
+            KnotBadge(knot.ref, role)
+          }
           Text(
-            when (index) {
-              0 -> "Start"
-              waypoints.lastIndex -> "End"
-              else -> "Stop"
-            },
-            style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier.padding(end = 16.dp),
+            role.name.lowercase().replaceFirstChar { it.uppercase() },
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(start = 12.dp),
           )
-          Text(knot.ref, style = MaterialTheme.typography.titleMedium)
         }
       }
     }

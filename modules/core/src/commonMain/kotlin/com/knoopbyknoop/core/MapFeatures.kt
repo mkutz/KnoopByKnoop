@@ -11,12 +11,27 @@ sealed interface RouteDescription {
   /** Only the start is set: the next tap sets the end. */
   data class StartOnly(val start: String) : RouteDescription
 
-  /** e.g. knots `12 → 7 → 45` and distance `3.5 km`. */
-  data class Complete(val knots: String, val distance: String) : RouteDescription
+  /** The route's [knots] in riding order with their roles, and e.g. the distance `3.5 km`. */
+  data class Complete(val knots: List<RouteKnot>, val distance: String) : RouteDescription
 
   /** The legs that cannot be ridden, e.g. `45 → 99`. */
   data class Unreachable(val legs: List<String>) : RouteDescription
 }
+
+/** How a knot takes part in a route, see `map-planning`. */
+enum class KnotRole {
+  START,
+  STOP,
+  END,
+
+  /** On the route between two waypoints. */
+  PASSED,
+
+  /** Start and end of a round trip, which share one marker on the map. */
+  ROUND_TRIP,
+}
+
+data class RouteKnot(val knot: Knot, val role: KnotRole)
 
 /**
  * The map layers and texts of the planner. Layers are GeoJSON feature collections with coordinates
@@ -70,6 +85,58 @@ object MapFeatures {
       }
     }
 
+  /**
+   * The knots of the complete route in riding order with their roles. Waypoints keep their role,
+   * also where the route passes them again. Without a complete route, only the waypoints.
+   */
+  fun routeKnots(session: PlanningSession): List<RouteKnot> {
+    val legs = session.route?.legs ?: return waypointKnots(session)
+    if (legs.any { !it.isReachable }) return waypointKnots(session)
+    val lastLeg = legs.lastIndex
+    return legs.flatMapIndexed { index, leg ->
+      val knots = leg.path!!.knots
+      val passed = knots.drop(1).dropLast(1).map { RouteKnot(it, KnotRole.PASSED) }
+      val start = RouteKnot(knots.first(), if (index == 0) KnotRole.START else KnotRole.STOP)
+      val end = if (index == lastLeg) listOf(RouteKnot(knots.last(), KnotRole.END)) else listOf()
+      listOf(start) + passed + end
+    }
+  }
+
+  /** The waypoints with their roles, for the waypoint list. */
+  fun waypointKnots(session: PlanningSession): List<RouteKnot> =
+    session.waypoints.mapIndexed { index, knot ->
+      val role =
+        when {
+          index == 0 -> KnotRole.START
+          index == session.waypoints.lastIndex -> KnotRole.END
+          else -> KnotRole.STOP
+        }
+      RouteKnot(knot, role)
+    }
+
+  /**
+   * The route's knots as markers on the map: like [routeKnots], but the start and end of a round
+   * trip share one marker with the role [KnotRole.ROUND_TRIP], since they are at the same place.
+   */
+  fun routeKnotMarkers(session: PlanningSession): List<RouteKnot> {
+    val knots = routeKnots(session)
+    val start = knots.firstOrNull()
+    val end = knots.lastOrNull()
+    if (knots.size < 2 || start?.role != KnotRole.START || end?.role != KnotRole.END) return knots
+    if (start.knot != end.knot) return knots
+    return listOf(RouteKnot(start.knot, KnotRole.ROUND_TRIP)) + knots.subList(1, knots.lastIndex)
+  }
+
+  /** Points of the route's markers with the properties `ref` and `role` (lowercase). */
+  fun routeKnotsLayer(session: PlanningSession): String =
+    featureCollection(routeKnotMarkers(session)) { routeKnot ->
+      point(routeKnot.knot)
+      properties {
+        property("ref", quoted(routeKnot.knot.ref))
+        property("role", quoted(routeKnot.role.name.lowercase()))
+      }
+    }
+
   fun describe(session: PlanningSession): RouteDescription {
     val route =
       session.route
@@ -78,7 +145,7 @@ object MapFeatures {
     return when (val summary = route.summary) {
       is RouteSummary.Complete ->
         RouteDescription.Complete(
-          knots = summary.knots.joinToString(" → ") { it.ref },
+          knots = routeKnots(session),
           distance = formatDistance(summary.lengthMeters),
         )
       is RouteSummary.Incomplete ->

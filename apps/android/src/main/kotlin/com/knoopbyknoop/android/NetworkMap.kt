@@ -1,16 +1,21 @@
 package com.knoopbyknoop.android
 
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Typeface
+import android.graphics.RectF
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -25,7 +30,6 @@ import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
 import org.maplibre.android.style.expressions.Expression
-import org.maplibre.android.style.layers.CircleLayer
 import org.maplibre.android.style.layers.LineLayer
 import org.maplibre.android.style.layers.Property
 import org.maplibre.android.style.layers.PropertyFactory
@@ -39,7 +43,7 @@ private const val BASE_MAP_STYLE = "https://tiles.openfreemap.org/styles/liberty
 private const val OFFLINE_STYLE =
   """{"version": 8, "sources": {}, "layers": [{"id": "background", "type": "background", "paint": {"background-color": "#EEF1EA"}}]}"""
 
-/** Knots are drawn and can be tapped from this zoom level on. */
+/** Knots are drawn and can be tapped from this zoom level on; below it the route is a line only. */
 private const val KNOT_MIN_ZOOM = 10.0
 
 /** The touch target around a tap within which the nearest knot is picked. */
@@ -49,8 +53,8 @@ private const val GREEN = "#2E9E5B"
 private const val ORANGE = "#F28C28"
 
 /**
- * The map with the network and the route. Taps are reported with the touch target in meters at the
- * current zoom level, so the core's knot locator can pick the knot.
+ * The map with the network and the route, and buttons to zoom. Taps are reported with the touch
+ * target in meters at the current zoom level, so the core's knot locator can pick the knot.
  */
 @Composable
 fun NetworkMap(
@@ -70,7 +74,19 @@ fun NetworkMap(
       getMapAsync { map ->
         holder.map = map
         map.addOnMapClickListener { point ->
-          if (map.cameraPosition.zoom < KNOT_MIN_ZOOM) return@addOnMapClickListener false
+          if (map.cameraPosition.zoom < KNOT_MIN_ZOOM) {
+            // Zoomed out, knots are not shown: a tap on the route zooms to it.
+            val screenPoint = map.projection.toScreenLocation(point)
+            val area =
+              RectF(
+                screenPoint.x - touchTargetPixels,
+                screenPoint.y - touchTargetPixels,
+                screenPoint.x + touchTargetPixels,
+                screenPoint.y + touchTargetPixels,
+              )
+            if (map.queryRenderedFeatures(area, "route").isNotEmpty()) holder.zoomToFocus()
+            return@addOnMapClickListener true
+          }
           val metersPerPixel = map.projection.getMetersPerPixelAtLatitude(point.latitude)
           holder.onTap(point.latitude, point.longitude, metersPerPixel * touchTargetPixels)
           true
@@ -103,7 +119,21 @@ fun NetworkMap(
     }
   }
 
-  AndroidView(factory = { mapView }, modifier = modifier)
+  Box(modifier = modifier) {
+    AndroidView(factory = { mapView })
+    Column(modifier = Modifier.align(Alignment.CenterEnd).padding(12.dp)) {
+      listOf("+" to 1.0, "−" to -1.0).forEach { (label, delta) ->
+        SmallFloatingActionButton(
+          onClick = { holder.zoomBy(delta) },
+          containerColor = Color.White,
+          contentColor = Green,
+          modifier = Modifier.padding(vertical = 4.dp),
+        ) {
+          Text(label, fontSize = 22.sp)
+        }
+      }
+    }
+  }
 }
 
 /** Keeps the map, its style and what is shown, so updates only touch what changed. */
@@ -131,42 +161,57 @@ private class MapHolder {
     update()
   }
 
+  fun zoomBy(delta: Double) {
+    map?.animateCamera(CameraUpdateFactory.zoomBy(delta))
+  }
+
+  fun zoomToFocus() {
+    fitTo(focus, animated = true)
+  }
+
   private fun update() {
     val style = style ?: return
     val layers = layers ?: return
     val previous = shownLayers
     if (previous == null || previous.knots !== layers.knots) {
       layers.refs.forEach { ref ->
-        if (style.getImage("knot-$ref") == null) style.addImage("knot-$ref", badge(ref))
+        val name = badgeName(null, ref)
+        if (style.getImage(name) == null) style.addImage(name, badgeBitmap(null, ref))
       }
       style.getSourceAs<GeoJsonSource>("knots")?.setGeoJson(layers.knots)
       style.getSourceAs<GeoJsonSource>("connections")?.setGeoJson(layers.connections)
     }
     if (previous == null || previous.route !== layers.route) {
+      layers.routeKnotList.forEach { (knot, role) ->
+        val name = badgeName(role, knot.ref)
+        if (style.getImage(name) == null) style.addImage(name, badgeBitmap(role, knot.ref))
+      }
       style.getSourceAs<GeoJsonSource>("route")?.setGeoJson(layers.route)
-      style.getSourceAs<GeoJsonSource>("waypoints")?.setGeoJson(layers.waypoints)
+      style.getSourceAs<GeoJsonSource>("route-knots")?.setGeoJson(layers.routeKnots)
     }
     shownLayers = layers
     if (shownGraph !== graph) {
       // A new network shows the restored route if there is one, the whole network otherwise.
-      graph?.let { fitTo(if (focus.size >= 2) focus else it.knots.values) }
+      graph?.let { fitTo(if (focus.size >= 2) focus else it.knots.values, animated = false) }
       shownGraph = graph
     }
   }
 
-  private fun fitTo(knots: Collection<Knot>) {
+  private fun fitTo(knots: Collection<Knot>, animated: Boolean) {
     if (knots.size < 2) return
     val bounds =
       LatLngBounds.Builder()
         .apply { knots.forEach { include(LatLng(it.latitude, it.longitude)) } }
         .build()
-    map?.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 160))
+    val update = CameraUpdateFactory.newLatLngBounds(bounds, 160)
+    if (animated) map?.animateCamera(update) else map?.moveCamera(update)
   }
 
   private fun addLayers(style: Style) {
-    listOf("connections", "route", "waypoints", "knots").forEach {
+    listOf("connections", "route", "route-knots", "knots").forEach {
       style.addSource(GeoJsonSource(it))
     }
+    style.addImage("route-arrow", arrowBitmap())
     style.addLayer(
       LineLayer("connections", "connections")
         .withProperties(
@@ -180,7 +225,7 @@ private class MapHolder {
         .withFilter(Expression.eq(Expression.get("reachable"), true))
         .withProperties(
           PropertyFactory.lineColor(ORANGE),
-          PropertyFactory.lineWidth(6f),
+          PropertyFactory.lineWidth(8f),
           PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
           PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
         )
@@ -194,13 +239,17 @@ private class MapHolder {
           PropertyFactory.lineDasharray(arrayOf(2f, 2f)),
         )
     )
+    // Arrows along the route show the riding direction: each leg runs from its start to its end.
     style.addLayer(
-      CircleLayer("waypoints", "waypoints")
+      SymbolLayer("route-direction", "route")
+        .withFilter(Expression.eq(Expression.get("reachable"), true))
         .withProperties(
-          PropertyFactory.circleRadius(16f),
-          PropertyFactory.circleColor(ORANGE),
-          PropertyFactory.circleStrokeColor("#FFFFFF"),
-          PropertyFactory.circleStrokeWidth(3f),
+          PropertyFactory.symbolPlacement(Property.SYMBOL_PLACEMENT_LINE),
+          PropertyFactory.symbolSpacing(48f),
+          PropertyFactory.iconImage("route-arrow"),
+          PropertyFactory.iconSize(0.7f),
+          PropertyFactory.iconAllowOverlap(true),
+          PropertyFactory.iconIgnorePlacement(true),
         )
     )
     style.addLayer(
@@ -214,30 +263,22 @@ private class MapHolder {
         )
         .apply { minZoom = KNOT_MIN_ZOOM.toFloat() }
     )
-  }
-
-  /** A round badge with the knot's number, drawn locally so numbers show without network access. */
-  private fun badge(ref: String): Bitmap {
-    val size = 56
-    val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-    val canvas = Canvas(bitmap)
-    val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE }
-    val stroke =
-      Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor(GREEN)
-        style = Paint.Style.STROKE
-        strokeWidth = 5f
-      }
-    val text =
-      Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor(GREEN)
-        textAlign = Paint.Align.CENTER
-        typeface = Typeface.DEFAULT_BOLD
-        textSize = if (ref.length > 2) 18f else 24f
-      }
-    canvas.drawCircle(size / 2f, size / 2f, size / 2f - 4, fill)
-    canvas.drawCircle(size / 2f, size / 2f, size / 2f - 4, stroke)
-    canvas.drawText(ref, size / 2f, size / 2f - (text.descent() + text.ascent()) / 2, text)
-    return bitmap
+    // Route knots are drawn above the network's knots, with a badge per role.
+    style.addLayer(
+      SymbolLayer("route-knots", "route-knots")
+        .withProperties(
+          PropertyFactory.iconImage(
+            Expression.concat(
+              Expression.literal("route-"),
+              Expression.get("role"),
+              Expression.literal("-"),
+              Expression.get("ref"),
+            )
+          ),
+          PropertyFactory.iconAllowOverlap(true),
+          PropertyFactory.iconIgnorePlacement(true),
+        )
+        .apply { minZoom = KNOT_MIN_ZOOM.toFloat() }
+    )
   }
 }

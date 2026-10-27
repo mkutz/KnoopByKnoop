@@ -38,7 +38,7 @@ struct PlannerView: View {
       }
       .sheet(isPresented: .constant(true)) {
         WaypointSheet(model: model, session: session)
-          .presentationDetents([.height(150), .medium, .large])
+          .presentationDetents([.height(170), .medium, .large])
           .presentationBackgroundInteraction(.enabled(upThrough: .medium))
           .interactiveDismissDisabled()
       }
@@ -78,42 +78,57 @@ private struct WaypointSheet: View {
 
   @ObservedObject var model: AppModel
   let session: PlanningSession
+  @State private var rows: [WaypointRow] = []
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
       HStack(alignment: .top) {
         summary
         Spacer()
-        if !session.waypoints.isEmpty { Button("Clear") { model.clear() } }
+        VStack(alignment: .trailing, spacing: 12) {
+          if !session.waypoints.isEmpty { Button("Clear") { model.clear() } }
+          if session.canReturnToStart { Button("Back to start") { model.returnToStart() } }
+        }
       }
       .padding()
       List {
-        ForEach(Array(session.waypoints.enumerated()), id: \.offset) { index, knot in
-          HStack(spacing: 16) {
-            Text(role(index)).font(.caption).foregroundStyle(.secondary).frame(width: 40, alignment: .leading)
-            Text(knot.ref).font(.headline)
+        ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+          HStack(spacing: 12) {
+            KnotBadge(ref: row.knot.ref, role: role(index)).frame(width: 40)
+            Text(role(index).name.lowercased().capitalized).font(.body)
           }
           .deleteDisabled(!session.canRemoveWaypoints)
         }
         .onMove { source, destination in
           guard let from = source.first else { return }
+          // Show the new order at once; the route follows as soon as it is computed.
+          rows.move(fromOffsets: source, toOffset: destination)
           // List counts the destination before removing the moved row.
           model.moveWaypoint(from: from, to: destination > from ? destination - 1 : destination)
         }
         .onDelete { positions in
-          if let position = positions.first { model.removeWaypoint(at: position) }
+          guard let position = positions.first else { return }
+          rows.remove(atOffsets: positions)
+          model.removeWaypoint(at: position)
         }
       }
       .listStyle(.plain)
     }
+    .onAppear { rows = WaypointRow.rows(of: session) }
+    .onChange(of: WaypointRow.rows(of: session)) { _, newRows in rows = newRows }
   }
 
   @ViewBuilder private var summary: some View {
     switch model.routeDescription {
     case let complete as RouteDescriptionComplete:
-      VStack(alignment: .leading) {
+      VStack(alignment: .leading, spacing: 6) {
         Text(complete.distance).font(.title2.bold())
-        Text(complete.knots).font(.subheadline).lineLimit(3).fixedSize(horizontal: false, vertical: true)
+        // The route's knots like on the map; the chosen waypoints stand out.
+        WrappingRow {
+          ForEach(Array(complete.knots.enumerated()), id: \.offset) { _, routeKnot in
+            KnotBadge(ref: routeKnot.knot.ref, role: routeKnot.role)
+          }
+        }
       }
     case let startOnly as RouteDescriptionStartOnly:
       Text("Start at \(startOnly.start), tap a knot to set the end").font(.headline)
@@ -124,11 +139,28 @@ private struct WaypointSheet: View {
     }
   }
 
-  private func role(_ index: Int) -> String {
+  private func role(_ index: Int) -> KnotRole {
     switch index {
-    case 0: "Start"
-    case session.waypoints.count - 1: "End"
-    default: "Stop"
+    case 0: .start
+    case rows.count - 1: .end
+    default: .stop
+    }
+  }
+}
+
+/// A waypoint with an identity that survives moving it, so the list animates moves correctly.
+private struct WaypointRow: Equatable {
+  let id: String
+  let knot: Knot
+
+  static func == (left: WaypointRow, right: WaypointRow) -> Bool { left.id == right.id }
+
+  /// Waypoints are distinct knots, except the end of a round trip, which repeats the start.
+  static func rows(of session: PlanningSession) -> [WaypointRow] {
+    var seen = Set<Int64>()
+    return session.waypoints.map { knot in
+      let repeated = !seen.insert(knot.id).inserted
+      return WaypointRow(id: repeated ? "\(knot.id)-again" : "\(knot.id)", knot: knot)
     }
   }
 }

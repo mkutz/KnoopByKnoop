@@ -12,7 +12,7 @@ The manual checks of the Android and iOS planners showed that the map and the sh
 - Arrows along the route line show the riding direction
 - The sheet shows the route's knots as badges like on the map, with the chosen waypoints clearly highlighted, instead of numbers joined by arrows
 - The waypoint list shows its knots as badges too
-- Tapping the current last waypoint again does nothing, so an accidental double tap no longer creates a round trip; a "Back to start" action creates round trips on purpose
+- Tapping a knot that already is a waypoint does nothing, so an accidental double tap no longer creates a round trip and the start no longer turns into a stop; a "Back to start" action creates round trips on purpose
 - Zoomed out, the route is only a line, without markers; tapping it zooms to the route
 
 Out of scope: showing all installed regions on one map and planning across borders (comes with `seamless-regions`), turn-by-turn directions, elevation.

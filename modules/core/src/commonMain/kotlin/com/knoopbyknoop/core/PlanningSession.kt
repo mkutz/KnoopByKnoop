@@ -22,16 +22,28 @@ private constructor(
   val canRemoveWaypoints: Boolean
     get() = waypoints.size != 2
 
+  /** Whether [returnToStart] can turn the route into a round trip. */
+  val canReturnToStart: Boolean
+    get() = waypoints.size >= 2 && waypoints.last() != waypoints.first()
+
   /**
    * The first tapped knot becomes the start, the second the end, every further one a stop in the
-   * leg where it adds the least distance.
+   * leg where it adds the least distance. Tapping a waypoint again changes nothing, so an
+   * accidental double tap does not create a round trip and the start does not turn into a stop.
    */
   fun tap(knot: Knot): PlanningSession =
     when {
+      knot in waypoints -> this
       waypoints.isEmpty() -> copy(listOf(knot), route = null)
       route == null -> withRoute(Route.plan(waypoints + knot, router))
       else -> withRoute(route.insertStop(knot))
     }
+
+  /** Turns the route into a round trip by adding the start as new end. */
+  fun returnToStart(): PlanningSession {
+    require(canReturnToStart) { "The route needs a start and an end other than the start" }
+    return withRoute(Route.plan(waypoints + waypoints.first(), router))
+  }
 
   fun moveWaypoint(from: Int, to: Int): PlanningSession =
     if (route == null) this else withRoute(route.moveWaypoint(from, to))

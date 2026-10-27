@@ -33,6 +33,13 @@ class PlanningTest {
   private fun coordinateCount(feature: kotlinx.serialization.json.JsonElement) =
     feature.jsonObject.getValue("geometry").jsonObject.getValue("coordinates").jsonArray.size
 
+  private val route12To45 =
+    listOf(
+      RouteKnot(knot12, KnotRole.START),
+      RouteKnot(knot7, KnotRole.PASSED),
+      RouteKnot(knot45, KnotRole.END),
+    )
+
   // Requirement: Show the network on the map
 
   @Test
@@ -67,7 +74,7 @@ class PlanningTest {
     assertTrue(features(MapFeatures.connections(straightLines)).all { coordinateCount(it) == 2 })
     val route = features(MapFeatures.route(planned, straightLines)).single()
     assertEquals(3, coordinateCount(route), "12, 7 and 45")
-    assertEquals(RouteDescription.Complete("12 → 7 → 45", "3.5 km"), MapFeatures.describe(planned))
+    assertEquals(RouteDescription.Complete(route12To45, "3.5 km"), MapFeatures.describe(planned))
   }
 
   @Test
@@ -147,7 +154,7 @@ class PlanningTest {
   @Test
   fun `route summary`() {
     assertEquals(
-      RouteDescription.Complete("12 → 7 → 45", "3.5 km"),
+      RouteDescription.Complete(route12To45, "3.5 km"),
       MapFeatures.describe(session.tapAll(knot12, knot45)),
     )
   }
@@ -259,6 +266,133 @@ class PlanningTest {
 
     assertTrue(snapshot.isFor("utrecht"), "removing utrecht discards the route")
     assertFalse(snapshot.isFor("belgium"))
+  }
+
+  // improve-planner-map: Plan by tapping knots
+
+  @Test
+  fun `tapping the last waypoint again`() {
+    val started = session.tapAll(knot12, knot12)
+
+    assertEquals(listOf(knot12), started.waypoints)
+    assertEquals(listOf(knot12, knot45), started.tap(knot45).waypoints, "the next knot is the end")
+    assertEquals(listOf(knot12, knot45), session.tapAll(knot12, knot45, knot45).waypoints)
+  }
+
+  @Test
+  fun `tapping the start of a route again`() {
+    val planned = session.tapAll(knot12, knot45, knot12, knot12)
+
+    assertEquals(listOf(knot12, knot45), planned.waypoints)
+    assertEquals(listOf(knot12, knot30, knot45), planned.tapAll(knot30, knot30, knot12).waypoints)
+  }
+
+  // improve-planner-map: Return to the start
+
+  @Test
+  fun `back to start`() {
+    val planned = session.tapAll(knot12, knot45, knot30)
+
+    val roundTrip = planned.returnToStart()
+
+    assertEquals(listOf(knot12, knot30, knot45, knot12), roundTrip.waypoints)
+    assertFalse(roundTrip.canReturnToStart, "it already ends at its start")
+    assertFalse(session.tap(knot12).canReturnToStart, "a start alone is no route")
+  }
+
+  // improve-planner-map: Route knots stand out
+
+  @Test
+  fun `passed knots`() {
+    val routeKnots = MapFeatures.routeKnots(session.tapAll(knot12, knot45))
+
+    assertEquals(route12To45, routeKnots)
+    assertTrue(routeKnots.none { it.knot == knot30 }, "knots off the route are not highlighted")
+  }
+
+  @Test
+  fun `start stop and end`() {
+    val routeKnots = MapFeatures.routeKnots(session.tapAll(knot12, knot45, knot30))
+
+    assertEquals(
+      listOf(KnotRole.START, KnotRole.STOP, KnotRole.END),
+      routeKnots.filter { it.role != KnotRole.PASSED }.map { it.role },
+    )
+    assertEquals(
+      listOf(knot12, knot30, knot45),
+      routeKnots.filter { it.role != KnotRole.PASSED }.map { it.knot },
+    )
+  }
+
+  @Test
+  fun `round trips end where they start`() {
+    val roles =
+      MapFeatures.routeKnots(
+        PlanningSession.start("utrecht", graph, listOf(knot12, knot30, knot12))
+      )
+
+    assertEquals(
+      listOf(
+        RouteKnot(knot12, KnotRole.START),
+        RouteKnot(knot30, KnotRole.STOP),
+        RouteKnot(knot12, KnotRole.END),
+      ),
+      roles,
+    )
+  }
+
+  @Test
+  fun `round trip on the map`() {
+    val roundTrip = PlanningSession.start("utrecht", graph, listOf(knot12, knot30, knot12))
+
+    assertEquals(
+      listOf(RouteKnot(knot12, KnotRole.ROUND_TRIP), RouteKnot(knot30, KnotRole.STOP)),
+      MapFeatures.routeKnotMarkers(roundTrip),
+    )
+    assertEquals(2, features(MapFeatures.routeKnotsLayer(roundTrip)).size, "one marker for 12")
+    assertEquals(
+      listOf(KnotRole.START, KnotRole.STOP, KnotRole.END),
+      MapFeatures.routeKnots(roundTrip).map { it.role },
+      "the sheet still shows start and end",
+    )
+  }
+
+  @Test
+  fun `other routes keep separate start and end markers`() {
+    val planned = session.tapAll(knot12, knot45)
+
+    assertEquals(MapFeatures.routeKnots(planned), MapFeatures.routeKnotMarkers(planned))
+  }
+
+  @Test
+  fun `an incomplete route shows its waypoints`() {
+    val roles = MapFeatures.routeKnots(session.tapAll(knot12, knot99))
+
+    assertEquals(listOf(RouteKnot(knot12, KnotRole.START), RouteKnot(knot99, KnotRole.END)), roles)
+  }
+
+  @Test
+  fun `route knots on the map know their role`() {
+    val features = features(MapFeatures.routeKnotsLayer(session.tapAll(knot12, knot45)))
+
+    assertEquals(
+      listOf("\"start\"", "\"passed\"", "\"end\""),
+      features.map { it.jsonObject.getValue("properties").jsonObject.getValue("role").toString() },
+    )
+  }
+
+  // improve-planner-map: Waypoint list with badges
+
+  @Test
+  fun `listing waypoints`() {
+    assertEquals(
+      listOf(
+        RouteKnot(knot12, KnotRole.START),
+        RouteKnot(knot30, KnotRole.STOP),
+        RouteKnot(knot45, KnotRole.END),
+      ),
+      MapFeatures.waypointKnots(session.tapAll(knot12, knot45, knot30)),
+    )
   }
 
   // Task 2.6

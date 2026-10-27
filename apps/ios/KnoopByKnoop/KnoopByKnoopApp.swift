@@ -43,9 +43,3 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     }
   }
 }
-
-extension Color {
-  /// The green and orange of the app icon, see `design/icon`.
-  static let knoopGreen = Color(red: 0x2E / 255, green: 0x9E / 255, blue: 0x5B / 255)
-  static let knoopOrange = Color(red: 0xF2 / 255, green: 0x8C / 255, blue: 0x28 / 255)
-}

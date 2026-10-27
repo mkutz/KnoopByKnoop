@@ -39,12 +39,13 @@ For an incomplete route, the waypoints keep their roles, so the sheet can still 
 | Stop | orange badge, white number |
 | Start | green badge, white number, slightly larger |
 | End | dark badge, white number, slightly larger |
+| Start and end of a round trip | split badge, left half green, right half dark, white number, slightly larger (map only; the sheet's row shows start and end at its two ends) |
 
 The orange waypoint circles go away; the badges themselves carry the role. Badge images are rendered per role and number, on demand.
 
 ### Tapping the last waypoint and returning to the start
 
-`PlanningSession.tap` ignores a knot that equals the last waypoint. `PlanningSession.returnToStart()` appends the start as new end; it is offered in the sheet as "Back to start" once there are at least two waypoints and the route does not end at its start already.
+`PlanningSession.tap` ignores a knot that already is a waypoint. `PlanningSession.returnToStart()` appends the start as new end; it is offered in the sheet as "Back to start" once there are at least two waypoints and the route does not end at its start already.
 
 ### Zoomed out
 

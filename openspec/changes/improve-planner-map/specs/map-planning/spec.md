@@ -3,7 +3,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Plan by tapping knots
-Tapping a knot SHALL make it the start if there is no start yet, the end if there is no end yet, and otherwise add it as a stop into the leg where it adds the least distance. Tapping the knot that is currently the last waypoint SHALL change nothing, so an accidental double tap does not create a round trip. A tap SHALL select the knot nearest to the tapped position, within a tolerance that keeps knots easy to hit.
+Tapping a knot SHALL make it the start if there is no start yet, the end if there is no end yet, and otherwise add it as a stop into the leg where it adds the least distance. Tapping a knot that already is a waypoint SHALL change nothing, so an accidental double tap does not create a round trip and the start does not turn into a stop; round trips are made with the action to return to the start. A tap SHALL select the knot nearest to the tapped position, within a tolerance that keeps knots easy to hit.
 
 #### Scenario: Start and end
 - **WHEN** the user taps knot 12 and then knot 45
@@ -16,6 +16,10 @@ Tapping a knot SHALL make it the start if there is no start yet, the end if ther
 #### Scenario: Tapping the last waypoint again
 - **WHEN** only the start 12 is set and the user taps 12 again
 - **THEN** 12 stays the only waypoint, and the next tapped knot becomes the end
+
+#### Scenario: Tapping the start of a route again
+- **WHEN** a route from 12 to 45 exists and the user taps 12 again
+- **THEN** the waypoints stay 12 and 45
 
 #### Scenario: Tapping next to the network
 - **WHEN** the user taps where no knot is within the tolerance
@@ -55,6 +59,10 @@ On the map, knots the route passes SHALL be highlighted, so the route can be fol
 #### Scenario: Start, stop and end
 - **WHEN** the route has the waypoints 12, 30 and 45
 - **THEN** 12 is marked as start, 30 as stop and 45 as end, each in its own way
+
+#### Scenario: Round trip on the map
+- **WHEN** the route is a round trip with the waypoints 12, 30 and 12
+- **THEN** the map marks 12 once, in a way that shows it is both start and end
 
 ### Requirement: Return to the start
 The user SHALL be able to turn a route into a round trip with one action, which adds the start as the new end.
