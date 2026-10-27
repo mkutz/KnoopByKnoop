@@ -110,8 +110,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
   fun switchNetwork(network: IndexedNetworkType) {
     storage.saveRoute(null)
+    // The map stays until the other network is loaded, so it keeps its place; without a loaded
+    // network, taps are ignored meanwhile.
     loaded = null
-    state = state.copy(network = network, session = null, layers = null)
+    state = state.copy(network = network)
     viewModelScope.launch { loadNetwork(network, waypointsFrom = { null }) }
   }
 
@@ -139,6 +141,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   }
 
   private fun update(session: PlanningSession) {
+    // While another network loads, the shown route belongs to the previous one.
+    if (loaded == null) return
     storage.saveRoute(RouteSnapshot.of(session))
     state =
       state.copy(

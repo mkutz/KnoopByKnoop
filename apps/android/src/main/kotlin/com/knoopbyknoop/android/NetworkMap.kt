@@ -222,8 +222,19 @@ private class MapHolder {
     }
     shownLayers = layers
     if (shownGraph !== graph) {
-      // A new network shows the restored route if there is one, the whole network otherwise.
-      graph?.let { fitTo(if (focus.size >= 2) focus else it.knots.values, animated = false) }
+      // A new network shows the route if there is one. Without, the first network opens on its
+      // center and another network, e.g. after switching to hiking, keeps the place. Either way
+      // knots must be shown, see `map-planning`.
+      val currentGraph = graph
+      when {
+        focus.size >= 2 -> fitTo(focus, animated = false)
+        shownGraph == null && currentGraph != null ->
+          fitTo(currentGraph.knots.values, animated = false)
+      }
+      map?.let {
+        if (it.cameraPosition.zoom < KNOT_MIN_ZOOM)
+          it.moveCamera(CameraUpdateFactory.zoomTo(KNOT_MIN_ZOOM))
+      }
       shownGraph = graph
     }
   }

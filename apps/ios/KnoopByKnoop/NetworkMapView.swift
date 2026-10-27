@@ -179,8 +179,17 @@ struct NetworkMapView: UIViewRepresentable {
         shownRoute = layers.route + layers.routeKnots
       }
       if shownGraph !== graph, let graph {
-        // A new network shows the restored route if there is one, the whole network otherwise.
-        fit(to: focus.count >= 2 ? focus : Array(graph.knots.values), animated: false)
+        // A new network shows the route if there is one. Without, the first network opens on its
+        // center and another network, e.g. after switching to hiking, keeps the place. Either way
+        // knots must be shown, see `map-planning`.
+        if focus.count >= 2 {
+          fit(to: focus, animated: false)
+        } else if shownGraph == nil {
+          fit(to: Array(graph.knots.values), animated: false)
+        }
+        if let mapView, mapView.zoomLevel < knotMinimumZoom {
+          mapView.setZoomLevel(knotMinimumZoom, animated: false)
+        }
         shownGraph = graph
       }
     }

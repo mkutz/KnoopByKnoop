@@ -96,9 +96,9 @@ final class AppModel: ObservableObject {
   func switchNetwork(_ network: IndexedNetworkType) {
     storage.saveRoute(nil)
     self.network = network
+    // The map stays until the other network is loaded, so it keeps its place; without a loaded
+    // network, taps are ignored meanwhile.
     loaded = nil
-    session = nil
-    layers = nil
     Task { await loadNetwork(network, snapshot: nil) }
   }
 

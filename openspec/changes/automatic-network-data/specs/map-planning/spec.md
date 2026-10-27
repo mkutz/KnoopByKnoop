@@ -11,7 +11,11 @@ The map SHALL show the knots of the selected, installed network type with their 
 
 #### Scenario: Switching to hiking
 - **WHEN** the user switches from cycling to hiking
-- **THEN** the map shows the hiking network instead, and the current route is discarded after the user confirms
+- **THEN** the map shows the hiking network instead at the same place, zoomed in far enough that knots are shown, and the current route is discarded after the user confirms
+
+#### Scenario: Opening the map without a route
+- **WHEN** the map opens and there is no route to show
+- **THEN** it is zoomed in far enough that knots are shown and can be tapped
 
 #### Scenario: Without matching geometry
 - **WHEN** an installed network has no geometry that belongs to its graph, e.g. because its download failed
