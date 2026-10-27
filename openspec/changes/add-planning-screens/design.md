@@ -26,7 +26,7 @@ New, I/O-free building blocks in `modules/core`:
 
 | Building block | Responsibility | Covers |
 |---|---|---|
-| `RegionCatalog` | combines the index (or the cached index when offline) with the installed regions into a state per region: available, downloading, installed, updatable | List available regions, Update regions |
+| `RegionCatalog` | combines the index (none when offline) with the installed regions into a state per region: available, downloading, installed, updatable | List available regions, Update regions |
 | `RegionInstaller` | checks downloaded bytes against their index entry and the supported format version, and returns the graph or the reason to reject it | Install only verified data |
 | `PlanningSession` | the planning state machine on top of `Route`: tap a knot (start, end, stop into the best leg), move, remove, clear, switch network | Plan by tapping knots, Edit the waypoint list |
 | `KnotLocator` | nearest knot within a radius in meters, backed by a grid index so taps stay fast on 38,000 knots | Tapping next to the network, Knots with equal numbers |
@@ -53,7 +53,7 @@ The apps convert a touch target of 24 points to meters at the current zoom level
 - **Both platforms** download the graph and the geometry file of every network of a region, and install a network's two files together.
 - **Android:** `DownloadManager` downloads in the background and resumes after connection drops. On completion, the app reads the file, lets `RegionInstaller` check it and moves it into app-private storage.
 - **iOS:** a background `URLSession` download task, with the same check-and-move on completion.
-- **Storage:** `regions/<region>/<network>.graph` and `<network>.geometry`, plus `regions/installed.json` with the installed index entries. Installing writes to a temporary file and renames it, so a region is never half-installed. The last index is cached for offline listing.
+- **Storage:** `regions/<region>/<network>.graph` and `<network>.geometry`, plus `regions/installed.json` with the installed index entries. Installing writes to a temporary file and renames it, so a region is never half-installed. Offline, the region list is built from the installed entries alone.
 - **Current route:** `RouteSnapshot` JSON in app-private storage, written on every change.
 
 *Alternative:* downloading in the core with Ktor. Rejected in `network-data` already: native background downloads are resumable and battery-friendly.

@@ -2,8 +2,11 @@ package com.knoopbyknoop.core
 
 import kotlin.math.roundToLong
 
-/** Thrown when bytes are not a graph file this version of the core can read. */
-class GraphFormatException(message: String) : Exception(message)
+/** Thrown when bytes are not a graph or geometry file this version of the core can read. */
+open class GraphFormatException(message: String) : Exception(message)
+
+/** Thrown for a file written in a format version newer than this version of the core supports. */
+class UnsupportedFormatVersionException(message: String) : GraphFormatException(message)
 
 /**
  * The network graph of one region and network type as it is published and downloaded.
@@ -72,6 +75,7 @@ class GraphFile(
     private val NETWORK_CODES = mapOf(NetworkType.CYCLING to 0, NetworkType.HIKING to 1)
 
     /** @throws GraphFormatException if [bytes] are not a graph file of a supported version */
+    @Throws(GraphFormatException::class)
     fun read(bytes: ByteArray): GraphFile {
       val reader = ByteReader(bytes)
       if (!reader.bytes(MAGIC.size).contentEquals(MAGIC)) {
@@ -79,7 +83,9 @@ class GraphFile(
       }
       val formatVersion = reader.byte()
       if (formatVersion != FORMAT_VERSION) {
-        throw GraphFormatException("Unsupported graph file format version $formatVersion")
+        throw UnsupportedFormatVersionException(
+          "Unsupported graph file format version $formatVersion"
+        )
       }
       val networkCode = reader.byte()
       val network =

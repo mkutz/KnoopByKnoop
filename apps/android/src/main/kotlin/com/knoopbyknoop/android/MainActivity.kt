@@ -3,34 +3,43 @@ package com.knoopbyknoop.android
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import com.knoopbyknoop.core.Knot
-import com.knoopbyknoop.core.NetworkType
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 class MainActivity : ComponentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    val nextKnot = Knot(id = 0, ref = "12", network = NetworkType.CYCLING, 52.09, 5.12)
     setContent {
-      MaterialTheme {
-        Surface(modifier = Modifier.fillMaxSize()) {
-          Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-          ) {
-            Text("Next knot", style = MaterialTheme.typography.titleMedium)
-            Text(nextKnot.ref, style = MaterialTheme.typography.displayLarge)
+      MaterialTheme(colorScheme = colorScheme) {
+        val viewModel: AppViewModel = viewModel()
+        val state = viewModel.state
+        val snackbarHostState = remember { SnackbarHostState() }
+        LaunchedEffect(state.message) {
+          state.message?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.dismissMessage()
           }
+        }
+        when (state.screen) {
+          Screen.REGIONS -> RegionsScreen(state, viewModel, snackbarHostState)
+          Screen.PLANNER -> PlannerScreen(state, viewModel, snackbarHostState)
         }
       }
     }
   }
 }
+
+/** The green and orange of the app icon, see `design/icon`. */
+private val colorScheme =
+  lightColorScheme(
+    primary = Color(0xFF2E9E5B),
+    secondary = Color(0xFFF28C28),
+    secondaryContainer = Color(0xFFD7F0E0),
+    surfaceVariant = Color(0xFFEEF1EA),
+  )

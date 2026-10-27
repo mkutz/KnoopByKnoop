@@ -26,6 +26,7 @@ data class NetworkIndex(
       ignoreUnknownKeys = true
     }
 
+    @Throws(IllegalArgumentException::class)
     fun parse(text: String): NetworkIndex = json.decodeFromString(text)
   }
 }

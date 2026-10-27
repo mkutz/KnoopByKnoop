@@ -7,7 +7,15 @@ A navigator and route planner for the knooppunt networks for cycling and hiking 
 - **Share routes** as links and QR codes.
 - **Offline:** download a region once, plan and ride without a connection.
 
-Network data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, available under the ODbL.
+Network data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, available under the ODbL. Base map by [OpenFreeMap](https://openfreemap.org), © [OpenMapTiles](https://openmaptiles.org), data from OpenStreetMap.
+
+## What the apps can do
+
+- Download the knooppunt networks of the Netherlands, Belgium and Nordrhein-Westfalen; they are rebuilt weekly from OpenStreetMap
+- Show the cycling or hiking network on a map, along the actual paths
+- Plan a route by tapping knots: start, end and stops anywhere in between; reorder and remove stops in the waypoint list
+- Keep the current route when the app is closed
+- Work offline once a region is downloaded (the base map needs network access)
 
 > Work in progress. See [`openspec/changes`](openspec/changes) for what is being built next.
 

@@ -13,13 +13,12 @@ spotless {
   // fingerprint.
   lineEndings = com.diffplug.spotless.LineEnding.UNIX
   kotlin {
-    target("**/*.kt")
-    targetExclude("**/build/**")
+    // Only source folders: walking build folders races with compilation running in parallel.
+    target(fileTree(".") { include("**/src/**/*.kt").exclude("**/build/**", "**/.gradle/**") })
     ktfmt(libs.versions.ktfmt.get()).googleStyle()
   }
   kotlinGradle {
-    target("**/*.gradle.kts")
-    targetExclude("**/build/**")
+    target(fileTree(".") { include("**/*.gradle.kts").exclude("**/build/**", "**/.gradle/**") })
     ktfmt(libs.versions.ktfmt.get()).googleStyle()
   }
   toml {

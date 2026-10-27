@@ -95,6 +95,7 @@ class NetworkGeometry(val graph: NetworkGraph, val courses: List<List<GeoPoint>>
      * @throws GraphFormatException if [bytes] are no geometry file of a supported version, or one
      *   that belongs to another graph file
      */
+    @Throws(GraphFormatException::class)
     fun read(bytes: ByteArray, graph: NetworkGraph, graphSha256: String): NetworkGeometry {
       val reader = ByteReader(bytes)
       if (readHeader(reader) != graphSha256) {
@@ -139,7 +140,9 @@ class NetworkGeometry(val graph: NetworkGraph, val courses: List<List<GeoPoint>>
       }
       val formatVersion = reader.byte()
       if (formatVersion != FORMAT_VERSION) {
-        throw GraphFormatException("Unsupported geometry file format version $formatVersion")
+        throw UnsupportedFormatVersionException(
+          "Unsupported geometry file format version $formatVersion"
+        )
       }
       return reader.bytes(32).joinToString("") {
         (it.toInt() and 0xFF).toString(16).padStart(2, '0')

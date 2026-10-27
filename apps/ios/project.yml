@@ -6,12 +6,19 @@ options:
   deploymentTarget:
     iOS: "17.0"
 
+packages:
+  MapLibre:
+    url: https://github.com/maplibre/maplibre-gl-native-distribution
+    exactVersion: 6.31.0
+
 targets:
   KnoopByKnoop:
     type: application
     platform: iOS
     sources:
       - KnoopByKnoop
+    dependencies:
+      - package: MapLibre
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.knoopbyknoop
