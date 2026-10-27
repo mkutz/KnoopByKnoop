@@ -1,23 +1,31 @@
 import KnoopByKnoopCore
 import SwiftUI
 
-/// The map with the network and the network switch, next to the panel with the waypoints, which
-/// also shows the info, see `map-planning` and `network-sync`. In portrait, the panel is a sheet over
-/// the map; in landscape, it is shown next to the map.
+/// The map with the network, the network switch and the place search, next to the panel with the
+/// waypoints, which also shows the info, see `map-planning`, `network-sync` and `place-search`. In
+/// portrait, the panel is a sheet over the map, with the search right above it; in landscape, it is
+/// shown next to the map, with the search at the bottom of the map.
 struct PlannerView: View {
 
   @ObservedObject var model: AppModel
   @State private var pendingNetwork: IndexedNetworkType?
   @State private var showInfo = false
-  @State private var detent: PresentationDetent = .height(170)
+  @State private var detent: PresentationDetent = smallestDetent
+  /// How far the sheet reaches up from the bottom of the screen, see `searchOverlay`.
+  @State private var sheetHeight: CGFloat = 0
+  @FocusState private var searchFocused: Bool
+
+  private static let smallestDetent = PresentationDetent.height(170)
 
   var body: some View {
     GeometryReader { geometry in
-      let landscape = geometry.size.width > geometry.size.height
+      // The keyboard's safe area counts as height, so the keyboard does not turn portrait into
+      // landscape on small phones.
+      let landscape = geometry.size.width > geometry.size.height + geometry.safeAreaInsets.bottom
       // The map stays the first view of this stack in both orientations, so rotating keeps it,
       // with its position, instead of creating a new one.
       HStack(spacing: 0) {
-        content(landscape: landscape)
+        content(landscape: landscape, screen: geometry)
         if landscape {
           Divider()
           panel
@@ -29,9 +37,17 @@ struct PlannerView: View {
       // a view that is replaced, e.g. while the other knot network loads, is dismissed for good.
       .sheet(isPresented: .constant(!landscape)) {
         panel
-          .presentationDetents([.height(170), .medium, .large], selection: $detent)
+          // The sheet's content ends above the home indicator; the sheet itself does not.
+          .onGeometryChange(for: CGFloat.self) { $0.size.height + $0.safeAreaInsets.bottom } action: {
+            sheetHeight = $0
+          }
+          .presentationDetents([Self.smallestDetent, .medium, .large], selection: $detent)
           .presentationBackgroundInteraction(.enabled(upThrough: .medium))
           .interactiveDismissDisabled()
+      }
+      // The keyboard covers the smallest sheet, but not a higher one, which would hide the field.
+      .onChange(of: searchFocused) { _, focused in
+        if focused && !landscape { detent = Self.smallestDetent }
       }
     }
   }
@@ -63,7 +79,7 @@ struct PlannerView: View {
   }
 
   /// The map is shown right away; the network follows when it is loaded, see `map-planning`.
-  private func content(landscape: Bool) -> some View {
+  private func content(landscape: Bool, screen: GeometryProxy) -> some View {
     ZStack(alignment: .top) {
       NetworkMapView(
         graph: model.session?.graph, layers: model.layers, focus: model.session.map(focus) ?? [],
@@ -75,9 +91,7 @@ struct PlannerView: View {
         onMove: model.mapMoved
       )
       .ignoresSafeArea()
-      VStack(spacing: 8) {
-        PlaceSearchView(model: model)
-        HStack {
+      HStack {
         Picker("Knot network", selection: networkBinding) {
           Text("Cycling").tag(IndexedNetworkType.cycling)
           Text("Hiking").tag(IndexedNetworkType.hiking)
@@ -85,10 +99,9 @@ struct PlannerView: View {
         .pickerStyle(.segmented)
         .frame(width: 200)
         infoButton
-        }
-        .padding(8)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
       }
+      .padding(8)
+      .floatingBackground(in: RoundedRectangle(cornerRadius: 12))
       .padding(.horizontal, 12)
       .padding(.top, 8)
       if model.layers == nil {
@@ -99,19 +112,43 @@ struct PlannerView: View {
             ? "The knot networks need an internet connection once"
             : "Loading the \(model.network.name.lowercased()) knot network…"
         )
-        .padding(.top, 120)
+        .padding(.top, notesTop)
       } else if !model.status.hasGeometry {
-        CoursesNote(online: model.online).padding(.top, 120)
+        CoursesNote(online: model.online).padding(.top, notesTop)
       }
     }
-    .overlay(alignment: .bottomTrailing) {
-      Text("© OpenStreetMap contributors")
-        .font(.caption2)
-        .padding(.horizontal, 4)
-        .background(.white.opacity(0.7))
-        // Above the sheet in portrait.
-        .padding(.bottom, landscape ? 4 : 132)
-        .padding(.trailing, 4)
+    .overlay(alignment: .bottom) { searchOverlay(landscape: landscape, screen: screen) }
+    // The map is light in dark mode too, so the views floating over it stay light to be readable.
+    .environment(\.colorScheme, .light)
+  }
+
+  /// Just below the network switch.
+  private let notesTop: CGFloat = 64
+
+  /// The place search and the attribution, at the bottom of the map: right above the sheet in
+  /// portrait, following it when it is dragged, and right above the keyboard while typing. Hidden
+  /// while the sheet is pulled up over the map.
+  @ViewBuilder private func searchOverlay(landscape: Bool, screen: GeometryProxy) -> some View {
+    let fullHeight = screen.size.height + screen.safeAreaInsets.top + screen.safeAreaInsets.bottom
+    let sheetUp = !landscape && !searchFocused && sheetHeight > fullHeight * 0.6
+    // This view ends at the bottom safe area, the sheet's height is measured from the screen's
+    // bottom. While typing, the keyboard's safe area already lifts this view above it.
+    let bottom = landscape || searchFocused ? 8 : max(sheetHeight - screen.safeAreaInsets.bottom, 0) + 8
+    if !sheetUp {
+      VStack(alignment: .trailing, spacing: 4) {
+        Spacer(minLength: 0)
+        Text("© OpenStreetMap contributors")
+          .font(.caption2)
+          .padding(.horizontal, 6)
+          .padding(.vertical, 2)
+          .floatingBackground(in: Capsule())
+        PlaceSearchView(model: model, focused: $searchFocused)
+          .frame(maxWidth: .infinity)
+      }
+      // Keeps the hits below the network switch.
+      .padding(.top, notesTop)
+      .padding(.horizontal, 12)
+      .padding(.bottom, bottom)
     }
   }
 
@@ -162,6 +199,7 @@ private struct WaypointSheet: View {
             Text(role(index).name.lowercased().capitalized).font(.body)
           }
           .deleteDisabled(!session.canRemoveWaypoints)
+          .listRowBackground(Color.clear)
         }
         .onMove { source, destination in
           guard let from = source.first else { return }
@@ -177,6 +215,8 @@ private struct WaypointSheet: View {
         }
       }
       .listStyle(.plain)
+      // So the sheet's own background shows, Liquid Glass on iOS 26 and later.
+      .scrollContentBackground(.hidden)
     }
     .onAppear { rows = WaypointRow.rows(of: session) }
     .onChange(of: WaypointRow.rows(of: session)) { _, newRows in rows = newRows }

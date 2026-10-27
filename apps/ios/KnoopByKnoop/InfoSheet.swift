@@ -79,6 +79,6 @@ struct LoadingNote: View {
       .font(.callout)
       .padding(.horizontal, 12)
       .padding(.vertical, 6)
-      .background(.regularMaterial, in: Capsule())
+      .floatingBackground(in: Capsule())
   }
 }
