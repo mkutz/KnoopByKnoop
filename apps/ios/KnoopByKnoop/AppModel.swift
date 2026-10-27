@@ -271,6 +271,9 @@ final class AppModel: ObservableObject {
 
   /// Searches `query` once the user stopped typing for a moment; newer queries replace older ones.
   func search(_ query: String) {
+    // The field passes its text again when it loses the focus, e.g. after a hit was chosen, which
+    // must not bring the hits back.
+    guard query != searchQuery else { return }
     searchTask?.cancel()
     searchQuery = query
     guard query.trimmingCharacters(in: .whitespaces).count >= Int(PlaceSearch.shared.MIN_QUERY_LENGTH),

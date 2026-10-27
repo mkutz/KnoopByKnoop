@@ -37,6 +37,9 @@ struct PlannerView: View {
       // a view that is replaced, e.g. while the other knot network loads, is dismissed for good.
       .sheet(isPresented: .constant(!landscape)) {
         panel
+          // The keyboard covers the sheet while typing in the search above it; without this, the
+          // sheet's content moved up and reported the keyboard as part of the sheet's height.
+          .ignoresSafeArea(.keyboard)
           // The sheet's content ends above the home indicator; the sheet itself does not.
           .onGeometryChange(for: CGFloat.self) { $0.size.height + $0.safeAreaInsets.bottom } action: {
             sheetHeight = $0
@@ -135,20 +138,25 @@ struct PlannerView: View {
     // bottom. While typing, the keyboard's safe area already lifts this view above it.
     let bottom = landscape || searchFocused ? 8 : max(sheetHeight - screen.safeAreaInsets.bottom, 0) + 8
     if !sheetUp {
-      VStack(alignment: .trailing, spacing: 4) {
-        Spacer(minLength: 0)
-        Text("© OpenStreetMap contributors")
-          .font(.caption2)
-          .padding(.horizontal, 6)
-          .padding(.vertical, 2)
-          .floatingBackground(in: Capsule())
-        PlaceSearchView(model: model, focused: $searchFocused)
+      GeometryReader { area in
+        VStack(alignment: .trailing, spacing: 4) {
+          Spacer(minLength: 0)
+          Text("© OpenStreetMap contributors")
+            .font(.caption2)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .floatingBackground(in: Capsule())
+          PlaceSearchView(
+            model: model, focused: $searchFocused,
+            // Below the network switch, above the field and the attribution.
+            maxResultsHeight: min(320, max(area.size.height - notesTop - bottom - 90, 80))
+          )
           .frame(maxWidth: .infinity)
+        }
+        .padding(.top, notesTop)
+        .padding(.horizontal, 12)
+        .padding(.bottom, bottom)
       }
-      // Keeps the hits below the network switch.
-      .padding(.top, notesTop)
-      .padding(.horizontal, 12)
-      .padding(.bottom, bottom)
     }
   }
 

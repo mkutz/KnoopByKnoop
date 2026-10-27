@@ -37,6 +37,8 @@ struct PlaceSearchView: View {
 
   @ObservedObject var model: AppModel
   var focused: FocusState<Bool>.Binding
+  /// The room for the hits above the field.
+  var maxResultsHeight: CGFloat = 320
 
   var body: some View {
     VStack(spacing: 4) {
@@ -72,13 +74,11 @@ struct PlaceSearchView: View {
     case .noHits: message("Nothing found")
     case .unavailable: message("Search is not available right now")
     case .hits(let hits):
-      // As high as the hits where they fit, scrolling in the room there is where they do not.
-      ViewThatFits(in: .vertical) {
-        hitRows(hits)
-        ScrollView { hitRows(hits) }
-      }
-      .frame(maxHeight: 320)
-      .floatingBackground(in: RoundedRectangle(cornerRadius: 12))
+      // As high as the hits, scrolling where there is not enough room for them.
+      ScrollView { hitRows(hits) }
+        .frame(maxHeight: maxResultsHeight)
+        .fixedSize(horizontal: false, vertical: true)
+        .floatingBackground(in: RoundedRectangle(cornerRadius: 12))
     }
   }
 

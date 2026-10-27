@@ -19,3 +19,6 @@ iOS is checked by the maintainer on an iPhone (⏳ until then). In the simulator
 ## Found and fixed
 
 - In dark mode, the glass over the always light map turned dark and made the field's placeholder hard to read; the views over the map now keep the light appearance (simulator, during apply).
+- On the iPhone, the field stayed high above the sheet after a search, and the top of the sheet's content was cut off: the keyboard was counted into the sheet's height. The sheet's content now ignores the keyboard (iPhone, first round).
+- The hits card always took its full 320 points, even for three hits; it now fits the hits and scrolls only when the room is smaller (iPhone, first round).
+- The hits came back after a hit was chosen, because the field passes its text again when it loses the focus, which started a new search; a search now only starts when the text changed. Checked in the simulator with a temporary scripted search: the hits are gone, the marker is shown and the field is right above the smallest sheet.
