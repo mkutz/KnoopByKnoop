@@ -45,8 +45,10 @@ If the device has no internet access at start (`ConnectivityManager` / `NWPathMo
 
 *Trade-off:* offline, a base map that MapLibre has cached is no longer shown until internet access is back. The spec allows the base map to be missing offline, and knots shown quickly matter more.
 
-### Android: map layers as files
-`NetworkStorage.mapLayer` already writes every layer to a file. It returns the `File`, and `NetworkMap` sets `GeoJsonSource.setUri("file://…")`. MapLibre reads and parses the file on its own threads. The route layers stay strings, because they are small and change on every tap.
+### Android: map layers stay strings, cached per step
+The first plan was to hand the cached layer files to MapLibre by `file://` URI, as iOS does. Tried during implementation with MapLibre Android 13.7.1, the sources were set without an error, but the data was never drawn. Measurements showed that handing over a string costs little; most of the time between handover and the knots becoming visible (about 0.5 s on the emulator) is MapLibre parsing the data, which a file would not avoid either. So the layers stay strings, read from the cache off the main thread.
+
+What the two steps do need: the connections are cached separately as straight lines (`lines`, keyed by the graph) and as courses (`courses`, keyed by graph and geometry), so step 1 never has to build or decode anything that depends on the geometry. Caches with the old name (`connections`) are removed with the other stale data.
 
 ### Measuring
 Both apps log three marks with the time since the process started:

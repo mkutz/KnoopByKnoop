@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -47,7 +46,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.knoopbyknoop.core.IndexedNetworkType
@@ -69,28 +67,6 @@ private val WAYPOINT_ROW_HEIGHT = 56.dp
 fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: SnackbarHostState) {
   var showInfo by remember { mutableStateOf(false) }
   if (showInfo) InfoSheet(state, viewModel, onDismiss = { showInfo = false })
-  val session = state.session
-  val layers = state.layers
-  if (session == null || layers == null || state.loading) {
-    // Only without bundled graphs, e.g. a debug build that was built without network access.
-    Column(
-      modifier = Modifier.fillMaxSize().padding(32.dp),
-      verticalArrangement = Arrangement.Center,
-      horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-      if (state.status.dataDate == null && !state.online) {
-        Text("The knot networks need an internet connection once.", textAlign = TextAlign.Center)
-      } else {
-        CircularProgressIndicator()
-        Text(
-          "Loading the ${state.network.name.lowercase()} knot network…",
-          modifier = Modifier.padding(top = 16.dp),
-        )
-      }
-      TextButton(onClick = { showInfo = true }) { Text("Info") }
-    }
-    return
-  }
   var pendingNetwork by remember { mutableStateOf<IndexedNetworkType?>(null) }
   val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
   // The same map in both layouts: moving it instead of creating a new one keeps its position when
@@ -157,16 +133,21 @@ private fun MapArea(
   onInfo: () -> Unit,
   modifier: Modifier,
 ) {
-  val session = state.session ?: return
-  val layers = state.layers ?: return
+  // The map is shown right away; the network follows when it is loaded, see `map-planning`.
+  val session = state.session
+  val layers = state.layers
   Box(modifier = modifier) {
     NetworkMap(
-      graph = session.graph,
+      graph = session?.graph,
       layers = layers,
-      // When a network opens, the map shows the whole route if there is one.
-      focus = (session.route?.summary as? RouteSummary.Complete)?.knots ?: session.waypoints,
+      // Without a saved place, the map shows the whole route if there is one.
+      focus =
+        session?.let { (it.route?.summary as? RouteSummary.Complete)?.knots ?: it.waypoints }
+          ?: listOf(),
       onTap = viewModel::tap,
       online = state.online,
+      initialPlace = state.initialPlace,
+      onLeave = viewModel::saveCamera,
       modifier = Modifier.fillMaxSize(),
     )
     Row(
@@ -179,10 +160,11 @@ private fun MapArea(
     ) {
       IndexedNetworkType.entries.forEach { network ->
         FilterChip(
-          selected = IndexedNetworkType.of(session.network) == network,
+          selected = state.network == network,
           onClick = {
-            if (IndexedNetworkType.of(session.network) == network) return@FilterChip
-            if (session.waypoints.isEmpty()) viewModel.switchNetwork(network) else onSwitch(network)
+            if (state.network == network) return@FilterChip
+            if (session?.waypoints.isNullOrEmpty()) viewModel.switchNetwork(network)
+            else onSwitch(network)
           },
           label = { Text(network.name.lowercase().replaceFirstChar { it.uppercase() }) },
           modifier = Modifier.padding(end = 8.dp),
@@ -190,7 +172,17 @@ private fun MapArea(
       }
       TextButton(onClick = onInfo) { Text("Info") }
     }
-    if (!state.status.hasGeometry) {
+    if (layers == null) {
+      // Only without bundled graphs, e.g. a debug build that was built without internet access,
+      // or for the moment it takes to read the graph.
+      LoadingNote(
+        text =
+          if (state.status.dataDate == null && !state.online)
+            "The knot networks need an internet connection once"
+          else "Loading the ${state.network.name.lowercase()} knot network…",
+        modifier = Modifier.align(Alignment.TopCenter).padding(top = 72.dp),
+      )
+    } else if (!state.status.hasGeometry) {
       CoursesNote(
         online = state.online,
         modifier = Modifier.align(Alignment.TopCenter).padding(top = 72.dp),

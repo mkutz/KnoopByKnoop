@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
+import com.knoopbyknoop.core.GraphFile
 import com.knoopbyknoop.core.IndexedNetworkType
 import com.knoopbyknoop.core.KnotLocator
 import com.knoopbyknoop.core.MapFeatures
@@ -49,6 +50,8 @@ data class AppState(
   val session: PlanningSession? = null,
   val layers: MapLayers? = null,
   val description: RouteDescription = RouteDescription.Empty,
+  /** Where the map opens: where it was when the app was left last. */
+  val initialPlace: CameraPlace? = null,
   val message: String? = null,
   val loading: Boolean = false,
 ) {
@@ -79,6 +82,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private set
 
   init {
+    state = state.copy(initialPlace = storage.camera())
     viewModelScope.launch {
       withContext(Dispatchers.IO) { sync.installBundled() }
       refreshCatalog()
@@ -99,6 +103,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
       }
     )
     state = state.copy(online = connectivity.activeNetwork != null)
+  }
+
+  fun saveCamera(place: CameraPlace) {
+    storage.saveCamera(place)
   }
 
   fun dismissMessage() {
@@ -172,21 +180,29 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     waypointsFrom: () -> RouteSnapshot?,
   ) {
     state = state.copy(loading = state.session == null)
+    // Step 1, the graph: knots, straight connections and the route, so planning can start.
     val prepared =
       withContext(Dispatchers.Default) {
         val graphEntry = storage.graphEntry(network) ?: return@withContext null
         val graphFile = storage.graph(network) ?: return@withContext null
-        val installedGeometry = storage.geometry(network, graphFile)
-        val geometry = installedGeometry ?: NetworkGeometry.straightLines(graphFile.graph)
         graphFile to
           LoadedNetwork(
             graphSha256 = graphEntry.sha256,
-            hasGeometry = installedGeometry != null,
-            geometry = geometry,
+            hasGeometry = false,
+            geometry = NetworkGeometry.straightLines(graphFile.graph),
             locator = KnotLocator(graphFile.graph.knots.values),
-            knots = storage.mapLayer(network, "knots") { MapFeatures.knots(graphFile.graph) },
+            knots =
+              storage
+                .mapLayer(network, "knots", withGeometry = false) {
+                  MapFeatures.knots(graphFile.graph)
+                }
+                .readText(),
             connections =
-              storage.mapLayer(network, "connections") { MapFeatures.connections(geometry) },
+              storage
+                .mapLayer(network, "lines", withGeometry = false) {
+                  MapFeatures.connections(NetworkGeometry.straightLines(graphFile.graph))
+                }
+                .readText(),
             refs = graphFile.graph.knots.values.map { it.ref }.toSet(),
           )
       }
@@ -223,6 +239,40 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
               "Waypoint ${it.joinToString()} no longer exists and was removed from the route."
             } ?: state.message,
       )
+    addCourses(network, prepared.first, loadedNetwork)
+  }
+
+  /**
+   * Step 2 of [loadNetwork], the geometry: the connections and the route are redrawn along their
+   * course. The session stays, so planning goes on, and so does the map's place.
+   */
+  private suspend fun addCourses(
+    network: IndexedNetworkType,
+    graphFile: GraphFile,
+    withoutCourses: LoadedNetwork,
+  ) {
+    val withCourses =
+      withContext(Dispatchers.Default) {
+        val geometry = storage.geometry(network, graphFile) ?: return@withContext null
+        LoadedNetwork(
+          graphSha256 = withoutCourses.graphSha256,
+          hasGeometry = true,
+          geometry = geometry,
+          locator = withoutCourses.locator,
+          knots = withoutCourses.knots,
+          connections =
+            storage
+              .mapLayer(network, "courses", withGeometry = true) {
+                MapFeatures.connections(geometry)
+              }
+              .readText(),
+          refs = withoutCourses.refs,
+        )
+      } ?: return
+    // Another network or newer data may have been loaded meanwhile.
+    if (loaded !== withoutCourses) return
+    loaded = withCourses
+    state.session?.let { state = state.copy(layers = layersFor(it)) }
   }
 
   private fun layersFor(session: PlanningSession): MapLayers {

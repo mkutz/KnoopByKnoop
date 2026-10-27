@@ -59,17 +59,25 @@ private const val TOUCH_TARGET_DP = 24f
 private const val GREEN = "#2E9E5B"
 private const val ORANGE = "#F28C28"
 
+/** A place on the map, saved when the app goes to the background, see `faster-startup`. */
+data class CameraPlace(val latitude: Double, val longitude: Double, val zoom: Double)
+
 /**
  * The map with the network and the route, and buttons to zoom. Taps are reported with the touch
  * target in meters at the current zoom level, so the core's knot locator can pick the knot.
+ *
+ * The map is shown before a network is loaded ([graph] and [layers] `null`), at [initialPlace] if
+ * there is one, see `map-planning` "Map, knots and courses one after the other".
  */
 @Composable
 fun NetworkMap(
-  graph: NetworkGraph,
-  layers: MapLayers,
+  graph: NetworkGraph?,
+  layers: MapLayers?,
   focus: List<Knot>,
   onTap: (latitude: Double, longitude: Double, radiusMeters: Double) -> Unit,
   online: Boolean,
+  initialPlace: CameraPlace?,
+  onLeave: (CameraPlace) -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val context = LocalContext.current
@@ -100,9 +108,21 @@ fun NetworkMap(
           holder.onTap(point.latitude, point.longitude, metersPerPixel * touchTargetPixels)
           true
         }
+        initialPlace?.let {
+          map.moveCamera(
+            CameraUpdateFactory.newLatLngZoom(LatLng(it.latitude, it.longitude), it.zoom)
+          )
+          holder.hasPlace = true
+        }
         addOnDidFailLoadingMapListener { holder.useOfflineStyle() }
-        holder.loadBaseMap()
-        postDelayed({ if (!holder.hasStyle) holder.useOfflineStyle() }, BASE_MAP_TIMEOUT_MILLIS)
+        if (online) {
+          holder.loadBaseMap()
+          postDelayed({ if (!holder.hasStyle) holder.useOfflineStyle() }, BASE_MAP_TIMEOUT_MILLIS)
+        } else {
+          // Offline, MapLibre would wait for the base map, and nothing can be drawn without a
+          // style.
+          holder.useOfflineStyle()
+        }
       }
     }
   }
@@ -118,7 +138,10 @@ fun NetworkMap(
         Lifecycle.Event.ON_START -> mapView.onStart()
         Lifecycle.Event.ON_RESUME -> mapView.onResume()
         Lifecycle.Event.ON_PAUSE -> mapView.onPause()
-        Lifecycle.Event.ON_STOP -> mapView.onStop()
+        Lifecycle.Event.ON_STOP -> {
+          holder.place()?.let(onLeave)
+          mapView.onStop()
+        }
         else -> {}
       }
     }
@@ -203,7 +226,15 @@ private class MapHolder {
     update()
   }
 
-  fun show(newGraph: NetworkGraph, newLayers: MapLayers, newFocus: List<Knot>) {
+  /** Whether the map already shows a place to keep, e.g. the one saved when the app was left. */
+  var hasPlace = false
+
+  fun place(): CameraPlace? =
+    map?.cameraPosition?.let { camera ->
+      camera.target?.let { CameraPlace(it.latitude, it.longitude, camera.zoom) }
+    }
+
+  fun show(newGraph: NetworkGraph?, newLayers: MapLayers?, newFocus: List<Knot>) {
     graph = newGraph
     layers = newLayers
     focus = newFocus
@@ -222,7 +253,11 @@ private class MapHolder {
     val style = style ?: return
     val layers = layers ?: return
     val previous = shownLayers
-    if (previous == null || previous.knots !== layers.knots) {
+    if (
+      previous == null ||
+        previous.knots !== layers.knots ||
+        previous.connections !== layers.connections
+    ) {
       layers.refs.forEach { ref ->
         val name = badgeName(null, ref)
         if (style.getImage(name) == null) style.addImage(name, badgeBitmap(null, ref))
@@ -241,15 +276,16 @@ private class MapHolder {
     }
     shownLayers = layers
     if (shownGraph !== graph) {
-      // A new network shows the route if there is one. Without, the first network opens on its
-      // center and another network, e.g. after switching to hiking, keeps the place. Either way
-      // knots must be shown, see `map-planning`.
+      // The map keeps its place: the one saved when the app was left, or the one before switching
+      // to another network. Without one, it shows the route if there is one, or the network's
+      // center. Either way knots must be shown, see `map-planning`.
       val currentGraph = graph
       when {
+        hasPlace -> {}
         focus.size >= 2 -> fitTo(focus, animated = false)
-        shownGraph == null && currentGraph != null ->
-          fitTo(currentGraph.knots.values, animated = false)
+        currentGraph != null -> fitTo(currentGraph.knots.values, animated = false)
       }
+      hasPlace = true
       map?.let {
         if (it.cameraPosition.zoom < KNOT_MIN_ZOOM)
           it.moveCamera(CameraUpdateFactory.zoomTo(KNOT_MIN_ZOOM))

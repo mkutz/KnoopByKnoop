@@ -9,6 +9,7 @@ import com.knoopbyknoop.core.NetworkIndex
 import com.knoopbyknoop.core.NetworkIndexEntry
 import com.knoopbyknoop.core.RouteSnapshot
 import java.io.File
+import org.json.JSONObject
 
 /**
  * The installed networks and the current route in app-private storage: `networks/<file>`,
@@ -20,6 +21,7 @@ class NetworkStorage(private val directory: File) {
   private val networksDirectory = File(directory, "networks")
   private val installedFile = File(networksDirectory, "installed.json")
   private val routeFile = File(directory, "route.json")
+  private val cameraFile = File(directory, "camera.json")
 
   fun installed(): List<NetworkIndexEntry> =
     if (installedFile.exists()) NetworkIndex.parse(installedFile.readText()).files else listOf()
@@ -42,23 +44,29 @@ class NetworkStorage(private val directory: File) {
   }
 
   /**
-   * A map layer of an installed network as GeoJSON, built by [build] only once per installed data:
-   * building it for hundreds of thousands of points takes seconds on a phone.
+   * A map layer of an installed network as a GeoJSON file, built by [build] only once per installed
+   * data: building it for hundreds of thousands of points takes seconds on a phone.
+   *
+   * @param withGeometry whether the layer depends on the installed geometry as well as on the graph
    */
-  fun mapLayer(network: IndexedNetworkType, name: String, build: () -> String): String {
-    val dataKey =
-      listOf(IndexedFileKind.GRAPH, IndexedFileKind.GEOMETRY).joinToString("-") {
-        entry(network, it)?.sha256?.take(12) ?: "none"
-      }
+  fun mapLayer(
+    network: IndexedNetworkType,
+    name: String,
+    withGeometry: Boolean,
+    build: () -> String,
+  ): File {
+    val kinds =
+      if (withGeometry) listOf(IndexedFileKind.GRAPH, IndexedFileKind.GEOMETRY)
+      else listOf(IndexedFileKind.GRAPH)
+    val dataKey = kinds.joinToString("-") { entry(network, it)?.sha256?.take(12) ?: "none" }
     val prefix = "${network.name.lowercase()}-$name-"
     val file = File(networksDirectory, "$prefix$dataKey.geojson")
-    if (file.exists()) return file.readText()
+    if (file.exists()) return file
     networksDirectory
       .listFiles { candidate -> candidate.name.startsWith(prefix) }
-      ?.forEach {
-        it.delete()
-      }
-    return build().also { writeAtomically(file, it.encodeToByteArray()) }
+      ?.forEach { it.delete() }
+    writeAtomically(file, build().encodeToByteArray())
+    return file
   }
 
   /** Installs a verified file, replacing the installed file of the same network and kind. */
@@ -79,10 +87,33 @@ class NetworkStorage(private val directory: File) {
     val installedFiles = installed().map { it.file }.toSet()
     networksDirectory
       .listFiles { file ->
-        (file.name.endsWith(".graph") || file.name.endsWith(".geometry")) &&
-          file.name !in installedFiles
+        ((file.name.endsWith(".graph") || file.name.endsWith(".geometry")) &&
+          file.name !in installedFiles) ||
+          // Map layer caches from before lines and courses were cached separately.
+          file.name.contains("-connections-")
       }
       ?.forEach { it.delete() }
+  }
+
+  /** The place the map showed when the app was left last, see `faster-startup`. */
+  fun camera(): CameraPlace? =
+    if (cameraFile.exists()) {
+      runCatching {
+        val json = JSONObject(cameraFile.readText())
+        CameraPlace(json.getDouble("latitude"), json.getDouble("longitude"), json.getDouble("zoom"))
+      }
+        .getOrNull()
+    } else {
+      null
+    }
+
+  fun saveCamera(place: CameraPlace) {
+    val json =
+      JSONObject()
+        .put("latitude", place.latitude)
+        .put("longitude", place.longitude)
+        .put("zoom", place.zoom)
+    writeAtomically(cameraFile, json.toString().encodeToByteArray())
   }
 
   fun route(): RouteSnapshot? =

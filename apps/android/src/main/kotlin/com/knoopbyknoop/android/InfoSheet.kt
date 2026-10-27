@@ -77,8 +77,17 @@ private fun describe(status: NetworkStatus, online: Boolean): String {
 /** Shown while the courses of the selected network are missing, see `network-sync`. */
 @Composable
 fun CoursesNote(online: Boolean, modifier: Modifier = Modifier) {
-  Text(
+  LoadingNote(
     if (online) "Loading the courses…" else "The courses need an internet connection once",
+    modifier,
+  )
+}
+
+/** A short note over the map about something that is still loading. */
+@Composable
+fun LoadingNote(text: String, modifier: Modifier = Modifier) {
+  Text(
+    text,
     style = MaterialTheme.typography.labelLarge,
     modifier =
       modifier

@@ -7,12 +7,12 @@
 
 ## 2. Android
 
-- [ ] 2.1 `NetworkStorage.mapLayer` returns files; `NetworkMap` sets knots and connections sources by file URI
-- [ ] 2.2 The map is composed before the session exists, at the saved camera position (`camera.json`, written when the app goes to the background) or the network's center at knot zoom
-- [ ] 2.3 Without internet access at start, the offline style is used right away
-- [ ] 2.4 `loadNetwork` in two steps: graph (knots, straight connections, restored route) and geometry (courses, route redrawn); the session and the camera stay across step 2
-- [ ] 2.5 Bundled graphs are installed without delaying the map; the note over the map replaces the loading screen
-- [ ] 2.6 `./gradlew :apps:android:assembleRelease` passes (unsigned) and `assembleDebug` passes
+- [x] 2.1 `NetworkStorage.mapLayer` caches knots, straight lines and courses separately (by graph, or by graph and geometry); handing the files to MapLibre by URI did not draw them, so the layers stay strings, see the design
+- [x] 2.2 The map is composed before the session exists, at the saved camera position (`camera.json`, written when the app goes to the background) or the network's center at knot zoom
+- [x] 2.3 Without internet access at start, the offline style is used right away
+- [x] 2.4 `loadNetwork` in two steps: graph (knots, straight connections, restored route) and geometry (courses, route redrawn); the session and the camera stay across step 2
+- [x] 2.5 Bundled graphs are installed without delaying the map; the note over the map replaces the loading screen
+- [x] 2.6 `./gradlew :apps:android:assembleRelease` passes (unsigned) and `assembleDebug` passes
 
 ## 3. iOS
 
