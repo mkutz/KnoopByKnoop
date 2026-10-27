@@ -2,13 +2,13 @@
 
 ## 1. iOS
 
-- [ ] 1.1 `PlannerView`: in compact vertical size class, show map and waypoint list in an `HStack` instead of the presented sheet; the info sheet is presented from the planner then
-- [ ] 1.2 The iOS app builds (`xcodegen` and `xcodebuild` for the simulator)
+- [x] 1.1 `PlannerView`: in landscape (wider than high), show map and waypoint panel in an `HStack` instead of the presented sheet; the info is shown inside the panel, as in portrait
+- [x] 1.2 The iOS app builds (`xcodegen` and `xcodebuild` for the simulator)
 
 ## 2. Android
 
-- [ ] 2.1 `PlannerScreen`: in landscape, a `Row` of map and waypoint list instead of `BottomSheetScaffold`; map state survives rotation
-- [ ] 2.2 `./gradlew :apps:android:assembleDebug` passes
+- [x] 2.1 `PlannerScreen`: in landscape, a `Row` of map and waypoint list instead of `BottomSheetScaffold`; map state survives rotation
+- [x] 2.2 `./gradlew :apps:android:assembleDebug` passes
 
 ## 3. Manual checks
 

@@ -1,8 +1,9 @@
 import KnoopByKnoopCore
 import SwiftUI
 
-/// The map with the network, the network switch and the waypoint sheet, which also shows the info,
-/// see `map-planning` and `network-sync`.
+/// The map with the network and the network switch, next to the panel with the waypoints, which
+/// also shows the info, see `map-planning` and `network-sync`. In portrait, the panel is a sheet over
+/// the map; in landscape, it is shown next to the map.
 struct PlannerView: View {
 
   @ObservedObject var model: AppModel
@@ -11,39 +12,57 @@ struct PlannerView: View {
   @State private var detent: PresentationDetent = .height(170)
 
   var body: some View {
-    content
+    GeometryReader { geometry in
+      let landscape = geometry.size.width > geometry.size.height
+      // The map stays the first view of this stack in both orientations, so rotating keeps it,
+      // with its position, instead of creating a new one.
+      HStack(spacing: 0) {
+        content(landscape: landscape)
+        if landscape {
+          Divider()
+          panel
+            .frame(width: min(380, geometry.size.width * 0.4))
+            .background(Color(.systemBackground))
+        }
+      }
       // Presented from here, outside the switch between map and loading view: a sheet attached to
       // a view that is replaced, e.g. while the other knot network loads, is dismissed for good.
-      .sheet(isPresented: .constant(true)) {
-        // The info and the confirmation are shown from this sheet, which is always presented:
-        // anything presented from the view behind it is not reliably shown and dismisses it.
-        Group {
-          if showInfo {
-            InfoSheet(model: model, onDone: { showInfo = false })
-          } else if let session = model.session, model.layers != nil, !model.loading {
-            WaypointSheet(model: model, session: session)
-          } else {
-            ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-          }
-        }
-        .confirmationDialog(
-          "Switch to \(pendingNetwork?.name.lowercased() ?? "")?", isPresented: Binding(
-            get: { pendingNetwork != nil }, set: { if !$0 { pendingNetwork = nil } }), titleVisibility: .visible
-        ) {
-          Button("Switch", role: .destructive) {
-            if let network = pendingNetwork { model.switchNetwork(network) }
-            pendingNetwork = nil
-          }
-        } message: {
-          Text("The current route will be discarded.")
-        }
-        .presentationDetents([.height(170), .medium, .large], selection: $detent)
-        .presentationBackgroundInteraction(.enabled(upThrough: .medium))
-        .interactiveDismissDisabled()
+      .sheet(isPresented: .constant(!landscape)) {
+        panel
+          .presentationDetents([.height(170), .medium, .large], selection: $detent)
+          .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+          .interactiveDismissDisabled()
       }
+    }
   }
 
-  @ViewBuilder private var content: some View {
+  /// The waypoints, or the info. The info and the confirmation are shown in the panel itself: while
+  /// the panel is a sheet, anything presented from the view behind it is not reliably shown and
+  /// dismisses the sheet.
+  private var panel: some View {
+    Group {
+      if showInfo {
+        InfoSheet(model: model, onDone: { showInfo = false })
+      } else if let session = model.session, model.layers != nil, !model.loading {
+        WaypointSheet(model: model, session: session)
+      } else {
+        ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+      }
+    }
+    .confirmationDialog(
+      "Switch to \(pendingNetwork?.name.lowercased() ?? "")?", isPresented: Binding(
+        get: { pendingNetwork != nil }, set: { if !$0 { pendingNetwork = nil } }), titleVisibility: .visible
+    ) {
+      Button("Switch", role: .destructive) {
+        if let network = pendingNetwork { model.switchNetwork(network) }
+        pendingNetwork = nil
+      }
+    } message: {
+      Text("The current route will be discarded.")
+    }
+  }
+
+  @ViewBuilder private func content(landscape: Bool) -> some View {
     if let session = model.session, let layers = model.layers, !model.loading {
       ZStack(alignment: .top) {
         NetworkMapView(
@@ -73,7 +92,8 @@ struct PlannerView: View {
           .font(.caption2)
           .padding(.horizontal, 4)
           .background(.white.opacity(0.7))
-          .padding(.bottom, 132)
+          // Above the sheet in portrait.
+          .padding(.bottom, landscape ? 4 : 132)
           .padding(.trailing, 4)
       }
     } else {

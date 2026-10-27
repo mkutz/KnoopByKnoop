@@ -1,5 +1,6 @@
 package com.knoopbyknoop.android
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,13 +26,16 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -54,8 +60,9 @@ import kotlin.math.roundToInt
 private val WAYPOINT_ROW_HEIGHT = 56.dp
 
 /**
- * The map with the network, the network switch, the waypoint sheet and the info sheet, see
- * `map-planning` and `network-sync`.
+ * The map with the network, the network switch, the waypoints and the info sheet, see
+ * `map-planning` and `network-sync`. In portrait, the waypoints are a sheet over the map; in
+ * landscape, they are shown next to it.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,59 +92,39 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
     return
   }
   var pendingNetwork by remember { mutableStateOf<IndexedNetworkType?>(null) }
+  val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+  // The same map in both layouts: moving it instead of creating a new one keeps its position when
+  // the device is rotated, see `map-planning` "Landscape layout".
+  val mapArea = remember {
+    movableContentOf { currentState: AppState, modifier: Modifier ->
+      MapArea(
+        currentState,
+        viewModel,
+        onSwitch = { pendingNetwork = it },
+        onInfo = { showInfo = true },
+        modifier = modifier,
+      )
+    }
+  }
 
-  BottomSheetScaffold(
-    sheetPeekHeight = 150.dp,
-    snackbarHost = { SnackbarHost(snackbarHostState) },
-    sheetContent = { WaypointSheet(state, viewModel) },
-  ) { padding ->
-    Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-      NetworkMap(
-        graph = session.graph,
-        layers = layers,
-        // When a network opens, the map shows the whole route if there is one.
-        focus = (session.route?.summary as? RouteSummary.Complete)?.knots ?: session.waypoints,
-        onTap = viewModel::tap,
-        online = state.online,
-        modifier = Modifier.fillMaxSize(),
-      )
-      Row(
-        modifier =
-          Modifier.align(Alignment.TopStart)
-            .padding(12.dp)
-            .background(Color.White.copy(alpha = 0.85f), MaterialTheme.shapes.medium)
-            .padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        IndexedNetworkType.entries.forEach { network ->
-          FilterChip(
-            selected = IndexedNetworkType.of(session.network) == network,
-            onClick = {
-              if (IndexedNetworkType.of(session.network) == network) return@FilterChip
-              if (session.waypoints.isEmpty()) viewModel.switchNetwork(network)
-              else pendingNetwork = network
-            },
-            label = { Text(network.name.lowercase().replaceFirstChar { it.uppercase() }) },
-            modifier = Modifier.padding(end = 8.dp),
-          )
+  if (landscape) {
+    Box(modifier = Modifier.fillMaxSize()) {
+      Row(modifier = Modifier.fillMaxSize()) {
+        mapArea(state, Modifier.weight(1f).fillMaxHeight())
+        VerticalDivider()
+        Surface(modifier = Modifier.width(360.dp).fillMaxHeight()) {
+          Column(modifier = Modifier.padding(top = 16.dp)) { WaypointSheet(state, viewModel) }
         }
-        TextButton(onClick = { showInfo = true }) { Text("Info") }
       }
-      if (!state.status.hasGeometry) {
-        CoursesNote(
-          online = state.online,
-          modifier = Modifier.align(Alignment.TopCenter).padding(top = 72.dp),
-        )
-      }
-      Text(
-        "© OpenStreetMap contributors",
-        style = MaterialTheme.typography.labelSmall,
-        modifier =
-          Modifier.align(Alignment.BottomEnd)
-            .padding(4.dp)
-            .background(Color.White.copy(alpha = 0.7f))
-            .padding(horizontal = 4.dp),
-      )
+      SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+    }
+  } else {
+    BottomSheetScaffold(
+      sheetPeekHeight = 150.dp,
+      snackbarHost = { SnackbarHost(snackbarHostState) },
+      sheetContent = { WaypointSheet(state, viewModel) },
+    ) { padding ->
+      mapArea(state, Modifier.fillMaxSize().padding(padding))
     }
   }
 
@@ -157,6 +144,66 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
         }
       },
       dismissButton = { TextButton(onClick = { pendingNetwork = null }) { Text("Cancel") } },
+    )
+  }
+}
+
+/** The map with the network switch, the info button, the courses note and the attribution. */
+@Composable
+private fun MapArea(
+  state: AppState,
+  viewModel: AppViewModel,
+  onSwitch: (IndexedNetworkType) -> Unit,
+  onInfo: () -> Unit,
+  modifier: Modifier,
+) {
+  val session = state.session ?: return
+  val layers = state.layers ?: return
+  Box(modifier = modifier) {
+    NetworkMap(
+      graph = session.graph,
+      layers = layers,
+      // When a network opens, the map shows the whole route if there is one.
+      focus = (session.route?.summary as? RouteSummary.Complete)?.knots ?: session.waypoints,
+      onTap = viewModel::tap,
+      online = state.online,
+      modifier = Modifier.fillMaxSize(),
+    )
+    Row(
+      modifier =
+        Modifier.align(Alignment.TopStart)
+          .padding(12.dp)
+          .background(Color.White.copy(alpha = 0.85f), MaterialTheme.shapes.medium)
+          .padding(horizontal = 8.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      IndexedNetworkType.entries.forEach { network ->
+        FilterChip(
+          selected = IndexedNetworkType.of(session.network) == network,
+          onClick = {
+            if (IndexedNetworkType.of(session.network) == network) return@FilterChip
+            if (session.waypoints.isEmpty()) viewModel.switchNetwork(network) else onSwitch(network)
+          },
+          label = { Text(network.name.lowercase().replaceFirstChar { it.uppercase() }) },
+          modifier = Modifier.padding(end = 8.dp),
+        )
+      }
+      TextButton(onClick = onInfo) { Text("Info") }
+    }
+    if (!state.status.hasGeometry) {
+      CoursesNote(
+        online = state.online,
+        modifier = Modifier.align(Alignment.TopCenter).padding(top = 72.dp),
+      )
+    }
+    Text(
+      "© OpenStreetMap contributors",
+      style = MaterialTheme.typography.labelSmall,
+      modifier =
+        Modifier.align(Alignment.BottomEnd)
+          .padding(4.dp)
+          .background(Color.White.copy(alpha = 0.7f))
+          .padding(horizontal = 4.dp),
     )
   }
 }
