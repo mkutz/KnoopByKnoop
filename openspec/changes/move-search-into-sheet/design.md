@@ -10,6 +10,7 @@
 - The field at the bottom within reach of the thumb in portrait, like Apple Maps.
 - The hits in the panel, never under the keyboard.
 - The map less covered at the top.
+- The look of iOS 26 and later (Liquid Glass) where the device has it, without dropping iOS 17 to 25.
 
 **Non-Goals:**
 - Android: Google Maps keeps search at the top, and Android's layout stays as it is.
@@ -29,8 +30,15 @@ When the field gets the focus in portrait, `detent` is set to `.large`, so the h
 ### The smallest height grows by the field
 The smallest detent becomes `.height(220)` instead of 170, so the field and the summary line stay visible. The attribution's bottom padding over the sheet (132) and the notes' top padding (120, below the field and the picker) are adjusted: the attribution to the new sheet height, the notes to just below the network picker.
 
+### Liquid Glass where available
+The views floating over the map use a background of their own today: `.regularMaterial` behind the network picker with the info button and behind `LoadingNote`, and a white, 70 % opaque background behind the attribution. A `floatingBackground(in:)` view modifier replaces them: on iOS 26 and later it applies `.glassEffect(.regular, in: shape)`, before that the `.regularMaterial` background as now. The checks use `if #available(iOS 26, *)`, so the deployment target stays iOS 17.
+
+Only views over the map get glass. The sheet and the system controls in it (the segmented picker, buttons, the list) get Liquid Glass from iOS when built with the iOS 26 SDK, as long as the sheet sets no background of its own; the portrait sheet sets none. The search field in the panel gets a plain rounded fill (`.quaternary`), not glass, because Apple's guidance is not to layer glass on glass. The landscape side panel keeps its `systemBackground`, as it is part of the layout, not floating over the map. Alternative: a `GlassEffectContainer` around the picker and the info button, so that they morph into each other. They are one bar already, so a single glass shape is enough.
+
 ## Risks / Trade-offs
 
 - [The taller smallest sheet covers more of the map in portrait] → 50 points, offset by the field leaving the top of the map; checked on the iPhone.
 - [Changing `detent` while the keyboard appears can animate awkwardly] → set the detent when the field gets the focus, before the first character; checked on the iPhone.
+- [Glass over a busy map can be hard to read, e.g. the attribution's small text] → `.regular` glass, not `.clear`; checked on the iPhone over a map with many knots.
+- [Glass can only be checked on a device with iOS 26 or later; the iOS 17 to 25 fallback only in the simulator] → the fallback is the current material, so it is checked by building and a look in an older simulator if one is installed.
 - [The two apps now differ in layout] → the spec says so per platform; the behavior of search is the same.
