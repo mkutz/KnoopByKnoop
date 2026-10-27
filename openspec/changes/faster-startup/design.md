@@ -50,6 +50,9 @@ The first plan was to hand the cached layer files to MapLibre by `file://` URI, 
 
 What the two steps do need: the connections are cached separately as straight lines (`lines`, keyed by the graph) and as courses (`courses`, keyed by graph and geometry), so step 1 never has to build or decode anything that depends on the geometry. Caches with the old name (`connections`) are removed with the other stale data.
 
+### A launch screen like Android's splash screen
+Until the app draws its first frame, iOS shows the launch screen, which was empty, so a slow start looked like a white screen. It now shows the round app icon on the system background (`UILaunchScreen` with `UIImageName`), like the splash screen Android shows in the same phase. `design/icon/generate.py` renders it from the icon geometry. It costs no startup time, and it is not part of the spec, which starts at the app's first frame.
+
 ### Measuring
 Both apps log three marks with the time since the process started:
 - `startup: map`: the style loaded

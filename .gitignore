@@ -12,6 +12,7 @@ local.properties
 
 # Xcode (the project is generated from apps/ios/project.yml by XcodeGen)
 apps/ios/*.xcodeproj/
+apps/ios/KnoopByKnoop/Info.plist
 # The personal development team for device builds, see apps/ios/Signing.xcconfig
 apps/ios/Signing.local.xcconfig
 DerivedData/

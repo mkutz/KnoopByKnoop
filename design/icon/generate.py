@@ -4,8 +4,8 @@ Run from the repository root (needs Inkscape and ImageMagick):
 
     python3 design/icon/generate.py
 
-Writes the source SVGs to design/icon/, the iOS app icon to the asset catalog and the Android
-adaptive icon to the app's resources. The motif is a path through knots, ending in the next knot.
+Writes the source SVGs to design/icon/, the iOS app icon and launch logo to the asset catalog and
+the Android adaptive icon to the app's resources. The motif is a path through knots, ending in the next knot.
 """
 
 import json
@@ -16,6 +16,9 @@ import tempfile
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 DESIGN = ROOT / "design" / "icon"
 IOS_ICON_SET = ROOT / "apps/ios/KnoopByKnoop/Assets.xcassets/AppIcon.appiconset"
+IOS_LAUNCH_LOGO = ROOT / "apps/ios/KnoopByKnoop/Assets.xcassets/LaunchLogo.imageset"
+# The launch logo's size in points, like the icon on Android's splash screen.
+LAUNCH_LOGO_POINTS = 192
 ANDROID_RES = ROOT / "apps/android/src/main/res"
 
 GREEN = "#2E9E5B"
@@ -45,10 +48,15 @@ KNOTS_PATH = " ".join(circle_path(point, KNOT_RADIUS) for point in LINE[:3])
 NEXT_KNOT_PATH = circle_path(NEXT_KNOT, NEXT_KNOT_RADIUS)
 
 
-def svg(background, foreground, accent, arrow):
-    """An iOS icon: full bleed and square, the system rounds the corners."""
+def svg(background, foreground, accent, arrow, round=False):
+    """An iOS icon: full bleed and square, the system rounds the corners. Round for the launch logo."""
     offset_x, offset_y = 512 - CENTER[0], 512 - CENTER[1]
-    background_rect = f'<rect width="1024" height="1024" fill="{background}"/>' if background else ""
+    if not background:
+        background_rect = ""
+    elif round:
+        background_rect = f'<circle cx="512" cy="512" r="512" fill="{background}"/>'
+    else:
+        background_rect = f'<rect width="1024" height="1024" fill="{background}"/>'
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   {background_rect}
   <g transform="translate({offset_x},{offset_y})" stroke-linecap="round" stroke-linejoin="round">
@@ -99,9 +107,9 @@ def fill(path, color):
     return f'<path android:pathData="{path}" android:fillColor="{color}"/>'
 
 
-def render(svg_file, png_file, opaque):
+def render(svg_file, png_file, opaque, size=1024):
     subprocess.run(
-        ["inkscape", str(svg_file), "--export-type=png", f"--export-filename={png_file}", "-w", "1024", "-h", "1024"],
+        ["inkscape", str(svg_file), "--export-type=png", f"--export-filename={png_file}", "-w", str(size), "-h", str(size)],
         check=True,
         capture_output=True,
     )
@@ -131,6 +139,16 @@ def main():
     info = {"author": "xcode", "version": 1}
     (IOS_ICON_SET / "Contents.json").write_text(json.dumps({"images": images, "info": info}, indent=2) + "\n")
     (IOS_ICON_SET.parent / "Contents.json").write_text(json.dumps({"info": info}, indent=2) + "\n")
+
+    # The launch screen shows the round icon, like Android's splash screen, see apps/ios/project.yml.
+    (DESIGN / "launch-logo.svg").write_text(svg(GREEN, WHITE, ORANGE, WHITE, round=True))
+    IOS_LAUNCH_LOGO.mkdir(parents=True, exist_ok=True)
+    launch_images = []
+    for scale in (1, 2, 3):
+        filename = f"launch-logo@{scale}x.png"
+        render(DESIGN / "launch-logo.svg", IOS_LAUNCH_LOGO / filename, opaque=False, size=LAUNCH_LOGO_POINTS * scale)
+        launch_images.append({"filename": filename, "idiom": "universal", "scale": f"{scale}x"})
+    (IOS_LAUNCH_LOGO / "Contents.json").write_text(json.dumps({"images": launch_images, "info": info}, indent=2) + "\n")
 
     drawables = ANDROID_RES / "drawable"
     drawables.mkdir(parents=True, exist_ok=True)
