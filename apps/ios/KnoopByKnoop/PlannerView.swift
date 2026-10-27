@@ -11,6 +11,39 @@ struct PlannerView: View {
   @State private var detent: PresentationDetent = .height(170)
 
   var body: some View {
+    content
+      // Presented from here, outside the switch between map and loading view: a sheet attached to
+      // a view that is replaced, e.g. while the other knot network loads, is dismissed for good.
+      .sheet(isPresented: .constant(true)) {
+        // The info and the confirmation are shown from this sheet, which is always presented:
+        // anything presented from the view behind it is not reliably shown and dismisses it.
+        Group {
+          if showInfo {
+            InfoSheet(model: model, onDone: { showInfo = false })
+          } else if let session = model.session, model.layers != nil, !model.loading {
+            WaypointSheet(model: model, session: session)
+          } else {
+            ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+          }
+        }
+        .confirmationDialog(
+          "Switch to \(pendingNetwork?.name.lowercased() ?? "")?", isPresented: Binding(
+            get: { pendingNetwork != nil }, set: { if !$0 { pendingNetwork = nil } }), titleVisibility: .visible
+        ) {
+          Button("Switch", role: .destructive) {
+            if let network = pendingNetwork { model.switchNetwork(network) }
+            pendingNetwork = nil
+          }
+        } message: {
+          Text("The current route will be discarded.")
+        }
+        .presentationDetents([.height(170), .medium, .large], selection: $detent)
+        .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+        .interactiveDismissDisabled()
+      }
+  }
+
+  @ViewBuilder private var content: some View {
     if let session = model.session, let layers = model.layers, !model.loading {
       ZStack(alignment: .top) {
         NetworkMapView(
@@ -26,10 +59,7 @@ struct PlannerView: View {
           }
           .pickerStyle(.segmented)
           .frame(width: 200)
-          Button("Info") {
-            showInfo = true
-            detent = .medium
-          }
+          infoButton
         }
         .padding(8)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
@@ -46,31 +76,6 @@ struct PlannerView: View {
           .padding(.bottom, 132)
           .padding(.trailing, 4)
       }
-      .sheet(isPresented: .constant(true)) {
-        // The info is shown in this sheet, which is always presented: a second sheet on top of it
-        // is not reliably shown and can dismiss this one.
-        Group {
-          if showInfo {
-            InfoSheet(model: model, onDone: { showInfo = false })
-          } else {
-            WaypointSheet(model: model, session: session)
-          }
-        }
-        .presentationDetents([.height(170), .medium, .large], selection: $detent)
-          .presentationBackgroundInteraction(.enabled(upThrough: .medium))
-          .interactiveDismissDisabled()
-      }
-      .confirmationDialog(
-        "Switch to \(pendingNetwork?.name.lowercased() ?? "")?", isPresented: Binding(
-          get: { pendingNetwork != nil }, set: { if !$0 { pendingNetwork = nil } }), titleVisibility: .visible
-      ) {
-        Button("Switch", role: .destructive) {
-          if let network = pendingNetwork { model.switchNetwork(network) }
-          pendingNetwork = nil
-        }
-      } message: {
-        Text("The current route will be discarded.")
-      }
     } else {
       // Only without bundled graphs, e.g. a debug build that was built without internet access.
       VStack(spacing: 16) {
@@ -80,13 +85,17 @@ struct PlannerView: View {
           ProgressView()
           Text("Loading the \(model.network.name.lowercased()) knot network…")
         }
-        Button("Info") { showInfo = true }
+        infoButton
       }
       .padding(32)
       .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .sheet(isPresented: $showInfo) {
-        InfoSheet(model: model, onDone: { showInfo = false }).presentationDetents([.medium])
-      }
+    }
+  }
+
+  private var infoButton: some View {
+    Button("Info") {
+      showInfo = true
+      detent = .medium
     }
   }
 
