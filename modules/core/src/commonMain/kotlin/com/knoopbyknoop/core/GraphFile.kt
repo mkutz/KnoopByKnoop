@@ -63,12 +63,24 @@ class GraphFile(
       writer.varint(indexById.getValue(connection.toId).toLong())
       writer.varint(connection.lengthMeters.toLong())
     }
+
+    // Version 2: the ferries, by connection index, with an empty string for a missing detail.
+    val connectionIndex = graph.connections.withIndex().associate { (index, it) -> it to index }
+    val ferries = graph.ferries.entries.sortedBy { connectionIndex.getValue(it.key) }
+    writer.varint(ferries.size.toLong())
+    for ((connection, ferry) in ferries) {
+      writer.varint(connectionIndex.getValue(connection).toLong())
+      ferryDetails(ferry).forEach { writer.string(it.orEmpty()) }
+    }
     return writer.toByteArray()
   }
 
   companion object {
 
-    const val FORMAT_VERSION = 1
+    /** The version written. Version 1 has no ferries, see `network-data` "Older graph files". */
+    const val FORMAT_VERSION = 2
+
+    private val READABLE_VERSIONS = 1..FORMAT_VERSION
 
     private val MAGIC = "KBKG".encodeToByteArray()
 
@@ -82,7 +94,7 @@ class GraphFile(
         throw GraphFormatException("Not a graph file")
       }
       val formatVersion = reader.byte()
-      if (formatVersion != FORMAT_VERSION) {
+      if (formatVersion !in READABLE_VERSIONS) {
         throw UnsupportedFormatVersionException(
           "Unsupported graph file format version $formatVersion"
         )
@@ -115,8 +127,50 @@ class GraphFile(
           val to = knots.getOrNull(reader.count()) ?: throw GraphFormatException("Bad knot index")
           Connection(from.id, to.id, reader.count())
         }
-      return GraphFile(network, area, dataDate, attribution, NetworkGraph(knots, connections))
+      val ferries =
+        if (formatVersion < 2) {
+          mapOf()
+        } else {
+          List(reader.count()) {
+              val connection =
+                connections.getOrNull(reader.count())
+                  ?: throw GraphFormatException("Bad connection index")
+              val details = List(FERRY_DETAIL_COUNT) { reader.string().ifEmpty { null } }
+              connection to
+                Ferry(
+                  name = details[0],
+                  operator = details[1],
+                  openingHours = details[2],
+                  seasonal = details[3],
+                  fee = details[4],
+                  charge = details[5],
+                  website = details[6],
+                )
+            }
+            .toMap()
+        }
+      return GraphFile(
+        network,
+        area,
+        dataDate,
+        attribution,
+        NetworkGraph(knots, connections, ferries),
+      )
     }
+
+    private const val FERRY_DETAIL_COUNT = 7
+
+    /** In the order they are written, [FERRY_DETAIL_COUNT] of them. */
+    private fun ferryDetails(ferry: Ferry) =
+      listOf(
+        ferry.name,
+        ferry.operator,
+        ferry.openingHours,
+        ferry.seasonal,
+        ferry.fee,
+        ferry.charge,
+        ferry.website,
+      )
   }
 }
 

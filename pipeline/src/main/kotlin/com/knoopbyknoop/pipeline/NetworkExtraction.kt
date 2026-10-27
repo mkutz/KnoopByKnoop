@@ -1,6 +1,7 @@
 package com.knoopbyknoop.pipeline
 
 import com.knoopbyknoop.core.Connection
+import com.knoopbyknoop.core.Ferry
 import com.knoopbyknoop.core.GeoPoint
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.NetworkGraph
@@ -23,7 +24,10 @@ class NetworkExtraction {
 
   private val routes = LinkedHashMap<Long, NetworkRoute>()
   private val wayNodeIds = HashMap<Long, LongArray>()
-  private val ferryWayIds = HashSet<Long>()
+  /** The ferry ways of the routes, with their [FERRY_TAGS]. */
+  private val ferryWayTags = HashMap<Long, Map<String, String>>()
+  /** The [FERRY_TAGS] of ferry relations outside the node networks, by their member ways. */
+  private val ferryRelationTagsByWayId = HashMap<Long, MutableList<Map<String, String>>>()
   private val knots = NetworkType.entries.associateWith { HashMap<Long, Knot>() }
 
   private val wantedWayIds by lazy { routes.values.flatMapTo(HashSet()) { it.wayIds } }
@@ -31,16 +35,32 @@ class NetworkExtraction {
 
   fun acceptRelation(relation: OsmRelation) {
     if (relation.tags["type"] != "route") return
-    if (relation.tags["network:type"] != "node_network") return
-    val network = NETWORKS_BY_TAG[relation.tags["network"]] ?: return
     val isFerry = relation.tags["route"] == "ferry"
-    routes[relation.id] = NetworkRoute(relation.id, network, relation.memberWayIds, isFerry)
+    if (relation.tags["network:type"] != "node_network") {
+      // Ferry lines are often mapped as relations of their own, which carry the times and fees.
+      if (isFerry) {
+        val tags = ferryTagsOf(relation.tags)
+        relation.memberWayIds.forEach {
+          ferryRelationTagsByWayId.getOrPut(it) { mutableListOf() }.add(tags)
+        }
+      }
+      return
+    }
+    val network = NETWORKS_BY_TAG[relation.tags["network"]] ?: return
+    routes[relation.id] =
+      NetworkRoute(
+        relation.id,
+        network,
+        relation.memberWayIds,
+        isFerry,
+        if (isFerry) ferryTagsOf(relation.tags) else mapOf(),
+      )
   }
 
   fun acceptWay(way: OsmWay) {
     if (way.id !in wantedWayIds) return
     wayNodeIds[way.id] = way.nodeIds.toLongArray()
-    if (way.tags["route"] == "ferry") ferryWayIds.add(way.id)
+    if (way.tags["route"] == "ferry") ferryWayTags[way.id] = ferryTagsOf(way.tags)
   }
 
   fun acceptNode(node: OsmNode) {
@@ -79,7 +99,16 @@ class NetworkExtraction {
     val networks = NetworkType.entries.filter { knots.getValue(it).isNotEmpty() }
     val graphs = networks.associateWith {
       val networkKnots = knotsByNodeId.getValue(it).values.distinct()
-      NetworkGraph(networkKnots, connections.getValue(it).values.map { kept -> kept.connection })
+      val kept = connections.getValue(it).values
+      NetworkGraph(
+        networkKnots,
+        kept.map { connected -> connected.connection },
+        kept
+          .mapNotNull { connected ->
+            connected.ferry?.let { ferry -> connected.connection to ferry }
+          }
+          .toMap(),
+      )
     }
     val courses = networks.associateWith {
       connections.getValue(it).values.associate { kept -> kept.connection to kept.course }
@@ -95,7 +124,7 @@ class NetworkExtraction {
   private fun separateNodeIds(network: NetworkType): Set<Pair<Long, Long>> {
     val networkKnots = knots.getValue(network)
     return routes.values
-      .filter { it.network == network && (it.isFerry || it.wayIds.any { id -> id in ferryWayIds }) }
+      .filter { it.network == network && it.includesFerry }
       .flatMapTo(HashSet()) { route ->
         val knotNodeIds = knotNodeIdsOf(route, networkKnots.keys)
         val refs = knotNodeIds.map { networkKnots.getValue(it).ref }.distinct()
@@ -180,8 +209,35 @@ class NetworkExtraction {
     return RouteOutcome.Connected(
       Connection(start.id, end.id, length.roundToInt()),
       course.filterIndexed { index, point -> index == 0 || point != course[index - 1] },
+      if (route.includesFerry) ferryOf(route) else null,
     )
   }
+
+  /**
+   * The ferry details of a route that includes a ferry, see `network-data` "Ferry details". Each
+   * detail comes from the first ferry way of the route that has it, otherwise from the route itself
+   * if it is a ferry route, otherwise from a ferry relation the ferry way is a member of.
+   */
+  private fun ferryOf(route: NetworkRoute): Ferry {
+    val ferryWayIds = route.wayIds.filter { it in ferryWayTags }
+    val sources =
+      ferryWayIds.map { ferryWayTags.getValue(it) } +
+        listOf(route.ferryTags) +
+        ferryWayIds.flatMap { ferryRelationTagsByWayId[it].orEmpty() }
+    fun detail(key: String) = sources.firstNotNullOfOrNull { it[key] }
+    return Ferry(
+      name = detail("name"),
+      operator = detail("operator"),
+      openingHours = detail("opening_hours"),
+      seasonal = detail("seasonal"),
+      fee = detail("fee"),
+      charge = detail("charge"),
+      website = detail("website"),
+    )
+  }
+
+  private val NetworkRoute.includesFerry: Boolean
+    get() = isFerry || wayIds.any { it in ferryWayTags }
 
   /** The shortest path from any of [startNodeIds] to any of [endNodeIds], with its node IDs. */
   private fun shortestPath(
@@ -213,7 +269,11 @@ class NetworkExtraction {
 
   private sealed interface RouteOutcome {
     /** @property course the path from the connection's `from` to its `to` knot, not simplified */
-    data class Connected(val connection: Connection, val course: List<GeoPoint>) : RouteOutcome
+    data class Connected(
+      val connection: Connection,
+      val course: List<GeoPoint>,
+      val ferry: Ferry?,
+    ) : RouteOutcome
 
     data class Skipped(val reason: SkipReason) : RouteOutcome
   }
@@ -223,9 +283,19 @@ class NetworkExtraction {
     val network: NetworkType,
     val wayIds: List<Long>,
     val isFerry: Boolean,
+    /** The route's own [FERRY_TAGS] if it is a ferry route. */
+    val ferryTags: Map<String, String>,
   )
 
   companion object {
+    /** The tags kept of ferry ways and relations, see [ferryOf]. */
+    private val FERRY_TAGS =
+      setOf("name", "operator", "opening_hours", "seasonal", "fee", "charge", "website")
+
+    private fun ferryTagsOf(tags: Map<String, String>) = tags.filter { (key, value) ->
+      key in FERRY_TAGS && value.isNotBlank()
+    }
+
     private val NETWORKS_BY_TAG = mapOf("rcn" to NetworkType.CYCLING, "rwn" to NetworkType.HIKING)
 
     /**

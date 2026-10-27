@@ -22,6 +22,8 @@ See proposal.md for the motivation.
 ### Collecting ferry tags per connection
 `NetworkExtraction` keeps the tags `name`, `operator`, `opening_hours`, `seasonal`, `fee`, `charge` and `website` of ferry ways (`route=ferry`) and of ferry route relations. For a connection that includes a ferry, each detail comes from the first ferry way of the connection that has it, otherwise from the route relation. Several ferry ways in one connection are rare, and taking the first one keeps the result predictable.
 
+*Found during apply:* ferry lines are often mapped as relations of their own (`type=route`, `route=ferry`, not part of a node network) that carry the times and fees, while the node network route only contains the ferry way. The extraction therefore also keeps the ferry tags of such relations by their member ways, and uses them after the ferry way and the node network route itself.
+
 The build logs how many ferry connections have operating times and fees, so the value of the feature can be judged from real data: OpenStreetMap coverage is not known yet.
 
 ### Graph format version 2: an optional ferry section
@@ -39,6 +41,8 @@ The ferry details live on the graph as `NetworkGraph.ferries: Map<Connection, Fe
 - the operating times, or "Operating times not known, check before you go"
 - the fee: the `charge`, "free" for `fee=no`, "fee" for `fee=yes`, nothing if unknown
 - the website as a link
+
+Without `opening_hours`, a `seasonal` tag other than `no` is mentioned in the note, e.g. "Seasonal (summer). Operating times not known, check before you go". A route that crosses the same ferry twice, e.g. a round trip, lists it at each crossing. The texts are built in the core (`RouteFerry`), so both apps show the same.
 
 ## Risks / Trade-offs
 

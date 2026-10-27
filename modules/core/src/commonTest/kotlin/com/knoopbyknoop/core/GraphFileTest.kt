@@ -28,6 +28,47 @@ class GraphFileTest {
   }
 
   @Test
+  fun `ferry details read back the same`() {
+    val ferryConnection = TestNetwork.graph.connections.first()
+    val ferry =
+      Ferry(
+        name = "Veerpont Beusichem",
+        openingHours = "Apr-Oct: Mo-Su 07:00-19:00",
+        charge = "1.50 EUR",
+        website = "https://example.org/veer",
+      )
+    val withFerry =
+      GraphFile(
+        NetworkType.CYCLING,
+        "utrecht",
+        "2026-10-25",
+        "",
+        NetworkGraph(
+          TestNetwork.graph.knots.values,
+          TestNetwork.graph.connections,
+          mapOf(ferryConnection to ferry),
+        ),
+      )
+
+    val read = GraphFile.read(withFerry.toBytes())
+
+    assertEquals(mapOf(ferryConnection to ferry), read.graph.ferries)
+  }
+
+  @Test
+  fun `older graph files`() {
+    // A version 1 file is a version 2 file without ferries, without the ferry count at the end.
+    val written = graphFile.toBytes()
+    val version1 = written.copyOf(written.size - 1).also { it[4] = 1 }
+
+    val read = GraphFile.read(version1)
+
+    assertEquals(graphFile.graph.knots, read.graph.knots)
+    assertEquals(graphFile.graph.connections.toSet(), read.graph.connections.toSet())
+    assertEquals(mapOf(), read.graph.ferries)
+  }
+
+  @Test
   fun `unsupported format version`() {
     val bytes = graphFile.toBytes().also { it[4] = 99 }
 

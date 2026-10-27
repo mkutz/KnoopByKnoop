@@ -269,8 +269,22 @@ class NetworkSyncTest {
   }
 
   @Test
+  fun `graph files of the previous version are still installed`() {
+    // A version 1 file is a version 2 file without ferries, without the ferry count at the end.
+    val version1 = graphBytes.copyOf(graphBytes.size - 1).also { it[4] = 1 }
+
+    val check =
+      NetworkInstaller.checkGraph(
+        entry(IndexedNetworkType.CYCLING, IndexedFileKind.GRAPH, version1, "2026-10-26"),
+        version1,
+      )
+
+    assertTrue(check is InstallCheck.Valid, "$check")
+  }
+
+  @Test
   fun `unsupported file version`() {
-    val newer = graphBytes.copyOf().also { it[4] = 2 }
+    val newer = graphBytes.copyOf().also { it[4] = (GraphFile.FORMAT_VERSION + 1).toByte() }
 
     assertEquals(
       InstallCheck.Rejected(RejectionReason.UNSUPPORTED_VERSION),

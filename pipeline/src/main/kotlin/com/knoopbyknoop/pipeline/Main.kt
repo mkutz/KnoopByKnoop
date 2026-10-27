@@ -82,6 +82,15 @@ fun build(area: String, outputDirectory: Path, extracts: List<Path>) {
         "(${networkCourses.values.sumOf { it.size }} before simplification), " +
         "${geometryFile.toFile().length()} bytes"
     )
+    // How much OpenStreetMap knows about the ferries, see `show-ferry-schedules`.
+    val ferries = graph.ferries.values
+    println(
+      "${file.name}: ${ferries.size} ferries, " +
+        "${ferries.count { it.openingHours != null }} with operating times, " +
+        "${ferries.count { it.openingHours == null && it.seasonal != null }} only seasonal, " +
+        "${ferries.count { it.charge != null || it.fee != null }} with a fee or charge, " +
+        "${ferries.count { it.name == null && it.operator == null }} without a name"
+    )
   }
   for ((reason, count) in result.skippedRoutes.toSortedMap()) {
     println("Skipped $count routes: ${reason.name.lowercase().replace('_', ' ')}")

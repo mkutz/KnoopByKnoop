@@ -228,8 +228,13 @@ private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
               itemVerticalAlignment = Alignment.CenterVertically,
               modifier = Modifier.padding(top = 4.dp),
             ) {
-              description.knots.forEach { (knot, role) -> KnotBadge(knot.ref, role) }
+              val ferryPositions = description.ferries.map { it.fromPosition }.toSet()
+              description.knots.forEachIndexed { position, (knot, role) ->
+                KnotBadge(knot.ref, role)
+                if (position in ferryPositions) FerryBadge()
+              }
             }
+            if (description.ferries.isNotEmpty()) RouteFerries(description.ferries)
           }
           is RouteDescription.Unreachable ->
             Text(

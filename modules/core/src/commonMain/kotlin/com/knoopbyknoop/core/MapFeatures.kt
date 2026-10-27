@@ -11,8 +11,16 @@ sealed interface RouteDescription {
   /** Only the start is set: the next tap sets the end. */
   data class StartOnly(val start: String) : RouteDescription
 
-  /** The route's [knots] in riding order with their roles, and e.g. the distance `3.5 km`. */
-  data class Complete(val knots: List<RouteKnot>, val distance: String) : RouteDescription
+  /**
+   * The route's [knots] in riding order with their roles, e.g. the distance `3.5 km`, and the
+   * [ferries] the route takes in the order it reaches them, see `map-planning` "Ferries on the
+   * route".
+   */
+  data class Complete(
+    val knots: List<RouteKnot>,
+    val distance: String,
+    val ferries: List<RouteFerry> = listOf(),
+  ) : RouteDescription
 
   /** The legs that cannot be ridden, e.g. `45 → 99`. */
   data class Unreachable(val legs: List<String>) : RouteDescription
@@ -32,6 +40,45 @@ enum class KnotRole {
 }
 
 data class RouteKnot(val knot: Knot, val role: KnotRole)
+
+/**
+ * A ferry the route takes, between the knots at [fromPosition] and [fromPosition] + 1 of
+ * [RouteDescription.Complete.knots], with the texts the planner shows for it.
+ */
+data class RouteFerry(val ferry: Ferry, val fromPosition: Int) {
+
+  /** The ferry's name, or just "Ferry". */
+  val title: String = ferry.name ?: "Ferry"
+
+  /** Whether OpenStreetMap has the ferry's operating times. */
+  val timesKnown: Boolean = ferry.openingHours != null
+
+  /**
+   * The operating times as tagged, e.g. `Apr-Oct: Mo-Su 07:00-19:00`, or a note to check them,
+   * which tells whether the ferry only runs in some seasons.
+   */
+  val times: String =
+    ferry.openingHours
+      ?: when (val seasonal = ferry.seasonal) {
+        null,
+        "no" -> UNKNOWN_TIMES
+        "yes" -> "Seasonal. $UNKNOWN_TIMES"
+        else -> "Seasonal ($seasonal). $UNKNOWN_TIMES"
+      }
+
+  /** e.g. `Fee: 1.50 EUR`, `Free` or `Fee charged`, or `null` if OpenStreetMap does not know. */
+  val fee: String? =
+    ferry.charge?.let { "Fee: $it" }
+      ?: when (ferry.fee) {
+        "no" -> "Free"
+        "yes" -> "Fee charged"
+        else -> null
+      }
+
+  companion object {
+    const val UNKNOWN_TIMES = "Operating times not known, check before you go"
+  }
+}
 
 /**
  * The map layers and texts of the planner. Layers are GeoJSON feature collections with coordinates
@@ -143,11 +190,17 @@ object MapFeatures {
         ?: return session.waypoints.firstOrNull()?.let { RouteDescription.StartOnly(it.ref) }
           ?: RouteDescription.Empty
     return when (val summary = route.summary) {
-      is RouteSummary.Complete ->
+      is RouteSummary.Complete -> {
+        val knots = routeKnots(session)
         RouteDescription.Complete(
-          knots = routeKnots(session),
+          knots = knots,
           distance = formatDistance(summary.lengthMeters),
+          ferries =
+            knots.zipWithNext().mapIndexedNotNull { position, (from, to) ->
+              session.graph.ferryBetween(from.knot, to.knot)?.let { RouteFerry(it, position) }
+            },
         )
+      }
       is RouteSummary.Incomplete ->
         RouteDescription.Unreachable(
           summary.unreachableLegs.map { "${it.from.ref} → ${it.to.ref}" }

@@ -1,6 +1,7 @@
 package com.knoopbyknoop.pipeline
 
 import com.knoopbyknoop.core.Connection
+import com.knoopbyknoop.core.Ferry
 import com.knoopbyknoop.core.NetworkType
 import kotlin.math.roundToInt
 import kotlin.test.Test
@@ -214,6 +215,90 @@ class NetworkExtractionTest {
       )
 
     assertEquals(2, result.graphs.getValue(NetworkType.CYCLING).knots.size)
+  }
+
+  /** Knots 12 and 45 on both banks of a river, connected by the ferry way 100. */
+  private fun extractFerry(
+    ferryWayTags: Map<String, String>,
+    otherRelations: List<OsmRelation> = listOf(),
+  ): Map<Connection, Ferry> =
+    extract(
+        relations = listOf(route(10, "rcn", 99, 100, 101)) + otherRelations,
+        ways =
+          listOf(
+            OsmWay(99, listOf(1, 2)),
+            OsmWay(100, listOf(2, 3), mapOf("route" to "ferry") + ferryWayTags),
+            OsmWay(101, listOf(3, 4)),
+          ),
+        nodes = listOf(cyclingKnot(1, 0, "12"), node(2, 1), node(3, 3), cyclingKnot(4, 4, "45")),
+      )
+      .graphs
+      .getValue(NetworkType.CYCLING)
+      .ferries
+
+  @Test
+  fun `ferry with times and fee`() {
+    val ferries =
+      extractFerry(
+        mapOf(
+          "name" to "Veerpont Beusichem",
+          "opening_hours" to "Apr-Oct: Mo-Su 07:00-19:00",
+          "charge" to "1.50 EUR",
+        )
+      )
+
+    assertEquals(
+      listOf(
+        Ferry(
+          name = "Veerpont Beusichem",
+          openingHours = "Apr-Oct: Mo-Su 07:00-19:00",
+          charge = "1.50 EUR",
+        )
+      ),
+      ferries.values.toList(),
+    )
+    assertEquals(listOf(1L to 4L), ferries.keys.map { it.fromId to it.toId })
+  }
+
+  @Test
+  fun `details on the ferry relation`() {
+    val ferryLine =
+      OsmRelation(
+        20,
+        mapOf(
+          "type" to "route",
+          "route" to "ferry",
+          "name" to "Pont Beusichem–Culemborg",
+          "opening_hours" to "Mo-Su 07:00-19:00",
+          "fee" to "yes",
+        ),
+        listOf(100),
+      )
+
+    val ferries = extractFerry(mapOf("name" to "Veerpont Beusichem"), listOf(ferryLine))
+
+    // The way's name comes first; the times and the fee only the relation has.
+    assertEquals(
+      listOf(Ferry(name = "Veerpont Beusichem", openingHours = "Mo-Su 07:00-19:00", fee = "yes")),
+      ferries.values.toList(),
+    )
+  }
+
+  @Test
+  fun `ferry without details`() {
+    assertEquals(listOf(Ferry()), extractFerry(mapOf()).values.toList())
+  }
+
+  @Test
+  fun `connections without a ferry have no ferry details`() {
+    val result =
+      extract(
+        relations = listOf(route(10, "rcn", 100)),
+        ways = listOf(OsmWay(100, listOf(1, 2))),
+        nodes = listOf(cyclingKnot(1, 0, "12"), cyclingKnot(2, 2, "45")),
+      )
+
+    assertEquals(mapOf(), result.graphs.getValue(NetworkType.CYCLING).ferries)
   }
 
   @Test

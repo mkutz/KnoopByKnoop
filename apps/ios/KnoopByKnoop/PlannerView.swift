@@ -236,11 +236,14 @@ private struct WaypointSheet: View {
       VStack(alignment: .leading, spacing: 6) {
         Text(complete.distance).font(.title2.bold())
         // The route's knots like on the map; the chosen waypoints stand out.
+        let ferryPositions = Set(complete.ferries.map { Int($0.fromPosition) })
         WrappingRow {
-          ForEach(Array(complete.knots.enumerated()), id: \.offset) { _, routeKnot in
+          ForEach(Array(complete.knots.enumerated()), id: \.offset) { position, routeKnot in
             KnotBadge(ref: routeKnot.knot.ref, role: routeKnot.role)
+            if ferryPositions.contains(position) { FerryBadge() }
           }
         }
+        if !complete.ferries.isEmpty { RouteFerries(ferries: complete.ferries) }
       }
     case let startOnly as RouteDescriptionStartOnly:
       Text("Start at \(startOnly.start), tap a knot to set the end").font(.headline)
