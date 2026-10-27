@@ -61,6 +61,7 @@ struct NetworkMapView: UIViewRepresentable {
     private var shownGraph: NetworkGraph?
     private var shownNetwork: URL?
     private var shownRoute: String?
+    private var shownWaypoints: String?
 
     func show(graph: NetworkGraph, layers: MapLayers, focus: [Knot], on mapView: MLNMapView) {
       self.mapView = mapView
@@ -81,6 +82,7 @@ struct NetworkMapView: UIViewRepresentable {
       self.style = style
       shownNetwork = nil
       shownRoute = nil
+      shownWaypoints = nil
       addLayers(to: style)
       update()
     }
@@ -103,8 +105,12 @@ struct NetworkMapView: UIViewRepresentable {
       }
       if shownRoute != layers.route {
         (style.source(withIdentifier: "route") as? MLNShapeSource)?.shape = shape(layers.route)
-        (style.source(withIdentifier: "waypoints") as? MLNShapeSource)?.shape = shape(layers.waypoints)
         shownRoute = layers.route
+      }
+      // Waypoints change without the route, e.g. when only the start is set.
+      if shownWaypoints != layers.waypoints {
+        (style.source(withIdentifier: "waypoints") as? MLNShapeSource)?.shape = shape(layers.waypoints)
+        shownWaypoints = layers.waypoints
       }
       if shownGraph !== graph, let graph {
         // A new network shows the restored route if there is one, the whole network otherwise.

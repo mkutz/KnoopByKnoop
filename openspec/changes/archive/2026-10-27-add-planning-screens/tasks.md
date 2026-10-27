@@ -33,9 +33,9 @@
 - [x] 4.4 Planner screen: map with OpenFreeMap base map, network layers, network switch, taps via `KnotLocator`
 - [x] 4.5 Sheet: summary, waypoint list with drag to reorder, swipe to remove, clear
 - [x] 4.6 Restore the current route on start; open the region list when no region is installed
-- [ ] 4.7 Manual check in the simulator, same list as 3.7, also in `manual-checks.md`
+- [x] 4.7 Manual check in the simulator, same list as 3.7, also in `manual-checks.md`
 
 ## 5. Wrap-up
 
-- [ ] 5.1 `./gradlew check` and the iOS app build pass locally and in CI
+- [x] 5.1 `./gradlew check` and the iOS app build pass locally and in CI
 - [x] 5.2 README: what the apps can do now, and the map attribution

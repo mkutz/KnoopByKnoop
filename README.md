@@ -39,7 +39,7 @@ Requires JDK 21+. The Android app is only built when an Android SDK is found (`A
 ./gradlew check
 ```
 
-For the iOS app (requires Xcode and [XcodeGen](https://github.com/yonaskolb/XcodeGen)):
+For the iOS app (requires Xcode and [XcodeGen](https://github.com/yonaskolb/XcodeGen)). Xcode builds the Kotlin core with Gradle and looks for a JDK in `JAVA_HOME`, the macOS JDK registry, SDKMAN and Android Studio, see [`apps/ios/build-core.sh`](apps/ios/build-core.sh):
 
 ```bash
 xcodegen --spec apps/ios/project.yml && open apps/ios/KnoopByKnoop.xcodeproj

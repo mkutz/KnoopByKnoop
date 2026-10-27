@@ -37,6 +37,4 @@ targets:
     preBuildScripts:
       - name: Build Kotlin core
         basedOnDependencyAnalysis: false
-        script: |
-          cd "$SRCROOT/../.."
-          ./gradlew :modules:core:embedAndSignAppleFrameworkForXcode
+        script: '"$SRCROOT/build-core.sh"'

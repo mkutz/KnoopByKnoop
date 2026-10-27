@@ -35,10 +35,10 @@ Simulator iPhone 18 Pro (iOS 27), 2026-10-26. Taps cannot be scripted in this se
 | Cycling network of the Netherlands | ✅ | Network with knot badges along the actual paths over the base map, about 2 s after start |
 | Restart (restoring a route) | ✅ | Route 05 → 55 → 30 restored as 14.4 km, the same route as on Android; the map shows the whole route |
 | Attribution | ✅ | MapLibre attribution and "© OpenStreetMap contributors" visible |
-| Leaving the app during a download | ⏳ | Needs taps: download a region, leave the app, return |
-| Interrupted download | ⏳ | Needs taps: download, turn off the network on the Mac, turn it on again |
-| No network access (region list and map) | ⏳ | Needs the Mac offline |
-| Planning by tapping, reorder, remove, switching to hiking | ⏳ | Needs taps; drag to reorder and swipe to remove in the sheet's list |
-| Map performance, Dutch hiking network | ⏳ | Needs the network switch |
+| Planning by tapping, switching to hiking (by the maintainer) | ✅ with bug | Routes plan in cycling and hiking. The first tap seemed to do nothing: the start was set but its marker not drawn, so a second tap made the same knot the end and created a round trip. Fixed: waypoints are redrawn whenever they change |
+| Opening another region (by the maintainer) | ⚠️ | The map zoomed out completely instead of to the region; left as is, since `seamless-regions` replaces opening regions |
+| Leaving the app during a download, interrupted download, no network access | – | Not reported separately on iOS; downloads worked when opening regions |
+
+The maintainer's feedback on the planner's readability (zoom buttons, route knots, markers, direction, sheet) went into the change `improve-planner-map`.
 
 Found and fixed during the check: the map now zooms to the whole route instead of its waypoints (on Android too), and the knot sequence wraps instead of being cut off.
