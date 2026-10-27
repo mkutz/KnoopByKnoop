@@ -49,4 +49,4 @@
 
 - [ ] 7.1 On the Android emulator and the iOS simulator, record in `manual-checks.md` in this change: "Planning right after installation" (fresh install in airplane mode), "First start", "Leaving the app during the download", "Interrupted download", "Cycling is ready first", "No network access on first start", "Opening the info sheet", "Airplane mode", "Cycling network of the Netherlands" (no gap at the borders) and a planned route from Zeeland into Flanders ("Route from the Netherlands into Belgium")
 - [ ] 7.2 Development builds that still have per-region data switch to the new networks on start, keep the saved route and remove `regions/`
-- [ ] 7.3 `./gradlew check` and the iOS app build pass locally and in CI
+- [x] 7.3 `./gradlew check` and the iOS app build pass locally and in CI
