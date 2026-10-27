@@ -4,12 +4,10 @@ package com.knoopbyknoop.core
  * Planning a route on the map, see `map-planning`: tapping knots sets start, end and stops, and the
  * waypoints can be moved and removed. Immutable: every action returns a new session.
  *
- * @property region the ID of the region [graph] belongs to
  * @property route the planned route, or `null` while there are fewer than two waypoints
  */
 class PlanningSession
 private constructor(
-  val region: String,
   val graph: NetworkGraph,
   val waypoints: List<Knot>,
   val route: Route?,
@@ -56,25 +54,21 @@ private constructor(
 
   fun clear(): PlanningSession = copy(listOf(), route = null)
 
-  /** An empty session on another network of the same region, e.g. hiking instead of cycling. */
-  fun switchTo(otherGraph: NetworkGraph): PlanningSession = start(region, otherGraph)
+  /** An empty session on another network, e.g. hiking instead of cycling. */
+  fun switchTo(otherGraph: NetworkGraph): PlanningSession = start(otherGraph)
 
   private fun withRoute(newRoute: Route) = copy(newRoute.waypoints, newRoute)
 
   private fun copy(newWaypoints: List<Knot>, route: Route?) =
-    PlanningSession(region, graph, newWaypoints, route, router)
+    PlanningSession(graph, newWaypoints, route, router)
 
   companion object {
 
     /** A session on [graph], optionally continuing with [waypoints], e.g. a restored route. */
-    fun start(
-      region: String,
-      graph: NetworkGraph,
-      waypoints: List<Knot> = listOf(),
-    ): PlanningSession {
+    fun start(graph: NetworkGraph, waypoints: List<Knot> = listOf()): PlanningSession {
       val router = ShortestPathRouter(graph)
       val route = if (waypoints.size >= 2) Route.plan(waypoints, router) else null
-      return PlanningSession(region, graph, waypoints, route, router)
+      return PlanningSession(graph, waypoints, route, router)
     }
   }
 }

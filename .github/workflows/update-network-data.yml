@@ -15,18 +15,8 @@ concurrency:
 
 jobs:
   build:
-    name: Build ${{ matrix.region }}
+    name: Build cycling and hiking networks
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        include:
-          - region: netherlands
-            extract: europe/netherlands
-          - region: belgium
-            extract: europe/belgium
-          - region: nordrhein-westfalen
-            extract: europe/germany/nordrhein-westfalen
 
     steps:
 
@@ -39,26 +29,33 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v6
 
-      - name: Download extract
-        run: >
-          curl --fail --silent --show-error --location --retry 3
-          --output "$RUNNER_TEMP/extract.osm.pbf"
-          "https://download.geofabrik.de/${{ matrix.extract }}-latest.osm.pbf"
+      # The covered area. All extracts are read together, so connections across their borders are
+      # complete. A failing download fails the job, and the last publication stays as it is.
+      - name: Download extracts
+        run: |
+          for extract in europe/netherlands europe/belgium europe/germany/nordrhein-westfalen; do
+            curl --fail --silent --show-error --location --retry 3 \
+              --output "$RUNNER_TEMP/$(basename "$extract").osm.pbf" \
+              "https://download.geofabrik.de/$extract-latest.osm.pbf"
+          done
 
       - name: Build graph files
         run: >
           ./gradlew :pipeline:run
-          --args="build ${{ matrix.region }} $RUNNER_TEMP/extract.osm.pbf $GITHUB_WORKSPACE/network-data"
+          --args="build nl-be-nrw $GITHUB_WORKSPACE/network-data
+          $RUNNER_TEMP/netherlands.osm.pbf
+          $RUNNER_TEMP/belgium.osm.pbf
+          $RUNNER_TEMP/nordrhein-westfalen.osm.pbf"
 
       - uses: actions/upload-artifact@v7
         with:
-          name: graph-${{ matrix.region }}
+          name: network-data
           path: |
             network-data/*.graph
             network-data/*.geometry
           if-no-files-found: error
 
-  # Runs only when every region was built, so a failed run keeps the last publication.
+  # Runs only when the build succeeded, so a failed run keeps the last publication.
   publish:
     needs: build
     runs-on: ubuntu-latest
@@ -79,8 +76,7 @@ jobs:
 
       - uses: actions/download-artifact@v8
         with:
-          pattern: graph-*
-          merge-multiple: true
+          name: network-data
           path: network-data
 
       - name: Check size budgets
@@ -90,8 +86,8 @@ jobs:
             echo "$1: $size bytes (budget: $2)"
             test "$size" -lt "$2"
           }
-          check netherlands-cycling.graph 5000000
-          check netherlands-cycling.geometry 10000000
+          check cycling.graph 5000000
+          check cycling.geometry 10000000
 
       - name: Write index
         run: ./gradlew :pipeline:run --args="index $GITHUB_WORKSPACE/network-data"
@@ -105,3 +101,10 @@ jobs:
               --notes "Knooppunt network graphs for the apps, rebuilt weekly. Data © OpenStreetMap contributors, ODbL 1.0."
           fi
           gh release upload network-data network-data/* --clobber
+          # Only after a successful upload: remove files that are no longer published, e.g. the
+          # per-region files from before the networks were merged.
+          gh release view network-data --json assets --jq '.assets[].name' | while read -r asset; do
+            if [ ! -e "network-data/$asset" ]; then
+              gh release delete-asset network-data "$asset" --yes
+            fi
+          done

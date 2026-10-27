@@ -11,7 +11,7 @@ class NetworkIndexTest {
 
   private val entry =
     NetworkIndexEntry(
-      region = "netherlands",
+      area = "netherlands",
       network = IndexedNetworkType.CYCLING,
       file = "netherlands-cycling.graph",
       sizeBytes = fileBytes.size.toLong(),
@@ -74,6 +74,7 @@ class NetworkIndexTest {
 
     assertTrue("\"kind\": \"geometry\"" in json, json)
     assertTrue("\"kind\": \"graph\"" in json, json)
+    assertTrue("\"region\": \"netherlands\"" in json, json)
     assertEquals(index, NetworkIndex.parse(json))
   }
 

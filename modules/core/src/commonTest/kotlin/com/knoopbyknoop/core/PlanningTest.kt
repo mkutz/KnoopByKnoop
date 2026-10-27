@@ -19,10 +19,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 
-/** Covers the planning scenarios of `openspec/changes/add-planning-screens` (`map-planning`). */
+/** Covers the planning scenarios of `map-planning`, and the route scenarios of `network-sync`. */
 class PlanningTest {
 
-  private val session = PlanningSession.start("utrecht", graph)
+  private val session = PlanningSession.start(graph)
 
   private fun PlanningSession.tapAll(vararg knots: Knot) =
     knots.fold(this) { session, knot -> session.tap(knot) }
@@ -188,7 +188,7 @@ class PlanningTest {
 
   @Test
   fun `reorder`() {
-    val planned = PlanningSession.start("utrecht", graph, listOf(knot12, knot30, knot7, knot45))
+    val planned = PlanningSession.start(graph, listOf(knot12, knot30, knot7, knot45))
 
     val reordered = planned.moveWaypoint(2, 1)
 
@@ -261,11 +261,30 @@ class PlanningTest {
   }
 
   @Test
-  fun `remove the planned region`() {
-    val snapshot = RouteSnapshot.of(session.tapAll(knot12, knot45))
+  fun `snapshots written per region still restore`() {
+    val json =
+      """{"region": "utrecht", "network": "cycling", "waypoints": [
+      {"id": ${knot12.id}, "ref": "12"}, {"id": ${knot45.id}, "ref": "45"}]}"""
 
-    assertTrue(snapshot.isFor("utrecht"), "removing utrecht discards the route")
-    assertFalse(snapshot.isFor("belgium"))
+    val restored = RouteSnapshot.parse(json).restore(graph)
+
+    assertEquals(listOf(knot12, knot45), restored.session.waypoints)
+  }
+
+  @Test
+  fun `route across an update`() {
+    val planned = session.tapAll(knot12, knot45, knot30)
+    val updatedGraph =
+      NetworkGraph(
+        graph.knots.values.filter { it != knot30 },
+        graph.connections.filter { knot30.id !in listOf(it.fromId, it.toId) },
+      )
+
+    val restored = RouteSnapshot.of(planned).restore(updatedGraph)
+
+    assertEquals(listOf(knot12, knot45), restored.session.waypoints)
+    assertEquals(listOf("30"), restored.removedWaypoints)
+    assertSame(updatedGraph, restored.session.graph)
   }
 
   // improve-planner-map: Plan by tapping knots
@@ -326,10 +345,7 @@ class PlanningTest {
 
   @Test
   fun `round trips end where they start`() {
-    val roles =
-      MapFeatures.routeKnots(
-        PlanningSession.start("utrecht", graph, listOf(knot12, knot30, knot12))
-      )
+    val roles = MapFeatures.routeKnots(PlanningSession.start(graph, listOf(knot12, knot30, knot12)))
 
     assertEquals(
       listOf(
@@ -343,7 +359,7 @@ class PlanningTest {
 
   @Test
   fun `round trip on the map`() {
-    val roundTrip = PlanningSession.start("utrecht", graph, listOf(knot12, knot30, knot12))
+    val roundTrip = PlanningSession.start(graph, listOf(knot12, knot30, knot12))
 
     assertEquals(
       listOf(RouteKnot(knot12, KnotRole.ROUND_TRIP), RouteKnot(knot30, KnotRole.STOP)),

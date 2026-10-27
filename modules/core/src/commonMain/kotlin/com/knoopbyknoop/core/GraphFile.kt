@@ -9,17 +9,17 @@ open class GraphFormatException(message: String) : Exception(message)
 class UnsupportedFormatVersionException(message: String) : GraphFormatException(message)
 
 /**
- * The network graph of one region and network type as it is published and downloaded.
+ * The network graph of one network type as it is published and downloaded.
  *
  * The binary format is described in `openspec/specs/network-data` and its design.
  *
- * @property region the region ID, e.g. `netherlands`
+ * @property area the area the graph covers, e.g. `nl-be-nrw`
  * @property dataDate the date of the OpenStreetMap data as ISO date, e.g. `2026-10-25`
  * @property attribution the attribution the data license requires
  */
 class GraphFile(
   val network: NetworkType,
-  val region: String,
+  val area: String,
   val dataDate: String,
   val attribution: String,
   val graph: NetworkGraph,
@@ -35,7 +35,7 @@ class GraphFile(
     writer.bytes(MAGIC)
     writer.byte(FORMAT_VERSION)
     writer.byte(NETWORK_CODES.getValue(network))
-    writer.string(region)
+    writer.string(area)
     writer.string(dataDate)
     writer.string(attribution)
 
@@ -91,7 +91,7 @@ class GraphFile(
       val network =
         NETWORK_CODES.entries.firstOrNull { it.value == networkCode }?.key
           ?: throw GraphFormatException("Unknown network type $networkCode")
-      val region = reader.string()
+      val area = reader.string()
       val dataDate = reader.string()
       val attribution = reader.string()
 
@@ -115,7 +115,7 @@ class GraphFile(
           val to = knots.getOrNull(reader.count()) ?: throw GraphFormatException("Bad knot index")
           Connection(from.id, to.id, reader.count())
         }
-      return GraphFile(network, region, dataDate, attribution, NetworkGraph(knots, connections))
+      return GraphFile(network, area, dataDate, attribution, NetworkGraph(knots, connections))
     }
   }
 }

@@ -7,11 +7,11 @@ import kotlinx.serialization.json.Json
  * The route being planned, as the apps store it to restore it after a restart, see `map-planning`.
  *
  * Waypoints are stored by knot ID, plus their number to tell the user which ones could not be
- * restored.
+ * restored. Snapshots written while networks were installed per region also have a `region`, which
+ * is ignored.
  */
 @Serializable
 data class RouteSnapshot(
-  val region: String,
   val network: IndexedNetworkType,
   val waypoints: List<Waypoint>,
 ) {
@@ -20,13 +20,10 @@ data class RouteSnapshot(
 
   fun toJson(): String = json.encodeToString(this)
 
-  /** Whether this route is planned on [region], so removing that region discards it. */
-  fun isFor(region: String): Boolean = this.region == region
-
-  /** Restores the route on [graph], the installed graph of [region] and [network]. */
+  /** Restores the route on [graph], the installed graph of [network]. */
   fun restore(graph: NetworkGraph): RestoredRoute {
     val (present, missing) = waypoints.partition { it.id in graph.knots }
-    val session = PlanningSession.start(region, graph, present.map { graph.knots.getValue(it.id) })
+    val session = PlanningSession.start(graph, present.map { graph.knots.getValue(it.id) })
     return RestoredRoute(session, missing.map { it.ref })
   }
 
@@ -36,7 +33,6 @@ data class RouteSnapshot(
 
     fun of(session: PlanningSession): RouteSnapshot =
       RouteSnapshot(
-        region = session.region,
         network = IndexedNetworkType.of(session.network),
         waypoints = session.waypoints.map { Waypoint(it.id, it.ref) },
       )

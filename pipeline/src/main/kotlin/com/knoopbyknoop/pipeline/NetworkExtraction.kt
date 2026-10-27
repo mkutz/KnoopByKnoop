@@ -17,15 +17,16 @@ import kotlin.math.sqrt
  *
  * Feed it all relations first, then all ways, then all nodes, like they are ordered in PBF files.
  * It keeps only the elements it needs: node network routes, their ways, and the nodes on them.
+ * Elements fed more than once, e.g. from overlapping extracts, are used once.
  */
 class NetworkExtraction {
 
-  private val routes = mutableListOf<NetworkRoute>()
+  private val routes = LinkedHashMap<Long, NetworkRoute>()
   private val wayNodeIds = HashMap<Long, LongArray>()
   private val ferryWayIds = HashSet<Long>()
   private val knots = NetworkType.entries.associateWith { HashMap<Long, Knot>() }
 
-  private val wantedWayIds by lazy { routes.flatMapTo(HashSet()) { it.wayIds } }
+  private val wantedWayIds by lazy { routes.values.flatMapTo(HashSet()) { it.wayIds } }
   private val coordinates by lazy { NodeCoordinates(wayNodeIds.values) }
 
   fun acceptRelation(relation: OsmRelation) {
@@ -33,7 +34,7 @@ class NetworkExtraction {
     if (relation.tags["network:type"] != "node_network") return
     val network = NETWORKS_BY_TAG[relation.tags["network"]] ?: return
     val isFerry = relation.tags["route"] == "ferry"
-    routes.add(NetworkRoute(relation.id, network, relation.memberWayIds, isFerry))
+    routes[relation.id] = NetworkRoute(relation.id, network, relation.memberWayIds, isFerry)
   }
 
   fun acceptWay(way: OsmWay) {
@@ -59,7 +60,7 @@ class NetworkExtraction {
     val connections =
       NetworkType.entries.associateWith { HashMap<Pair<Long, Long>, RouteOutcome.Connected>() }
     val skippedRoutes = HashMap<SkipReason, Int>()
-    for (route in routes) {
+    for (route in routes.values) {
       val connected =
         when (val outcome = connectionOf(route, knotsByNodeId.getValue(route.network))) {
           is RouteOutcome.Connected -> outcome
@@ -93,7 +94,7 @@ class NetworkExtraction {
    */
   private fun separateNodeIds(network: NetworkType): Set<Pair<Long, Long>> {
     val networkKnots = knots.getValue(network)
-    return routes
+    return routes.values
       .filter { it.network == network && (it.isFerry || it.wayIds.any { id -> id in ferryWayIds }) }
       .flatMapTo(HashSet()) { route ->
         val knotNodeIds = knotNodeIdsOf(route, networkKnots.keys)

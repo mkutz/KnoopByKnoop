@@ -255,4 +255,23 @@ class NetworkExtractionTest {
     val connection = result.graphs.getValue(NetworkType.CYCLING).connections.single()
     assertEquals(stepMeters.roundToInt(), connection.lengthMeters)
   }
+
+  @Test
+  fun `a relation fed twice, as from two overlapping extracts, is used once`() {
+    val result =
+      extract(
+        relations = listOf(route(10, "rcn", 100), route(11, "rcn", 101), route(11, "rcn", 101)),
+        ways = listOf(OsmWay(100, listOf(1, 2)), OsmWay(101, listOf(2, 3, 4))),
+        nodes =
+          listOf(
+            cyclingKnot(1, 0, "12"),
+            cyclingKnot(2, 1, "45"),
+            cyclingKnot(3, 2, "7"),
+            cyclingKnot(4, 3, "8"),
+          ),
+      )
+
+    assertEquals(1, result.graphs.getValue(NetworkType.CYCLING).connections.size)
+    assertEquals(1, result.skippedRoutes.values.sum())
+  }
 }

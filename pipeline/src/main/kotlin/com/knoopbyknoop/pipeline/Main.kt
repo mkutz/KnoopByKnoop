@@ -30,14 +30,19 @@ const val ATTRIBUTION =
 
 private const val USAGE =
   """Usage:
-  pipeline build <region> <extract.osm.pbf> <output-dir>   extract graph files for one region
-  pipeline index <output-dir>                              write index.json for all graph files"""
+  pipeline build <area> <output-dir> <extract.osm.pbf>...   extract one graph per network type from all extracts
+  pipeline index <output-dir>                               write index.json for all graph files
+  pipeline bundle [--allow-unavailable] <base-url> <output-dir>
+                                                            fetch and verify the published graphs for the apps"""
 
 /** Turns OpenStreetMap node network data into the graph files the apps download. */
 fun main(args: Array<String>) {
   when (args.firstOrNull()) {
-    "build" if args.size == 4 -> build(args[1], Path(args[2]), Path(args[3]))
+    "build" if args.size >= 4 -> build(args[1], Path(args[2]), args.drop(3).map(::Path))
     "index" if args.size == 2 -> index(Path(args[1]))
+    "bundle" if args.size == 3 -> bundle(args[1], Path(args[2]))
+    "bundle" if args.size == 4 && args[1] == "--allow-unavailable" ->
+      bundle(args[2], Path(args[3]), allowUnavailable = true)
     else -> {
       System.err.println(USAGE)
       exitProcess(2)
@@ -45,20 +50,24 @@ fun main(args: Array<String>) {
   }
 }
 
-fun build(region: String, extract: Path, outputDirectory: Path) {
+/**
+ * Builds one graph and one geometry file per network type from [extracts] together, so connections
+ * across the borders between extracts are complete, see `network-data`.
+ */
+fun build(area: String, outputDirectory: Path, extracts: List<Path>) {
   val extraction = NetworkExtraction()
-  val dataDate = PbfExtract(extract).readInto(extraction) ?: LocalDate.now(ZoneOffset.UTC)
+  val dataDate =
+    PbfExtract.readAll(extracts.map(::PbfExtract), extraction) ?: LocalDate.now(ZoneOffset.UTC)
   val result = extraction.result()
   outputDirectory.createDirectories()
   for ((network, graph) in result.graphs) {
-    val file = outputDirectory.resolve(graphFileName(region, IndexedNetworkType.of(network)))
-    val graphBytes = GraphFile(network, region, dataDate.toString(), ATTRIBUTION, graph).toBytes()
+    val file = outputDirectory.resolve(graphFileName(IndexedNetworkType.of(network)))
+    val graphBytes = GraphFile(network, area, dataDate.toString(), ATTRIBUTION, graph).toBytes()
     file.writeBytes(graphBytes)
     val networkCourses = result.courses.getValue(network)
     val courses =
       graph.connections.map { simplify(networkCourses.getValue(it), COURSE_TOLERANCE_METERS) }
-    val geometryFile =
-      outputDirectory.resolve(geometryFileName(region, IndexedNetworkType.of(network)))
+    val geometryFile = outputDirectory.resolve(geometryFileName(IndexedNetworkType.of(network)))
     geometryFile.writeBytes(NetworkGeometry(graph, courses).toBytes(sha256Hex(graphBytes)))
     val lengths = graph.connections.map { it.lengthMeters }.sorted()
     val connectedKnotIds = graph.connections.flatMap { listOf(it.fromId, it.toId) }.toSet()
@@ -90,7 +99,7 @@ fun index(directory: Path) {
         val network = IndexedNetworkType.of(graphFile.network)
         val graphEntry =
           NetworkIndexEntry(
-            region = graphFile.region,
+            area = graphFile.area,
             network = network,
             file = file.name,
             sizeBytes = bytes.size.toLong(),
@@ -98,7 +107,7 @@ fun index(directory: Path) {
             dataDate = graphFile.dataDate,
             kind = IndexedFileKind.GRAPH,
           )
-        val geometryFile = directory.resolve(geometryFileName(graphFile.region, network))
+        val geometryFile = directory.resolve(geometryFileName(network))
         val geometryBytes = geometryFile.takeIf { it.exists() }?.readBytes()
         if (geometryBytes == null || !NetworkGeometry.belongsTo(geometryBytes, graphEntry.sha256)) {
           error("${geometryFile.name} is missing or does not belong to ${file.name}")
@@ -122,8 +131,6 @@ fun index(directory: Path) {
   println("index.json: ${files.size} files")
 }
 
-fun graphFileName(region: String, network: IndexedNetworkType) =
-  "$region-${network.name.lowercase()}.graph"
+fun graphFileName(network: IndexedNetworkType) = "${network.name.lowercase()}.graph"
 
-fun geometryFileName(region: String, network: IndexedNetworkType) =
-  "$region-${network.name.lowercase()}.geometry"
+fun geometryFileName(network: IndexedNetworkType) = "${network.name.lowercase()}.geometry"

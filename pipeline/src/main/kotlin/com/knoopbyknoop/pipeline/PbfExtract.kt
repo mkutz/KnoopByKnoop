@@ -17,7 +17,9 @@ class PbfExtract(private val path: Path) {
    *
    * @return the date of the data, from the replication timestamp in the file's header
    */
-  fun readInto(extraction: NetworkExtraction): LocalDate? {
+  fun readInto(extraction: NetworkExtraction): LocalDate? = readAll(listOf(this), extraction)
+
+  private fun readRelations(extraction: NetworkExtraction): LocalDate? {
     var dataDate: LocalDate? = null
     read(
       object : ElementParser() {
@@ -35,6 +37,10 @@ class PbfExtract(private val path: Path) {
         }
       }
     )
+    return dataDate
+  }
+
+  private fun readWays(extraction: NetworkExtraction) {
     read(
       object : ElementParser() {
         override fun parseWays(ways: List<Osmformat.Way>) {
@@ -42,6 +48,9 @@ class PbfExtract(private val path: Path) {
         }
       }
     )
+  }
+
+  private fun readNodes(extraction: NetworkExtraction) {
     read(
       object : ElementParser() {
         override fun parseNodes(nodes: List<Osmformat.Node>) {
@@ -53,11 +62,26 @@ class PbfExtract(private val path: Path) {
         }
       }
     )
-    return dataDate
   }
 
   private fun read(parser: ElementParser) {
     path.inputStream().buffered().use { BlockInputStream(it, parser).process() }
+  }
+
+  companion object {
+
+    /**
+     * Reads several extracts as one, e.g. overlapping extracts of neighboring countries: first the
+     * relations of all extracts, then their ways, then their nodes, as [NetworkExtraction] needs.
+     *
+     * @return the oldest date of the extracts' data, see [readInto]
+     */
+    fun readAll(extracts: List<PbfExtract>, extraction: NetworkExtraction): LocalDate? {
+      val dataDates = extracts.mapNotNull { it.readRelations(extraction) }
+      extracts.forEach { it.readWays(extraction) }
+      extracts.forEach { it.readNodes(extraction) }
+      return dataDates.minOrNull()
+    }
   }
 
   /** A parser ignoring everything; each pass overrides only what it needs. */

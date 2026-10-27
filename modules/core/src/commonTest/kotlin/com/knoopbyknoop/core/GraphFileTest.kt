@@ -9,7 +9,7 @@ class GraphFileTest {
   private val graphFile =
     GraphFile(
       network = NetworkType.CYCLING,
-      region = "utrecht",
+      area = "utrecht",
       dataDate = "2026-10-25",
       attribution = "© OpenStreetMap contributors, ODbL",
       graph = TestNetwork.graph,
@@ -20,7 +20,7 @@ class GraphFileTest {
     val read = GraphFile.read(graphFile.toBytes())
 
     assertEquals(graphFile.network, read.network)
-    assertEquals(graphFile.region, read.region)
+    assertEquals(graphFile.area, read.area)
     assertEquals(graphFile.dataDate, read.dataDate)
     assertEquals(graphFile.attribution, read.attribution)
     assertEquals(graphFile.graph.knots, read.graph.knots)

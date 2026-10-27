@@ -5,7 +5,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /**
- * The published list of all available graph files (`index.json`).
+ * The published list of all available graph and geometry files (`index.json`), or the list of the
+ * graphs bundled into an app (`bundled-index.json`).
  *
  * @property generatedAt when the pipeline wrote this index, as ISO instant
  */
@@ -19,6 +20,13 @@ data class NetworkIndex(
   fun toJson(): String = json.encodeToString(this)
 
   companion object {
+
+    /** Where the network data is published, with `index.json` and the files it lists. */
+    const val PUBLISHED_BASE_URL =
+      "https://github.com/mkutz/knoopbyknoop/releases/download/network-data/"
+
+    /** The name of the index of the graphs bundled into the apps, see `network-sync`. */
+    const val BUNDLED_INDEX_FILE = "bundled-index.json"
 
     private val json = Json {
       encodeDefaults = true
@@ -34,13 +42,15 @@ data class NetworkIndex(
 /**
  * One downloadable graph file.
  *
+ * @property area the area the file covers, e.g. `nl-be-nrw`; serialized as `region`, its name from
+ *   when every region was published on its own
  * @property file the file name, relative to the index
  * @property sha256 the lowercase hex SHA-256 of the file
  * @property kind what the file contains; indexes written before geometry files existed have none
  */
 @Serializable
 data class NetworkIndexEntry(
-  val region: String,
+  @SerialName("region") val area: String,
   val network: IndexedNetworkType,
   val file: String,
   val sizeBytes: Long,
@@ -54,7 +64,7 @@ data class NetworkIndexEntry(
     bytes.size.toLong() == sizeBytes && sha256Hex(bytes) == sha256
 }
 
-/** The kinds of files a region and network type is published as. */
+/** The kinds of files a network type is published as. */
 @Serializable
 enum class IndexedFileKind {
   /** A [GraphFile], needed for routing. */
