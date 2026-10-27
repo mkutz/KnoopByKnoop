@@ -23,4 +23,20 @@ if [ -z "$JAVA_HOME" ] || [ ! -x "$JAVA_HOME/bin/java" ]; then
 fi
 
 cd "$(dirname "$0")/../.."
-./gradlew :modules:core:embedAndSignAppleFrameworkForXcode
+
+# The bundled graphs, see `network-sync`: release builds fail without them, debug builds fall back to
+# none and download them instead.
+if [ "$CONFIGURATION" = "Release" ]; then
+  bundle_task=":pipeline:bundleNetworkGraphsForRelease"
+  bundle_directory="pipeline/build/bundled-networks/release"
+else
+  bundle_task=":pipeline:bundleNetworkGraphs"
+  bundle_directory="pipeline/build/bundled-networks/debug"
+fi
+
+./gradlew :modules:core:embedAndSignAppleFrameworkForXcode "$bundle_task"
+
+resources="$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/bundled-networks"
+rm -rf "$resources"
+mkdir -p "$resources"
+cp "$bundle_directory"/* "$resources/"

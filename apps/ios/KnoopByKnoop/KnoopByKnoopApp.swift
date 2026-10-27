@@ -9,12 +9,7 @@ struct KnoopByKnoopApp: App {
 
   var body: some Scene {
     WindowGroup {
-      Group {
-        switch model.screen {
-        case .regions: RegionsView(model: model)
-        case .planner: PlannerView(model: model)
-        }
-      }
+      PlannerView(model: model)
       .tint(.knoopGreen)
       .onAppear { appDelegate.downloads = model.downloads }
       .alert(
@@ -26,16 +21,16 @@ struct KnoopByKnoopApp: App {
   }
 }
 
-/// Hands the system's background download events to the downloads, see `RegionDownloads`.
+/// Hands the system's background download events to the downloads, see `NetworkDownloads`.
 final class AppDelegate: NSObject, UIApplicationDelegate {
 
-  var downloads: RegionDownloads?
+  var downloads: NetworkDownloads?
 
   func application(
     _ application: UIApplication, handleEventsForBackgroundURLSession identifier: String,
     completionHandler: @escaping () -> Void
   ) {
-    if identifier == RegionDownloads.sessionIdentifier {
+    if identifier == NetworkDownloads.sessionIdentifier {
       downloads?.backgroundCompletionHandler = completionHandler
       downloads?.reconnect()
     } else {

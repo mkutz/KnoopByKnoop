@@ -32,18 +32,18 @@
 
 ## 5. Android
 
-- [ ] 5.1 Add WorkManager; `NetworkSyncWorker` (network constraint, backoff, unique work) fetches the index and the missing files in catalog order, verifies and installs each file on its own
-- [ ] 5.2 Bundled graphs as generated assets of the app, installed on first start; storage under `networks/`; delete `regions/` after the first successful install
-- [ ] 5.3 Enqueue the worker on app start when files are missing or the update check is due; remove `RegionDownloads`, `RegionsScreen` and the navigation to it
-- [ ] 5.4 Courses-loading note on the map for the selected network (loading, needs network access) and the info sheet (data dates, state, retry, attribution)
-- [ ] 5.5 `./gradlew :apps:android:assembleDebug` passes and the APK contains both bundled graphs
+- [x] 5.1 Add WorkManager; `NetworkSyncWorker` (network constraint, backoff, unique work) fetches the index and the missing files in catalog order, verifies and installs each file on its own
+- [x] 5.2 Bundled graphs as generated assets of the app, installed on first start; storage under `networks/`; delete `regions/` after the first successful install
+- [x] 5.3 Enqueue the worker on app start when files are missing or the update check is due; remove `RegionDownloads`, `RegionsScreen` and the navigation to it
+- [x] 5.4 Courses-loading note on the map for the selected network (loading, needs network access) and the info sheet (data dates, state, retry, attribution)
+- [x] 5.5 `./gradlew :apps:android:assembleDebug` passes and the APK contains both bundled graphs
 
 ## 6. iOS
 
-- [ ] 6.1 `AppModel` runs the sync on start: index, missing files in catalog order on the background `URLSession`, verify and install each file; `NWPathMonitor` starts it when network access comes back
-- [ ] 6.2 The pre-build script runs `:pipeline:bundleNetworkGraphs` and copies its output into the app's resources; bundled graphs installed on first start; storage under `networks/`; delete `regions/` after the first successful install
-- [ ] 6.3 Remove `RegionsView` and its navigation; courses-loading note and info sheet as on Android
-- [ ] 6.4 The iOS app builds (`xcodegen` and `xcodebuild` for the simulator) and contains both bundled graphs
+- [x] 6.1 `AppModel` runs the sync on start: index, missing files in catalog order on the background `URLSession`, verify and install each file; `NWPathMonitor` starts it when network access comes back
+- [x] 6.2 The pre-build script runs `:pipeline:bundleNetworkGraphs` and copies its output into the app's resources; bundled graphs installed on first start; storage under `networks/`; delete `regions/` after the first successful install
+- [x] 6.3 Remove `RegionsView` and its navigation; courses-loading note and info sheet as on Android
+- [x] 6.4 The iOS app builds (`xcodegen` and `xcodebuild` for the simulator) and contains both bundled graphs
 
 ## 7. Manual checks
 

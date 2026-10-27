@@ -1,37 +1,27 @@
 package com.knoopbyknoop.android
 
 import android.app.Application
+import android.net.ConnectivityManager
+import android.net.Network
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.knoopbyknoop.core.IndexedFileKind
+import androidx.work.WorkManager
 import com.knoopbyknoop.core.IndexedNetworkType
-import com.knoopbyknoop.core.InstallCheck
 import com.knoopbyknoop.core.KnotLocator
 import com.knoopbyknoop.core.MapFeatures
+import com.knoopbyknoop.core.NetworkCatalog
 import com.knoopbyknoop.core.NetworkGeometry
-import com.knoopbyknoop.core.NetworkIndex
-import com.knoopbyknoop.core.NetworkIndexEntry
+import com.knoopbyknoop.core.NetworkStatus
 import com.knoopbyknoop.core.PlanningSession
-import com.knoopbyknoop.core.RegionCatalog
-import com.knoopbyknoop.core.RegionInstaller
-import com.knoopbyknoop.core.RegionState
-import com.knoopbyknoop.core.RegionStatus
-import com.knoopbyknoop.core.RejectionReason
 import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteKnot
 import com.knoopbyknoop.core.RouteSnapshot
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-enum class Screen {
-  REGIONS,
-  PLANNER,
-}
 
 /** The map layers of the planner as GeoJSON, see [MapFeatures]. */
 data class MapLayers(
@@ -43,20 +33,31 @@ data class MapLayers(
   val refs: Set<String>,
 )
 
-/** Everything the screens show, owned by [AppViewModel]. */
+/**
+ * Everything the planner shows, owned by [AppViewModel].
+ *
+ * @property network the selected network type
+ * @property online whether the device has network access, for the note while courses are loading
+ */
 data class AppState(
-  val screen: Screen = Screen.REGIONS,
-  val catalog: RegionCatalog = RegionCatalog(null, listOf()),
-  val progress: Map<String, Float> = mapOf(),
+  val network: IndexedNetworkType = IndexedNetworkType.CYCLING,
+  val catalog: NetworkCatalog = NetworkCatalog(null, listOf()),
+  val needsAppUpdate: Boolean = false,
+  val online: Boolean = true,
   val session: PlanningSession? = null,
   val layers: MapLayers? = null,
   val description: RouteDescription = RouteDescription.Empty,
   val message: String? = null,
   val loading: Boolean = false,
-)
+) {
+  val status: NetworkStatus
+    get() = catalog.status(network)
+}
 
-/** The installed data of one region and network, prepared for planning and drawing. */
+/** The installed data of one network, prepared for planning and drawing. */
 private class LoadedNetwork(
+  val graphSha256: String,
+  val hasGeometry: Boolean,
   val geometry: NetworkGeometry,
   val locator: KnotLocator,
   val knots: String,
@@ -64,70 +65,53 @@ private class LoadedNetwork(
   val refs: Set<String>,
 )
 
-/** Connects the screens with storage, downloads and the core's planning logic. */
+/** Connects the planner with storage, the network sync and the core's planning logic. */
 class AppViewModel(application: Application) : AndroidViewModel(application) {
 
-  private val storage = RegionStorage(application.filesDir)
-  private val downloads = RegionDownloads(application)
-  private var index: NetworkIndex? = null
+  private val storage = NetworkStorage(application.filesDir)
+  private val sync = NetworkSync(application)
+  private val connectivity = application.getSystemService(ConnectivityManager::class.java)
   private var loaded: LoadedNetwork? = null
 
   var state by mutableStateOf(AppState())
     private set
 
   init {
-    refreshCatalog()
-    viewModelScope.launch { restoreRoute() }
     viewModelScope.launch {
-      index = NetworkIndexClient.fetch()
+      withContext(Dispatchers.IO) { sync.installBundled() }
       refreshCatalog()
+      restoreRoute()
+      if (sync.isDue()) NetworkSyncWorker.enqueue(application)
     }
-    viewModelScope.launch { watchDownloads() }
-  }
+    viewModelScope.launch { watchSync() }
+    connectivity.registerDefaultNetworkCallback(
+      object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: Network) {
+          viewModelScope.launch { state = state.copy(online = true) }
+        }
 
-  fun showRegions() {
-    state = state.copy(screen = Screen.REGIONS)
-    // Without the index the app was offline; network access may be back by now.
-    if (index == null) {
-      viewModelScope.launch {
-        index = NetworkIndexClient.fetch()
-        refreshCatalog()
+        override fun onLost(network: Network) {
+          viewModelScope.launch { state = state.copy(online = false) }
+        }
       }
-    }
+    )
+    state = state.copy(online = connectivity.activeNetwork != null)
   }
 
   fun dismissMessage() {
     state = state.copy(message = null)
   }
 
-  fun download(region: RegionStatus) {
-    downloads.start(region)
-    refreshCatalog()
-  }
-
-  fun remove(region: String) {
-    downloads.cancel(region)
-    storage.remove(region)
-    if (state.session?.region == region) {
-      loaded = null
-      state = state.copy(session = null, layers = null, description = RouteDescription.Empty)
-    }
-    refreshCatalog()
-  }
-
-  fun openPlanner(region: String) {
-    state = state.copy(screen = Screen.PLANNER)
-    if (state.session?.region != region) {
-      viewModelScope.launch {
-        startSession(region, IndexedNetworkType.CYCLING, waypointsFrom = null)
-      }
-    }
+  /** Retries a failed download right away instead of waiting for the next attempt. */
+  fun retrySync() {
+    NetworkSyncWorker.enqueue(getApplication(), restart = true)
   }
 
   fun switchNetwork(network: IndexedNetworkType) {
-    val region = state.session?.region ?: return
     storage.saveRoute(null)
-    viewModelScope.launch { startSession(region, network, waypointsFrom = null) }
+    loaded = null
+    state = state.copy(network = network, session = null, layers = null)
+    viewModelScope.launch { loadNetwork(network, waypointsFrom = null) }
   }
 
   /** Handles a tap on the map; [radiusMeters] is the touch target at the current zoom level. */
@@ -165,53 +149,48 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
   private suspend fun restoreRoute() {
     val snapshot = storage.route()
-    val region = snapshot?.region ?: storage.installed().firstOrNull()?.region ?: return
-    state = state.copy(screen = Screen.PLANNER)
-    startSession(region, snapshot?.network ?: IndexedNetworkType.CYCLING, waypointsFrom = snapshot)
-    if (state.session == null) state = state.copy(screen = Screen.REGIONS)
+    val network = snapshot?.network ?: IndexedNetworkType.CYCLING
+    state = state.copy(network = network)
+    loadNetwork(network, waypointsFrom = snapshot)
   }
 
-  /** Loads a network off the main thread: reading it and preparing its map layers takes time. */
-  private suspend fun startSession(
-    region: String,
-    network: IndexedNetworkType,
-    waypointsFrom: RouteSnapshot?,
-  ) {
-    state = state.copy(loading = true)
+  /**
+   * Loads a network off the main thread: reading it and preparing its map layers takes time.
+   *
+   * @param waypointsFrom the route to continue with, e.g. after a restart or a data update
+   */
+  private suspend fun loadNetwork(network: IndexedNetworkType, waypointsFrom: RouteSnapshot?) {
+    state = state.copy(loading = state.session == null)
     val result =
       withContext(Dispatchers.Default) {
-        val graphFile = storage.graph(region, network) ?: return@withContext null
-        val geometry =
-          storage.geometry(region, network, graphFile)
-            ?: NetworkGeometry.straightLines(graphFile.graph)
+        val graphEntry = storage.graphEntry(network) ?: return@withContext null
+        val graphFile = storage.graph(network) ?: return@withContext null
+        val installedGeometry = storage.geometry(network, graphFile)
+        val geometry = installedGeometry ?: NetworkGeometry.straightLines(graphFile.graph)
         val loadedNetwork =
           LoadedNetwork(
+            graphSha256 = graphEntry.sha256,
+            hasGeometry = installedGeometry != null,
             geometry = geometry,
             locator = KnotLocator(graphFile.graph.knots.values),
-            knots =
-              storage.mapLayer(region, network, "knots") { MapFeatures.knots(graphFile.graph) },
+            knots = storage.mapLayer(network, "knots") { MapFeatures.knots(graphFile.graph) },
             connections =
-              storage.mapLayer(region, network, "connections") {
-                MapFeatures.connections(geometry)
-              },
+              storage.mapLayer(network, "connections") { MapFeatures.connections(geometry) },
             refs = graphFile.graph.knots.values.map { it.ref }.toSet(),
           )
         val restored =
-          if (
-            waypointsFrom != null &&
-              waypointsFrom.network == IndexedNetworkType.of(graphFile.network)
-          ) {
+          if (waypointsFrom != null && waypointsFrom.network == network) {
             waypointsFrom.restore(graphFile.graph)
           } else {
             null
           }
         Triple(
           loadedNetwork,
-          restored?.session ?: PlanningSession.start(region, graphFile.graph),
+          restored?.session ?: PlanningSession.start(graphFile.graph),
           restored?.removedWaypoints,
         )
       }
-    if (result == null) {
+    if (result == null || state.network != network) {
       state = state.copy(loading = false)
       return
     }
@@ -245,97 +224,32 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   }
 
   private fun refreshCatalog() {
-    val catalog = RegionCatalog(index, storage.installed(), downloads.regions())
-    state = state.copy(catalog = catalog)
-    if (state.session == null && catalog.regions.none { it.state != RegionState.AVAILABLE }) {
-      state = state.copy(screen = Screen.REGIONS)
-    }
-  }
-
-  /** Polls running downloads while the app is open and installs finished ones. */
-  private suspend fun watchDownloads() {
-    while (true) {
-      val progress = mutableMapOf<String, Float>()
-      for (region in downloads.regions()) {
-        when (val download = downloads.progress(region)) {
-          is RegionDownloads.Progress.Running -> progress[region] = download.fraction
-          is RegionDownloads.Progress.Finished -> install(region, download.files)
-          RegionDownloads.Progress.Failed ->
-            fail(
-              region,
-              "The download of ${RegionCatalog.nameOf(region)} failed. Please try again.",
-            )
-          null -> {}
-        }
-      }
-      if (progress != state.progress) state = state.copy(progress = progress)
-      delay(1_000)
-    }
-  }
-
-  private suspend fun install(region: String, files: Map<NetworkIndexEntry, java.io.File>) {
-    // Unreadable files count as a damaged download, so the user can retry.
-    val result =
-      withContext(Dispatchers.IO) {
-        runCatching { checkFiles(files.mapValues { it.value.readBytes() }) }
-          .getOrElse { InstallCheck.Rejected(RejectionReason.CORRUPTED) }
-      }
-    downloads.cancel(region)
-    when (result) {
-      is InstallCheck.Rejected ->
-        fail(
-          region,
-          when (result.reason) {
-            RejectionReason.UNSUPPORTED_VERSION ->
-              "${RegionCatalog.nameOf(region)} needs a newer version of the app. Please update it."
-            else -> "The download of ${RegionCatalog.nameOf(region)} was damaged. Please try again."
-          },
-        )
-      is InstallCheck.Valid -> {
-        withContext(Dispatchers.IO) { storage.install(result.content) }
-        refreshCatalog()
-        if (state.session == null || state.session?.region == region) openPlanner(region)
-      }
-    }
+    state =
+      state.copy(
+        catalog = NetworkCatalog(null, storage.installed(), sync.downloading, sync.failed),
+        needsAppUpdate = sync.needsAppUpdate,
+      )
   }
 
   /**
-   * Checks all files of a region. A damaged graph rejects the whole region; a geometry that cannot
-   * be installed is left out, so the network is drawn with straight lines until an update.
+   * Follows the background sync: after every installed file, the catalog is refreshed, and the
+   * selected network is reloaded if its files changed, keeping the route, see `network-sync`.
    */
-  private fun checkFiles(
-    files: Map<NetworkIndexEntry, ByteArray>
-  ): InstallCheck<Map<NetworkIndexEntry, ByteArray>> {
-    val verified = mutableMapOf<NetworkIndexEntry, ByteArray>()
-    for ((graphEntry, graphBytes) in files.filterKeys { it.kind == IndexedFileKind.GRAPH }) {
-      val graphFile =
-        when (val check = RegionInstaller.checkGraph(graphEntry, graphBytes)) {
-          is InstallCheck.Rejected -> return check
-          is InstallCheck.Valid -> check.content
+  private suspend fun watchSync() {
+    WorkManager.getInstance(getApplication())
+      .getWorkInfosForUniqueWorkFlow(NetworkSyncWorker.NAME)
+      .collect {
+        refreshCatalog()
+        val graphEntry = storage.graphEntry(state.network) ?: return@collect
+        val current = loaded
+        val hasGeometry = state.status.hasGeometry
+        if (
+          current == null ||
+            current.graphSha256 != graphEntry.sha256 ||
+            current.hasGeometry != hasGeometry
+        ) {
+          loadNetwork(state.network, waypointsFrom = state.session?.let(RouteSnapshot::of))
         }
-      verified[graphEntry] = graphBytes
-      val geometry =
-        files.entries.firstOrNull {
-          it.key.kind == IndexedFileKind.GEOMETRY && it.key.network == graphEntry.network
-        }
-      if (
-        geometry != null &&
-          RegionInstaller.checkGeometry(
-            geometry.key,
-            geometry.value,
-            graphEntry,
-            graphFile.graph,
-          ) is InstallCheck.Valid
-      ) {
-        verified[geometry.key] = geometry.value
       }
-    }
-    return InstallCheck.Valid(verified)
-  }
-
-  private fun fail(region: String, message: String) {
-    downloads.cancel(region)
-    state = state.copy(message = message)
-    refreshCatalog()
   }
 }

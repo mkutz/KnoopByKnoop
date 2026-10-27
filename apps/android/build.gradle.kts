@@ -23,11 +23,51 @@ android {
   buildFeatures { compose = true }
 }
 
+/** Copies the graphs bundled by `:pipeline` into the app's assets, see `network-sync`. */
+abstract class CopyBundledNetworks : DefaultTask() {
+  @get:InputFiles abstract val bundledNetworks: ConfigurableFileCollection
+
+  @get:OutputDirectory abstract val outputDirectory: DirectoryProperty
+
+  @TaskAction
+  fun copy() {
+    val target = outputDirectory.get().dir("bundled-networks").asFile
+    target.deleteRecursively()
+    target.mkdirs()
+    bundledNetworks.asFileTree.forEach { it.copyTo(target.resolve(it.name)) }
+  }
+}
+
+androidComponents {
+  onVariants { variant ->
+    val isRelease = variant.buildType == "release"
+    val bundleTask =
+      if (isRelease) ":pipeline:bundleNetworkGraphsForRelease" else ":pipeline:bundleNetworkGraphs"
+    val bundled =
+      project(":pipeline")
+        .layout
+        .buildDirectory
+        .dir("bundled-networks/${if (isRelease) "release" else "debug"}")
+    val copyTask =
+      tasks.register<CopyBundledNetworks>(
+        "copy${variant.name.replaceFirstChar { it.uppercase() }}BundledNetworks"
+      ) {
+        bundledNetworks.from(bundled)
+        dependsOn(bundleTask)
+      }
+    variant.sources.assets?.addGeneratedSourceDirectory(
+      copyTask,
+      CopyBundledNetworks::outputDirectory,
+    )
+  }
+}
+
 dependencies {
   implementation(project(":modules:core"))
   implementation(platform(libs.androidx.compose.bom))
   implementation(libs.androidx.activity.compose)
   implementation(libs.androidx.compose.material3)
   implementation(libs.androidx.lifecycle.viewmodel.compose)
+  implementation(libs.androidx.work.runtime)
   implementation(libs.maplibre.android)
 }

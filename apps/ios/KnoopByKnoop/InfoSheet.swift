@@ -1,0 +1,67 @@
+import KnoopByKnoopCore
+import SwiftUI
+
+/// Data dates, download state and attribution of the networks, see `network-sync` "Info sheet".
+struct InfoSheet: View {
+
+  @ObservedObject var model: AppModel
+
+  var body: some View {
+    NavigationStack {
+      List {
+        Section("Network data") {
+          ForEach(model.catalog.networks, id: \.network) { status in
+            HStack {
+              VStack(alignment: .leading) {
+                Text(status.network.name.lowercased().capitalized).font(.headline)
+                Text(describe(status)).font(.subheadline).foregroundStyle(.secondary)
+              }
+              Spacer()
+              if status.lastAttemptFailed { Button("Retry") { model.retrySync() } }
+            }
+          }
+          if model.needsAppUpdate {
+            Text("Newer network data needs a newer version of the app. Please update it.")
+              .foregroundStyle(.red)
+          }
+        }
+        Section {
+          Text(
+            "Network data © OpenStreetMap contributors, available under the Open Database License "
+              + "(ODbL 1.0), openstreetmap.org/copyright"
+          )
+          .font(.footnote)
+        }
+      }
+      .navigationTitle("Info")
+      .navigationBarTitleDisplayMode(.inline)
+    }
+    .presentationDetents([.medium])
+  }
+
+  private func describe(_ status: NetworkStatus) -> String {
+    let data = status.dataDate.map { "Data of \($0)" } ?? "Not installed yet"
+    let state: String? =
+      if status.lastAttemptFailed { "the last download failed" }
+      else if status.state == .downloading { "downloading" }
+      else if !status.hasGeometry && !model.online { "courses need network access" }
+      else if !status.hasGeometry { "courses are loading" }
+      else if status.state == .updatable { "update pending" }
+      else { nil }
+    return [data, state].compactMap { $0 }.joined(separator: ", ")
+  }
+}
+
+/// Shown while the courses of the selected network are missing, see `network-sync`.
+struct CoursesNote: View {
+
+  let online: Bool
+
+  var body: some View {
+    Text(online ? "Loading the courses…" : "The courses need network access once")
+      .font(.callout)
+      .padding(.horizontal, 12)
+      .padding(.vertical, 6)
+      .background(.regularMaterial, in: Capsule())
+  }
+}

@@ -1,19 +1,14 @@
 import Foundation
 import KnoopByKnoopCore
 
-/// Downloads a region's files with a background `URLSession`: downloads continue when the app is in
-/// the background or was closed, and are retried when the connection is back. Started downloads
-/// are remembered, so they are picked up again after the app was closed.
-final class RegionDownloads: NSObject, URLSessionDownloadDelegate {
+/// Downloads network files with a background `URLSession`: downloads continue when the app is in
+/// the background or was closed, and wait for the connection to come back. Started downloads are
+/// remembered, so they are picked up again after the app was closed. Every file is downloaded and
+/// installed on its own, so files that were complete are not downloaded again.
+final class NetworkDownloads: NSObject, URLSessionDownloadDelegate {
 
-  static let baseURL = URL(string: "https://github.com/mkutz/knoopbyknoop/releases/download/network-data/")!
-  static let sessionIdentifier = "com.knoopbyknoop.regions"
-
-  enum Progress {
-    case running(Double)
-    case finished([(entry: NetworkIndexEntry, file: URL)])
-    case failed
-  }
+  static let sessionIdentifier = "com.knoopbyknoop.networks"
+  private static let baseURL = URL(string: NetworkIndex.companion.PUBLISHED_BASE_URL)!
 
   /// Called on the main queue whenever a download makes progress, finishes or fails.
   var onChange: () -> Void = {}
@@ -24,7 +19,6 @@ final class RegionDownloads: NSObject, URLSessionDownloadDelegate {
   private let defaults = UserDefaults.standard
   private let downloadsDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
     .appendingPathComponent("downloads")
-  private var receivedBytes: [Int: Int64] = [:]
   private var failedTasks: Set<Int> = []
   private lazy var session: URLSession = {
     let configuration = URLSessionConfiguration.background(withIdentifier: Self.sessionIdentifier)
@@ -47,61 +41,53 @@ final class RegionDownloads: NSObject, URLSessionDownloadDelegate {
     }
   }
 
-  /// The regions with started downloads, finished or not.
-  func regions() -> Set<String> {
-    Set(pending().map(\.entry.region))
+  /// The networks with files being downloaded.
+  func downloading() -> Set<IndexedNetworkType> {
+    Set(pending().filter { !failedTasks.contains($0.task) }.map(\.entry.network))
   }
 
-  func start(_ region: RegionStatus) {
-    cancel(region: region.region)
-    var pending = self.pending()
-    for entry in region.files {
+  /// The networks whose download failed and is not retried yet.
+  func failed() -> Set<IndexedNetworkType> {
+    Set(pending().filter { failedTasks.contains($0.task) }.map(\.entry.network))
+  }
+
+  /// Starts downloading `entries` that are not being downloaded yet, in their order: the first ones
+  /// get the highest priority, so the cycling network comes first.
+  func start(_ entries: [NetworkIndexEntry]) {
+    var pending = self.pending().filter { !failedTasks.contains($0.task) }
+    for (position, entry) in entries.enumerated() where !pending.contains(where: { $0.entry == entry }) {
       let task = session.downloadTask(with: Self.baseURL.appendingPathComponent(entry.file))
+      task.priority = max(URLSessionTask.highPriority - Float(position) * 0.1, URLSessionTask.lowPriority)
       pending.append((task.taskIdentifier, entry))
       task.resume()
     }
     save(pending)
   }
 
-  func progress(region: String) -> Progress? {
-    let downloads = pending().filter { $0.entry.region == region }
-    guard !downloads.isEmpty else { return nil }
-    if downloads.contains(where: { failedTasks.contains($0.task) }) { return .failed }
+  /// The completely downloaded files, ready to be verified and installed.
+  func finished() -> [(entry: NetworkIndexEntry, file: URL)] {
     // A file only appears at its path once its download is complete, see didFinishDownloadingTo.
-    let files = downloads.map { (entry: $0.entry, file: fileOf($0.entry)) }
+    pending().map { (entry: $0.entry, file: fileOf($0.entry)) }
       .filter { FileManager.default.fileExists(atPath: $0.file.path) }
-    if files.count == downloads.count { return .finished(files) }
-    let finished = Set(files.map(\.entry.file))
-    let total = max(downloads.map(\.entry.sizeBytes).reduce(0, +), 1)
-    let received = downloads.map { finished.contains($0.entry.file) ? $0.entry.sizeBytes : receivedBytes[$0.task] ?? 0 }
-      .reduce(0, +)
-    return .running(Double(received) / Double(total))
   }
 
-  /// Forgets a region's downloads and deletes their files.
-  func cancel(region: String) {
+  /// Forgets a download and deletes its file, after it was installed or rejected.
+  func remove(_ entry: NetworkIndexEntry) {
+    try? FileManager.default.removeItem(at: fileOf(entry))
+    save(pending().filter { $0.entry != entry })
+  }
+
+  /// Forgets failed downloads, so `start` downloads their files again.
+  func forgetFailed() {
     let all = pending()
-    for download in all where download.entry.region == region {
-      receivedBytes[download.task] = nil
-      failedTasks.remove(download.task)
+    for download in all where failedTasks.contains(download.task) {
       try? FileManager.default.removeItem(at: fileOf(download.entry))
     }
-    session.getAllTasks { tasks in
-      let identifiers = Set(all.filter { $0.entry.region == region }.map(\.task))
-      tasks.filter { identifiers.contains($0.taskIdentifier) }.forEach { $0.cancel() }
-    }
-    save(all.filter { $0.entry.region != region })
+    save(all.filter { !failedTasks.contains($0.task) })
+    failedTasks = []
   }
 
   // MARK: URLSessionDownloadDelegate
-
-  func urlSession(
-    _ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64,
-    totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64
-  ) {
-    receivedBytes[downloadTask.taskIdentifier] = totalBytesWritten
-    onChange()
-  }
 
   func urlSession(
     _ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL
@@ -136,15 +122,16 @@ final class RegionDownloads: NSObject, URLSessionDownloadDelegate {
   // MARK: Remembered downloads
 
   private func fileOf(_ entry: NetworkIndexEntry) -> URL {
-    downloadsDirectory.appendingPathComponent(entry.region).appendingPathComponent(entry.file)
+    downloadsDirectory.appendingPathComponent("\(entry.sha256.prefix(12))-\(entry.file)")
   }
 
   private func pending() -> [(task: Int, entry: NetworkIndexEntry)] {
-    (defaults.dictionary(forKey: "downloads") as? [String: String] ?? [:]).compactMap { task, json in
+    (defaults.dictionary(forKey: "network-downloads") as? [String: String] ?? [:]).compactMap { task, json in
       guard let identifier = Int(task), let entry = try? NetworkIndex.companion.parse(text: json).files.first
       else { return nil }
       return (identifier, entry)
     }
+    .sorted { $0.task < $1.task }
   }
 
   private func save(_ downloads: [(task: Int, entry: NetworkIndexEntry)]) {
@@ -152,6 +139,6 @@ final class RegionDownloads: NSObject, URLSessionDownloadDelegate {
       uniqueKeysWithValues: downloads.map { download in
         (String(download.task), NetworkIndex(formatVersion: 1, generatedAt: "", files: [download.entry]).toJson())
       })
-    defaults.set(encoded, forKey: "downloads")
+    defaults.set(encoded, forKey: "network-downloads")
   }
 }

@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.knoopbyknoop.core.IndexedNetworkType
@@ -52,15 +53,34 @@ import kotlin.math.roundToInt
 
 private val WAYPOINT_ROW_HEIGHT = 56.dp
 
-/** The map with the network, the network switch and the waypoint sheet, see `map-planning`. */
+/**
+ * The map with the network, the network switch, the waypoint sheet and the info sheet, see
+ * `map-planning` and `network-sync`.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: SnackbarHostState) {
+  var showInfo by remember { mutableStateOf(false) }
+  if (showInfo) InfoSheet(state, viewModel, onDismiss = { showInfo = false })
   val session = state.session
   val layers = state.layers
   if (session == null || layers == null || state.loading) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-      CircularProgressIndicator()
+    // Only without bundled graphs, e.g. a debug build that was built without network access.
+    Column(
+      modifier = Modifier.fillMaxSize().padding(32.dp),
+      verticalArrangement = Arrangement.Center,
+      horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+      if (state.status.dataDate == null && !state.online) {
+        Text("The networks need network access once.", textAlign = TextAlign.Center)
+      } else {
+        CircularProgressIndicator()
+        Text(
+          "Loading the ${state.network.name.lowercase()} network…",
+          modifier = Modifier.padding(top = 16.dp),
+        )
+      }
+      TextButton(onClick = { showInfo = true }) { Text("Info") }
     }
     return
   }
@@ -100,7 +120,13 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
             modifier = Modifier.padding(end = 8.dp),
           )
         }
-        TextButton(onClick = viewModel::showRegions) { Text("Regions") }
+        TextButton(onClick = { showInfo = true }) { Text("Info") }
+      }
+      if (!state.status.hasGeometry) {
+        CoursesNote(
+          online = state.online,
+          modifier = Modifier.align(Alignment.TopCenter).padding(top = 72.dp),
+        )
       }
       Text(
         "© OpenStreetMap contributors",

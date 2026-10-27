@@ -1,11 +1,13 @@
 import KnoopByKnoopCore
 import SwiftUI
 
-/// The map with the network, the network switch and the waypoint sheet, see `map-planning`.
+/// The map with the network, the network switch, the waypoint sheet and the info sheet, see
+/// `map-planning` and `network-sync`.
 struct PlannerView: View {
 
   @ObservedObject var model: AppModel
   @State private var pendingNetwork: IndexedNetworkType?
+  @State private var showInfo = false
 
   var body: some View {
     if let session = model.session, let layers = model.layers, !model.loading {
@@ -22,11 +24,14 @@ struct PlannerView: View {
           }
           .pickerStyle(.segmented)
           .frame(width: 200)
-          Button("Regions") { model.showRegions() }
+          Button("Info") { showInfo = true }
         }
         .padding(8)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
         .padding(.top, 8)
+        if !model.status.hasGeometry {
+          CoursesNote(online: model.online).padding(.top, 64)
+        }
       }
       .overlay(alignment: .bottomTrailing) {
         Text("© OpenStreetMap contributors")
@@ -38,6 +43,8 @@ struct PlannerView: View {
       }
       .sheet(isPresented: .constant(true)) {
         WaypointSheet(model: model, session: session)
+          // Presented from the waypoint sheet, which is always shown.
+          .sheet(isPresented: $showInfo) { InfoSheet(model: model) }
           .presentationDetents([.height(170), .medium, .large])
           .presentationBackgroundInteraction(.enabled(upThrough: .medium))
           .interactiveDismissDisabled()
@@ -54,7 +61,19 @@ struct PlannerView: View {
         Text("The current route will be discarded.")
       }
     } else {
-      ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+      // Only without bundled graphs, e.g. a debug build that was built without network access.
+      VStack(spacing: 16) {
+        if model.status.dataDate == nil && !model.online {
+          Text("The networks need network access once.").multilineTextAlignment(.center)
+        } else {
+          ProgressView()
+          Text("Loading the \(model.network.name.lowercased()) network…")
+        }
+        Button("Info") { showInfo = true }
+      }
+      .padding(32)
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+      .sheet(isPresented: $showInfo) { InfoSheet(model: model) }
     }
   }
 

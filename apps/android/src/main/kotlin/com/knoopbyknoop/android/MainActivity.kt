@@ -26,10 +26,7 @@ class MainActivity : ComponentActivity() {
             viewModel.dismissMessage()
           }
         }
-        when (state.screen) {
-          Screen.REGIONS -> RegionsScreen(state, viewModel, snackbarHostState)
-          Screen.PLANNER -> PlannerScreen(state, viewModel, snackbarHostState)
-        }
+        PlannerScreen(state, viewModel, snackbarHostState)
       }
     }
   }

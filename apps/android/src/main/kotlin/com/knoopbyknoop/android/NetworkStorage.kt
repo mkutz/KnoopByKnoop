@@ -11,30 +11,29 @@ import com.knoopbyknoop.core.RouteSnapshot
 import java.io.File
 
 /**
- * The installed regions and the current route in app-private storage: `regions/<region>/<file>`,
- * `regions/installed.json` (the installed index entries) and `route.json`. Files are written to a
+ * The installed networks and the current route in app-private storage: `networks/<file>`,
+ * `networks/installed.json` (the installed index entries) and `route.json`. Files are written to a
  * temporary file and renamed, so they are never half-written.
  */
-class RegionStorage(directory: File) {
+class NetworkStorage(private val directory: File) {
 
-  private val regionsDirectory = File(directory, "regions")
-  private val installedFile = File(regionsDirectory, "installed.json")
+  private val networksDirectory = File(directory, "networks")
+  private val installedFile = File(networksDirectory, "installed.json")
   private val routeFile = File(directory, "route.json")
 
   fun installed(): List<NetworkIndexEntry> =
     if (installedFile.exists()) NetworkIndex.parse(installedFile.readText()).files else listOf()
 
-  fun graph(region: String, network: IndexedNetworkType): GraphFile? =
-    entry(region, network, IndexedFileKind.GRAPH)?.let { GraphFile.read(fileOf(it).readBytes()) }
+  fun graphEntry(network: IndexedNetworkType): NetworkIndexEntry? =
+    entry(network, IndexedFileKind.GRAPH)
+
+  fun graph(network: IndexedNetworkType): GraphFile? =
+    graphEntry(network)?.let { GraphFile.read(fileOf(it).readBytes()) }
 
   /** The installed geometry, or `null` if none belongs to the installed graph. */
-  fun geometry(
-    region: String,
-    network: IndexedNetworkType,
-    graphFile: GraphFile,
-  ): NetworkGeometry? {
-    val graphEntry = entry(region, network, IndexedFileKind.GRAPH) ?: return null
-    val geometryEntry = entry(region, network, IndexedFileKind.GEOMETRY) ?: return null
+  fun geometry(network: IndexedNetworkType, graphFile: GraphFile): NetworkGeometry? {
+    val graphEntry = graphEntry(network) ?: return null
+    val geometryEntry = entry(network, IndexedFileKind.GEOMETRY) ?: return null
     return try {
       NetworkGeometry.read(fileOf(geometryEntry).readBytes(), graphFile.graph, graphEntry.sha256)
     } catch (exception: GraphFormatException) {
@@ -46,40 +45,36 @@ class RegionStorage(directory: File) {
    * A map layer of an installed network as GeoJSON, built by [build] only once per installed data:
    * building it for hundreds of thousands of points takes seconds on a phone.
    */
-  fun mapLayer(
-    region: String,
-    network: IndexedNetworkType,
-    name: String,
-    build: () -> String,
-  ): String {
+  fun mapLayer(network: IndexedNetworkType, name: String, build: () -> String): String {
     val dataKey =
       listOf(IndexedFileKind.GRAPH, IndexedFileKind.GEOMETRY).joinToString("-") {
-        entry(region, network, it)?.sha256?.take(12) ?: "none"
+        entry(network, it)?.sha256?.take(12) ?: "none"
       }
     val prefix = "${network.name.lowercase()}-$name-"
-    val directory = File(regionsDirectory, region)
-    val file = File(directory, "$prefix$dataKey.geojson")
+    val file = File(networksDirectory, "$prefix$dataKey.geojson")
     if (file.exists()) return file.readText()
-    directory.listFiles { candidate -> candidate.name.startsWith(prefix) }?.forEach { it.delete() }
+    networksDirectory
+      .listFiles { candidate -> candidate.name.startsWith(prefix) }
+      ?.forEach {
+        it.delete()
+      }
     return build().also { writeAtomically(file, it.encodeToByteArray()) }
   }
 
-  /**
-   * Installs verified files, replacing the installed files of the same region, network and kind.
-   */
-  fun install(files: Map<NetworkIndexEntry, ByteArray>) {
-    for ((entry, bytes) in files) writeAtomically(fileOf(entry), bytes)
-    val replaced = files.keys.map { Triple(it.region, it.network, it.kind) }.toSet()
+  /** Installs a verified file, replacing the installed file of the same network and kind. */
+  fun install(entry: NetworkIndexEntry, bytes: ByteArray) {
+    writeAtomically(fileOf(entry), bytes)
     saveInstalled(
-      installed().filter { Triple(it.region, it.network, it.kind) !in replaced } + files.keys
+      installed().filter { it.network != entry.network || it.kind != entry.kind } + entry
     )
   }
 
-  /** Removes a region's files, and the current route if it is planned on that region. */
-  fun remove(region: String) {
-    saveInstalled(installed().filter { it.region != region })
-    File(regionsDirectory, region).deleteRecursively()
-    if (route()?.isFor(region) == true) saveRoute(null)
+  /**
+   * Deletes the networks installed per region by earlier app versions, see `network-sync`. The
+   * saved route stays and is restored on the new networks.
+   */
+  fun removeLegacyRegions() {
+    File(directory, "regions").deleteRecursively()
   }
 
   fun route(): RouteSnapshot? =
@@ -91,11 +86,10 @@ class RegionStorage(directory: File) {
     else writeAtomically(routeFile, snapshot.toJson().encodeToByteArray())
   }
 
-  private fun entry(region: String, network: IndexedNetworkType, kind: IndexedFileKind) =
-    installed().firstOrNull { it.region == region && it.network == network && it.kind == kind }
+  private fun entry(network: IndexedNetworkType, kind: IndexedFileKind) =
+    installed().firstOrNull { it.network == network && it.kind == kind }
 
-  private fun fileOf(entry: NetworkIndexEntry) =
-    File(File(regionsDirectory, entry.region), entry.file)
+  private fun fileOf(entry: NetworkIndexEntry) = File(networksDirectory, entry.file)
 
   private fun saveInstalled(entries: List<NetworkIndexEntry>) {
     val index =
