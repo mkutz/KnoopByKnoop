@@ -6,11 +6,11 @@ The route summary in the sheet shows every knot of the route as a badge, includi
 
 ## What Changes
 
-- The top row of the sheet, with the distance and the Clear and Back to start buttons, stays in place.
-- Everything below it scrolls together: the knot badges, the ferries of the route and the waypoint list. Moving and removing waypoints keeps working inside the scrolling content.
+- The top of the sheet stays in place: the distance, the Clear and Back to start buttons, and the knot badges, which become one line that scrolls sideways instead of wrapping into many rows.
+- Below it, the ferries of the route and the waypoint list scroll together. Moving and removing waypoints keeps working inside the scrolling content.
 - This applies to the sheet in portrait and to the side panel in landscape, on Android and iOS.
 
-Out of scope: shortening the knot sequence (e.g. collapsing passed knots), a separate screen for long routes, changes to the info panel.
+Out of scope: collapsing passed knots or the ferry list, a separate screen for long routes, changes to the info panel.
 
 ## Capabilities
 
@@ -21,6 +21,6 @@ Out of scope: shortening the knot sequence (e.g. collapsing passed knots), a sep
 
 ## Impact
 
-- `apps/android`: `WaypointSheet` in `PlannerScreen.kt`: the header row stays fixed; the badges, ferries and waypoints go into one scrolling column instead of a fixed-height waypoint list
-- `apps/ios`: `WaypointSheet` in `PlannerView.swift`: the badges and ferries move into the `List` of waypoints, as its first section, below a fixed header with the distance and the buttons
+- `apps/android`: `WaypointSheet` in `PlannerScreen.kt`: a fixed header with the distance, the buttons and a sideways scrolling row of badges; the ferries and waypoints go into one scrolling column instead of a fixed-height waypoint list; removing a waypoint must not crash there (it did on a long, scrolled list, see design)
+- `apps/ios`: `WaypointSheet` in `PlannerView.swift`: the badges become a horizontal `ScrollView` in the fixed header; the ferries move into the `List` of waypoints, as its first section
 - No changes to `modules/core` or `pipeline`

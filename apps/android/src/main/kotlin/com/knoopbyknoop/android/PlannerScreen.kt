@@ -3,11 +3,11 @@ package com.knoopbyknoop.android
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -219,23 +220,8 @@ private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
               "Start at ${description.start}, tap a knot to set the end",
               style = MaterialTheme.typography.titleMedium,
             )
-          is RouteDescription.Complete -> {
+          is RouteDescription.Complete ->
             Text(description.distance, style = MaterialTheme.typography.titleLarge)
-            // The route's knots like on the map; the chosen waypoints stand out.
-            FlowRow(
-              horizontalArrangement = Arrangement.spacedBy(4.dp),
-              verticalArrangement = Arrangement.spacedBy(4.dp),
-              itemVerticalAlignment = Alignment.CenterVertically,
-              modifier = Modifier.padding(top = 4.dp),
-            ) {
-              val ferryPositions = description.ferries.map { it.fromPosition }.toSet()
-              description.knots.forEachIndexed { position, (knot, role) ->
-                KnotBadge(knot.ref, role)
-                if (position in ferryPositions) FerryBadge()
-              }
-            }
-            if (description.ferries.isNotEmpty()) RouteFerries(description.ferries)
-          }
           is RouteDescription.Unreachable ->
             Text(
               "No route for ${description.legs.joinToString()}",
@@ -244,16 +230,48 @@ private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
             )
         }
       }
-      Column(horizontalAlignment = Alignment.End) {
-        if (session.waypoints.isNotEmpty()) TextButton(onClick = viewModel::clear) { Text("Clear") }
+      // Side by side, so the header stays one row and the badges fit into the smallest sheet.
+      Row {
         if (session.canReturnToStart) {
           TextButton(onClick = viewModel::returnToStart) { Text("Back to start") }
         }
+        if (session.waypoints.isNotEmpty()) TextButton(onClick = viewModel::clear) { Text("Clear") }
       }
     }
-    Spacer(modifier = Modifier.height(8.dp))
-    WaypointList(session.waypoints, session.canRemoveWaypoints, viewModel)
-    Spacer(modifier = Modifier.height(16.dp))
+    val complete = state.description as? RouteDescription.Complete
+    complete?.let { RouteKnots(it) }
+    // Below the fixed header, the ferries and the waypoints scroll together, see `map-planning`
+    // "Long routes in the panel".
+    WaypointList(
+      session.waypoints,
+      session.canRemoveWaypoints,
+      viewModel,
+      modifier = Modifier.weight(1f, fill = false),
+    ) {
+      if (complete != null && complete.ferries.isNotEmpty()) {
+        Box(modifier = Modifier.padding(bottom = 8.dp)) { RouteFerries(complete.ferries) }
+      }
+    }
+  }
+}
+
+/**
+ * The route's knots like on the map, with the chosen waypoints standing out, in one line that
+ * scrolls sideways.
+ */
+@Composable
+private fun RouteKnots(description: RouteDescription.Complete) {
+  val ferryPositions = description.ferries.map { it.fromPosition }.toSet()
+  Row(
+    horizontalArrangement = Arrangement.spacedBy(4.dp),
+    verticalAlignment = Alignment.CenterVertically,
+    modifier =
+      Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(vertical = 4.dp),
+  ) {
+    description.knots.forEachIndexed { position, (knot, role) ->
+      KnotBadge(knot.ref, role)
+      if (position in ferryPositions) FerryBadge()
+    }
   }
 }
 
@@ -263,15 +281,26 @@ private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun WaypointList(waypoints: List<Knot>, canRemove: Boolean, viewModel: AppViewModel) {
+private fun WaypointList(
+  waypoints: List<Knot>,
+  canRemove: Boolean,
+  viewModel: AppViewModel,
+  modifier: Modifier = Modifier,
+  summary: @Composable () -> Unit,
+) {
   val rowHeightPixels = with(LocalDensity.current) { WAYPOINT_ROW_HEIGHT.toPx() }
   // Indices into [waypoints] in the order shown; differs from 0, 1, 2, … only while dragging.
   var order by remember(waypoints) { mutableStateOf(waypoints.indices.toList()) }
   var dragged by remember(waypoints) { mutableStateOf<Int?>(null) }
   var dragOffset by remember(waypoints) { mutableFloatStateOf(0f) }
 
-  LazyColumn(modifier = Modifier.height(WAYPOINT_ROW_HEIGHT * minOf(waypoints.size, 5))) {
-    items(order, key = { it }) { index ->
+  LazyColumn(modifier = modifier) {
+    // Not animated, so it does not jump when the route changes; the drag offsets only count the
+    // waypoint rows.
+    item(key = "summary") { summary() }
+    // Keyed by the waypoints too: after a removal, a row must not take over the swipe state of the
+    // row that was at its index, which crashed `SwipeToDismissBox`.
+    items(order, key = { "${waypoints.hashCode()}-$it" }) { index ->
       val knot = waypoints[index]
       val isDragged = dragged == index
       val dismissState =
@@ -355,5 +384,6 @@ private fun WaypointList(waypoints: List<Knot>, canRemove: Boolean, viewModel: A
         }
       }
     }
+    item(key = "end") { Spacer(modifier = Modifier.height(16.dp)) }
   }
 }

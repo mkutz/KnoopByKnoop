@@ -190,17 +190,30 @@ private struct WaypointSheet: View {
   @State private var rows: [WaypointRow] = []
 
   var body: some View {
+    let complete = model.routeDescription as? RouteDescriptionComplete
     VStack(alignment: .leading, spacing: 0) {
-      HStack(alignment: .top) {
-        summary
-        Spacer()
-        VStack(alignment: .trailing, spacing: 12) {
-          if !session.waypoints.isEmpty { Button("Clear") { model.clear() } }
+      // The header stays in place; below it, the ferries and the waypoints scroll together, see
+      // `map-planning` "Long routes in the panel".
+      VStack(alignment: .leading, spacing: 8) {
+        HStack(alignment: .firstTextBaseline) {
+          summary
+          Spacer()
+          // Side by side, so the header stays one row and the badges fit into the smallest sheet.
           if session.canReturnToStart { Button("Back to start") { model.returnToStart() } }
+          if !session.waypoints.isEmpty { Button("Clear") { model.clear() } }
         }
+        if let complete { RouteKnots(description: complete) }
       }
-      .padding()
+      .padding([.horizontal, .top])
+      .padding(.bottom, 8)
       List {
+        if let complete, !complete.ferries.isEmpty {
+          RouteFerries(ferries: complete.ferries)
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+            .moveDisabled(true)
+            .deleteDisabled(true)
+        }
         ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
           HStack(spacing: 12) {
             KnotBadge(ref: row.knot.ref, role: role(index)).frame(width: 40)
@@ -233,18 +246,7 @@ private struct WaypointSheet: View {
   @ViewBuilder private var summary: some View {
     switch model.routeDescription {
     case let complete as RouteDescriptionComplete:
-      VStack(alignment: .leading, spacing: 6) {
-        Text(complete.distance).font(.title2.bold())
-        // The route's knots like on the map; the chosen waypoints stand out.
-        let ferryPositions = Set(complete.ferries.map { Int($0.fromPosition) })
-        WrappingRow {
-          ForEach(Array(complete.knots.enumerated()), id: \.offset) { position, routeKnot in
-            KnotBadge(ref: routeKnot.knot.ref, role: routeKnot.role)
-            if ferryPositions.contains(position) { FerryBadge() }
-          }
-        }
-        if !complete.ferries.isEmpty { RouteFerries(ferries: complete.ferries) }
-      }
+      Text(complete.distance).font(.title2.bold())
     case let startOnly as RouteDescriptionStartOnly:
       Text("Start at \(startOnly.start), tap a knot to set the end").font(.headline)
     case let unreachable as RouteDescriptionUnreachable:
@@ -259,6 +261,27 @@ private struct WaypointSheet: View {
     case 0: .start
     case rows.count - 1: .end
     default: .stop
+    }
+  }
+}
+
+/// The route's knots like on the map, with the chosen waypoints standing out, in one line that
+/// scrolls sideways.
+private struct RouteKnots: View {
+
+  let description: RouteDescriptionComplete
+
+  var body: some View {
+    let ferryPositions = Set(description.ferries.map { Int($0.fromPosition) })
+    ScrollView(.horizontal, showsIndicators: false) {
+      HStack(spacing: 4) {
+        ForEach(Array(description.knots.enumerated()), id: \.offset) { position, routeKnot in
+          KnotBadge(ref: routeKnot.knot.ref, role: routeKnot.role)
+          if ferryPositions.contains(position) { FerryBadge() }
+        }
+      }
+      // Room for the larger badges of the waypoints and their rings.
+      .padding(.vertical, 2)
     }
   }
 }
