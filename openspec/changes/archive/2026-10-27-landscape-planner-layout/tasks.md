@@ -12,5 +12,5 @@
 
 ## 3. Manual checks
 
-- [ ] 3.1 On the Android emulator and the iOS simulator, record in `manual-checks.md` in this change, with screenshots: "Planning in landscape", "Rotating with a route", "Map controls in landscape"
-- [ ] 3.2 `./gradlew check` and the iOS app build pass locally and in CI
+- [x] 3.1 On the Android emulator and the iOS simulator, record in `manual-checks.md` in this change, with screenshots: "Planning in landscape", "Rotating with a route", "Map controls in landscape"
+- [x] 3.2 `./gradlew check` and the iOS app build pass locally and in CI
