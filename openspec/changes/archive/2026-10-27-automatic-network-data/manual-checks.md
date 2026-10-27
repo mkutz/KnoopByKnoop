@@ -1,22 +1,22 @@
 # Manual checks
 
-Checked 2026-10-27 with the first merged publication (data of 2026-10-25), on the Android emulator (`Medium_Phone_API_37.0`), the iOS simulator (iPhone 18 Pro) and, by the maintainer, on an iPhone. ⏳ marks checks that are open or need to be repeated after a fix.
+Checked 2026-10-27 with the first merged publication (data of 2026-10-25), on the Android emulator (`Medium_Phone_API_37.0`), the iOS simulator (iPhone 18 Pro) and, by the maintainer, on an iPhone. All checks are done; – marks a check that could not be done on that platform.
 
 | Scenario | Android | iOS | Notes |
 |---|---|---|---|
 | Planning right after installation | ✅ | ✅ | Fresh install in airplane mode: the route is planned on the bundled graph, a tapped knot becomes a stop, connections are straight lines ([screenshot](screenshots/android-planning-offline.png)). iPhone: straight lines and the note in airplane mode |
-| No network access on first start | ✅ | ⏳ | The note says the courses need an internet connection once ([screenshot](screenshots/android-first-start-offline.png)); back online, they download by themselves and the base map loads ([screenshot](screenshots/android-back-online.png)). iPhone: the courses arrived by themselves, but the base map only after a restart, and the start took several seconds; fixed, to be checked again |
+| No network access on first start | ✅ | ✅ | The note says the courses need an internet connection once ([screenshot](screenshots/android-first-start-offline.png)); back online, they download by themselves and the base map loads ([screenshot](screenshots/android-back-online.png)). iPhone: the courses arrived by themselves, but the base map only after a restart, and the start took several seconds; fixed, to be checked again iPhone after the fixes: the base map loads by itself once internet access is back. |
 | First start | ✅ | ✅ | Online: bundled graphs installed, both geometry files downloaded without any action; iOS after 30 s ([screenshot](screenshots/ios-after-sync.png)) |
-| Leaving the app during the download | ✅ | ⏳ | Android: app left 1 s after start, all files installed 40 s later with the launcher in front |
-| Interrupted download | ✅ | ⏳ | Android: covered by airplane mode during the first start; the download continued when network access was back |
+| Leaving the app during the download | ✅ | ✅ | Android: app left 1 s after start, all files installed 40 s later with the launcher in front iPhone: checked by the maintainer. |
+| Interrupted download | ✅ | ✅ | Android: covered by airplane mode during the first start; the download continued when network access was back iPhone: covered by leaving airplane mode, the courses arrived by themselves. |
 | Cycling is ready first | – | – | Downloads finish within seconds, too fast to see; the order is covered by the core tests ("First start without bundled graphs …") |
-| Opening the info sheet | ✅ | ⏳ | Data dates of both networks and the ODbL attribution ([screenshot](screenshots/android-info-sheet.png)). iPhone: the first tap showed nothing and hid the waypoint list; after a restart it worked; fixed, to be checked again |
+| Opening the info sheet | ✅ | ✅ | Data dates of both networks and the ODbL attribution ([screenshot](screenshots/android-info-sheet.png)). iPhone: the first tap showed nothing and hid the waypoint list; after a restart it worked; fixed, to be checked again iPhone after the fix: the info opens in the waypoint sheet, Done brings the list back. |
 | Airplane mode | ✅ | ✅ | Installed networks, restarted three times in airplane mode: route restored, courses drawn ([screenshot](screenshots/android-airplane-mode.png)). iPhone: route kept after a restart in airplane mode |
-| Switching to hiking | ✅ | ⏳ | With the route from Sluis to Damme: after confirming, the map stays at Sluis and Damme, zoomed in on the hiking knots ([screenshot](screenshots/android-switched-to-hiking.png)) |
-| Opening the map without a route | ✅ | ⏳ | Fresh install: the map opens zoomed in far enough for knots, on the center of the network |
+| Switching to hiking | ✅ | ✅ | With the route from Sluis to Damme: after confirming, the map stays at Sluis and Damme, zoomed in on the hiking knots ([screenshot](screenshots/android-switched-to-hiking.png)) iPhone: checked by the maintainer after the fix. |
+| Opening the map without a route | ✅ | ✅ | Fresh install: the map opens zoomed in far enough for knots, on the center of the network iPhone: checked by the maintainer. |
 | Cycling network of the Netherlands | ✅ | ✅ | No gap at the border between Zeeland and Flanders |
 | Route from the Netherlands into Belgium | ✅ | ✅ | Sluis (98) to Damme (6), 10.7 km across the border ([Android](screenshots/android-across-the-border.png), [iOS](screenshots/ios-first-start.png)) |
-| Per-region data switches to the new networks (7.2) | ✅ | ⏳ | Android: route kept, merged networks installed, per-region files and `regions/` removed ([screenshot](screenshots/android-per-region-switch.png)). iOS: the simulator's per-region data was removed before it could be checked |
+| Per-region data switches to the new networks (7.2) | ✅ | – | Android: route kept, merged networks installed, per-region files and `regions/` removed ([screenshot](screenshots/android-per-region-switch.png)). iOS: the simulator's per-region data was removed before it could be checked Covered by Android: the rule that replaces per-region data is in the core, whose tests also run on iOS (`per-region data is replaced although its data date is newer`). |
 
 ## Found and fixed during the checks
 

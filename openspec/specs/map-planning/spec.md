@@ -6,15 +6,19 @@ Lets the user see a knooppunt network on a map and plan a route on it by choosin
 ## Requirements
 
 ### Requirement: Show the network on the map
-The map SHALL show the knots of the selected network type of an installed region with their numbers, and the connections between them along their actual course, over a base map. The user SHALL be able to switch between the cycling and the hiking network.
+The map SHALL show the knots of the selected, installed network type with their numbers, and the connections between them along their actual course, over a base map. The user SHALL be able to switch between the cycling and the hiking network.
 
 #### Scenario: Cycling network of the Netherlands
-- **WHEN** the Netherlands are installed and the user opens the map with the cycling network selected
-- **THEN** the map shows the Dutch cycling knots with their numbers and their connections
+- **WHEN** the cycling network is installed and the user opens the map over the Netherlands with the cycling network selected
+- **THEN** the map shows the Dutch cycling knots with their numbers and their connections, continuing without a gap into Belgium and Nordrhein-Westfalen
 
 #### Scenario: Switching to hiking
 - **WHEN** the user switches from cycling to hiking
-- **THEN** the map shows the hiking network instead, and the current route is discarded after the user confirms
+- **THEN** the map shows the hiking network instead at the same place, zoomed in far enough that knots are shown, and the current route is discarded after the user confirms
+
+#### Scenario: Opening the map without a route
+- **WHEN** the map opens and there is no route to show
+- **THEN** it is zoomed in far enough that knots are shown and can be tapped
 
 #### Scenario: Without matching geometry
 - **WHEN** an installed network has no geometry that belongs to its graph, e.g. because its download failed
@@ -89,7 +93,7 @@ The route being planned SHALL be restored after the app is closed and opened aga
 - **THEN** the same route with the same knots is shown again
 
 #### Scenario: Knot gone after an update
-- **WHEN** a waypoint's knot no longer exists in updated region data
+- **WHEN** a waypoint's knot no longer exists in updated network data
 - **THEN** the route is restored without that waypoint and the user is told which one was removed
 
 ### Requirement: Zoom controls
