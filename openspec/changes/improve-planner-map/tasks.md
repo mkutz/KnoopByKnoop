@@ -34,4 +34,4 @@
 ## 4. Verification
 
 - [x] 4.1 Screenshots of a route with start, stop, end and passed knots on both platforms, in a dense area, added to `manual-checks.md` in this change
-- [ ] 4.2 `./gradlew check` and the iOS app build pass locally and in CI
+- [x] 4.2 `./gradlew check` and the iOS app build pass locally and in CI
