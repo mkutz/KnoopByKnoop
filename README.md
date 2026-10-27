@@ -45,6 +45,12 @@ For the iOS app (requires Xcode and [XcodeGen](https://github.com/yonaskolb/Xcod
 xcodegen --spec apps/ios/project.yml && open apps/ios/KnoopByKnoop.xcodeproj
 ```
 
+To run it on an iPhone, put your development team into `apps/ios/Signing.local.xcconfig` (ignored by git; the team ID is shown in Xcode under Settings › Accounts):
+
+```
+DEVELOPMENT_TEAM = ABCDE12345
+```
+
 
 ## Contributing
 

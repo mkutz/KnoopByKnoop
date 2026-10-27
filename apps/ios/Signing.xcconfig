@@ -1,0 +1,6 @@
+// Code signing for builds on a device. The development team is personal, so it is kept out of the
+// repository: put `DEVELOPMENT_TEAM = <your team ID>` into Signing.local.xcconfig next to this file.
+// Simulator and CI builds do not sign and need no team.
+CODE_SIGN_STYLE = Automatic
+
+#include? "Signing.local.xcconfig"
