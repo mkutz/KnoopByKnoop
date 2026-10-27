@@ -79,6 +79,7 @@ fun NetworkMap(
     MapLibre.getInstance(context)
     MapView(context).apply {
       onCreate(null)
+      addOnDidFinishRenderingFrameListener { _, _, _ -> holder.markVisibleLayers(width, height) }
       getMapAsync { map ->
         holder.map = map
         map.addOnMapClickListener { point ->
@@ -178,7 +179,24 @@ private class MapHolder {
     }
   }
 
+  private var coursesHandedOver = false
+
+  /**
+   * Called after every rendered frame until the knots and the courses are visible: MapLibre parses
+   * large layers on its own, so they show up some time after they were handed over.
+   */
+  fun markVisibleLayers(width: Int, height: Int) {
+    val map = map ?: return
+    if (StartupMarks.isMarked("courses")) return
+    val screen = RectF(0f, 0f, width.toFloat(), height.toFloat())
+    if (map.queryRenderedFeatures(screen, "knots").isNotEmpty()) StartupMarks.mark("knots")
+    if (coursesHandedOver && map.queryRenderedFeatures(screen, "connections").isNotEmpty()) {
+      StartupMarks.mark("courses")
+    }
+  }
+
   private fun onStyle(loaded: Style) {
+    StartupMarks.mark("map")
     style = loaded
     shownLayers = null
     addLayers(loaded)
@@ -211,6 +229,7 @@ private class MapHolder {
       }
       style.getSourceAs<GeoJsonSource>("knots")?.setGeoJson(layers.knots)
       style.getSourceAs<GeoJsonSource>("connections")?.setGeoJson(layers.connections)
+      coursesHandedOver = layers.hasCourses
     }
     if (previous == null || previous.route !== layers.route) {
       layers.routeKnotList.forEach { (knot, role) ->

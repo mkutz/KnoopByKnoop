@@ -135,7 +135,24 @@ struct NetworkMapView: UIViewRepresentable {
       onTap(coordinate.latitude, coordinate.longitude, metersPerPoint * touchTargetPoints)
     }
 
+    private var coursesHandedOver = false
+
+    /// Called after every rendered frame until the knots and the courses are visible: MapLibre
+    /// parses large layers on its own, so they show up some time after they were handed over.
+    func mapViewDidFinishRenderingFrame(_ mapView: MLNMapView, fullyRendered: Bool) {
+      guard !StartupMarks.isMarked("courses") else { return }
+      if !mapView.visibleFeatures(in: mapView.bounds, styleLayerIdentifiers: ["knots"]).isEmpty {
+        StartupMarks.mark("knots")
+      }
+      if coursesHandedOver,
+        !mapView.visibleFeatures(in: mapView.bounds, styleLayerIdentifiers: ["connections"]).isEmpty
+      {
+        StartupMarks.mark("courses")
+      }
+    }
+
     func mapView(_ mapView: MLNMapView, didFinishLoading style: MLNStyle) {
+      StartupMarks.mark("map")
       self.style = style
       shownNetwork = nil
       shownRoute = nil
@@ -167,6 +184,7 @@ struct NetworkMapView: UIViewRepresentable {
         (style.source(withIdentifier: "knots") as? MLNShapeSource)?.url = layers.knots
         (style.source(withIdentifier: "connections") as? MLNShapeSource)?.url = layers.connections
         shownNetwork = layers.connections
+        coursesHandedOver = layers.hasCourses
       }
       if shownRoute != layers.route + layers.routeKnots {
         // Route knots change without the route, e.g. when only the start is set.

@@ -31,6 +31,8 @@ data class MapLayers(
   val routeKnots: String,
   val routeKnotList: List<RouteKnot>,
   val refs: Set<String>,
+  /** Whether [connections] follow their course, or are straight lines without geometry. */
+  val hasCourses: Boolean,
 )
 
 /**
@@ -232,6 +234,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
       routeKnots = MapFeatures.routeKnotsLayer(session),
       routeKnotList = MapFeatures.routeKnotMarkers(session),
       refs = network.refs,
+      hasCourses = network.hasGeometry,
     )
   }
 

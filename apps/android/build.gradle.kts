@@ -21,6 +21,14 @@ android {
   }
 
   buildFeatures { compose = true }
+
+  buildTypes {
+    release {
+      // Until add-release-pipelines brings an upload key: signed with the debug key, so release
+      // builds can be installed, e.g. to measure startup times (`faster-startup`).
+      signingConfig = signingConfigs.getByName("debug")
+    }
+  }
 }
 
 /** Copies the graphs bundled by `:pipeline` into the app's assets, see `network-sync`. */

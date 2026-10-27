@@ -2,7 +2,7 @@
 
 ## 1. Measuring first
 
-- [ ] 1.1 Startup marks `startup: map`, `startup: knots`, `startup: courses` with the time since process start, in both apps
+- [x] 1.1 Startup marks `startup: map`, `startup: knots`, `startup: courses` with the time since process start, in both apps
 - [ ] 1.2 Baseline: five release-build starts each on the Android emulator and the iPhone, normal start and first start in airplane mode, recorded in `measurements.md` in this change
 
 ## 2. Android

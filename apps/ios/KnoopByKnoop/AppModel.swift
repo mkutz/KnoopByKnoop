@@ -11,6 +11,8 @@ struct MapLayers {
   let routeKnots: String
   let routeKnotList: [RouteKnot]
   let refs: Set<String>
+  /// Whether `connections` follow their course, or are straight lines without geometry.
+  let hasCourses: Bool
 }
 
 /// The installed data of one network, prepared for planning and drawing.
@@ -162,7 +164,8 @@ final class AppModel: ObservableObject {
         route: prepared.route,
         routeKnots: prepared.routeKnots,
         routeKnotList: prepared.routeKnotMarkers,
-        refs: loaded.refs)
+        refs: loaded.refs,
+        hasCourses: loaded.hasGeometry)
     }
   }
 
