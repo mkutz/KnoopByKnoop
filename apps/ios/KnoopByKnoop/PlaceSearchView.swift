@@ -87,7 +87,10 @@ struct PlaceSearchView: View {
               .frame(maxWidth: .infinity, alignment: .leading)
               .padding(.horizontal, 12)
               .padding(.vertical, 8)
+              .contentShape(Rectangle())
             }
+            // The default style tints the whole label with the accent color.
+            .buttonStyle(.plain)
             Divider()
           }
         }
