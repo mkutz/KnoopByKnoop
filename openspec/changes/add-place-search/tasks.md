@@ -23,4 +23,4 @@
 ## 4. Checks
 
 - [ ] 4.1 Manual checks in `manual-checks.md` on the Android emulator, iOS by the maintainer: "Station", "Address", "Business", "No hits", "Same name in several towns", "Place outside the covered area", "Tapping a hit", "Removing the marker", "Airplane mode", "Internet access is back", "Search service unavailable"
-- [ ] 4.2 `./gradlew check` and the iOS app build pass locally and in CI
+- [x] 4.2 `./gradlew check` and the iOS app build pass locally and in CI
