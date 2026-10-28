@@ -5,6 +5,10 @@ extension Color {
   static let knoopGreen = Color(red: 0x2E / 255, green: 0x9E / 255, blue: 0x5B / 255)
   static let knoopOrange = Color(red: 0xF2 / 255, green: 0x8C / 255, blue: 0x28 / 255)
   static let knoopDark = Color(red: 0x26 / 255, green: 0x32 / 255, blue: 0x38 / 255)
+  /// The actions' colors, see `map-planning` "Clear actions in the planner panel": darker than the
+  /// badges' green, and darker than `systemRed`, so white labels on them stay readable.
+  static let actionGreen = Color(red: 0x23 / 255, green: 0x7A / 255, blue: 0x46 / 255)
+  static let actionRed = Color(red: 0xB3 / 255, green: 0x26 / 255, blue: 0x1E / 255)
 }
 
 /// How a knot takes part in the route, as far as its badge shows it. Mirrors the core's `KnotRole`,

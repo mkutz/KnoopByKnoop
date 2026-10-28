@@ -228,13 +228,23 @@ private struct WaypointSheet: View {
         if let navigation = navigator.state {
           NavigationHeader(state: navigation) { model.stopNavigation() }
         } else {
-          HStack(alignment: .firstTextBaseline) {
+          HStack(alignment: .center) {
             summary
             Spacer()
             // Side by side, so the header stays one row and the badges fit into the smallest sheet.
-            if session.canReturnToStart { Button("Back to start") { model.returnToStart() } }
-            if !session.waypoints.isEmpty { Button("Clear") { model.clear() } }
-            if model.canNavigate { Button("Navigate") { model.startNavigation() } }
+            if session.canReturnToStart {
+              IconAction(title: "Back to start", systemImage: "arrow.uturn.backward") {
+                model.returnToStart()
+              }
+            }
+            if !session.waypoints.isEmpty {
+              IconAction(title: "Clear", systemImage: "trash") { model.clear() }
+            }
+            if model.canNavigate {
+              ProminentAction(title: "Navigate", systemImage: "location.north.fill") {
+                model.startNavigation()
+              }
+            }
           }
         }
         if let complete { RouteKnots(description: complete) }
@@ -346,7 +356,7 @@ private struct NavigationHeader: View {
         Text("Waiting for your position…").font(.headline)
       }
       Spacer()
-      Button("Stop", action: onStop)
+      ProminentAction(title: "Stop", systemImage: "stop.fill", color: .actionRed, action: onStop)
     }
   }
 }

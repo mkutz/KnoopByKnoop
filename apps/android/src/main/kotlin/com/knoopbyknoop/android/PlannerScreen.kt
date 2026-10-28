@@ -242,12 +242,19 @@ private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
           }
         }
         // Side by side, so the header stays one row and the badges fit into the smallest sheet.
-        Row {
+        Row(
+          horizontalArrangement = Arrangement.spacedBy(4.dp),
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
           if (session.canReturnToStart) {
-            TextButton(onClick = viewModel::returnToStart) { Text("Back to start") }
+            IconAction(
+              "Back to start",
+              R.drawable.ic_action_back_to_start,
+              viewModel::returnToStart,
+            )
           }
           if (session.waypoints.isNotEmpty())
-            TextButton(onClick = viewModel::clear) { Text("Clear") }
+            IconAction("Clear", R.drawable.ic_action_clear, viewModel::clear)
           if (state.canNavigate) NavigateButton(viewModel)
         }
       }
@@ -282,7 +289,9 @@ private fun NavigateButton(viewModel: AppViewModel) {
       if (granted[Manifest.permission.ACCESS_FINE_LOCATION] == true) viewModel.startNavigation()
       else viewModel.locationDenied()
     }
-  TextButton(
+  ProminentAction(
+    "Navigate",
+    R.drawable.ic_action_navigate,
     onClick = {
       val permissions =
         listOf(
@@ -293,10 +302,8 @@ private fun NavigateButton(viewModel: AppViewModel) {
             listOf(Manifest.permission.POST_NOTIFICATIONS)
           else listOf()
       launcher.launch(permissions.toTypedArray())
-    }
-  ) {
-    Text("Navigate")
-  }
+    },
+  )
 }
 
 /**
@@ -332,7 +339,7 @@ private fun NavigationHeader(navigation: NavigationState, onStop: () -> Unit) {
         else -> Text(display.text, style = MaterialTheme.typography.titleLarge)
       }
     }
-    TextButton(onClick = onStop) { Text("Stop") }
+    ProminentAction("Stop", R.drawable.ic_action_stop, onStop, color = ActionColors.red)
   }
 }
 
