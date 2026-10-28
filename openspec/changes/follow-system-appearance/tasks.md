@@ -18,7 +18,7 @@
 
 - [x] 3.1 Contrast of the actions on the dark panels of both apps computed and recorded in `manual-checks.md` ("Readable actions in dark mode")
 - [x] 3.2 Manual checks in `manual-checks.md` with screenshots in light and dark mode: on the Android emulator "Dark mode", "Light mode", "Switching while the app is open", "Switching while navigating" (simulated ride, `cmd uimode night yes` during it, notices keep coming in the log), "Route on the dark map" (the 08 → 31 → 97 route with its ferries), "Offline in dark mode"; on the iPhone by the maintainer "Dark mode", "Switching while the app is open", "Switching while navigating" and "Route on the dark map"
-- [ ] 3.3 `./gradlew check` passes, both iOS targets build, CI passes
+- [x] 3.3 `./gradlew check` passes, both iOS targets build, CI passes
 
 ## Workflow follow-up
 
