@@ -55,7 +55,7 @@ jobs:
         if: always()
         run: rm -f "$RUNNER_TEMP/upload.jks"
 
-      # Kept for the app's first release, which Play only accepts by hand.
+      # Kept, e.g. to install a release build without going through Play.
       - uses: actions/upload-artifact@v7
         with:
           name: android-release-${{ inputs.version }}-${{ inputs.build-number }}
@@ -74,6 +74,6 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.knoopbyknoop
           releaseFiles: apps/android/build/outputs/bundle/release/*.aab
-          track: internal
+          tracks: internal
           status: completed
           whatsNewDirectory: ${{ runner.temp }}/whatsnew

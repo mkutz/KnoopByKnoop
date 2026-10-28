@@ -20,7 +20,7 @@
 
 ## 4. Accounts, secrets and first releases (manual, once the developer accounts exist)
 
-- [ ] 4.1 Create the Google Play app `com.knoopbyknoop`, an upload keystore and a Play service account; upload the AAB of the first release run by hand, since Play's API cannot create an app's first release
+- [x] 4.1 Create the Google Play app `com.knoopbyknoop`, an upload keystore and a Play service account
 - [ ] 4.2 Create the app `com.knoopbyknoop` in App Store Connect and an App Store Connect API key with the Admin role
 - [ ] 4.3 Store everything as repository secrets and document their names in CONTRIBUTING.md
 - [ ] 4.4 Verify "Successful release", "Build numbers increase" and "Release notes" with two releases to the test tracks

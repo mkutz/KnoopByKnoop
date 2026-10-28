@@ -33,7 +33,7 @@ A small POSIX shell script, `.github/scripts/release-notes.sh <version>`, prints
 *Alternative:* a Kotlin task in `:pipeline`. It would bring JUnit, but the pipeline is about OpenStreetMap data, and a JVM start for twenty lines of text is overkill.
 
 ### Android: signing from the environment, upload with an action
-The release signing config reads `KNOOPBYKNOOP_UPLOAD_KEYSTORE` (the path to the keystore file), `..._KEYSTORE_PASSWORD`, `..._KEY_ALIAS` and `..._KEY_PASSWORD`. When they are not set, it keeps the debug key. CI decodes the keystore from a base64 secret into `$RUNNER_TEMP`. The version comes in as Gradle properties (`-PversionName`, `-PversionCode`) with today's values as defaults. The AAB is uploaded with `r0adkll/upload-google-play` to the `internal` track; the release notes go in a `whatsnew/whatsnew-en-US` file. The AAB is also kept as a workflow artifact, for the first release that has to go to Play by hand.
+The release signing config reads `KNOOPBYKNOOP_UPLOAD_KEYSTORE` (the path to the keystore file), `..._KEYSTORE_PASSWORD`, `..._KEY_ALIAS` and `..._KEY_PASSWORD`. When they are not set, it keeps the debug key. CI decodes the keystore from a base64 secret into `$RUNNER_TEMP`. The version comes in as Gradle properties (`-PversionName`, `-PversionCode`) with today's values as defaults. The AAB is uploaded with `r0adkll/upload-google-play` to the `internal` track; the release notes go in a `whatsnew/whatsnew-en-US` file. The AAB is also kept as a workflow artifact. Play accepted the app's very first bundle through the API, so no release has to be uploaded by hand.
 *Alternative:* the Gradle Play Publisher plugin. It needs the service account during configuration and adds a plugin to the app build for something only CI does.
 
 ### iOS: cloud-managed signing with the API key
@@ -46,7 +46,6 @@ GitHub gives fork pull requests no secrets unless a workflow uses `pull_request_
 ## Risks / Trade-offs
 
 - [The API key needs the Admin role, so it can do anything in App Store Connect] → It lives only in repository secrets, which only the release workflows use (checked by the fork check).
-- [Play's API cannot create an app's first release] → The first run's AAB is uploaded by hand (task 4.1). From the second run on, CI uploads.
 - [Renaming `release.yml` resets `run_number`] → The file is not renamed; if it ever must be, an offset goes into the build number.
 - [Play release notes are limited to 500 characters] → The upload fails visibly; changelog sections stay short.
 - [Waiting for TestFlight processing can take several minutes] → `pilot` waits for it, and the iOS job gets a generous timeout.
