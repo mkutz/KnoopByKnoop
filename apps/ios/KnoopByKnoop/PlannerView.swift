@@ -17,15 +17,23 @@ struct PlannerView: View {
 
   private static let smallestDetent = PresentationDetent.height(170)
 
+  /// Whether an on-screen keyboard covers the bottom of the screen. Its safe area counts as the
+  /// bottom inset, which is at most the home indicator's 34 points without one. A hardware keyboard
+  /// brings up no on-screen keyboard, or only a small bar, so the search stays above the sheet.
+  private static func keyboardShown(_ screen: GeometryProxy) -> Bool {
+    screen.safeAreaInsets.bottom > 100
+  }
+
   var body: some View {
     GeometryReader { geometry in
       // The keyboard's safe area counts as height, so the keyboard does not turn portrait into
       // landscape on small phones.
       let landscape = geometry.size.width > geometry.size.height + geometry.safeAreaInsets.bottom
+      let keyboardShown = Self.keyboardShown(geometry)
       // The map stays the first view of this stack in both orientations, so rotating keeps it,
       // with its position, instead of creating a new one.
       HStack(spacing: 0) {
-        content(landscape: landscape, screen: geometry)
+        content(landscape: landscape, keyboardShown: keyboardShown, screen: geometry)
         if landscape {
           Divider()
           panel
@@ -49,8 +57,8 @@ struct PlannerView: View {
           .interactiveDismissDisabled()
       }
       // The keyboard covers the smallest sheet, but not a higher one, which would hide the field.
-      .onChange(of: searchFocused) { _, focused in
-        if focused && !landscape { detent = Self.smallestDetent }
+      .onChange(of: keyboardShown) { _, shown in
+        if shown && !landscape { detent = Self.smallestDetent }
       }
     }
   }
@@ -82,7 +90,7 @@ struct PlannerView: View {
   }
 
   /// The map is shown right away; the network follows when it is loaded, see `map-planning`.
-  private func content(landscape: Bool, screen: GeometryProxy) -> some View {
+  private func content(landscape: Bool, keyboardShown: Bool, screen: GeometryProxy) -> some View {
     ZStack(alignment: .top) {
       NetworkMapView(
         graph: model.session?.graph, layers: model.layers, focus: model.session.map(focus) ?? [],
@@ -120,7 +128,7 @@ struct PlannerView: View {
         CoursesNote(online: model.online).padding(.top, notesTop)
       }
     }
-    .overlay(alignment: .bottom) { searchOverlay(landscape: landscape, screen: screen) }
+    .overlay(alignment: .bottom) { searchOverlay(landscape: landscape, keyboardShown: keyboardShown, screen: screen) }
     // The map is light in dark mode too, so the views floating over it stay light to be readable.
     .environment(\.colorScheme, .light)
   }
@@ -129,14 +137,15 @@ struct PlannerView: View {
   private let notesTop: CGFloat = 64
 
   /// The place search and the attribution, at the bottom of the map: right above the sheet in
-  /// portrait, following it when it is dragged, and right above the keyboard while typing. Hidden
-  /// while the sheet is pulled up over the map.
-  @ViewBuilder private func searchOverlay(landscape: Bool, screen: GeometryProxy) -> some View {
+  /// portrait, following it when it is dragged, and right above the on-screen keyboard while typing.
+  /// Hidden while the sheet is pulled up over the map.
+  @ViewBuilder private func searchOverlay(landscape: Bool, keyboardShown: Bool, screen: GeometryProxy) -> some View {
     let fullHeight = screen.size.height + screen.safeAreaInsets.top + screen.safeAreaInsets.bottom
-    let sheetUp = !landscape && !searchFocused && sheetHeight > fullHeight * 0.6
+    let sheetUp = !landscape && !keyboardShown && sheetHeight > fullHeight * 0.6
     // This view ends at the bottom safe area, the sheet's height is measured from the screen's
-    // bottom. While typing, the keyboard's safe area already lifts this view above it.
-    let bottom = landscape || searchFocused ? 8 : max(sheetHeight - screen.safeAreaInsets.bottom, 0) + 8
+    // bottom. While typing, the keyboard's safe area already lifts this view above it; with a
+    // hardware keyboard, there is none, and the field stays above the sheet.
+    let bottom = landscape || keyboardShown ? 8 : max(sheetHeight - screen.safeAreaInsets.bottom, 0) + 8
     if !sheetUp {
       GeometryReader { area in
         VStack(alignment: .trailing, spacing: 4) {
