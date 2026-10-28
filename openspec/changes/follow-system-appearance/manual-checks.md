@@ -34,7 +34,7 @@ Simulator (iPhone 18 Pro), 2026-10-28, switched with `xcrun simctl ui … appear
 | Dark mode | ✅ | ✅ | |
 | Switching while the app is open | ✅ | ✅ | Light → dark → light: map, network switch, zoom buttons, search and sheet switch, same area and route ([screenshots](screenshots/ios-simulator-switching.png)) |
 | Switching while navigating | – | ✅ | Checked by the maintainer on the iPhone |
-| Returning to the app | ✅ | ⏳ | Dark mode, three times to Settings and back: the map stays dark. On the iPhone it alternated between dark and light before the fix, see below |
+| Returning to the app | ✅ | ✅ | Dark mode, three times to Settings and back: the map stays dark. On the iPhone it alternated between dark and light before the fix, see below |
 | Lock screen in dark mode | – | ✅ | Was light in dark mode (found by the maintainer), fixed, see below |
 | Route on the dark map | ✅ | ✅ | |
 | Slow base map | ✅ | – | The simulator loads the base map within the 3 s, even with the map cache deleted. With a temporary 0.05 s timeout, the app ends on the dark base map; the fallback in between was too short to capture, as `updateUIView` already loaded the base map again on the next update |
