@@ -24,6 +24,9 @@ jobs:
 
       - uses: actions/checkout@v7
 
+      # Workflows only called by release.yml are otherwise not checked before a release.
+      - run: docker run --rm --volume "$PWD:/repo" --workdir /repo rhysd/actionlint:1.7.7 -color
+
       - run: sh .github/scripts/release-notes-test.sh
 
       - run: sh .github/scripts/check-workflow-secrets-test.sh

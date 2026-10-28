@@ -27,11 +27,17 @@ jobs:
     env:
       API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
       API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-      API_KEY_PATH: ${{ runner.temp }}/AuthKey.p8
-      ARCHIVE_PATH: ${{ runner.temp }}/KnoopByKnoop.xcarchive
-      EXPORT_PATH: ${{ runner.temp }}/export
 
     steps:
+
+      # The runner context is not available in the job's env.
+      - name: Set paths
+        run: |
+          {
+            echo "API_KEY_PATH=$RUNNER_TEMP/AuthKey.p8"
+            echo "ARCHIVE_PATH=$RUNNER_TEMP/KnoopByKnoop.xcarchive"
+            echo "EXPORT_PATH=$RUNNER_TEMP/export"
+          } >> "$GITHUB_ENV"
 
       - uses: actions/checkout@v7
 
