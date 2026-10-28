@@ -13,4 +13,4 @@
 
 - [x] 3.1 Both apps build; `./gradlew check` passes
 - [x] 3.2 CI passes
-- [ ] 3.3 Manual checks in `manual-checks.md`, on the Android emulator and by the maintainer on the iPhone, in portrait and landscape: "Long route", "Editing waypoints of a long route", "Short route" (UI behavior with no logic in the core, so covered by these checks instead of automated tests)
+- [x] 3.3 Manual checks in `manual-checks.md`, on the Android emulator and by the maintainer on the iPhone, in portrait and landscape: "Long route", "Editing waypoints of a long route", "Short route" (UI behavior with no logic in the core, so covered by these checks instead of automated tests)
