@@ -18,3 +18,8 @@ apps/ios/KnoopByKnoopWidgets/Info.plist
 apps/ios/Signing.local.xcconfig
 DerivedData/
 xcuserdata/
+
+# Signing keys, never committed (see add-release-pipelines)
+*.jks
+*.keystore
+*.p8

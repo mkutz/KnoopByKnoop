@@ -1,0 +1,99 @@
+name: Release
+
+# Delivers both apps to the stores' test tracks, see `release-delivery`. Promoting a build to
+# production is done by hand in the store consoles.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version, e.g. 0.2.0, with a section in CHANGELOG.md
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Green main and release notes
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      actions: read
+
+    outputs:
+      release-notes: ${{ steps.release-notes.outputs.release-notes }}
+
+    steps:
+
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check version
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::The version must look like 0.2.0, got: $VERSION"
+            exit 1
+          fi
+
+      - id: release-notes
+        name: Extract release notes
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          notes=$(sh .github/scripts/release-notes.sh "$VERSION")
+          {
+            echo "release-notes<<RELEASE_NOTES"
+            echo "$notes"
+            echo "RELEASE_NOTES"
+          } >> "$GITHUB_OUTPUT"
+
+      # The latest finished Build on main must have passed, and later commits may only change
+      # Markdown, which Build skips (e.g. adding the CHANGELOG.md section for this release).
+      - name: Check main is green
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Releases are only built from main, not $GITHUB_REF"
+            exit 1
+          fi
+          read -r checked_sha conclusion <<EOF
+          $(gh run list --workflow build.yml --branch main --event push --status completed \
+            --limit 1 --json headSha,conclusion --jq '.[0] | "\(.headSha) \(.conclusion)"')
+          EOF
+          if [ "$conclusion" != "success" ]; then
+            echo "::error::The latest Build on main ($checked_sha) did not pass: $conclusion"
+            exit 1
+          fi
+          unchecked=$(git diff --name-only "$checked_sha" "$GITHUB_SHA" | grep -v '\.md$' || true)
+          if [ -n "$unchecked" ]; then
+            echo "::error::Build has not passed yet for the latest changes to: $unchecked"
+            exit 1
+          fi
+
+  android:
+    needs: check
+    uses: ./.github/workflows/release-android.yml
+    with:
+      version: ${{ inputs.version }}
+      build-number: ${{ github.run_number }}
+      release-notes: ${{ needs.check.outputs.release-notes }}
+    secrets: inherit
+
+  ios:
+    needs: check
+    uses: ./.github/workflows/release-ios.yml
+    with:
+      version: ${{ inputs.version }}
+      build-number: ${{ github.run_number }}
+      release-notes: ${{ needs.check.outputs.release-notes }}
+    secrets: inherit

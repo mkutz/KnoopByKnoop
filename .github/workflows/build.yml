@@ -16,6 +16,21 @@ permissions:
   contents: read
 
 jobs:
+  workflows:
+    name: Workflows and release scripts
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v7
+
+      - run: sh .github/scripts/release-notes-test.sh
+
+      - run: sh .github/scripts/check-workflow-secrets-test.sh
+
+      # Pull requests from forks get no signing keys or store credentials, see `release-delivery`.
+      - run: sh .github/scripts/check-workflow-secrets.sh
+
   gradle:
     name: Core, pipeline and Android
     runs-on: ubuntu-latest

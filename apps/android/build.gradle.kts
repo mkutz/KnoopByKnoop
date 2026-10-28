@@ -11,8 +11,9 @@ android {
     applicationId = "com.knoopbyknoop"
     minSdk = 26
     targetSdk = 37
-    versionCode = 1
-    versionName = "0.1.0"
+    // Set by the release workflow, see `release-delivery`.
+    versionCode = providers.gradleProperty("versionCode").map(String::toInt).getOrElse(1)
+    versionName = providers.gradleProperty("versionName").getOrElse("0.1.0")
   }
 
   compileOptions {
@@ -22,11 +23,24 @@ android {
 
   buildFeatures { compose = true }
 
+  // The upload key, only on CI in the release workflow.
+  val uploadKeystore = providers.environmentVariable("KNOOPBYKNOOP_UPLOAD_KEYSTORE").orNull
+  if (uploadKeystore != null) {
+    signingConfigs {
+      create("upload") {
+        storeFile = file(uploadKeystore)
+        storePassword = providers.environmentVariable("KNOOPBYKNOOP_UPLOAD_KEYSTORE_PASSWORD").get()
+        keyAlias = providers.environmentVariable("KNOOPBYKNOOP_UPLOAD_KEY_ALIAS").get()
+        keyPassword = providers.environmentVariable("KNOOPBYKNOOP_UPLOAD_KEY_PASSWORD").get()
+      }
+    }
+  }
+
   buildTypes {
     release {
-      // Until add-release-pipelines brings an upload key: signed with the debug key, so release
-      // builds can be installed, e.g. to measure startup times (`faster-startup`).
-      signingConfig = signingConfigs.getByName("debug")
+      // Without the upload key, signed with the debug key, so local release builds can be
+      // installed, e.g. to measure startup times (`faster-startup`).
+      signingConfig = signingConfigs.getByName(if (uploadKeystore != null) "upload" else "debug")
     }
   }
 }
