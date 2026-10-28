@@ -21,6 +21,7 @@ Out of scope: promoting builds to production (done by hand in the store consoles
 
 ## Impact
 
-- New workflows `release-android.yml` and `release-ios.yml`
-- Repository secrets: Android upload keystore and Play service account; Apple distribution certificate, provisioning profile and App Store Connect API key
-- Requires a Google Play developer account and an Apple Developer Program membership
+- New workflows `release.yml` (entry point), `release-android.yml` and `release-ios.yml`
+- Android release builds are signed with the upload key on CI and keep the debug key locally
+- Repository secrets: Android upload keystore and Play service account; App Store Connect API key and team ID; Apple manages the signing certificate and profiles
+- Requires a Google Play developer account and an Apple Developer Program membership; until they exist, the workflows can be written but not run

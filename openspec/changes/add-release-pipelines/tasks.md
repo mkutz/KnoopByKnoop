@@ -1,22 +1,26 @@
 # Tasks
 
-## 1. Accounts and secrets (manual)
+## 1. Android
 
-- [ ] 1.1 Create the Google Play app `com.knoopbyknoop`, an upload keystore and a Play service account
-- [ ] 1.2 Create the App ID `com.knoopbyknoop`, a distribution certificate, a provisioning profile and an App Store Connect API key
-- [ ] 1.3 Store everything as repository secrets and document their names in CONTRIBUTING.md
+- [x] 1.1 Release signing config in `apps/android` reading the upload keystore from environment variables, and the debug key when they are not set, so local release builds keep working
+- [x] 1.2 `release-android.yml` (called with `workflow_call`): build the AAB with the version input and build number, upload it with the release notes to the internal track
 
-## 2. Android
+## 2. iOS
 
-- [ ] 2.1 Release signing config in `apps/android` reading the keystore from environment variables
-- [ ] 2.2 `release-android.yml`: build the AAB with version input and run number, upload to the internal track
+- [x] 2.1 `release-ios.yml` (called with `workflow_call`) on a macOS runner: archive and export with automatic signing, `-allowProvisioningUpdates` and the App Store Connect API key for both targets, upload to TestFlight
+- [x] 2.2 Set marketing version and build number from the inputs for both targets
+- [x] 2.3 The release notes as TestFlight's "What to Test"
 
-## 3. iOS
+## 3. Release workflow
 
-- [ ] 3.1 `release-ios.yml` on a macOS runner: import certificate and profile, archive, export, upload to TestFlight
-- [ ] 3.2 Set marketing version and build number from the inputs
+- [x] 3.1 Extract the section for a version from `CHANGELOG.md`, failing when there is none; tests for "Release notes" and "Missing changelog section"
+- [x] 3.2 `release.yml` (`workflow_dispatch` with the version): checks `main` is green ("Failing checks"), extracts the release notes, then calls both platform workflows with version, build number (`github.run_number`) and notes
+- [x] 3.3 A check in `build.yml` that no workflow uses `pull_request_target` and that store secrets appear only in the release workflows ("Pull requests from forks")
+- [x] 3.4 `CHANGELOG.md` gets a section for the first release
 
-## 4. Release workflow
+## 4. Accounts, secrets and first releases (manual, once the developer accounts exist)
 
-- [ ] 4.1 A `release.yml` entry point that checks `main` is green ("Failing checks"), then calls both platform workflows
-- [ ] 4.2 Verify "Successful release" and "Build numbers increase" with two releases to the test tracks
+- [ ] 4.1 Create the Google Play app `com.knoopbyknoop`, an upload keystore and a Play service account; upload the AAB of the first release run by hand, since Play's API cannot create an app's first release
+- [ ] 4.2 Create the app `com.knoopbyknoop` in App Store Connect and an App Store Connect API key with the Admin role
+- [ ] 4.3 Store everything as repository secrets and document their names in CONTRIBUTING.md
+- [ ] 4.4 Verify "Successful release", "Build numbers increase" and "Release notes" with two releases to the test tracks
