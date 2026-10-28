@@ -7,7 +7,7 @@ Lets users find a place by name or address and jump there on the map, so they ca
 ## Requirements
 
 ### Requirement: Search while typing
-The map SHALL offer a search field. While the user types, the app SHALL list matching places, stations, addresses and businesses, each with its name and enough of its address or type to tell similar hits apart. On Android, the field SHALL be shown at the top of the map, with the hits right below it. On iOS, the field SHALL be shown at the bottom of the map, right above the waypoint sheet in portrait, with the hits above the field; while the user types, the field and the hits SHALL stay above the keyboard.
+The map SHALL offer a search field. While the user types, the app SHALL list matching places, stations, addresses and businesses, each with its name and enough of its address or type to tell similar hits apart. On Android, the field SHALL be shown at the top of the map, with the hits right below it. On iOS, the field SHALL be shown at the bottom of the map, right above the waypoint sheet in portrait, with the hits above the field; while the user types, the field and the hits SHALL stay above the on-screen keyboard, or right above the waypoint sheet when no on-screen keyboard is shown.
 
 #### Scenario: Station
 - **WHEN** the user types "Utrecht Centraal"
@@ -36,6 +36,10 @@ The map SHALL offer a search field. While the user types, the app SHALL list mat
 #### Scenario: Typing on iOS
 - **WHEN** the iPhone is in portrait and the user taps the search field and types "Utrecht Centraal"
 - **THEN** the field moves above the keyboard and the hits are shown above the field, over the map
+
+#### Scenario: Searching with a hardware keyboard on iOS
+- **WHEN** the iPhone is in portrait with a hardware keyboard connected, so no on-screen keyboard comes up, and the user taps the search field and types "Utrecht Centraal"
+- **THEN** the field stays right above the waypoint sheet, the sheet keeps its height, and the hits are shown above the field, over the map
 
 #### Scenario: Back above the sheet on iOS
 - **WHEN** the iPhone shows hits and the user taps a hit or clears the search
