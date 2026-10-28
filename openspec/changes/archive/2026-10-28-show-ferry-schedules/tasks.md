@@ -26,4 +26,4 @@
 ## 5. Found during the manual checks
 
 - [x] 5.1 Bundled graphs in a newer format replace installed ones of the same data date: `GraphFile.formatVersion` and the format versions in `NetworkCatalog.bundledToInstall`; tests for "Bundled graph in a newer format" and for not installing the same data and format again; both apps pass the versions; checked on the Android emulator
-- [ ] 5.2 CI passes
+- [x] 5.2 CI passes
