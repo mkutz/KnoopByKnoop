@@ -345,8 +345,9 @@ final class AppModel: ObservableObject {
       || catalog.networks.contains { !$0.hasGeometry }
   }
 
-  /// Installs the bundled graphs of networks that have no installed graph or only an older one, and
-  /// removes stale data, e.g. networks installed per region by earlier app versions.
+  /// Installs the bundled graphs of networks that have no installed graph, only an older one, or the
+  /// same data in an older format, and removes stale data, e.g. networks installed per region by
+  /// earlier app versions.
   private func installBundled() async {
     defer { storage.removeStaleData() }
     guard let directory = Bundle.main.url(forResource: "bundled-networks", withExtension: nil),
@@ -355,8 +356,16 @@ final class AppModel: ObservableObject {
     else { return }  // A debug build without network access bundles nothing.
     let storage = self.storage
     await Task.detached {
+      let graphs = bundled.files.filter { $0.kind == .graph }
+      var installedVersions: [IndexedNetworkType: KotlinInt] = [:]
+      var bundledVersions: [IndexedNetworkType: KotlinInt] = [:]
+      for entry in graphs {
+        installedVersions[entry.network] = storage.graphFormatVersion(network: entry.network).map { KotlinInt(value: Int32($0)) }
+        bundledVersions[entry.network] = NetworkStorage.graphFormatVersion(of: directory.appendingPathComponent(entry.file))
+          .map { KotlinInt(value: Int32($0)) }
+      }
       let toInstall = NetworkCatalog(index: nil, installed: storage.installed(), downloading: Set(), failed: Set())
-        .bundledToInstall(bundled: bundled)
+        .bundledToInstall(bundled: bundled, installedFormatVersions: installedVersions, bundledFormatVersions: bundledVersions)
       for entry in toInstall {
         guard let data = try? Data(contentsOf: directory.appendingPathComponent(entry.file)),
           NetworkInstaller.shared.checkGraph(entry: entry, bytes: Data_iosKt.byteArrayOf(data: data)) is InstallCheckValid<GraphFile>

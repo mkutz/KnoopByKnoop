@@ -80,16 +80,31 @@ class NetworkCatalog(
 
   /**
    * The bundled graphs to install on start, see `network-sync` "Bundled graphs": those whose
-   * network has no installed graph yet, only an older one, or one of another area.
+   * network has no installed graph yet, only an older one, one of another area, or one with the
+   * same data in an older file format, e.g. without the ferries.
+   *
+   * @param installedFormatVersions the format version of each installed graph, see
+   *   [GraphFile.formatVersion]
+   * @param bundledFormatVersions the format version of each bundled graph
    */
-  fun bundledToInstall(bundled: NetworkIndex): List<NetworkIndexEntry> =
+  fun bundledToInstall(
+    bundled: NetworkIndex,
+    installedFormatVersions: Map<IndexedNetworkType, Int> = mapOf(),
+    bundledFormatVersions: Map<IndexedNetworkType, Int> = mapOf(),
+  ): List<NetworkIndexEntry> =
     bundled.files
       .filter { it.kind == IndexedFileKind.GRAPH }
       .filter { entry ->
         val installedGraph = installedFile(entry.network, IndexedFileKind.GRAPH)
+        val installedVersion = installedFormatVersions[entry.network]
+        val bundledVersion = bundledFormatVersions[entry.network]
         installedGraph == null ||
           installedGraph.area != entry.area ||
-          installedGraph.dataDate < entry.dataDate
+          installedGraph.dataDate < entry.dataDate ||
+          (installedGraph.dataDate == entry.dataDate &&
+            installedVersion != null &&
+            bundledVersion != null &&
+            installedVersion < bundledVersion)
       }
       .sortedWith(FETCH_ORDER)
 

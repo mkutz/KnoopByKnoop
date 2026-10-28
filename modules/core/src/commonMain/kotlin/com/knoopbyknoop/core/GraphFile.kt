@@ -86,6 +86,20 @@ class GraphFile(
 
     private val NETWORK_CODES = mapOf(NetworkType.CYCLING to 0, NetworkType.HIKING to 1)
 
+    /** How many bytes from the start of a graph file [formatVersion] needs. */
+    const val HEADER_SIZE = 5
+
+    /**
+     * The format version of the graph file starting with [header], or `null` if it is not a graph
+     * file, without reading the whole file.
+     */
+    fun formatVersion(header: ByteArray): Int? =
+      if (header.size >= HEADER_SIZE && header.copyOf(MAGIC.size).contentEquals(MAGIC)) {
+        header[MAGIC.size].toInt() and 0xFF
+      } else {
+        null
+      }
+
     /** @throws GraphFormatException if [bytes] are not a graph file of a supported version */
     @Throws(GraphFormatException::class)
     fun read(bytes: ByteArray): GraphFile {

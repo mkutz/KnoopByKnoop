@@ -44,6 +44,10 @@ The ferry details live on the graph as `NetworkGraph.ferries: Map<Connection, Fe
 
 Without `opening_hours`, a `seasonal` tag other than `no` is mentioned in the note, e.g. "Seasonal (summer). Operating times not known, check before you go". A route that crosses the same ferry twice, e.g. a round trip, lists it at each crossing. The texts are built in the core (`RouteFerry`), so both apps show the same.
 
+### Bundled graphs in a newer format
+
+*Found during the manual checks:* the iPhone showed no ferries after installing the new build. The bundled version 2 graph has the same data date as the installed version 1 graph, and bundled graphs only replaced installed ones with an older data date, so the ferries only came with the next daily sync. A bundled graph now also replaces an installed one of the same data date and area when its format version is higher. The apps read the version from the first five bytes of both files (`GraphFile.formatVersion`) and pass both to `NetworkCatalog.bundledToInstall`. Alternative: replacing whenever the checksums differ. A later build of the same publication, downloaded after the app was built, would then be swapped with the bundled one on every start and back with every sync.
+
 ## Risks / Trade-offs
 
 - **[Risk] Few ferries have times or fees in OpenStreetMap.** → The list still shows which ferries the route uses, and says when times are unknown. The build's log shows the coverage, and missing data can be added in OpenStreetMap.

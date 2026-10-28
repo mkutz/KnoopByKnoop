@@ -36,6 +36,20 @@ final class NetworkStorage: @unchecked Sendable {
     return try? GraphFile.companion.read(bytes: Data_iosKt.byteArrayOf(data: data))
   }
 
+  /// The format version of the installed graph, or `nil` if none is installed.
+  func graphFormatVersion(network: IndexedNetworkType) -> Int? {
+    guard let entry = entry(network, .graph) else { return nil }
+    return Self.graphFormatVersion(of: fileOf(entry))
+  }
+
+  /// The format version of the graph file at `url`, read from its first bytes only.
+  static func graphFormatVersion(of url: URL) -> Int? {
+    guard let handle = try? FileHandle(forReadingFrom: url) else { return nil }
+    defer { try? handle.close() }
+    guard let header = try? handle.read(upToCount: Int(GraphFile.companion.HEADER_SIZE)) else { return nil }
+    return GraphFile.companion.formatVersion(header: Data_iosKt.byteArrayOf(data: header))?.intValue
+  }
+
   /// The installed geometry, or `nil` if none belongs to the installed graph.
   func geometry(network: IndexedNetworkType, graphFile: GraphFile) -> NetworkGeometry? {
     guard let graphEntry = entry(network, .graph),

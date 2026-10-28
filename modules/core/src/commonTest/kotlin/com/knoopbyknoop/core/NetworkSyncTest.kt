@@ -136,6 +136,45 @@ class NetworkSyncTest {
   }
 
   @Test
+  fun `bundled graph in a newer format`() {
+    val installed =
+      bundled.files.map { it.copy(sha256 = sha256Hex("version 1".encodeToByteArray())) }
+    val installedVersions = mapOf(IndexedNetworkType.CYCLING to 1, IndexedNetworkType.HIKING to 2)
+    val bundledVersions = mapOf(IndexedNetworkType.CYCLING to 2, IndexedNetworkType.HIKING to 2)
+
+    val toInstall =
+      NetworkCatalog(index = null, installed)
+        .bundledToInstall(bundled, installedVersions, bundledVersions)
+
+    assertEquals(listOf("cycling.graph"), toInstall.map { it.file })
+  }
+
+  @Test
+  fun `bundled graph of the same data and format is not installed again`() {
+    // E.g. a later build of the same publication, downloaded after the app was built.
+    val installed =
+      bundled.files.map { it.copy(sha256 = sha256Hex("later build".encodeToByteArray())) }
+    val versions = mapOf(IndexedNetworkType.CYCLING to 2, IndexedNetworkType.HIKING to 2)
+
+    val toInstall =
+      NetworkCatalog(index = null, installed).bundledToInstall(bundled, versions, versions)
+
+    assertEquals(listOf(), toInstall)
+  }
+
+  @Test
+  fun `the format version is read from the start of a graph file`() {
+    val version1 = graphBytes.copyOf().also { it[4] = 1 }
+
+    assertEquals(
+      GraphFile.FORMAT_VERSION,
+      GraphFile.formatVersion(graphBytes.copyOf(GraphFile.HEADER_SIZE)),
+    )
+    assertEquals(1, GraphFile.formatVersion(version1))
+    assertEquals(null, GraphFile.formatVersion("not a graph".encodeToByteArray()))
+  }
+
+  @Test
   fun `bundled graphs replace older installed ones`() {
     val installed = publication("2026-10-19").files
 

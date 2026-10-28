@@ -11,6 +11,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.knoopbyknoop.core.GraphFile
 import com.knoopbyknoop.core.IndexedFileKind
 import com.knoopbyknoop.core.IndexedNetworkType
 import com.knoopbyknoop.core.InstallCheck
@@ -58,8 +59,9 @@ class NetworkSync(private val context: Context) {
   }
 
   /**
-   * Installs the bundled graphs of networks that have no installed graph or only an older one, and
-   * removes stale data, e.g. networks installed per region by earlier app versions.
+   * Installs the bundled graphs of networks that have no installed graph, only an older one, or the
+   * same data in an older format, and removes stale data, e.g. networks installed per region by
+   * earlier app versions.
    */
   fun installBundled() {
     try {
@@ -78,7 +80,24 @@ class NetworkSync(private val context: Context) {
       } catch (exception: IOException) {
         return // A debug build without network access bundles nothing.
       }
-    val toInstall = NetworkCatalog(index = null, storage.installed()).bundledToInstall(bundled)
+    val graphs = bundled.files.filter { it.kind == IndexedFileKind.GRAPH }
+    val installedVersions =
+      graphs
+        .mapNotNull { entry ->
+          storage.graphFormatVersion(entry.network)?.let { entry.network to it }
+        }
+        .toMap()
+    val bundledVersions =
+      graphs
+        .mapNotNull { entry ->
+          val header =
+            NetworkStorage.readHeader(context.assets.open("$BUNDLED_DIRECTORY/${entry.file}"))
+          GraphFile.formatVersion(header)?.let { entry.network to it }
+        }
+        .toMap()
+    val toInstall =
+      NetworkCatalog(index = null, storage.installed())
+        .bundledToInstall(bundled, installedVersions, bundledVersions)
     for (entry in toInstall) {
       val bytes = context.assets.open("$BUNDLED_DIRECTORY/${entry.file}").use { it.readBytes() }
       if (NetworkInstaller.checkGraph(entry, bytes) is InstallCheck.Valid) {

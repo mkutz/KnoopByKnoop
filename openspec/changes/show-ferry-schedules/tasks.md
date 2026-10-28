@@ -20,5 +20,10 @@
 ## 4. Data and checks
 
 - [x] 4.1 Run `update-network-data`; record the logged ferry coverage in `manual-checks.md`
-- [ ] 4.2 Manual checks in `manual-checks.md` with a real route over a ferry, on the Android emulator and by the maintainer on iOS: "Route over a ferry", "Ferry without known times", "Several ferries", "Route without ferries", "Offline"
+- [x] 4.2 Manual checks in `manual-checks.md` with a real route over a ferry, on the Android emulator and by the maintainer on iOS: "Route over a ferry", "Ferry without known times", "Several ferries", "Route without ferries", "Offline"
 - [x] 4.3 CI passes
+
+## 5. Found during the manual checks
+
+- [x] 5.1 Bundled graphs in a newer format replace installed ones of the same data date: `GraphFile.formatVersion` and the format versions in `NetworkCatalog.bundledToInstall`; tests for "Bundled graph in a newer format" and for not installing the same data and format again; both apps pass the versions; checked on the Android emulator
+- [ ] 5.2 CI passes

@@ -9,6 +9,7 @@ import com.knoopbyknoop.core.NetworkIndex
 import com.knoopbyknoop.core.NetworkIndexEntry
 import com.knoopbyknoop.core.RouteSnapshot
 import java.io.File
+import java.io.InputStream
 import org.json.JSONObject
 
 /**
@@ -31,6 +32,13 @@ class NetworkStorage(private val directory: File) {
 
   fun graph(network: IndexedNetworkType): GraphFile? =
     graphEntry(network)?.let { GraphFile.read(fileOf(it).readBytes()) }
+
+  /** The format version of the installed graph, or `null` if none is installed. */
+  fun graphFormatVersion(network: IndexedNetworkType): Int? =
+    graphEntry(network)?.let { entry ->
+      val file = fileOf(entry)
+      if (file.exists()) GraphFile.formatVersion(readHeader(file.inputStream())) else null
+    }
 
   /** The installed geometry, or `null` if none belongs to the installed graph. */
   fun geometry(network: IndexedNetworkType, graphFile: GraphFile): NetworkGeometry? {
@@ -129,6 +137,21 @@ class NetworkStorage(private val directory: File) {
     installed().firstOrNull { it.network == network && it.kind == kind }
 
   private fun fileOf(entry: NetworkIndexEntry) = File(networksDirectory, entry.file)
+
+  companion object {
+
+    /** The first bytes of a graph file, enough for [GraphFile.formatVersion]. */
+    fun readHeader(input: InputStream): ByteArray = input.use { stream ->
+      val header = ByteArray(GraphFile.HEADER_SIZE)
+      var read = 0
+      while (read < header.size) {
+        val count = stream.read(header, read, header.size - read)
+        if (count < 0) break
+        read += count
+      }
+      header.copyOf(read)
+    }
+  }
 
   private fun saveInstalled(entries: List<NetworkIndexEntry>) {
     val index =
