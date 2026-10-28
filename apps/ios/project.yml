@@ -17,8 +17,11 @@ targets:
     platform: iOS
     sources:
       - KnoopByKnoop
+      # The Live Activity's attributes and Stop intent, shared with the widget extension.
+      - Shared
     dependencies:
       - package: MapLibre
+      - target: KnoopByKnoopWidgets
     configFiles:
       Debug: Signing.xcconfig
       Release: Signing.xcconfig
@@ -29,6 +32,10 @@ targets:
       properties:
         UILaunchScreen:
           UIImageName: LaunchLogo
+        # Navigation keeps running and speaking with the screen locked, see `knot-navigation` and
+        # openspec/changes/add-knot-navigation/spike.md: `audio` is needed to speak while locked.
+        UIBackgroundModes: [location, audio]
+        NSSupportsLiveActivities: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.knoopbyknoop
@@ -36,6 +43,7 @@ targets:
         CURRENT_PROJECT_VERSION: 1
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Knoop by Knoop
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Navigation follows your position to tell you the number to follow at the next knot.
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         # The Kotlin core framework, built by the pre-build script below.
         FRAMEWORK_SEARCH_PATHS: $(SRCROOT)/../../modules/core/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
@@ -47,6 +55,30 @@ targets:
       - name: Build Kotlin core
         basedOnDependencyAnalysis: false
         script: '"$SRCROOT/build-core.sh"'
+
+  # The Live Activity while navigating, on the lock screen and in the Dynamic Island. It shows the
+  # strings the app passes and does not link the core.
+  KnoopByKnoopWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - KnoopByKnoopWidgets
+      - Shared
+    configFiles:
+      Debug: Signing.xcconfig
+      Release: Signing.xcconfig
+    info:
+      path: KnoopByKnoopWidgets/Info.plist
+      properties:
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.knoopbyknoop.widgets
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 1
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Knoop by Knoop
 
 # Defined here, so they survive regenerating the project; schemes edited in Xcode do not.
 schemes:

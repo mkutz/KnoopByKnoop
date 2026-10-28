@@ -15,6 +15,7 @@ Network data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contrib
 - Show the cycling or hiking network on a map, along the actual paths
 - Plan a route by tapping knots: start, end and stops anywhere in between; reorder and remove stops in the waypoint list
 - Keep the current route when the app is closed
+- Navigate a planned route knot by knot: the app tells you the number to follow at the next knot, by voice and on the lock screen, so the screen can stay off
 - Work offline once a region is downloaded (the base map needs network access)
 
 > Work in progress. See [`openspec/changes`](openspec/changes) for what is being built next.

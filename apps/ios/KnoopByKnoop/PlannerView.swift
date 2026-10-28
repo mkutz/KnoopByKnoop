@@ -8,6 +8,7 @@ import SwiftUI
 struct PlannerView: View {
 
   @ObservedObject var model: AppModel
+  @ObservedObject private var navigator = Navigator.shared
   @State private var pendingNetwork: IndexedNetworkType?
   @State private var showInfo = false
   @State private var detent: PresentationDetent = smallestDetent
@@ -101,7 +102,9 @@ struct PlannerView: View {
         initialPlace: model.initialPlace,
         onLeave: model.saveCamera,
         marker: model.marker,
-        onMove: model.mapMoved
+        onMove: model.mapMoved,
+        position: navigator.state?.position,
+        nextKnot: navigator.state?.navigation?.nextKnot
       )
       .ignoresSafeArea()
       // While typing in landscape, the hits need the room up to the top, see `place-search`.
@@ -212,6 +215,7 @@ private struct WaypointSheet: View {
 
   @ObservedObject var model: AppModel
   let session: PlanningSession
+  @ObservedObject private var navigator = Navigator.shared
   @State private var rows: [WaypointRow] = []
 
   var body: some View {
@@ -220,12 +224,17 @@ private struct WaypointSheet: View {
       // The header stays in place; below it, the ferries and the waypoints scroll together, see
       // `map-planning` "Long routes in the panel".
       VStack(alignment: .leading, spacing: 8) {
-        HStack(alignment: .firstTextBaseline) {
-          summary
-          Spacer()
-          // Side by side, so the header stays one row and the badges fit into the smallest sheet.
-          if session.canReturnToStart { Button("Back to start") { model.returnToStart() } }
-          if !session.waypoints.isEmpty { Button("Clear") { model.clear() } }
+        if let navigation = navigator.state {
+          NavigationHeader(state: navigation) { model.stopNavigation() }
+        } else {
+          HStack(alignment: .firstTextBaseline) {
+            summary
+            Spacer()
+            // Side by side, so the header stays one row and the badges fit into the smallest sheet.
+            if session.canReturnToStart { Button("Back to start") { model.returnToStart() } }
+            if !session.waypoints.isEmpty { Button("Clear") { model.clear() } }
+            if model.canNavigate { Button("Navigate") { model.startNavigation() } }
+          }
         }
         if let complete { RouteKnots(description: complete) }
       }
@@ -244,7 +253,8 @@ private struct WaypointSheet: View {
             KnotBadge(ref: row.knot.ref, role: role(index)).frame(width: 40)
             Text(role(index).name.lowercased().capitalized).font(.body)
           }
-          .deleteDisabled(!session.canRemoveWaypoints)
+          .deleteDisabled(!session.canRemoveWaypoints || navigator.state != nil)
+          .moveDisabled(navigator.state != nil)
           .listRowBackground(Color.clear)
         }
         .onMove { source, destination in
@@ -307,6 +317,35 @@ private struct RouteKnots: View {
       }
       // Room for the larger badges of the waypoints and their rings.
       .padding(.vertical, 2)
+    }
+  }
+}
+
+/// The number to follow at the next knot as the most prominent information, and Stop, see
+/// `knot-navigation` "Number to follow".
+private struct NavigationHeader: View {
+
+  let state: NavigationState
+  let onStop: () -> Void
+
+  var body: some View {
+    HStack(alignment: .center) {
+      if let display = state.navigation?.display {
+        if display.offRoute {
+          Text(display.offRouteText).font(.title2.bold()).foregroundStyle(.red)
+        } else if let follow = display.follow {
+          HStack(alignment: .firstTextBaseline, spacing: 10) {
+            Text("At \(display.next) follow").font(.title2)
+            Text(follow).font(.system(size: 44, weight: .bold)).foregroundStyle(Color.knoopGreen)
+          }
+        } else {
+          Text(display.text).font(.title2.bold())
+        }
+      } else {
+        Text("Waiting for your position…").font(.headline)
+      }
+      Spacer()
+      Button("Stop", action: onStop)
     }
   }
 }

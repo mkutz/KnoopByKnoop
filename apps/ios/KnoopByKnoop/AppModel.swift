@@ -99,7 +99,34 @@ final class AppModel: ObservableObject {
     Task { await sync() }
   }
 
+  /// Whether a route is being navigated; the route is fixed meanwhile, see `knot-navigation` "Route
+  /// is fixed while navigating".
+  var navigating: Bool { Navigator.shared.state != nil }
+
+  /// Whether the route can be navigated: it is complete, see `knot-navigation` "Start navigation".
+  var canNavigate: Bool { !navigating && routeDescription is RouteDescriptionComplete }
+
+  /// Starts navigating the planned route, asking for location access first.
+  func startNavigation() {
+    guard let session, let loaded,
+      let knots = (session.route?.summary as? RouteSummaryComplete)?.knots,
+      let description = routeDescription as? RouteDescriptionComplete
+    else { return }
+    Navigator.shared.onDenied = { [weak self] in
+      self?.message = "Knoop by Knoop needs location access to navigate. You can allow it in Settings."
+    }
+    Navigator.shared.start(
+      NavigationRoute(
+        knots: knots, roles: description.knots.map { BadgeRole($0.role) }, graph: session.graph,
+        geometry: loaded.hasGeometry ? loaded.geometry : nil))
+  }
+
+  func stopNavigation() {
+    Navigator.shared.stop()
+  }
+
   func switchNetwork(_ network: IndexedNetworkType) {
+    guard !navigating else { return }
     storage.saveRoute(nil)
     self.network = network
     // The map stays until the other network is loaded, so it keeps its place; without a loaded
@@ -138,6 +165,7 @@ final class AppModel: ObservableObject {
   /// Applies a planning change and prepares its map layers off the main thread: routing on a large
   /// network takes long enough to make the screen stutter. Changes run one after the other.
   private func change(_ apply: @escaping @Sendable (PlanningSession) -> PlanningSession?) {
+    guard !navigating else { return }
     let previous = changes
     changes = Task {
       await previous?.value

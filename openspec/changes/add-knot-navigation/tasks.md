@@ -20,27 +20,27 @@
 
 ## 3. Android
 
-- [ ] 3.1 Permissions in the manifest, the runtime request on Navigate, and the message when location access is denied ("Location access denied")
-- [ ] 3.2 `NavigationService` (foreground, type `location`) with the fused location provider, mapping the core's precision, and a process-wide holder shared with `AppViewModel`; check on the emulator with simulated fixes that navigation keeps running with the screen off
-- [ ] 3.3 Ongoing notification with "At 45 follow 12", off route, and a Stop action ("Lock screen", "Off route outside the app", "Stop from the lock screen")
-- [ ] 3.4 `TextToSpeech` with navigation guidance usage and ducking audio focus ("Screen off", "Music playing")
-- [ ] 3.5 Planner: Navigate button for a complete route, the header with "At 45 follow 12" and Stop while navigating, the waypoint list and knot taps locked ("Tapping a knot while navigating", "Stopping in the app")
-- [ ] 3.6 Map: the rider's position as a point layer from the navigation's fixes and the next knot highlighted ("Looking at the map", "Off route on the map")
+- [x] 3.1 Permissions in the manifest, the runtime request on Navigate, and the message when location access is denied ("Location access denied")
+- [x] 3.2 `NavigationService` (foreground, type `location`) with the fused location provider, mapping the core's precision, and a process-wide holder shared with `AppViewModel`; check on the emulator with simulated fixes that navigation keeps running with the screen off
+- [x] 3.3 Ongoing notification with "At 45 follow 12", off route, and a Stop action ("Lock screen", "Off route outside the app", "Stop from the lock screen")
+- [x] 3.4 `TextToSpeech` with navigation guidance usage and ducking audio focus ("Screen off", "Music playing")
+- [x] 3.5 Planner: Navigate button for a complete route, the header with "At 45 follow 12" and Stop while navigating, the waypoint list and knot taps locked ("Tapping a knot while navigating", "Stopping in the app")
+- [x] 3.6 Map: the rider's position as a point layer from the navigation's fixes and the next knot highlighted ("Looking at the map", "Off route on the map")
 
 ## 4. iOS
 
-- [ ] 4.1 Location usage description, the "when in use" request on Navigate, and the message when access is denied ("Location access denied")
-- [ ] 4.2 Background location with `CLBackgroundActivitySession`, mapping the core's precision; check with `simctl location` that navigation keeps running in the background
-- [ ] 4.3 Widget extension target in `project.yml` with the Live Activity for the lock screen and the Dynamic Island (compact, minimal, expanded) and Stop as a `LiveActivityIntent` ("Lock screen", "Dynamic Island", "Off route outside the app", "Stop from the lock screen")
-- [ ] 4.4 `AVSpeechSynthesizer` with a `.voicePrompt` audio session that ducks other audio ("Screen off", "Music playing")
-- [ ] 4.5 Planner: Navigate button, the header while navigating, editing and knot taps locked ("Tapping a knot while navigating", "Stopping in the app")
-- [ ] 4.6 Map: the rider's position and the next knot highlighted ("Looking at the map", "Off route on the map")
+- [x] 4.1 Location usage description, the "when in use" request on Navigate, and the message when access is denied ("Location access denied")
+- [x] 4.2 Background location with `CLBackgroundActivitySession`, mapping the core's precision; check with `simctl location` that navigation keeps running in the background
+- [x] 4.3 Widget extension target in `project.yml` with the Live Activity for the lock screen and the Dynamic Island (compact, minimal, expanded) and Stop as a `LiveActivityIntent` ("Lock screen", "Dynamic Island", "Off route outside the app", "Stop from the lock screen")
+- [x] 4.4 `AVSpeechSynthesizer` with a `.voicePrompt` audio session that ducks other audio ("Screen off", "Music playing")
+- [x] 4.5 Planner: Navigate button, the header while navigating, editing and knot taps locked ("Tapping a knot while navigating", "Stopping in the app")
+- [x] 4.6 Map: the rider's position and the next knot highlighted ("Looking at the map", "Off route on the map")
 
 ## 5. Checks and docs
 
-- [ ] 5.1 Both apps build; `./gradlew check` passes; `xcodebuild` builds both iOS targets
+- [x] 5.1 Both apps build; `./gradlew check` passes; `xcodebuild` builds both iOS targets
 - [ ] 5.2 CI passes
-- [ ] 5.3 `README.md` "What the apps can do" lists navigation
+- [x] 5.3 `README.md` "What the apps can do" lists navigation
 - [ ] 5.4 Manual checks in `manual-checks.md` for the scenarios that depend on the platforms (permissions, screen off, notification, Live Activity, Dynamic Island, speech and ducking, map, Stop, "Arriving" end to end): on the Android emulator with a simulated ride, and by the maintainer on the iPhone on a real ride
 - [ ] 5.5 Battery: the maintainer navigates for at least one hour with the screen off on the iPhone and records the battery drop in `manual-checks.md` ("One hour with the screen off", at most 5 percentage points); tune the core's thresholds if needed
 

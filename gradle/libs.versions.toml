@@ -9,6 +9,7 @@ kotlinx-serialization = "1.12.0"
 ktfmt = "0.64"
 maplibre-android = "13.7.1"
 osmpbf = "1.8.0"
+play-services-location = "21.4.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
@@ -20,6 +21,7 @@ kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotl
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 maplibre-android = { module = "org.maplibre.gl:android-sdk", version.ref = "maplibre-android" }
 osmpbf = { module = "org.openstreetmap.pbf:osmpbf", version.ref = "osmpbf" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "play-services-location" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

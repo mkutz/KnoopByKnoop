@@ -21,6 +21,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.knoopbyknoop.core.Fix
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.NetworkGraph
 import com.knoopbyknoop.core.PlaceHit
@@ -55,7 +56,13 @@ private const val BASE_MAP_TIMEOUT_MILLIS = 3_000L
 /** The zoom level a search hit is shown at: streets and knots around it are easy to tap. */
 private const val SEARCH_HIT_ZOOM = 14.0
 
+/** The zoom when navigation begins: close enough to see the next knot and the way to it. */
+private const val NAVIGATION_ZOOM = 15.0
+
 private const val MARKER_RED = "#D93025"
+
+/** The rider's position, in the blue maps commonly use for it. */
+private const val POSITION_BLUE = "#1A73E8"
 
 /** Knots are drawn and can be tapped from this zoom level on; below it the route is a line only. */
 private const val KNOT_MIN_ZOOM = 10.0
@@ -88,6 +95,10 @@ fun NetworkMap(
   marker: PlaceHit?,
   onMove: (CameraPlace) -> Unit,
   modifier: Modifier = Modifier,
+  /** The rider's position while navigating, see `knot-navigation` "Position on the map". */
+  position: Fix? = null,
+  /** The next knot while navigating, highlighted. */
+  nextKnot: Knot? = null,
 ) {
   val context = LocalContext.current
   val touchTargetPixels = with(LocalDensity.current) { TOUCH_TARGET_DP * density }
@@ -141,6 +152,7 @@ fun NetworkMap(
   holder.show(graph, layers, focus)
   // A chosen search hit: the map moves there, close enough to tap knots, see `place-search`.
   LaunchedEffect(marker) { holder.showMarker(marker) }
+  LaunchedEffect(position, nextKnot) { holder.showNavigation(position, nextKnot) }
   // The offline style has no base map; it is loaded as soon as network access is back.
   LaunchedEffect(online) { if (online && holder.usesOfflineStyle) holder.loadBaseMap() }
 
@@ -148,7 +160,10 @@ fun NetworkMap(
   DisposableEffect(lifecycle) {
     val observer = LifecycleEventObserver { _, event ->
       when (event) {
-        Lifecycle.Event.ON_START -> mapView.onStart()
+        Lifecycle.Event.ON_START -> {
+          mapView.onStart()
+          holder.findRider = true
+        }
         Lifecycle.Event.ON_RESUME -> mapView.onResume()
         Lifecycle.Event.ON_PAUSE -> mapView.onPause()
         Lifecycle.Event.ON_STOP -> {
@@ -237,6 +252,7 @@ private class MapHolder {
     shownLayers = null
     addLayers(loaded)
     updateMarker(loaded)
+    updateNavigation(loaded)
     update()
   }
 
@@ -254,6 +270,46 @@ private class MapHolder {
         )
       )
     }
+  }
+
+  private var position: Fix? = null
+  private var nextKnot: Knot? = null
+
+  /** Whether the map moves to the rider with the next position, e.g. after the app was opened. */
+  var findRider = false
+
+  /**
+   * Shows the rider and the next knot; when navigation begins or the app is opened while
+   * navigating, the map moves to the rider, see `knot-navigation` "Looking at the map".
+   */
+  fun showNavigation(newPosition: Fix?, newNextKnot: Knot?) {
+    val begins = newPosition != null && (position == null || findRider)
+    if (begins) findRider = false
+    position = newPosition
+    nextKnot = newNextKnot
+    style?.let { updateNavigation(it) }
+    if (begins && newPosition != null) {
+      map?.let {
+        it.animateCamera(
+          CameraUpdateFactory.newLatLngZoom(
+            LatLng(newPosition.latitude, newPosition.longitude),
+            maxOf(it.cameraPosition.zoom, NAVIGATION_ZOOM),
+          )
+        )
+      }
+    }
+  }
+
+  private fun updateNavigation(style: Style) {
+    fun point(latitude: Double, longitude: Double) =
+      """{"type": "Point", "coordinates": [$longitude, $latitude]}"""
+    val empty = """{"type": "FeatureCollection", "features": []}"""
+    style
+      .getSourceAs<GeoJsonSource>("position")
+      ?.setGeoJson(position?.let { point(it.latitude, it.longitude) } ?: empty)
+    style
+      .getSourceAs<GeoJsonSource>("next-knot")
+      ?.setGeoJson(nextKnot?.let { point(it.latitude, it.longitude) } ?: empty)
   }
 
   private fun updateMarker(style: Style) {
@@ -344,9 +400,10 @@ private class MapHolder {
   }
 
   private fun addLayers(style: Style) {
-    listOf("connections", "marker", "route", "route-knots", "knots").forEach {
-      style.addSource(GeoJsonSource(it))
-    }
+    listOf("connections", "marker", "route", "next-knot", "route-knots", "knots", "position")
+      .forEach {
+        style.addSource(GeoJsonSource(it))
+      }
     style.addImage("route-arrow", arrowBitmap())
     // The chosen search hit, drawn under route and knots, so it never hides a knot.
     style.addLayer(
@@ -409,6 +466,17 @@ private class MapHolder {
         )
         .apply { minZoom = KNOT_MIN_ZOOM.toFloat() }
     )
+    // The next knot while navigating: a ring under its badge.
+    style.addLayer(
+      CircleLayer("next-knot", "next-knot")
+        .withProperties(
+          PropertyFactory.circleRadius(26f),
+          PropertyFactory.circleColor(ORANGE),
+          PropertyFactory.circleOpacity(0.35f),
+          PropertyFactory.circleStrokeColor(ORANGE),
+          PropertyFactory.circleStrokeWidth(3f),
+        )
+    )
     // Route knots are drawn above the network's knots, with a badge per role.
     style.addLayer(
       SymbolLayer("route-knots", "route-knots")
@@ -425,6 +493,16 @@ private class MapHolder {
           PropertyFactory.iconIgnorePlacement(true),
         )
         .apply { minZoom = KNOT_MIN_ZOOM.toFloat() }
+    )
+    // The rider's position while navigating, above everything else.
+    style.addLayer(
+      CircleLayer("position", "position")
+        .withProperties(
+          PropertyFactory.circleRadius(9f),
+          PropertyFactory.circleColor(POSITION_BLUE),
+          PropertyFactory.circleStrokeColor("#FFFFFF"),
+          PropertyFactory.circleStrokeWidth(3f),
+        )
     )
   }
 }

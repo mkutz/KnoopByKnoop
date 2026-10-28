@@ -18,6 +18,9 @@ private let baseMapTimeout: TimeInterval = 3
 /// The zoom level a search hit is shown at: streets and knots around it are easy to tap.
 private let searchHitZoom = 14.0
 
+/// The zoom when navigation begins: close enough to see the next knot and the way to it.
+private let navigationZoom = 15.0
+
 /// Knots are drawn and can be tapped from this zoom level on.
 private let knotMinimumZoom = 10.0
 
@@ -53,6 +56,10 @@ struct NetworkMapView: UIViewRepresentable {
   let marker: PlaceHit?
   /// Called with the map's place whenever it stopped moving.
   let onMove: (CameraPlace) -> Void
+  /// The rider's position while navigating, see `knot-navigation` "Position on the map".
+  var position: Fix? = nil
+  /// The next knot while navigating, highlighted.
+  var nextKnot: Knot? = nil
 
   func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -119,6 +126,7 @@ struct NetworkMapView: UIViewRepresentable {
     context.coordinator.onLeave = onLeave
     context.coordinator.onMove = onMove
     context.coordinator.showMarker(marker, on: mapView)
+    context.coordinator.showNavigation(position: position, nextKnot: nextKnot, on: mapView)
     if online && context.coordinator.usesOfflineStyle {
       context.coordinator.usesOfflineStyle = false
       mapView.styleURL = baseMapStyle
@@ -143,6 +151,40 @@ struct NetworkMapView: UIViewRepresentable {
           CLLocationCoordinate2D(latitude: newMarker.latitude, longitude: newMarker.longitude),
           zoomLevel: searchHitZoom, animated: true)
       }
+    }
+
+    private var position: Fix?
+    private var nextKnot: Knot?
+
+    /// Whether the map moves to the rider with the next position, e.g. after the app was opened.
+    var findRider = false
+
+    /// Shows the rider and the next knot; when navigation begins or the app is opened while
+    /// navigating, the map moves to the rider, see `knot-navigation` "Looking at the map".
+    func showNavigation(position newPosition: Fix?, nextKnot newNextKnot: Knot?, on mapView: MLNMapView) {
+      guard newPosition !== position || newNextKnot !== nextKnot else { return }
+      let begins = newPosition != nil && (position == nil || findRider)
+      if begins { findRider = false }
+      position = newPosition
+      nextKnot = newNextKnot
+      updateNavigation()
+      if begins, let newPosition {
+        mapView.setCenter(
+          CLLocationCoordinate2D(latitude: newPosition.latitude, longitude: newPosition.longitude),
+          zoomLevel: max(mapView.zoomLevel, navigationZoom), animated: true)
+      }
+    }
+
+    private func updateNavigation() {
+      func point(_ latitude: Double, _ longitude: Double) -> MLNPointFeature {
+        let point = MLNPointFeature()
+        point.coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        return point
+      }
+      (style?.source(withIdentifier: "position") as? MLNShapeSource)?.shape =
+        position.map { point($0.latitude, $0.longitude) }
+      (style?.source(withIdentifier: "next-knot") as? MLNShapeSource)?.shape =
+        nextKnot.map { point($0.latitude, $0.longitude) }
     }
 
     private func updateMarker() {
@@ -177,7 +219,11 @@ struct NetworkMapView: UIViewRepresentable {
             latitude: mapView.centerCoordinate.latitude, longitude: mapView.centerCoordinate.longitude,
             zoom: mapView.zoomLevel))
       }
+      returning = NotificationCenter.default.addObserver(
+        forName: UIApplication.willEnterForegroundNotification, object: nil, queue: .main
+      ) { [weak self] _ in self?.findRider = true }
     }
+    private var returning: NSObjectProtocol?
     private weak var mapView: MLNMapView?
     private(set) var style: MLNStyle?
     private var graph: NetworkGraph?
@@ -367,6 +413,16 @@ struct NetworkMapView: UIViewRepresentable {
       knots.minimumZoomLevel = Float(knotMinimumZoom)
       style.addLayer(knots)
 
+      // The next knot while navigating: a ring under its badge.
+      let nextKnotSource = MLNShapeSource(identifier: "next-knot", shape: nil)
+      style.addSource(nextKnotSource)
+      let nextKnotLayer = MLNCircleStyleLayer(identifier: "next-knot", source: nextKnotSource)
+      nextKnotLayer.circleRadius = NSExpression(forConstantValue: 22)
+      nextKnotLayer.circleColor = NSExpression(forConstantValue: UIColor(Color.knoopOrange).withAlphaComponent(0.35))
+      nextKnotLayer.circleStrokeColor = NSExpression(forConstantValue: UIColor(Color.knoopOrange))
+      nextKnotLayer.circleStrokeWidth = NSExpression(forConstantValue: 3)
+      style.addLayer(nextKnotLayer)
+
       // Route knots are drawn above the network's knots, with a badge per role.
       let routeKnots = MLNSymbolStyleLayer(identifier: "route-knots", source: sources[2])
       routeKnots.iconImageName = NSExpression(format: "mgl_join({'route-', role, '-', ref})")
@@ -374,6 +430,17 @@ struct NetworkMapView: UIViewRepresentable {
       routeKnots.iconIgnoresPlacement = NSExpression(forConstantValue: true)
       routeKnots.minimumZoomLevel = Float(knotMinimumZoom)
       style.addLayer(routeKnots)
+
+      // The rider's position while navigating, above everything else, in the blue maps use for it.
+      let positionSource = MLNShapeSource(identifier: "position", shape: nil)
+      style.addSource(positionSource)
+      let positionLayer = MLNCircleStyleLayer(identifier: "position", source: positionSource)
+      positionLayer.circleRadius = NSExpression(forConstantValue: 8)
+      positionLayer.circleColor = NSExpression(forConstantValue: UIColor.systemBlue)
+      positionLayer.circleStrokeColor = NSExpression(forConstantValue: UIColor.white)
+      positionLayer.circleStrokeWidth = NSExpression(forConstantValue: 3)
+      style.addLayer(positionLayer)
+      updateNavigation()
     }
 
   }

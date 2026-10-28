@@ -1,6 +1,10 @@
 package com.knoopbyknoop.android
 
+import android.Manifest
 import android.content.res.Configuration
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.horizontalScroll
@@ -47,6 +51,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.knoopbyknoop.core.IndexedNetworkType
@@ -152,6 +157,8 @@ private fun MapArea(
       marker = state.marker,
       onMove = viewModel::mapMoved,
       modifier = Modifier.fillMaxSize(),
+      position = state.navigation?.position,
+      nextKnot = state.navigation?.navigation?.nextKnot,
     )
     Column(modifier = Modifier.align(Alignment.TopStart).padding(12.dp)) {
       PlaceSearchField(state, viewModel)
@@ -210,48 +217,121 @@ private fun MapArea(
 private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
   val session = state.session ?: return
   Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-      Column(modifier = Modifier.weight(1f)) {
-        when (val description = state.description) {
-          RouteDescription.Empty ->
-            Text("Tap a knot to set the start", style = MaterialTheme.typography.titleMedium)
-          is RouteDescription.StartOnly ->
-            Text(
-              "Start at ${description.start}, tap a knot to set the end",
-              style = MaterialTheme.typography.titleMedium,
-            )
-          is RouteDescription.Complete ->
-            Text(description.distance, style = MaterialTheme.typography.titleLarge)
-          is RouteDescription.Unreachable ->
-            Text(
-              "No route for ${description.legs.joinToString()}",
-              style = MaterialTheme.typography.titleMedium,
-              color = MaterialTheme.colorScheme.error,
-            )
+    val navigation = state.navigation
+    if (navigation != null) NavigationHeader(navigation, onStop = viewModel::stopNavigation)
+    else
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(modifier = Modifier.weight(1f)) {
+          when (val description = state.description) {
+            RouteDescription.Empty ->
+              Text("Tap a knot to set the start", style = MaterialTheme.typography.titleMedium)
+            is RouteDescription.StartOnly ->
+              Text(
+                "Start at ${description.start}, tap a knot to set the end",
+                style = MaterialTheme.typography.titleMedium,
+              )
+            is RouteDescription.Complete ->
+              Text(description.distance, style = MaterialTheme.typography.titleLarge)
+            is RouteDescription.Unreachable ->
+              Text(
+                "No route for ${description.legs.joinToString()}",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.error,
+              )
+          }
+        }
+        // Side by side, so the header stays one row and the badges fit into the smallest sheet.
+        Row {
+          if (session.canReturnToStart) {
+            TextButton(onClick = viewModel::returnToStart) { Text("Back to start") }
+          }
+          if (session.waypoints.isNotEmpty())
+            TextButton(onClick = viewModel::clear) { Text("Clear") }
+          if (state.canNavigate) NavigateButton(viewModel)
         }
       }
-      // Side by side, so the header stays one row and the badges fit into the smallest sheet.
-      Row {
-        if (session.canReturnToStart) {
-          TextButton(onClick = viewModel::returnToStart) { Text("Back to start") }
-        }
-        if (session.waypoints.isNotEmpty()) TextButton(onClick = viewModel::clear) { Text("Clear") }
-      }
-    }
     val complete = state.description as? RouteDescription.Complete
     complete?.let { RouteKnots(it) }
     // Below the fixed header, the ferries and the waypoints scroll together, see `map-planning`
     // "Long routes in the panel".
     WaypointList(
       session.waypoints,
-      session.canRemoveWaypoints,
+      session.canRemoveWaypoints && !state.navigating,
       viewModel,
+      editable = !state.navigating,
       modifier = Modifier.weight(1f, fill = false),
     ) {
       if (complete != null && complete.ferries.isNotEmpty()) {
         Box(modifier = Modifier.padding(bottom = 8.dp)) { RouteFerries(complete.ferries) }
       }
     }
+  }
+}
+
+/**
+ * Starts navigation after asking for location access "while in use", see `knot-navigation` "Start
+ * navigation". Notifications are asked for too; without them, navigation runs and speaks, without
+ * the notification.
+ */
+@Composable
+private fun NavigateButton(viewModel: AppViewModel) {
+  val launcher =
+    rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+      granted ->
+      if (granted[Manifest.permission.ACCESS_FINE_LOCATION] == true) viewModel.startNavigation()
+      else viewModel.locationDenied()
+    }
+  TextButton(
+    onClick = {
+      val permissions =
+        listOf(
+          Manifest.permission.ACCESS_FINE_LOCATION,
+          Manifest.permission.ACCESS_COARSE_LOCATION,
+        ) +
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+            listOf(Manifest.permission.POST_NOTIFICATIONS)
+          else listOf()
+      launcher.launch(permissions.toTypedArray())
+    }
+  ) {
+    Text("Navigate")
+  }
+}
+
+/**
+ * The number to follow at the next knot as the most prominent information, and Stop, see
+ * `knot-navigation` "Number to follow".
+ */
+@Composable
+private fun NavigationHeader(navigation: NavigationState, onStop: () -> Unit) {
+  Row(verticalAlignment = Alignment.CenterVertically) {
+    Column(modifier = Modifier.weight(1f)) {
+      val display = navigation.navigation?.display
+      val follow = display?.follow
+      when {
+        display == null ->
+          Text("Waiting for your position…", style = MaterialTheme.typography.titleMedium)
+        display.offRoute ->
+          Text(
+            display.offRouteText,
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.error,
+          )
+        follow != null ->
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("At ${display.next} follow", style = MaterialTheme.typography.titleLarge)
+            Text(
+              follow,
+              style = MaterialTheme.typography.displayMedium,
+              fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.primary,
+              modifier = Modifier.padding(start = 12.dp),
+            )
+          }
+        else -> Text(display.text, style = MaterialTheme.typography.titleLarge)
+      }
+    }
+    TextButton(onClick = onStop) { Text("Stop") }
   }
 }
 
@@ -285,6 +365,7 @@ private fun WaypointList(
   waypoints: List<Knot>,
   canRemove: Boolean,
   viewModel: AppViewModel,
+  editable: Boolean,
   modifier: Modifier = Modifier,
   summary: @Composable () -> Unit,
 ) {
@@ -331,7 +412,8 @@ private fun WaypointList(
             Modifier.fillMaxWidth()
               .height(WAYPOINT_ROW_HEIGHT)
               .background(MaterialTheme.colorScheme.surface)
-              .pointerInput(index, waypoints) {
+              .pointerInput(index, waypoints, editable) {
+                if (!editable) return@pointerInput
                 detectDragGesturesAfterLongPress(
                   onDragStart = {
                     dragged = index

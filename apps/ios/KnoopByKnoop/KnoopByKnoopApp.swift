@@ -6,6 +6,7 @@ struct KnoopByKnoopApp: App {
 
   @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
   @StateObject private var model = AppModel()
+  @Environment(\.scenePhase) private var scenePhase
 
   var body: some Scene {
     WindowGroup {
@@ -17,6 +18,8 @@ struct KnoopByKnoopApp: App {
       ) {
         Button("OK") { model.message = nil }
       }
+      // While the app is visible, the navigation samples live, see `knot-navigation`.
+      .onChange(of: scenePhase) { _, phase in Navigator.shared.visible = phase == .active }
     }
   }
 }

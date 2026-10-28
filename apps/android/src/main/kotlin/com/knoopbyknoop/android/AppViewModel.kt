@@ -23,6 +23,7 @@ import com.knoopbyknoop.core.PlanningSession
 import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteKnot
 import com.knoopbyknoop.core.RouteSnapshot
+import com.knoopbyknoop.core.RouteSummary
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -67,9 +68,20 @@ data class AppState(
   val marker: PlaceHit? = null,
   val message: String? = null,
   val loading: Boolean = false,
+  /** The navigation, or `null` when not navigating, see `knot-navigation`. */
+  val navigation: NavigationState? = null,
 ) {
   val status: NetworkStatus
     get() = catalog.status(network)
+
+  val navigating: Boolean
+    get() = navigation != null
+
+  /**
+   * Whether the route can be navigated: it is complete, see `knot-navigation` "Start navigation".
+   */
+  val canNavigate: Boolean
+    get() = !navigating && description is RouteDescription.Complete
 }
 
 /** What the place search shows below its field, see `place-search`. */
@@ -131,6 +143,27 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
       }
     )
     state = state.copy(online = connectivity.activeNetwork != null)
+    viewModelScope.launch { Navigating.state.collect { state = state.copy(navigation = it) } }
+  }
+
+  /** Starts navigating the planned route; location access must be granted. */
+  fun startNavigation() {
+    val session = state.session ?: return
+    val knots = (session.route?.summary as? RouteSummary.Complete)?.knots ?: return
+    val network = loaded ?: return
+    NavigationService.start(
+      getApplication(),
+      NavigationRoute(knots, session.graph, network.geometry.takeIf { network.hasGeometry }),
+    )
+  }
+
+  fun stopNavigation() {
+    NavigationService.stop(getApplication())
+  }
+
+  /** The user did not grant location access, see `knot-navigation` "Location access denied". */
+  fun locationDenied() {
+    state = state.copy(message = "Knoop by Knoop needs location access to navigate.")
   }
 
   fun saveCamera(place: CameraPlace) {
@@ -209,6 +242,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   }
 
   fun switchNetwork(network: IndexedNetworkType) {
+    if (state.navigating) return
     storage.saveRoute(null)
     // The map stays until the other network is loaded, so it keeps its place; without a loaded
     // network, taps are ignored meanwhile.
@@ -241,8 +275,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   }
 
   private fun update(session: PlanningSession) {
-    // While another network loads, the shown route belongs to the previous one.
-    if (loaded == null) return
+    // While another network loads, the shown route belongs to the previous one. While navigating,
+    // the route is fixed, see `knot-navigation` "Route is fixed while navigating".
+    if (loaded == null || state.navigating) return
     storage.saveRoute(RouteSnapshot.of(session))
     state =
       state.copy(

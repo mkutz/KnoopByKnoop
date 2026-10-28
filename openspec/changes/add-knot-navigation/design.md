@@ -53,11 +53,13 @@ The platforms control location very differently: Android takes an interval and a
 
 | Precision | When | Android (fused provider) | iOS (`CLLocationManager`) |
 |---|---|---|---|
-| `COARSE` | more than 400 m from the next knot, on route | balanced power, every 30 s | accuracy 100 m, distance filter 100 m |
+| `COARSE` | more than 400 m from the next knot, on route | high accuracy, every 30 s (balanced power at first, see below) | accuracy 100 m, distance filter 100 m |
 | `FINE` | within 400 m of the next knot, off route, or a coarse fix far from the course to be confirmed | high accuracy, every 3 s | best accuracy, distance filter 10 m |
 | `LIVE` | the app is visible | high accuracy, every 1 s | best for navigation, no filter |
 
 `COARSE` mostly does without GPS, which is where the battery is saved. 400 m leaves enough room to have a precise fix before the 200 m reminder, even after a slow first GPS fix. Coarse fixes are never used to count a knot as passed or the rider as off route; a coarse fix that looks off route switches to `FINE` to confirm it. The thresholds are constants in the core and are tuned with the battery measurement.
+
+*Found during apply:* on the Android emulator, `COARSE` with balanced power gave no fixes at all, as balanced power uses Wi-Fi and cell towers and the emulator has neither; navigation then never saw the next knot. The same can happen on a phone in the countryside. A timer that asks for `FINE` after a missing fix does not help: with the screen off and no fixes, the device sleeps and so does the timer. Android's `COARSE` therefore uses high accuracy every 30 s instead of balanced power; the battery use of that is measured once a physical Android phone is available. iOS keeps its mapping: with an accuracy of 100 m, Core Location uses GPS where needed.
 
 *Alternative:* geofences from the operating system around the next knots. Rejected: their delay and precision are not controlled by the app, and in rural areas they can be minutes late.
 

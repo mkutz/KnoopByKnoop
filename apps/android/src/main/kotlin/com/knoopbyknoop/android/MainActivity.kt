@@ -13,6 +13,17 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 class MainActivity : ComponentActivity() {
 
+  // While the app is visible, the navigation samples live, see `knot-navigation`.
+  override fun onStart() {
+    super.onStart()
+    Navigating.visible.value = true
+  }
+
+  override fun onStop() {
+    Navigating.visible.value = false
+    super.onStop()
+  }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContent {
