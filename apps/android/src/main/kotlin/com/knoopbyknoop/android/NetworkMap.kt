@@ -322,6 +322,11 @@ private class MapHolder {
     StartupMarks.mark("map")
     style = loaded
     shownLayers = null
+    // The appearance may have changed again while this style was loading.
+    if (styleDark != dark) {
+      reloadStyleIfAppearanceChanged()
+      return
+    }
     addLayers(loaded)
     updateMarker(loaded)
     updateNavigation(loaded)

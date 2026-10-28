@@ -254,7 +254,14 @@ struct NetworkMapView: UIViewRepresentable {
       returning = NotificationCenter.default.addObserver(
         forName: UIApplication.willEnterForegroundNotification, object: nil, queue: .main
       ) { [weak self] _ in self?.findRider = true }
+      // Appearance changes in the background are skipped, see `reloadStyleIfAppearanceChanged`.
+      active = NotificationCenter.default.addObserver(
+        forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main
+      ) { [weak self, weak mapView] _ in
+        if let self, let mapView { self.reloadStyleIfAppearanceChanged(on: mapView) }
+      }
     }
+    private var active: NSObjectProtocol?
     private var returning: NSObjectProtocol?
     private weak var mapView: MLNMapView?
     private(set) var style: MLNStyle?
@@ -320,6 +327,8 @@ struct NetworkMapView: UIViewRepresentable {
       shownRoute = nil
       addLayers(to: style)
       update()
+      // The appearance may have changed again while this style was loading.
+      reloadStyleIfAppearanceChanged(on: mapView)
     }
 
     func mapViewDidFailLoadingMap(_ mapView: MLNMapView, withError error: Error) {
@@ -355,7 +364,10 @@ struct NetworkMapView: UIViewRepresentable {
     }
 
     /// Loads the same kind of style, base map or offline, again when the appearance changed.
+    /// Not in the background: iOS switches the appearance there back and forth to take the app
+    /// switcher's snapshots in both, see `map-planning` "Returning to the app".
     func reloadStyleIfAppearanceChanged(on mapView: MLNMapView) {
+      guard UIApplication.shared.applicationState != .background else { return }
       guard let styleDark, styleDark != dark else { return }
       if usesOfflineStyle { useOfflineStyle(on: mapView, again: true) } else { loadBaseMap(on: mapView) }
     }

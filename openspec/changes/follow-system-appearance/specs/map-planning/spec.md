@@ -17,6 +17,10 @@ The app SHALL follow the system's light or dark appearance: the base map, the pl
 - **WHEN** the user plans a route, zooms into it and switches the system to dark mode
 - **THEN** the app turns dark, and the map shows the same area with the same route and waypoints
 
+#### Scenario: Returning to the app
+- **WHEN** the system is in dark mode and the user switches to another app and back, again and again
+- **THEN** the map stays dark every time
+
 #### Scenario: Switching while navigating
 - **WHEN** the rider is navigating and the system switches to dark mode, e.g. automatically at sunset
 - **THEN** navigation keeps running and announcing knots, and the app turns dark

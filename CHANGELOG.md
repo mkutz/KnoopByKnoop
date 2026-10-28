@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.2
+
+- Follows the system's light or dark mode, with a dark map
+
 ## 0.1.1
 
 - Clearer buttons for Navigate, Stop, Back to start and Clear
