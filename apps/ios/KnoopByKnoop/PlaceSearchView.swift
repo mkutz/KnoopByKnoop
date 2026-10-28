@@ -37,8 +37,14 @@ struct PlaceSearchView: View {
 
   @ObservedObject var model: AppModel
   var focused: FocusState<Bool>.Binding
-  /// The room for the hits above the field.
-  var maxResultsHeight: CGFloat = 320
+  /// The room for the hits and the field together; the field always gets its height, the hits what
+  /// is left, at most 320 points.
+  var maxHeight: CGFloat = .infinity
+  @State private var fieldHeight: CGFloat = 0
+
+  private var maxResultsHeight: CGFloat {
+    min(320, max(maxHeight - fieldHeight - 4, 0))
+  }
 
   var body: some View {
     VStack(spacing: 4) {
@@ -63,6 +69,7 @@ struct PlaceSearchView: View {
       }
       .padding(10)
       .floatingBackground(in: RoundedRectangle(cornerRadius: 12))
+      .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { fieldHeight = $0 }
     }
     .frame(maxWidth: 480)
   }

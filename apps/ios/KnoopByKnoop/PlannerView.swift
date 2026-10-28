@@ -13,6 +13,8 @@ struct PlannerView: View {
   @State private var detent: PresentationDetent = smallestDetent
   /// How far the sheet reaches up from the bottom of the screen, see `searchOverlay`.
   @State private var sheetHeight: CGFloat = 0
+  /// The attribution's height above the search, see `searchOverlay`.
+  @State private var attributionHeight: CGFloat = 0
   @FocusState private var searchFocused: Bool
 
   private static let smallestDetent = PresentationDetent.height(170)
@@ -102,19 +104,8 @@ struct PlannerView: View {
         onMove: model.mapMoved
       )
       .ignoresSafeArea()
-      HStack {
-        Picker("Knot network", selection: networkBinding) {
-          Text("Cycling").tag(IndexedNetworkType.cycling)
-          Text("Hiking").tag(IndexedNetworkType.hiking)
-        }
-        .pickerStyle(.segmented)
-        .frame(width: 200)
-        infoButton
-      }
-      .padding(8)
-      .floatingBackground(in: RoundedRectangle(cornerRadius: 12))
-      .padding(.horizontal, 12)
-      .padding(.top, 8)
+      // While typing in landscape, the hits need the room up to the top, see `place-search`.
+      if !(landscape && keyboardShown) { networkSwitch }
       if model.layers == nil {
         // Only without bundled graphs, e.g. a debug build that was built without internet access,
         // or for the moment it takes to read the graph.
@@ -136,33 +127,58 @@ struct PlannerView: View {
   /// Just below the network switch.
   private let notesTop: CGFloat = 64
 
+  /// The network picker and the info button, at the top of the map.
+  private var networkSwitch: some View {
+    HStack {
+      Picker("Knot network", selection: networkBinding) {
+        Text("Cycling").tag(IndexedNetworkType.cycling)
+        Text("Hiking").tag(IndexedNetworkType.hiking)
+      }
+      .pickerStyle(.segmented)
+      .frame(width: 200)
+      infoButton
+    }
+    .padding(8)
+    .floatingBackground(in: RoundedRectangle(cornerRadius: 12))
+    .padding(.horizontal, 12)
+    .padding(.top, 8)
+  }
+
   /// The place search and the attribution, at the bottom of the map: right above the sheet in
   /// portrait, following it when it is dragged, and right above the on-screen keyboard while typing.
-  /// Hidden while the sheet is pulled up over the map.
+  /// Hidden while the sheet is pulled up over the map. While typing in landscape, the attribution and
+  /// the network switch give way, so the hits can reach the top of the map.
   @ViewBuilder private func searchOverlay(landscape: Bool, keyboardShown: Bool, screen: GeometryProxy) -> some View {
     let fullHeight = screen.size.height + screen.safeAreaInsets.top + screen.safeAreaInsets.bottom
     let sheetUp = !landscape && !keyboardShown && sheetHeight > fullHeight * 0.6
+    let typingInLandscape = landscape && keyboardShown
     // This view ends at the bottom safe area, the sheet's height is measured from the screen's
     // bottom. While typing, the keyboard's safe area already lifts this view above it; with a
     // hardware keyboard, there is none, and the field stays above the sheet.
     let bottom = landscape || keyboardShown ? 8 : max(sheetHeight - screen.safeAreaInsets.bottom, 0) + 8
+    // Below the network switch, or below the top safe area while it is hidden.
+    let top = typingInLandscape ? 8 : notesTop
     if !sheetUp {
       GeometryReader { area in
         VStack(alignment: .trailing, spacing: 4) {
           Spacer(minLength: 0)
-          Text("© OpenStreetMap contributors")
-            .font(.caption2)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .floatingBackground(in: Capsule())
+          if !typingInLandscape {
+            Text("© OpenStreetMap contributors")
+              .font(.caption2)
+              .padding(.horizontal, 6)
+              .padding(.vertical, 2)
+              .floatingBackground(in: Capsule())
+              .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { attributionHeight = $0 }
+          }
           PlaceSearchView(
             model: model, focused: $searchFocused,
-            // Below the network switch, above the field and the attribution.
-            maxResultsHeight: min(320, max(area.size.height - notesTop - bottom - 90, 80))
+            // The hits get what the field leaves; never more than fits, so the field is not
+            // pushed under the keyboard.
+            maxHeight: area.size.height - top - bottom - (typingInLandscape ? 0 : attributionHeight + 4)
           )
           .frame(maxWidth: .infinity)
         }
-        .padding(.top, notesTop)
+        .padding(.top, top)
         .padding(.horizontal, 12)
         .padding(.bottom, bottom)
       }
