@@ -99,6 +99,7 @@ fun NetworkMap(
   position: Fix? = null,
   /** The next knot while navigating, highlighted. */
   nextKnot: Knot? = null,
+  offRoute: Boolean = false,
 ) {
   val context = LocalContext.current
   val touchTargetPixels = with(LocalDensity.current) { TOUCH_TARGET_DP * density }
@@ -152,7 +153,7 @@ fun NetworkMap(
   holder.show(graph, layers, focus)
   // A chosen search hit: the map moves there, close enough to tap knots, see `place-search`.
   LaunchedEffect(marker) { holder.showMarker(marker) }
-  LaunchedEffect(position, nextKnot) { holder.showNavigation(position, nextKnot) }
+  LaunchedEffect(position, nextKnot) { holder.showNavigation(position, nextKnot, offRoute) }
   // The offline style has no base map; it is loaded as soon as network access is back.
   LaunchedEffect(online) { if (online && holder.usesOfflineStyle) holder.loadBaseMap() }
 
@@ -282,13 +283,21 @@ private class MapHolder {
    * Shows the rider and the next knot; when navigation begins or the app is opened while
    * navigating, the map moves to the rider, see `knot-navigation` "Looking at the map".
    */
-  fun showNavigation(newPosition: Fix?, newNextKnot: Knot?) {
+  fun showNavigation(newPosition: Fix?, newNextKnot: Knot?, offRoute: Boolean = false) {
     val begins = newPosition != null && (position == null || findRider)
     if (begins) findRider = false
     position = newPosition
     nextKnot = newNextKnot
     style?.let { updateNavigation(it) }
-    if (begins && newPosition != null) {
+    if (begins && newPosition != null && offRoute && newNextKnot != null) {
+      // Off route, the rider and the next knot, so they see where the route is.
+      val bounds =
+        LatLngBounds.Builder()
+          .include(LatLng(newPosition.latitude, newPosition.longitude))
+          .include(LatLng(newNextKnot.latitude, newNextKnot.longitude))
+          .build()
+      map?.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 160))
+    } else if (begins && newPosition != null) {
       map?.let {
         it.animateCamera(
           CameraUpdateFactory.newLatLngZoom(

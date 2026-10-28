@@ -159,6 +159,7 @@ private fun MapArea(
       modifier = Modifier.fillMaxSize(),
       position = state.navigation?.position,
       nextKnot = state.navigation?.navigation?.nextKnot,
+      offRoute = state.navigation?.navigation?.offRoute == true,
     )
     Column(modifier = Modifier.align(Alignment.TopStart).padding(12.dp)) {
       PlaceSearchField(state, viewModel)

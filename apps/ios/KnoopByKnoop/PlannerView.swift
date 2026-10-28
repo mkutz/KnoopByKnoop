@@ -104,7 +104,8 @@ struct PlannerView: View {
         marker: model.marker,
         onMove: model.mapMoved,
         position: navigator.state?.position,
-        nextKnot: navigator.state?.navigation?.nextKnot
+        nextKnot: navigator.state?.navigation?.nextKnot,
+        offRoute: navigator.state?.navigation?.offRoute ?? false
       )
       .ignoresSafeArea()
       // While typing in landscape, the hits need the room up to the top, see `place-search`.

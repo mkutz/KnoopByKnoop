@@ -60,6 +60,7 @@ struct NetworkMapView: UIViewRepresentable {
   var position: Fix? = nil
   /// The next knot while navigating, highlighted.
   var nextKnot: Knot? = nil
+  var offRoute = false
 
   func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -126,7 +127,7 @@ struct NetworkMapView: UIViewRepresentable {
     context.coordinator.onLeave = onLeave
     context.coordinator.onMove = onMove
     context.coordinator.showMarker(marker, on: mapView)
-    context.coordinator.showNavigation(position: position, nextKnot: nextKnot, on: mapView)
+    context.coordinator.showNavigation(position: position, nextKnot: nextKnot, offRoute: offRoute, on: mapView)
     if online && context.coordinator.usesOfflineStyle {
       context.coordinator.usesOfflineStyle = false
       mapView.styleURL = baseMapStyle
@@ -161,14 +162,25 @@ struct NetworkMapView: UIViewRepresentable {
 
     /// Shows the rider and the next knot; when navigation begins or the app is opened while
     /// navigating, the map moves to the rider, see `knot-navigation` "Looking at the map".
-    func showNavigation(position newPosition: Fix?, nextKnot newNextKnot: Knot?, on mapView: MLNMapView) {
+    func showNavigation(
+      position newPosition: Fix?, nextKnot newNextKnot: Knot?, offRoute: Bool, on mapView: MLNMapView
+    ) {
       guard newPosition !== position || newNextKnot !== nextKnot else { return }
       let begins = newPosition != nil && (position == nil || findRider)
       if begins { findRider = false }
       position = newPosition
       nextKnot = newNextKnot
       updateNavigation()
-      if begins, let newPosition {
+      if begins, let newPosition, offRoute, let newNextKnot {
+        // Off route, the rider and the next knot, so they see where the route is.
+        let rider = CLLocationCoordinate2D(latitude: newPosition.latitude, longitude: newPosition.longitude)
+        let knot = CLLocationCoordinate2D(latitude: newNextKnot.latitude, longitude: newNextKnot.longitude)
+        mapView.setVisibleCoordinateBounds(
+          MLNCoordinateBounds(
+            sw: CLLocationCoordinate2D(latitude: min(rider.latitude, knot.latitude), longitude: min(rider.longitude, knot.longitude)),
+            ne: CLLocationCoordinate2D(latitude: max(rider.latitude, knot.latitude), longitude: max(rider.longitude, knot.longitude))),
+          edgePadding: UIEdgeInsets(top: 120, left: 60, bottom: 260, right: 60), animated: true, completionHandler: nil)
+      } else if begins, let newPosition {
         mapView.setCenter(
           CLLocationCoordinate2D(latitude: newPosition.latitude, longitude: newPosition.longitude),
           zoomLevel: max(mapView.zoomLevel, navigationZoom), animated: true)

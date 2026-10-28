@@ -62,8 +62,12 @@ class NavigationService : Service() {
     speaker = Speaker(this)
     val manager = getSystemService(NotificationManager::class.java)
     manager.createNotificationChannel(
-      NotificationChannel(CHANNEL, "Navigation", NotificationManager.IMPORTANCE_LOW).apply {
+      // Default importance, so it is shown on the lock screen and with its Stop button; silent,
+      // as the notices are spoken.
+      NotificationChannel(CHANNEL, "Navigation", NotificationManager.IMPORTANCE_DEFAULT).apply {
         description = "The number to follow at the next knot while navigating"
+        setSound(null, null)
+        enableVibration(false)
       }
     )
   }
@@ -84,7 +88,7 @@ class NavigationService : Service() {
     ServiceCompat.startForeground(
       this,
       NOTIFICATION_ID,
-      notification("Starting navigation…", null),
+      notification("Starting navigation…"),
       ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION,
     )
     Navigating.update(NavigationState(navigation = null, position = null))
@@ -141,10 +145,7 @@ class NavigationService : Service() {
     getSystemService(NotificationManager::class.java)
       .notify(
         NOTIFICATION_ID,
-        notification(
-          if (display.offRoute) display.offRouteText else display.text,
-          if (display.offRoute) null else display.follow,
-        ),
+        notification(if (display.offRoute) display.offRouteText else display.text),
       )
     request(update.precision)
   }
@@ -180,7 +181,7 @@ class NavigationService : Service() {
     stopSelf()
   }
 
-  private fun notification(title: String, follow: String?): Notification {
+  private fun notification(title: String): Notification {
     val open =
       PendingIntent.getActivity(
         this,
@@ -198,7 +199,6 @@ class NavigationService : Service() {
     return Notification.Builder(this, CHANNEL)
       .setSmallIcon(R.drawable.ic_navigation)
       .setContentTitle(title)
-      .apply { follow?.let { setContentText("Follow $it") } }
       .setContentIntent(open)
       .setOngoing(true)
       .setOnlyAlertOnce(true)
