@@ -58,6 +58,8 @@ struct PlannerView: View {
           .presentationDetents([Self.smallestDetent, .medium, .large], selection: $detent)
           .presentationBackgroundInteraction(.enabled(upThrough: .medium))
           .interactiveDismissDisabled()
+          // Light like the map and the views over it, see `panel`; this applies to the sheet itself.
+          .preferredColorScheme(.light)
       }
       // The keyboard covers the smallest sheet, but not a higher one, which would hide the field.
       .onChange(of: keyboardShown) { _, shown in
@@ -90,6 +92,9 @@ struct PlannerView: View {
     } message: {
       Text("The current route will be discarded.")
     }
+    // Light in dark mode too, like the map and the views over it, so the panel and its actions look
+    // the same everywhere, see `map-planning` "Clear actions in the planner panel".
+    .environment(\.colorScheme, .light)
   }
 
   /// The map is shown right away; the network follows when it is loaded, see `map-planning`.

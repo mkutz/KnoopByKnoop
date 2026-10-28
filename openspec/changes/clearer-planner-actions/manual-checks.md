@@ -33,3 +33,7 @@ Simulator (iPhone 18 Pro), 2026-10-28: the planning header looks like on Android
 | Navigate stands out | ✅ | ⏳ | |
 | Stop stands out | – | ⏳ | |
 | Icon buttons with a screen reader | – | ⏳ | VoiceOver |
+
+## Found and fixed
+
+- **iOS: dark sheet in dark mode.** The views over the map are kept light, because the map is light; the sheet and the landscape panel were not and followed the system's dark mode. On the dark sheet, the round Back to start and Clear buttons were hardly visible (found by the maintainer on the iPhone). The panel is now light in dark mode too ([screenshot](screenshots/ios-simulator-dark-mode.png), simulator in dark mode). Following the system's appearance in the whole app is its own change, `follow-system-appearance`.
