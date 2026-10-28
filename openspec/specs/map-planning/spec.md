@@ -30,7 +30,7 @@ The map SHALL show the knots of the selected, installed network type with their 
 
 #### Scenario: Attribution
 - **WHEN** the map is shown
-- **THEN** the attribution required by OpenStreetMap and the base map provider is visible
+- **THEN** the attribution required by OpenStreetMap and the base map provider is visible, except on iOS in landscape while the user types in the search with the on-screen keyboard, when the hits and the keyboard cover the map
 
 ### Requirement: Plan by tapping knots
 Tapping a knot SHALL make it the start if there is no start yet, the end if there is no end yet, and otherwise add it as a stop into the leg where it adds the least distance. Tapping a knot that already is a waypoint SHALL change nothing, so an accidental double tap does not create a round trip and the start does not turn into a stop; round trips are made with the action to return to the start. A tap SHALL select the knot nearest to the tapped position, within a tolerance that keeps knots easy to hit.
@@ -163,7 +163,7 @@ In landscape, the app SHALL show the map and the waypoint list side by side, so 
 
 #### Scenario: Map controls in landscape
 - **WHEN** the device is in landscape
-- **THEN** the network switch, the zoom buttons, the info button and the attribution stay visible on the map
+- **THEN** the network switch, the zoom buttons, the info button and the attribution stay visible on the map, except on iOS while the user types in the search with the on-screen keyboard, see `place-search`
 
 ### Requirement: Map, knots and courses one after the other
 On start, the app SHALL show the map right away, then the knots and connections of the selected knot network as soon as its graph is read, and then the courses of the connections once its geometry is read. Planning SHALL be possible as soon as the knots are shown.

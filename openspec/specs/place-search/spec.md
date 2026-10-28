@@ -49,6 +49,14 @@ The map SHALL offer a search field. While the user types, the app SHALL list mat
 - **WHEN** the iPhone is in landscape
 - **THEN** the search field is shown at the bottom of the map next to the side panel, and while the user types, the hits are shown above it
 
+#### Scenario: Typing in landscape on iOS
+- **WHEN** the iPhone is in landscape and the user taps the search field and types "Utrecht" with the on-screen keyboard
+- **THEN** the field is fully visible right above the keyboard, the network switch and the attribution are hidden, and the hits fill the map from the top of the screen down to the field
+
+#### Scenario: Done typing in landscape on iOS
+- **WHEN** the iPhone is in landscape, shows hits, and the user taps a hit or clears the search
+- **THEN** the keyboard is dismissed, and the network switch and the attribution are shown again
+
 ### Requirement: Hits in the covered area
 Search SHALL only show hits inside the area covered by the knot networks. Towns and stations of that name SHALL be listed first, wherever they are in the covered area; other hits SHALL be ranked near the part of the map being shown first.
 
