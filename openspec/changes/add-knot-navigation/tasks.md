@@ -39,7 +39,7 @@
 ## 5. Checks and docs
 
 - [x] 5.1 Both apps build; `./gradlew check` passes; `xcodebuild` builds both iOS targets
-- [ ] 5.2 CI passes
+- [x] 5.2 CI passes
 - [x] 5.3 `README.md` "What the apps can do" lists navigation
 - [ ] 5.4 Manual checks in `manual-checks.md` for the scenarios that depend on the platforms (permissions, screen off, notification, Live Activity, Dynamic Island, speech and ducking, map, Stop, "Arriving" end to end): on the Android emulator with a simulated ride, and by the maintainer on the iPhone on a real ride
 - [ ] 5.5 Battery: the maintainer navigates for at least one hour with the screen off on the iPhone and records the battery drop in `manual-checks.md` ("One hour with the screen off", at most 5 percentage points); tune the core's thresholds if needed
