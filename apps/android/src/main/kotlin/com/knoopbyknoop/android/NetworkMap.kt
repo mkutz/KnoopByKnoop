@@ -1,6 +1,7 @@
 package com.knoopbyknoop.android
 
 import android.graphics.RectF
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -12,7 +13,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -30,6 +30,7 @@ import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.geometry.LatLngBounds
 import org.maplibre.android.maps.MapLibreMap
+import org.maplibre.android.maps.MapLibreMapOptions
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
 import org.maplibre.android.style.expressions.Expression
@@ -40,18 +41,36 @@ import org.maplibre.android.style.layers.PropertyFactory
 import org.maplibre.android.style.layers.SymbolLayer
 import org.maplibre.android.style.sources.GeoJsonSource
 
-/** OpenStreetMap-based base map without API key, see the design of `add-planning-screens`. */
+/**
+ * OpenStreetMap-based base maps without API key, see the design of `add-planning-screens`, light or
+ * dark like the system, see `map-planning` "Light and dark appearance".
+ */
 private const val BASE_MAP_STYLE = "https://tiles.openfreemap.org/styles/liberty"
+private const val DARK_BASE_MAP_STYLE = "https://tiles.openfreemap.org/styles/dark"
+
+/** The offline style's background, also shown before any style is loaded. */
+private const val OFFLINE_LIGHT_BACKGROUND = 0xFFEEF1EA.toInt()
+private const val OFFLINE_DARK_BACKGROUND = 0xFF1E2320.toInt()
 
 /**
  * Used when the base map cannot be loaded, e.g. offline on first start: the network layers still
  * show. Offline, MapLibre waits for the network instead of failing, so it is used after a timeout.
  */
-private const val OFFLINE_STYLE =
-  """{"version": 8, "sources": {}, "layers": [{"id": "background", "type": "background", "paint": {"background-color": "#EEF1EA"}}]}"""
+private fun offlineStyle(dark: Boolean): String {
+  val background = if (dark) OFFLINE_DARK_BACKGROUND else OFFLINE_LIGHT_BACKGROUND
+  val color = "#%06X".format(background and 0xFFFFFF)
+  return """{"version": 8, "sources": {}, "layers": [{"id": "background", "type": "background", "paint": {"background-color": "$color"}}]}"""
+}
 
 /** How long the base map may take to load before the offline style is used. */
 private const val BASE_MAP_TIMEOUT_MILLIS = 3_000L
+
+/**
+ * How long after falling back to the offline style the base map is loaded again, see `map-planning`
+ * "Slow base map": setting the offline style cancelled its loading. MapLibre shows the offline
+ * style until the base map has loaded.
+ */
+private const val BASE_MAP_RETRY_MILLIS = 2_000L
 
 /** The zoom level a search hit is shown at: streets and knots around it are easy to tap. */
 private const val SEARCH_HIT_ZOOM = 14.0
@@ -104,9 +123,16 @@ fun NetworkMap(
   val context = LocalContext.current
   val touchTargetPixels = with(LocalDensity.current) { TOUCH_TARGET_DP * density }
   val holder = remember { MapHolder() }
+  val dark = isSystemInDarkTheme()
+  holder.dark = dark
+  holder.online = online
   val mapView = remember {
     MapLibre.getInstance(context)
-    MapView(context).apply {
+    // Before any style is loaded, the map shows the offline style's background, not MapLibre's.
+    val options =
+      MapLibreMapOptions.createFromAttributes(context)
+        .foregroundLoadColor(if (dark) OFFLINE_DARK_BACKGROUND else OFFLINE_LIGHT_BACKGROUND)
+    MapView(context, options).apply {
       onCreate(null)
       addOnDidFinishRenderingFrameListener { _, _, _ -> holder.markVisibleLayers(width, height) }
       getMapAsync { map ->
@@ -139,7 +165,18 @@ fun NetworkMap(
         addOnDidFailLoadingMapListener { holder.useOfflineStyle() }
         if (online) {
           holder.loadBaseMap()
-          postDelayed({ if (!holder.hasStyle) holder.useOfflineStyle() }, BASE_MAP_TIMEOUT_MILLIS)
+          postDelayed(
+            {
+              if (!holder.hasStyle) {
+                holder.useOfflineStyle()
+                postDelayed(
+                  { if (holder.usesOfflineStyle && holder.online) holder.loadBaseMap() },
+                  BASE_MAP_RETRY_MILLIS,
+                )
+              }
+            },
+            BASE_MAP_TIMEOUT_MILLIS,
+          )
         } else {
           // Offline, MapLibre would wait for the base map, and nothing can be drawn without a
           // style.
@@ -156,6 +193,8 @@ fun NetworkMap(
   LaunchedEffect(position, nextKnot) { holder.showNavigation(position, nextKnot, offRoute) }
   // The offline style has no base map; it is loaded as soon as network access is back.
   LaunchedEffect(online) { if (online && holder.usesOfflineStyle) holder.loadBaseMap() }
+  // Switched in place, the camera stays, see `map-planning` "Switching while the app is open".
+  LaunchedEffect(dark) { holder.reloadStyleIfAppearanceChanged() }
 
   val lifecycle = LocalLifecycleOwner.current.lifecycle
   DisposableEffect(lifecycle) {
@@ -187,7 +226,7 @@ fun NetworkMap(
       listOf("+" to 1.0, "−" to -1.0).forEach { (label, delta) ->
         SmallFloatingActionButton(
           onClick = { holder.zoomBy(delta) },
-          containerColor = Color.White,
+          containerColor = mapOverlayColor,
           contentColor = Green,
           modifier = Modifier.padding(vertical = 4.dp),
         ) {
@@ -211,6 +250,15 @@ private class MapHolder {
   var usesOfflineStyle = false
     private set
 
+  /** Whether the system is in dark mode; the next style loaded follows it. */
+  var dark = false
+
+  /** Whether the device has network access, to load the base map again after falling back. */
+  var online = false
+
+  /** The appearance of the loaded style, to see whether it still matches [dark]. */
+  private var styleDark: Boolean? = null
+
   private var graph: NetworkGraph? = null
   private var layers: MapLayers? = null
   private var focus: List<Knot> = listOf()
@@ -218,17 +266,40 @@ private class MapHolder {
   private var shownLayers: MapLayers? = null
 
   fun loadBaseMap() {
-    map?.setStyle(Style.Builder().fromUri(BASE_MAP_STYLE)) {
+    val loadingDark = dark
+    forgetStyle()
+    map?.setStyle(
+      Style.Builder().fromUri(if (loadingDark) DARK_BASE_MAP_STYLE else BASE_MAP_STYLE)
+    ) {
       usesOfflineStyle = false
+      styleDark = loadingDark
       onStyle(it)
     }
   }
 
   fun useOfflineStyle() {
-    map?.setStyle(Style.Builder().fromJson(OFFLINE_STYLE)) {
+    val loadingDark = dark
+    forgetStyle()
+    map?.setStyle(Style.Builder().fromJson(offlineStyle(loadingDark))) {
       usesOfflineStyle = true
+      styleDark = loadingDark
       onStyle(it)
     }
+  }
+
+  /**
+   * MapLibre invalidates a style as soon as the next one starts loading; until that one is loaded,
+   * updates wait for [onStyle], which adds everything again.
+   */
+  private fun forgetStyle() {
+    style = null
+  }
+
+  /** Loads the same kind of style, base map or offline, again when the appearance changed. */
+  fun reloadStyleIfAppearanceChanged() {
+    val loaded = styleDark ?: return
+    if (loaded == dark) return
+    if (usesOfflineStyle) useOfflineStyle() else loadBaseMap()
   }
 
   private var coursesHandedOver = false

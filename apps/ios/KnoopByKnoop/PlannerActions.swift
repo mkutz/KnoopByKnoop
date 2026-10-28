@@ -29,6 +29,6 @@ struct IconAction: View {
       .labelStyle(.iconOnly)
       .buttonStyle(.bordered)
       .buttonBorderShape(.circle)
-      .tint(.actionGreen)
+      .tint(.actionIconGreen)
   }
 }

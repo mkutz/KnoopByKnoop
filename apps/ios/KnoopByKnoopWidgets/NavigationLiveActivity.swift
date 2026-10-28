@@ -14,14 +14,7 @@ struct NavigationLiveActivity: Widget {
 
   var body: some WidgetConfiguration {
     ActivityConfiguration(for: NavigationActivityAttributes.self) { context in
-      HStack(alignment: .center, spacing: 16) {
-        NextKnot(state: context.state, prominent: 1.8, textColor: .knoopDark)
-        Spacer()
-        StopButton()
-      }
-      .padding()
-      .activityBackgroundTint(Color.white.opacity(0.92))
-      .activitySystemActionForegroundColor(.knoopGreen)
+      LockScreenCard(state: context.state)
     } dynamicIsland: { context in
       DynamicIsland {
         DynamicIslandExpandedRegion(.leading) {
@@ -60,6 +53,26 @@ struct NavigationLiveActivity: Widget {
   }
 }
 
+/// The card on the lock screen, light or dark like the system, see `map-planning` "Lock screen in
+/// dark mode". Its own background, as the text on the system's card was hard to read.
+private struct LockScreenCard: View {
+
+  let state: NavigationActivityAttributes.ContentState
+  @Environment(\.colorScheme) private var colorScheme
+
+  var body: some View {
+    let dark = colorScheme == .dark
+    HStack(alignment: .center, spacing: 16) {
+      NextKnot(state: state, prominent: 1.8, textColor: dark ? .white : .knoopDark)
+      Spacer()
+      StopButton()
+    }
+    .padding()
+    .activityBackgroundTint(dark ? Color(white: 0.11).opacity(0.92) : Color.white.opacity(0.92))
+    .activitySystemActionForegroundColor(.knoopGreen)
+  }
+}
+
 /// "At 45 follow 12" with the knots as badges like on the map, 12 the largest; off route, at the
 /// end of the route and while starting, the text with the next knot's badge.
 private struct NextKnot: View {
@@ -67,7 +80,7 @@ private struct NextKnot: View {
   let state: NavigationActivityAttributes.ContentState
   /// How much larger than on the map the number to follow is.
   let prominent: CGFloat
-  /// Dark on the light lock screen card, light in the black Dynamic Island.
+  /// Dark on the light lock screen card, light on the dark one and in the black Dynamic Island.
   let textColor: Color
 
   var body: some View {

@@ -1,6 +1,7 @@
 package com.knoopbyknoop.android
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -28,8 +29,15 @@ import androidx.compose.ui.unit.dp
  */
 object ActionColors {
   val green = Color(0xFF237A46)
-  val greenContainer = Color(0xFFD7EEDF)
   val red = Color(0xFFB3261E)
+
+  /** The icon of a round action: dark green, or light green on the dark panel. */
+  val iconGreen: Color
+    @Composable get() = if (isSystemInDarkTheme()) Color(0xFF8FD9AE) else green
+
+  /** The background of a round action: light green, or dark green on the dark panel. */
+  val greenContainer: Color
+    @Composable get() = if (isSystemInDarkTheme()) Color(0xFF1E3B2B) else Color(0xFFD7EEDF)
 }
 
 /** A filled action with icon and label: Navigate, or Stop in red. */
@@ -72,7 +80,7 @@ fun IconAction(label: String, @DrawableRes icon: Int, onClick: () -> Unit) {
       colors =
         IconButtonDefaults.filledTonalIconButtonColors(
           containerColor = ActionColors.greenContainer,
-          contentColor = ActionColors.green,
+          contentColor = ActionColors.iconGreen,
         ),
     ) {
       Icon(painterResource(icon), contentDescription = label, modifier = Modifier.size(20.dp))

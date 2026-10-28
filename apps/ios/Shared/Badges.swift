@@ -9,6 +9,13 @@ extension Color {
   /// badges' green, and darker than `systemRed`, so white labels on them stay readable.
   static let actionGreen = Color(red: 0x23 / 255, green: 0x7A / 255, blue: 0x46 / 255)
   static let actionRed = Color(red: 0xB3 / 255, green: 0x26 / 255, blue: 0x1E / 255)
+  /// The icon of a round action: `actionGreen`, or a light green on the dark panel.
+  static let actionIconGreen = Color(
+    UIColor { traits in
+      traits.userInterfaceStyle == .dark
+        ? UIColor(red: 0x8F / 255, green: 0xD9 / 255, blue: 0xAE / 255, alpha: 1)
+        : UIColor(red: 0x23 / 255, green: 0x7A / 255, blue: 0x46 / 255, alpha: 1)
+    })
 }
 
 /// How a knot takes part in the route, as far as its badge shows it. Mirrors the core's `KnotRole`,

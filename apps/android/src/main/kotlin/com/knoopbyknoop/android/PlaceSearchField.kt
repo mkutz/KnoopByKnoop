@@ -57,9 +57,9 @@ fun PlaceSearchField(state: AppState, viewModel: AppViewModel) {
       shape = MaterialTheme.shapes.medium,
       colors =
         TextFieldDefaults.colors(
-          focusedContainerColor = Color.White,
-          unfocusedContainerColor = Color.White,
-          disabledContainerColor = Color.White.copy(alpha = 0.85f),
+          focusedContainerColor = mapOverlayColor,
+          unfocusedContainerColor = mapOverlayColor,
+          disabledContainerColor = mapOverlayColor.copy(alpha = 0.85f),
           focusedIndicatorColor = Color.Transparent,
           unfocusedIndicatorColor = Color.Transparent,
           disabledIndicatorColor = Color.Transparent,
@@ -69,7 +69,7 @@ fun PlaceSearchField(state: AppState, viewModel: AppViewModel) {
     val result = state.searchResult
     if (result != SearchResult.None && state.online) {
       Card(
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = mapOverlayColor),
         modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
       ) {
         when (result) {

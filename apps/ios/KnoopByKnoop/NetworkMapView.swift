@@ -2,18 +2,28 @@ import KnoopByKnoopCore
 import MapLibre
 import SwiftUI
 
-/// OpenStreetMap-based base map without API key, see the design of `add-planning-screens`.
-private let baseMapStyle = URL(string: "https://tiles.openfreemap.org/styles/liberty")!
+/// OpenStreetMap-based base maps without API key, see the design of `add-planning-screens`, light or
+/// dark like the system, see `map-planning` "Light and dark appearance".
+private func baseMapStyle(dark: Bool) -> URL {
+  URL(string: "https://tiles.openfreemap.org/styles/\(dark ? "dark" : "liberty")")!
+}
 
 /// Used when the base map cannot be loaded, e.g. offline on first start: the network layers still
 /// show. Offline, MapLibre takes long to fail, so it is used after a timeout.
-private let offlineStyle = """
-  {"version": 8, "sources": {}, "layers": [{"id": "background", "type": "background", \
-  "paint": {"background-color": "#EEF1EA"}}]}
+private func offlineStyle(dark: Bool) -> String {
   """
+  {"version": 8, "sources": {}, "layers": [{"id": "background", "type": "background", \
+  "paint": {"background-color": "\(dark ? "#1E2320" : "#EEF1EA")"}}]}
+  """
+}
 
 /// How long the base map may take to load before the offline style is used.
 private let baseMapTimeout: TimeInterval = 3
+
+/// How long after falling back to the offline style the base map is loaded again, see
+/// `map-planning` "Slow base map": setting the offline style cancelled its loading. MapLibre shows the
+/// offline style until the base map has loaded.
+private let baseMapRetry: TimeInterval = 2
 
 /// The zoom level a search hit is shown at: streets and knots around it are easy to tap.
 private let searchHitZoom = 14.0
@@ -65,10 +75,13 @@ struct NetworkMapView: UIViewRepresentable {
   func makeCoordinator() -> Coordinator { Coordinator() }
 
   func makeUIView(context: Context) -> MLNMapView {
+    let coordinator = context.coordinator
+    coordinator.dark = context.environment.colorScheme == .dark
+    coordinator.online = online
     // Offline, MapLibre would wait for the base map, and nothing can be drawn without a style.
-    let mapView = MLNMapView(frame: .zero, styleURL: online ? baseMapStyle : nil)
-    mapView.delegate = context.coordinator
-    if !online { context.coordinator.useOfflineStyle(on: mapView) }
+    let mapView = MLNMapView(frame: .zero, styleURL: nil)
+    mapView.delegate = coordinator
+    if online { coordinator.loadBaseMap(on: mapView) } else { coordinator.useOfflineStyle(on: mapView) }
     if let initialPlace {
       mapView.setCenter(
         CLLocationCoordinate2D(latitude: initialPlace.latitude, longitude: initialPlace.longitude),
@@ -88,7 +101,11 @@ struct NetworkMapView: UIViewRepresentable {
     addZoomButtons(to: mapView, coordinator: context.coordinator)
     if online {
       DispatchQueue.main.asyncAfter(deadline: .now() + baseMapTimeout) { [weak mapView] in
-        if let mapView, context.coordinator.style == nil { context.coordinator.useOfflineStyle(on: mapView) }
+        guard let mapView, coordinator.style == nil else { return }
+        coordinator.useOfflineStyle(on: mapView)
+        DispatchQueue.main.asyncAfter(deadline: .now() + baseMapRetry) { [weak mapView] in
+          if let mapView, coordinator.usesOfflineStyle, coordinator.online { coordinator.loadBaseMap(on: mapView) }
+        }
       }
     }
     return mapView
@@ -101,7 +118,7 @@ struct NetworkMapView: UIViewRepresentable {
       let button = UIButton(type: .system)
       button.setImage(UIImage(systemName: symbol), for: .normal)
       button.tintColor = UIColor(Color.knoopGreen)
-      button.backgroundColor = .white
+      button.backgroundColor = UIColor { $0.userInterfaceStyle == .dark ? UIColor(white: 0.17, alpha: 1) : .white }
       button.layer.cornerRadius = 20
       button.layer.shadowOpacity = 0.2
       button.layer.shadowRadius = 2
@@ -128,10 +145,13 @@ struct NetworkMapView: UIViewRepresentable {
     context.coordinator.onMove = onMove
     context.coordinator.showMarker(marker, on: mapView)
     context.coordinator.showNavigation(position: position, nextKnot: nextKnot, offRoute: offRoute, on: mapView)
+    context.coordinator.dark = context.environment.colorScheme == .dark
+    context.coordinator.online = online
     if online && context.coordinator.usesOfflineStyle {
-      context.coordinator.usesOfflineStyle = false
-      mapView.styleURL = baseMapStyle
+      context.coordinator.loadBaseMap(on: mapView)
     }
+    // Switched in place, the camera stays, see `map-planning` "Switching while the app is open".
+    context.coordinator.reloadStyleIfAppearanceChanged(on: mapView)
     context.coordinator.show(graph: graph, layers: layers, focus: focus, on: mapView)
   }
 
@@ -295,6 +315,7 @@ struct NetworkMapView: UIViewRepresentable {
     func mapView(_ mapView: MLNMapView, didFinishLoading style: MLNStyle) {
       StartupMarks.mark("map")
       self.style = style
+      styleDark = loadingDark
       shownNetwork = nil
       shownRoute = nil
       addLayers(to: style)
@@ -306,14 +327,46 @@ struct NetworkMapView: UIViewRepresentable {
     }
 
     /// Whether the offline style is shown, so the base map is loaded once internet access is back.
-    var usesOfflineStyle = false
+    private(set) var usesOfflineStyle = false
 
-    func useOfflineStyle(on mapView: MLNMapView) {
-      guard !usesOfflineStyle else { return }
+    /// Whether the system is in dark mode; the next style loaded follows it.
+    var dark = false
+
+    /// Whether the device has internet access, to load the base map again after falling back.
+    var online = false
+
+    /// The appearance of the style being loaded and of the loaded one, to see whether it still
+    /// matches `dark`.
+    private var loadingDark = false
+    private var styleDark: Bool?
+
+    func loadBaseMap(on mapView: MLNMapView) {
+      usesOfflineStyle = false
+      load(baseMapStyle(dark: dark), on: mapView)
+    }
+
+    func useOfflineStyle(on mapView: MLNMapView, again: Bool = false) {
+      guard !usesOfflineStyle || again else { return }
       usesOfflineStyle = true
-      let file = FileManager.default.temporaryDirectory.appendingPathComponent("offline-style.json")
-      try? Data(offlineStyle.utf8).write(to: file)
-      mapView.styleURL = file
+      let file = FileManager.default.temporaryDirectory
+        .appendingPathComponent("offline-style-\(dark ? "dark" : "light").json")
+      try? Data(offlineStyle(dark: dark).utf8).write(to: file)
+      load(file, on: mapView)
+    }
+
+    /// Loads the same kind of style, base map or offline, again when the appearance changed.
+    func reloadStyleIfAppearanceChanged(on mapView: MLNMapView) {
+      guard let styleDark, styleDark != dark else { return }
+      if usesOfflineStyle { useOfflineStyle(on: mapView, again: true) } else { loadBaseMap(on: mapView) }
+    }
+
+    /// MapLibre invalidates a style as soon as the next one starts loading; until that one is
+    /// loaded, updates wait for `didFinishLoading`, which adds everything again.
+    private func load(_ url: URL, on mapView: MLNMapView) {
+      loadingDark = dark
+      style = nil
+      styleDark = nil
+      mapView.styleURL = url
     }
 
     private func update() {

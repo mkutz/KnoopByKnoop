@@ -15,11 +15,11 @@
     android:icon="@mipmap/ic_launcher"
     android:roundIcon="@mipmap/ic_launcher_round"
     android:label="Knoop by Knoop"
-    android:theme="@android:style/Theme.Material.Light.NoActionBar">
+    android:theme="@style/Theme.Knoop">
 
     <activity
       android:name=".MainActivity"
-      android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
+      android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
       android:exported="true">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />

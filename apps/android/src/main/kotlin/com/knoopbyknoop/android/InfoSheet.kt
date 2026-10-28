@@ -13,7 +13,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.knoopbyknoop.core.NetworkState
 import com.knoopbyknoop.core.NetworkStatus
@@ -97,7 +96,7 @@ fun LoadingNote(text: String, modifier: Modifier = Modifier) {
     style = MaterialTheme.typography.labelLarge,
     modifier =
       modifier
-        .background(Color.White.copy(alpha = 0.9f), MaterialTheme.shapes.small)
+        .background(mapOverlayColor.copy(alpha = 0.9f), MaterialTheme.shapes.small)
         .padding(horizontal = 12.dp, vertical = 6.dp),
   )
 }

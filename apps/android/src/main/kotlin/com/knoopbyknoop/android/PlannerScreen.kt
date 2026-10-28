@@ -46,7 +46,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
@@ -166,7 +165,7 @@ private fun MapArea(
       Row(
         modifier =
           Modifier.padding(top = 8.dp)
-            .background(Color.White.copy(alpha = 0.85f), MaterialTheme.shapes.medium)
+            .background(mapOverlayColor.copy(alpha = 0.85f), MaterialTheme.shapes.medium)
             .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
       ) {
@@ -207,7 +206,7 @@ private fun MapArea(
       modifier =
         Modifier.align(Alignment.BottomEnd)
           .padding(4.dp)
-          .background(Color.White.copy(alpha = 0.7f))
+          .background(mapOverlayColor.copy(alpha = 0.7f))
           .padding(horizontal = 4.dp),
     )
   }
