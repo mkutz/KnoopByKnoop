@@ -1,13 +1,13 @@
 # Manual checks
 
-iOS only; the simulator can't be tapped by script, so navigation can't be started there. Both targets build in Debug and Release. Checks by the maintainer on the iPhone: ⏳.
+iOS only; the simulator can't be tapped by script, so navigation can't be started there. Both targets build in Debug and Release. Checks by the maintainer on the iPhone, 2026-10-29.
 
 | Scenario | iPhone | Notes |
 |---|---|---|
 | Music playing | ✅ | By the maintainer, 2026-10-29: back to full volume after notices |
-| Closing the app while navigating | ❌ → ⏳ | Swipe the app away while navigating: the location indicator and the Live Activity go away right then; the route is there at the next start |
+| Closing the app while navigating | ✅ | After the fix of the start-time cleanup: swiping the app away while navigating removes the indicator and the Live Activity right then; the route is there at the next start |
 | Stopping in the app | ✅ | By the maintainer, 2026-10-29 |
-| No location use after navigation | ⏳ | After a phone restart: open the app without navigating, no indicator; Navigate and Stop, no indicator; Navigate and swipe the app away, no indicator |
+| No location use after navigation | ✅ | After a phone restart: no indicator when opening the app without navigating, after Navigate and Stop, and after swiping the app away while navigating |
 
 ## Found and fixed
 
