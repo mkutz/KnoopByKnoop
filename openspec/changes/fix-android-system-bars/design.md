@@ -29,7 +29,8 @@ In portrait, the `BottomSheetScaffold` sheet already keeps clear of the navigati
 ### Insets on the overlays, not on the map
 The map keeps `fillMaxSize` behind the bars. The overlays get the insets:
 - **Controls at the top** (search field, network switch, notes): `windowInsetsPadding(WindowInsets.safeDrawing.only(Top + Horizontal))` on their column, in addition to the existing 12 dp. The notes move down by the same top inset.
-- **Zoom buttons and attribution:** `safeDrawing` horizontal insets, and the bottom inset in landscape.
+- **Zoom buttons:** no insets. In portrait there are none at the sides, and in landscape the map ends at the side panel, not at the screen's edge.
+- **Attribution:** the bottom inset in landscape, where the map reaches the bottom edge. In portrait, the sheet is below it.
 - **Landscape side panel:** `safeDrawing` insets for top, end and bottom.
 
 `safeDrawing` combines the system bars, the display cutout and the keyboard area. The keyboard part only matters at the bottom, which the top controls don't use.

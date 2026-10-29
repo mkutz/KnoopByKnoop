@@ -30,5 +30,4 @@ Out of scope: iOS, which already keeps its controls in the safe area; hiding the
 - Android only:
   - `MainActivity.kt`: edge-to-edge with system bar icons by appearance, again on a `uiMode` change
   - `PlannerScreen.kt`: insets for the controls over the map and for the landscape panel
-  - `NetworkMap.kt`: insets for the zoom buttons and the attribution
 - No new dependencies: `enableEdgeToEdge` and `WindowInsets` come with `androidx.activity` and Compose
