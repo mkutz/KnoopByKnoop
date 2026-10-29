@@ -21,7 +21,7 @@
 ## 4. Checks
 
 - [ ] 4.1 Manual checks in `manual-checks.md` with screenshots on the Android emulator, with a simulated ride by `adb emu geo fix` along the route and on a detour, giving positions that change from fix to fix (repeated identical fixes produce no updates): every scenario of the three requirements, including drag, pinch and double-tap each stopping following, and "Screen off" with the screen off for part of the ride; on the iPhone by the maintainer on a real ride: "Riding", "Standing still", "Detour", "Looking around", "Recentering"
-- [ ] 4.2 `./gradlew check` passes, both iOS targets build, CI passes
+- [x] 4.2 `./gradlew check` passes, both iOS targets build, CI passes
 
 ## Workflow follow-up
 
