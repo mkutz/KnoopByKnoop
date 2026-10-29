@@ -11,4 +11,4 @@
 ## 3. Checks
 
 - [ ] 3.1 Manual checks in `manual-checks.md` by the maintainer on the iPhone: "Music playing" (music on, Navigate, the first notice lowers the music, and it is back to full volume right after); "Closing the app while navigating" (swipe the app away while navigating: the indicator and the Live Activity go away right then, and the route is there at the next start); "Stopping in the app" still works
-- [ ] 3.2 Both iOS targets build, `./gradlew check` passes, CI passes
+- [x] 3.2 Both iOS targets build, `./gradlew check` passes, CI passes
