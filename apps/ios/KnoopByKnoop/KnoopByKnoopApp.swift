@@ -8,6 +8,10 @@ struct KnoopByKnoopApp: App {
   @StateObject private var model = AppModel()
   @Environment(\.scenePhase) private var scenePhase
 
+  init() {
+    Navigator.shared.endLeftoverSession()
+  }
+
   var body: some Scene {
     WindowGroup {
       PlannerView(model: model)

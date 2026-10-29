@@ -40,6 +40,8 @@ Simulator (iPhone 18 Pro, iOS 27.0), 2026-10-28, the same route, rides simulated
 
 ## Found and fixed
 
+- **iOS: blue location indicator after navigation** (found by the maintainer on the iPhone, after arriving, after Stop and after closing the app). The system keeps a `CLBackgroundActivitySession` beyond the app's end; one left over from a navigation the app did not end, e.g. when Xcode replaced the app or it was swiped away while navigating, kept the indicator for good. The app now ends such a session at start when it is not navigating. To check on the iPhone: start navigating, swipe the app away, start it again; the indicator goes away (⏳).
+
 - **Android: no fixes with `COARSE`.** Balanced power gave no fixes at all on the emulator (no Wi-Fi or cell towers), so navigation never saw 31. A timer to fall back to `FINE` did not help either: with the screen off and no fixes, the device sleeps and so does the timer. `COARSE` now uses high accuracy every 30 s on Android (design, "Precision instead of intervals").
 - **Android: notification hidden.** With low importance, the notification was filed under "Silent", collapsed with its Stop button hidden, and Android hides silent notifications on the lock screen by default. It now has default importance without sound.
 - **Android: `startForeground` with a service type needs API 29** (lint); now `ServiceCompat`.

@@ -67,6 +67,16 @@ final class Navigator: NSObject, ObservableObject {
     StopNavigationIntent.stop = { [weak self] in self?.stop() }
   }
 
+  /// Ends a background session left over from a navigation the app did not end, e.g. because it
+  /// was closed while navigating: the system keeps such a session, and with it the location
+  /// indicator, beyond the app's end, see `knot-navigation` "No location use after navigation".
+  func endLeftoverSession() {
+    // Without location access, there is no session to end.
+    let status = manager.authorizationStatus
+    guard state == nil, status == .authorizedWhenInUse || status == .authorizedAlways else { return }
+    CLBackgroundActivitySession().invalidate()
+  }
+
   /// Starts navigating `route`, asking for location access first if needed.
   func start(_ route: NavigationRoute) {
     guard state == nil else { return }

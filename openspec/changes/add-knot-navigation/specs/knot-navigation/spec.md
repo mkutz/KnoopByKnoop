@@ -163,6 +163,10 @@ Passing the last knot of the route SHALL be announced with "You've arrived" and 
 - **WHEN** the rider taps Stop in the app while navigating
 - **THEN** navigation ends and the planned route is still there
 
+#### Scenario: No location use after navigation
+- **WHEN** navigation ended by arriving, by Stop, or because the app was closed or ended while navigating, and the app is started again or left in the background
+- **THEN** the app does not use the location, and the system shows no location indicator for it
+
 ### Requirement: Battery use while navigating
 Navigating with the screen off SHALL use at most 5 % of the battery per hour, measured on a real ride on the reference devices named in the design.
 
