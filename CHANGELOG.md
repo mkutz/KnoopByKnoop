@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.1.3
+
+- Android: the status bar is visible again, and the search field can be tapped all over
+- iOS: no location indicator after navigation has ended
+
 ## 0.1.2
 
 - Follows the system's light or dark mode, with a dark map
