@@ -64,6 +64,11 @@ struct PlannerView: View {
         if shown && !landscape { detent = Self.smallestDetent }
       }
     }
+    // The display stays on while navigating with the app open, see `knot-navigation` "Display on
+    // while navigating in the app"; iOS applies it only while the app is active.
+    .onChange(of: navigator.state != nil, initial: true) { _, navigating in
+      UIApplication.shared.isIdleTimerDisabled = navigating
+    }
   }
 
   /// The waypoints, or the info. The info and the confirmation are shown in the panel itself: while

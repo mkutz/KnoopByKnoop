@@ -2,11 +2,11 @@
 
 ## 1. Android
 
-- [ ] 1.1 `PlannerScreen.kt`: keep the display on with `LocalView.current.keepScreenOn` while `state.navigating`, off otherwise and when leaving the composition; checked on the emulator with a 15 s display timeout ("Navigating with the app open", "Navigation ends", "Planning", "Leaving the app", "Turning the display off")
+- [x] 1.1 `PlannerScreen.kt`: keep the display on with `LocalView.current.keepScreenOn` while `state.navigating`, off otherwise and when leaving the composition; checked on the emulator with a 15 s display timeout ("Navigating with the app open", "Navigation ends", "Planning", "Leaving the app", "Turning the display off")
 
 ## 2. iOS
 
-- [ ] 2.1 Set `UIApplication.shared.isIdleTimerDisabled` from whether `Navigator.shared.state` is set; both targets build
+- [x] 2.1 Set `UIApplication.shared.isIdleTimerDisabled` from whether `Navigator.shared.state` is set; both targets build
 
 ## 3. Checks
 

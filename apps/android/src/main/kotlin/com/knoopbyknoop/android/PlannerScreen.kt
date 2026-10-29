@@ -43,6 +43,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.mutableFloatStateOf
@@ -55,6 +56,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -75,6 +77,14 @@ private val WAYPOINT_ROW_HEIGHT = 56.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: SnackbarHostState) {
+  // The display stays on while navigating with the app open, see `knot-navigation` "Display on
+  // while navigating in the app". Only while the window is visible, so leaving the app or the
+  // power button work as usual.
+  val view = LocalView.current
+  DisposableEffect(state.navigating) {
+    view.keepScreenOn = state.navigating
+    onDispose { view.keepScreenOn = false }
+  }
   var showInfo by remember { mutableStateOf(false) }
   if (showInfo) InfoSheet(state, viewModel, onDismiss = { showInfo = false })
   var pendingNetwork by remember { mutableStateOf<IndexedNetworkType?>(null) }
