@@ -38,6 +38,13 @@ Simulator (iPhone 18 Pro, iOS 27.0), 2026-10-28, the same route, rides simulated
 | Tapping a knot while navigating, Stopping in the app | ⏳ | ⏳ | |
 | One hour with the screen off | – | ⏳ | Battery level at start and end of a ride of at least one hour |
 
+## Left open when archiving (2026-10-29)
+
+- **Music playing:** postponed by the maintainer as not the most important feature. On the iPhone, music did not seem to get quieter on a train ride, but with hardly any notices it was unclear; to be checked deliberately (music on, Stop and Navigate again, listen to the first notice).
+- **4.8:** the hidden cycling/hiking switch on the iPhone (✅ on Android).
+- **5.4:** the iPhone scenarios still marked ⏳ above.
+- **5.5:** the battery hour with the screen off.
+
 ## Found and fixed
 
 - **Both: the cycling/hiking switch was shown while navigating** (found by the maintainer). The apps ignored it then, but on Android, with a route, it even asked whether to discard the route, and then did nothing. It is now hidden while navigating, and Info stays. Android ✅ on the emulator and by the maintainer on the Pixel 7, 2026-10-29: gone while navigating, back after Stop. iPhone ⏳.
