@@ -40,6 +40,8 @@ Simulator (iPhone 18 Pro, iOS 27.0), 2026-10-28, the same route, rides simulated
 
 ## Found and fixed
 
+- **Both: the cycling/hiking switch was shown while navigating** (found by the maintainer). The apps ignored it then, but on Android, with a route, it even asked whether to discard the route, and then did nothing. It is now hidden while navigating, and Info stays. Android ✅ on the emulator and by the maintainer on the Pixel 7, 2026-10-29: gone while navigating, back after Stop. iPhone ⏳.
+
 - **iOS: blue location indicator after navigation** (found by the maintainer on the iPhone, after arriving, after Stop and after closing the app). The system keeps a `CLBackgroundActivitySession` beyond the app's end; one left over from a navigation the app did not end, e.g. when Xcode replaced the app or it was swiped away while navigating, kept the indicator for good. The app now ends such a session at start when it is not navigating. To check on the iPhone: start navigating, swipe the app away, start it again; the indicator goes away (✅ on the iPhone, 2026-10-29).
 
 - **Android: no fixes with `COARSE`.** Balanced power gave no fixes at all on the emulator (no Wi-Fi or cell towers), so navigation never saw 31. A timer to fall back to `FINE` did not help either: with the screen off and no fixes, the device sleeps and so does the timer. `COARSE` now uses high accuracy every 30 s on Android (design, "Precision instead of intervals").

@@ -198,18 +198,21 @@ private fun MapArea(
             .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
       ) {
-        IndexedNetworkType.entries.forEach { network ->
-          FilterChip(
-            selected = state.network == network,
-            onClick = {
-              if (state.network == network) return@FilterChip
-              if (session?.waypoints.isNullOrEmpty()) viewModel.switchNetwork(network)
-              else onSwitch(network)
-            },
-            label = { Text(network.name.lowercase().replaceFirstChar { it.uppercase() }) },
-            modifier = Modifier.padding(end = 8.dp),
-          )
-        }
+        // Not while navigating: the route is fixed then, see `knot-navigation` "Switching the
+        // network while navigating".
+        if (!state.navigating)
+          IndexedNetworkType.entries.forEach { network ->
+            FilterChip(
+              selected = state.network == network,
+              onClick = {
+                if (state.network == network) return@FilterChip
+                if (session?.waypoints.isNullOrEmpty()) viewModel.switchNetwork(network)
+                else onSwitch(network)
+              },
+              label = { Text(network.name.lowercase().replaceFirstChar { it.uppercase() }) },
+              modifier = Modifier.padding(end = 8.dp),
+            )
+          }
         TextButton(onClick = onInfo) { Text("Info") }
       }
     }

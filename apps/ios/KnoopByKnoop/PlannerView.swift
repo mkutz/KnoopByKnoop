@@ -134,12 +134,16 @@ struct PlannerView: View {
   /// The network picker and the info button, at the top of the map.
   private var networkSwitch: some View {
     HStack {
-      Picker("Knot network", selection: networkBinding) {
-        Text("Cycling").tag(IndexedNetworkType.cycling)
-        Text("Hiking").tag(IndexedNetworkType.hiking)
+      // Not while navigating: the route is fixed then, see `knot-navigation` "Switching the network
+      // while navigating".
+      if navigator.state == nil {
+        Picker("Knot network", selection: networkBinding) {
+          Text("Cycling").tag(IndexedNetworkType.cycling)
+          Text("Hiking").tag(IndexedNetworkType.hiking)
+        }
+        .pickerStyle(.segmented)
+        .frame(width: 200)
       }
-      .pickerStyle(.segmented)
-      .frame(width: 200)
       infoButton
     }
     .padding(8)

@@ -36,6 +36,7 @@
 - [x] 4.5 Planner: Navigate button, the header while navigating, editing and knot taps locked ("Tapping a knot while navigating", "Stopping in the app")
 - [x] 4.6 Map: the rider's position and the next knot highlighted ("Looking at the map", "Off route on the map")
 - [x] 4.7 At start without navigation, end a `CLBackgroundActivitySession` left over from a navigation the app did not end; checked by the maintainer on the iPhone: close the app while navigating, start it again, the blue indicator goes away ("No location use after navigation")
+- [ ] 4.8 Both apps hide the cycling/hiking switch while navigating, keeping Info; checked on the Android emulator and the iPhone ("Switching the network while navigating")
 
 ## 5. Checks and docs
 

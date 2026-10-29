@@ -152,6 +152,10 @@ While navigating, the route SHALL NOT be changed. Changing it SHALL require stop
 - **WHEN** the rider taps a knot on the map while navigating
 - **THEN** the route stays unchanged
 
+#### Scenario: Switching the network while navigating
+- **WHEN** the rider is navigating
+- **THEN** the switch between cycling and hiking is not shown, and it is back after navigation ends
+
 ### Requirement: Arriving and stopping
 Passing the last knot of the route SHALL be announced with "You've arrived" and SHALL end navigation. The user SHALL be able to stop navigation at any time in the app. Ending navigation SHALL stop using the location.
 
