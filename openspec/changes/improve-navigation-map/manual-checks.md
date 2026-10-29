@@ -18,7 +18,7 @@ Emulator `Medium_Phone_API_37.0`, 2026-10-29, on the route 08 → 31 → 97 at t
 | Navigation ends | ✅ | After Stop, the track is gone and the service has ended ([screenshots](screenshots/android-detour-screen-off-stop.png), right) |
 | Screen off | ✅ | 60 s ridden with the screen off: the track includes that stretch after waking up ([screenshots](screenshots/android-detour-screen-off-stop.png), middle); the precision changed to `COARSE` and back to `LIVE` as before |
 
-On a real Android phone: ⏳ pinch stops following; the arrow on a real ride.
+On a real Android phone (Pixel 7, by the maintainer, 2026-10-29): ✅ the arrow points in the direction of travel (on an ICE train); ⏳ pinch stops following.
 
 ## iOS
 
@@ -26,7 +26,7 @@ Built for the simulator and in Release for a device; the simulator can't be tapp
 
 | Scenario | iPhone | Notes |
 |---|---|---|
-| Riding | ⏳ | |
+| Riding | ✅ | By the maintainer on an ICE train, 2026-10-29: the arrow points in the direction of travel |
 | Standing still | ⏳ | |
 | Detour | ⏳ | |
 | Looking around | ⏳ | Drag, pinch and double tap each stop following |
