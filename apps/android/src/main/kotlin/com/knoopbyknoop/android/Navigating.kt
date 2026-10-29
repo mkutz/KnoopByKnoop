@@ -5,6 +5,7 @@ import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.Navigation
 import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkGraph
+import com.knoopbyknoop.core.RiddenTrack
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,8 +15,15 @@ import kotlinx.coroutines.flow.asStateFlow
  *
  * @property navigation the navigation, or `null` while waiting for the first fix
  * @property position the rider's last position, for the map
+ * @property track the track ridden since navigation started, see `knot-navigation` "Ridden track"
+ * @property direction the riding direction from the most recent movement, or `null` when standing
  */
-data class NavigationState(val navigation: Navigation?, val position: Fix?)
+data class NavigationState(
+  val navigation: Navigation?,
+  val position: Fix?,
+  val track: RiddenTrack = RiddenTrack(),
+  val direction: Double? = null,
+)
 
 /** A route to navigate: what [Navigation.start] needs. */
 class NavigationRoute(

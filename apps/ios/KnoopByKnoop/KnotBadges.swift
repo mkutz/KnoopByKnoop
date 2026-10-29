@@ -68,6 +68,28 @@ enum KnotBadges {
   }
 }
 
+extension KnotBadges {
+
+  /// The rider's position with a riding direction: a navigation arrow pointing north, rotated by the
+  /// map, see `knot-navigation` "Riding direction on the map".
+  static func riderArrow() -> UIImage {
+    UIGraphicsImageRenderer(size: CGSize(width: 30, height: 30)).image { _ in
+      let path = UIBezierPath()
+      path.move(to: CGPoint(x: 15, y: 3))
+      path.addLine(to: CGPoint(x: 25.5, y: 26))
+      path.addLine(to: CGPoint(x: 15, y: 21))
+      path.addLine(to: CGPoint(x: 4.5, y: 26))
+      path.close()
+      UIColor.systemBlue.setFill()
+      path.fill()
+      path.lineWidth = 2.5
+      path.lineJoinStyle = .round
+      UIColor.white.setStroke()
+      path.stroke()
+    }
+  }
+}
+
 /// The same badge as on the map, for the sheet.
 struct KnotBadge: View {
 

@@ -119,6 +119,34 @@ fun arrowBitmap(): Bitmap {
   return bitmap
 }
 
+/**
+ * The rider's position with a riding direction: a navigation arrow pointing north, rotated by the
+ * map, see `knot-navigation` "Riding direction on the map".
+ */
+fun riderArrowBitmap(color: Int): Bitmap {
+  val bitmap = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888)
+  val path =
+    Path().apply {
+      moveTo(32f, 6f)
+      lineTo(54f, 56f)
+      lineTo(32f, 45f)
+      lineTo(10f, 56f)
+      close()
+    }
+  val canvas = Canvas(bitmap)
+  canvas.drawPath(path, Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color })
+  canvas.drawPath(
+    path,
+    Paint(Paint.ANTI_ALIAS_FLAG).apply {
+      this.color = android.graphics.Color.WHITE
+      style = Paint.Style.STROKE
+      strokeWidth = 5f
+      strokeJoin = Paint.Join.ROUND
+    },
+  )
+  return bitmap
+}
+
 /** The same badge as on the map, for the sheet. */
 @Composable
 fun KnotBadge(ref: String, role: KnotRole?, modifier: Modifier = Modifier) {

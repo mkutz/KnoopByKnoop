@@ -24,6 +24,7 @@ import com.knoopbyknoop.core.Fix
 import com.knoopbyknoop.core.Navigation
 import com.knoopbyknoop.core.NavigationUpdate
 import com.knoopbyknoop.core.Precision
+import com.knoopbyknoop.core.RiddenTrack
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -44,6 +45,8 @@ class NavigationService : Service() {
   private lateinit var speaker: Speaker
   private var route: NavigationRoute? = null
   private var navigation: Navigation? = null
+  /** Kept here, not in the map, so it includes the stretches ridden with the screen off. */
+  private var track = RiddenTrack()
   private var precision: Precision? = null
   private var stopping = false
 
@@ -133,7 +136,8 @@ class NavigationService : Service() {
       Log.i(LOG_TAG, "notice: ${it.text}")
       speaker.speak(it.speech)
     }
-    Navigating.update(NavigationState(newNavigation, fix))
+    track = track.add(fix)
+    Navigating.update(NavigationState(newNavigation, fix, track, track.directionAt(fix)))
     if (newNavigation.arrived) {
       // "You've arrived" is spoken before navigation ends, see `knot-navigation` "Arriving".
       stopping = true

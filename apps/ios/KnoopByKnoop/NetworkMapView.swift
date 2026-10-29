@@ -71,6 +71,10 @@ struct NetworkMapView: UIViewRepresentable {
   /// The next knot while navigating, highlighted.
   var nextKnot: Knot? = nil
   var offRoute = false
+  /// The track ridden while navigating, see `knot-navigation` "Ridden track".
+  var track: RiddenTrack? = nil
+  /// The riding direction, see `knot-navigation` "Riding direction on the map".
+  var direction: Double? = nil
 
   func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -133,9 +137,29 @@ struct NetworkMapView: UIViewRepresentable {
     stack.spacing = 8
     stack.translatesAutoresizingMaskIntoConstraints = false
     mapView.addSubview(stack)
+    // Only while navigating and after the user moved the map away from the rider, below the zoom
+    // buttons, so they don't move when it appears, see `knot-navigation` "Following the rider".
+    let recenter = UIButton(type: .system)
+    recenter.setImage(UIImage(systemName: "location.fill"), for: .normal)
+    recenter.tintColor = .white
+    recenter.backgroundColor = UIColor(Color.actionGreen)
+    recenter.layer.cornerRadius = 20
+    recenter.layer.shadowOpacity = 0.2
+    recenter.layer.shadowRadius = 2
+    recenter.layer.shadowOffset = CGSize(width: 0, height: 1)
+    recenter.accessibilityLabel = "Recenter"
+    recenter.isHidden = true
+    recenter.translatesAutoresizingMaskIntoConstraints = false
+    recenter.addTarget(coordinator, action: #selector(Coordinator.recenter), for: .touchUpInside)
+    mapView.addSubview(recenter)
+    coordinator.recenterButton = recenter
     NSLayoutConstraint.activate([
       stack.trailingAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.trailingAnchor, constant: -12),
       stack.centerYAnchor.constraint(equalTo: mapView.centerYAnchor),
+      recenter.widthAnchor.constraint(equalToConstant: 40),
+      recenter.heightAnchor.constraint(equalToConstant: 40),
+      recenter.trailingAnchor.constraint(equalTo: stack.trailingAnchor),
+      recenter.topAnchor.constraint(equalTo: stack.bottomAnchor, constant: 20),
     ])
   }
 
@@ -144,7 +168,9 @@ struct NetworkMapView: UIViewRepresentable {
     context.coordinator.onLeave = onLeave
     context.coordinator.onMove = onMove
     context.coordinator.showMarker(marker, on: mapView)
-    context.coordinator.showNavigation(position: position, nextKnot: nextKnot, offRoute: offRoute, on: mapView)
+    context.coordinator.showNavigation(
+      position: position, nextKnot: nextKnot, offRoute: offRoute, direction: direction, on: mapView)
+    context.coordinator.showTrack(track)
     context.coordinator.dark = context.environment.colorScheme == .dark
     context.coordinator.online = online
     if online && context.coordinator.usesOfflineStyle {
@@ -180,18 +206,72 @@ struct NetworkMapView: UIViewRepresentable {
     /// Whether the map moves to the rider with the next position, e.g. after the app was opened.
     var findRider = false
 
+    private var direction: Double?
+    private var track: RiddenTrack?
+    weak var recenterButton: UIButton?
+
+    /// Whether the map follows the rider while navigating, see `knot-navigation` "Following the
+    /// rider": from the start of navigation until the user moves the map, and again after
+    /// `recenter`.
+    private var following = false {
+      didSet { updateRecenterButton() }
+    }
+
+    private func updateRecenterButton() {
+      recenterButton?.isHidden = position == nil || following
+    }
+
+    /// Back to the rider at the navigation zoom, following them again.
+    @objc func recenter() {
+      guard let mapView, let position else { return }
+      following = true
+      mapView.setCenter(
+        CLLocationCoordinate2D(latitude: position.latitude, longitude: position.longitude),
+        zoomLevel: navigationZoom, animated: true)
+    }
+
+    /// Moving or zooming the map by hand stops following the rider; the app's own camera moves
+    /// don't.
+    func mapView(_ mapView: MLNMapView, regionWillChangeWith reason: MLNCameraChangeReason, animated: Bool) {
+      let gestures: MLNCameraChangeReason = [
+        .gesturePan, .gesturePinch, .gestureRotate, .gestureZoomIn, .gestureZoomOut, .gestureOneFingerZoom,
+        .gestureTilt,
+      ]
+      if !reason.intersection(gestures).isEmpty { following = false }
+    }
+
+    func showTrack(_ newTrack: RiddenTrack?) {
+      guard newTrack !== track else { return }
+      track = newTrack
+      updateTrack()
+    }
+
+    private func updateTrack() {
+      guard let source = style?.source(withIdentifier: "ridden-track") as? MLNShapeSource else { return }
+      var coordinates = (track?.points ?? []).map {
+        CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
+      }
+      source.shape = coordinates.count < 2 ? nil : MLNPolylineFeature(coordinates: &coordinates, count: UInt(coordinates.count))
+    }
+
     /// Shows the rider and the next knot; when navigation begins or the app is opened while
     /// navigating, the map moves to the rider, see `knot-navigation` "Looking at the map".
     func showNavigation(
-      position newPosition: Fix?, nextKnot newNextKnot: Knot?, offRoute: Bool, on mapView: MLNMapView
+      position newPosition: Fix?, nextKnot newNextKnot: Knot?, offRoute: Bool, direction newDirection: Double?,
+      on mapView: MLNMapView
     ) {
       guard newPosition !== position || newNextKnot !== nextKnot else { return }
       let begins = newPosition != nil && (position == nil || findRider)
       if begins { findRider = false }
       position = newPosition
       nextKnot = newNextKnot
+      direction = newDirection
+      if begins { following = true }
+      if newPosition == nil { following = false }
+      updateRecenterButton()
       updateNavigation()
-      if begins, let newPosition, offRoute, let newNextKnot {
+      guard following, let newPosition else { return }
+      if offRoute, let newNextKnot {
         // Off route, the rider and the next knot, so they see where the route is.
         let rider = CLLocationCoordinate2D(latitude: newPosition.latitude, longitude: newPosition.longitude)
         let knot = CLLocationCoordinate2D(latitude: newNextKnot.latitude, longitude: newNextKnot.longitude)
@@ -200,10 +280,13 @@ struct NetworkMapView: UIViewRepresentable {
             sw: CLLocationCoordinate2D(latitude: min(rider.latitude, knot.latitude), longitude: min(rider.longitude, knot.longitude)),
             ne: CLLocationCoordinate2D(latitude: max(rider.latitude, knot.latitude), longitude: max(rider.longitude, knot.longitude))),
           edgePadding: UIEdgeInsets(top: 120, left: 60, bottom: 260, right: 60), animated: true, completionHandler: nil)
-      } else if begins, let newPosition {
+      } else if begins {
         mapView.setCenter(
           CLLocationCoordinate2D(latitude: newPosition.latitude, longitude: newPosition.longitude),
           zoomLevel: max(mapView.zoomLevel, navigationZoom), animated: true)
+      } else {
+        mapView.setCenter(
+          CLLocationCoordinate2D(latitude: newPosition.latitude, longitude: newPosition.longitude), animated: true)
       }
     }
 
@@ -213,8 +296,14 @@ struct NetworkMapView: UIViewRepresentable {
         point.coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
         return point
       }
+      // With a riding direction, the position is drawn as an arrow rotated by it, see
+      // `knot-navigation` "Riding direction on the map".
       (style?.source(withIdentifier: "position") as? MLNShapeSource)?.shape =
-        position.map { point($0.latitude, $0.longitude) }
+        position.map {
+          let feature = point($0.latitude, $0.longitude)
+          if let direction { feature.attributes = ["direction": direction] }
+          return feature
+        }
       (style?.source(withIdentifier: "next-knot") as? MLNShapeSource)?.shape =
         nextKnot.map { point($0.latitude, $0.longitude) }
     }
@@ -458,6 +547,18 @@ struct NetworkMapView: UIViewRepresentable {
       connections.lineOpacity = NSExpression(forConstantValue: 0.7)
       style.addLayer(connections)
 
+      // Below the route: where both overlap the route stays visible, detours show in blue.
+      let trackSource = MLNShapeSource(identifier: "ridden-track", shape: nil)
+      style.addSource(trackSource)
+      let trackLayer = MLNLineStyleLayer(identifier: "ridden-track", source: trackSource)
+      trackLayer.lineColor = NSExpression(forConstantValue: UIColor(red: 0x1E / 255, green: 0x6F / 255, blue: 0xD9 / 255, alpha: 1))
+      trackLayer.lineWidth = NSExpression(forConstantValue: 4)
+      trackLayer.lineOpacity = NSExpression(forConstantValue: 0.8)
+      trackLayer.lineCap = NSExpression(forConstantValue: "round")
+      trackLayer.lineJoin = NSExpression(forConstantValue: "round")
+      style.addLayer(trackLayer)
+      updateTrack()
+
       let route = MLNLineStyleLayer(identifier: "route", source: sources[1])
       route.predicate = NSPredicate(format: "reachable == YES")
       route.lineColor = NSExpression(forConstantValue: UIColor(Color.knoopOrange))
@@ -512,11 +613,21 @@ struct NetworkMapView: UIViewRepresentable {
       let positionSource = MLNShapeSource(identifier: "position", shape: nil)
       style.addSource(positionSource)
       let positionLayer = MLNCircleStyleLayer(identifier: "position", source: positionSource)
+      positionLayer.predicate = NSPredicate(format: "direction == nil")
       positionLayer.circleRadius = NSExpression(forConstantValue: 8)
       positionLayer.circleColor = NSExpression(forConstantValue: UIColor.systemBlue)
       positionLayer.circleStrokeColor = NSExpression(forConstantValue: UIColor.white)
       positionLayer.circleStrokeWidth = NSExpression(forConstantValue: 3)
       style.addLayer(positionLayer)
+      style.setImage(KnotBadges.riderArrow(), forName: "rider-arrow")
+      let arrowLayer = MLNSymbolStyleLayer(identifier: "position-arrow", source: positionSource)
+      arrowLayer.predicate = NSPredicate(format: "direction != nil")
+      arrowLayer.iconImageName = NSExpression(forConstantValue: "rider-arrow")
+      arrowLayer.iconRotation = NSExpression(forKeyPath: "direction")
+      arrowLayer.iconRotationAlignment = NSExpression(forConstantValue: "map")
+      arrowLayer.iconAllowsOverlap = NSExpression(forConstantValue: true)
+      arrowLayer.iconIgnoresPlacement = NSExpression(forConstantValue: true)
+      style.addLayer(arrowLayer)
       updateNavigation()
     }
 

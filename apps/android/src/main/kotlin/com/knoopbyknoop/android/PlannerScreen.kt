@@ -180,6 +180,8 @@ private fun MapArea(
       onMove = viewModel::mapMoved,
       modifier = Modifier.fillMaxSize(),
       position = state.navigation?.position,
+      track = state.navigation?.track,
+      direction = state.navigation?.direction,
       nextKnot = state.navigation?.navigation?.nextKnot,
       offRoute = state.navigation?.navigation?.offRoute == true,
     )

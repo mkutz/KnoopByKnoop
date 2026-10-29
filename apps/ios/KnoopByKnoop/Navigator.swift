@@ -9,6 +9,10 @@ import os
 struct NavigationState {
   let navigation: Navigation?
   let position: Fix?
+  /// The track ridden since navigation started, see `knot-navigation` "Ridden track".
+  var track = RiddenTrack(points: [])
+  /// The riding direction from the most recent movement, or `nil` when standing.
+  var direction: Double? = nil
 }
 
 /// A route to navigate: what `Navigation.start` needs. Without courses, `geometry` is `nil`:
@@ -47,6 +51,8 @@ final class Navigator: NSObject, ObservableObject {
   /// Keeps location updates coming while the app is in the background.
   private var backgroundSession: CLBackgroundActivitySession?
   private var route: NavigationRoute?
+  /// Kept here, not in the map, so it includes the stretches ridden with the screen off.
+  private var track = RiddenTrack(points: [])
   private var waitingForAccess = false
   private var precision: Precision?
   private var activity: Activity<NavigationActivityAttributes>?
@@ -109,6 +115,7 @@ final class Navigator: NSObject, ObservableObject {
 
   private func begin() {
     stopping = false
+    track = RiddenTrack(points: [])
     state = NavigationState(navigation: nil, position: nil)
     manager.allowsBackgroundLocationUpdates = true
     manager.showsBackgroundLocationIndicator = true
@@ -144,7 +151,10 @@ final class Navigator: NSObject, ObservableObject {
       logger.notice("notice: \(notice.text, privacy: .public)")
       speak(notice.speech)
     }
-    state = NavigationState(navigation: navigation, position: fix)
+    track = track.add(fix: fix)
+    state = NavigationState(
+      navigation: navigation, position: fix, track: track,
+      direction: track.directionAt(fix: fix).map { $0.doubleValue })
     if navigation.arrived {
       // "You've arrived" is spoken before navigation ends, see `knot-navigation` "Arriving".
       stopping = true

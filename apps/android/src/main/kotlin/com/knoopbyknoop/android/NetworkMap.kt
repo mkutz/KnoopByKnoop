@@ -5,16 +5,22 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Icon
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -25,6 +31,7 @@ import com.knoopbyknoop.core.Fix
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.NetworkGraph
 import com.knoopbyknoop.core.PlaceHit
+import com.knoopbyknoop.core.RiddenTrack
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
@@ -83,6 +90,9 @@ private const val MARKER_RED = "#D93025"
 /** The rider's position, in the blue maps commonly use for it. */
 private const val POSITION_BLUE = "#1A73E8"
 
+/** The ridden track, a blue next to the position's, distinct from the orange route. */
+private const val TRACK_BLUE = "#1E6FD9"
+
 /** Knots are drawn and can be tapped from this zoom level on; below it the route is a line only. */
 private const val KNOT_MIN_ZOOM = 10.0
 
@@ -116,6 +126,10 @@ fun NetworkMap(
   modifier: Modifier = Modifier,
   /** The rider's position while navigating, see `knot-navigation` "Position on the map". */
   position: Fix? = null,
+  /** The track ridden while navigating, see `knot-navigation` "Ridden track". */
+  track: RiddenTrack? = null,
+  /** The riding direction, see `knot-navigation` "Riding direction on the map". */
+  direction: Double? = null,
   /** The next knot while navigating, highlighted. */
   nextKnot: Knot? = null,
   offRoute: Boolean = false,
@@ -138,6 +152,13 @@ fun NetworkMap(
       getMapAsync { map ->
         holder.map = map
         map.addOnCameraIdleListener { holder.place()?.let { holder.onMove(it) } }
+        // Moving or zooming the map by hand stops following the rider; the app's own camera moves
+        // don't.
+        map.addOnCameraMoveStartedListener { reason ->
+          if (reason == MapLibreMap.OnCameraMoveStartedListener.REASON_API_GESTURE) {
+            holder.following = false
+          }
+        }
         map.addOnMapClickListener { point ->
           if (map.cameraPosition.zoom < KNOT_MIN_ZOOM) {
             // Zoomed out, knots are not shown: a tap on the route zooms to it.
@@ -190,7 +211,10 @@ fun NetworkMap(
   holder.show(graph, layers, focus)
   // A chosen search hit: the map moves there, close enough to tap knots, see `place-search`.
   LaunchedEffect(marker) { holder.showMarker(marker) }
-  LaunchedEffect(position, nextKnot) { holder.showNavigation(position, nextKnot, offRoute) }
+  LaunchedEffect(position, nextKnot) {
+    holder.showNavigation(position, nextKnot, offRoute, direction)
+  }
+  LaunchedEffect(track) { holder.showTrack(track) }
   // The offline style has no base map; it is loaded as soon as network access is back.
   LaunchedEffect(online) { if (online && holder.usesOfflineStyle) holder.loadBaseMap() }
   // Switched in place, the camera stays, see `map-planning` "Switching while the app is open".
@@ -231,6 +255,17 @@ fun NetworkMap(
           modifier = Modifier.padding(vertical = 4.dp),
         ) {
           Text(label, fontSize = 22.sp)
+        }
+      }
+      // Only while navigating and after the user moved the map away from the rider.
+      if (position != null && !holder.following) {
+        SmallFloatingActionButton(
+          onClick = holder::recenter,
+          containerColor = ActionColors.green,
+          contentColor = Color.White,
+          modifier = Modifier.padding(top = 12.dp),
+        ) {
+          Icon(painterResource(R.drawable.ic_action_recenter), contentDescription = "Recenter")
         }
       }
     }
@@ -330,6 +365,7 @@ private class MapHolder {
     addLayers(loaded)
     updateMarker(loaded)
     updateNavigation(loaded)
+    updateTrack(loaded)
     update()
   }
 
@@ -359,39 +395,94 @@ private class MapHolder {
    * Shows the rider and the next knot; when navigation begins or the app is opened while
    * navigating, the map moves to the rider, see `knot-navigation` "Looking at the map".
    */
-  fun showNavigation(newPosition: Fix?, newNextKnot: Knot?, offRoute: Boolean = false) {
+  /**
+   * Whether the map follows the rider while navigating, see `knot-navigation` "Following the
+   * rider": from the start of navigation until the user moves the map, and again after [recenter].
+   */
+  var following by mutableStateOf(false)
+
+  private var direction: Double? = null
+
+  fun showNavigation(
+    newPosition: Fix?,
+    newNextKnot: Knot?,
+    offRoute: Boolean = false,
+    newDirection: Double? = null,
+  ) {
     val begins = newPosition != null && (position == null || findRider)
-    if (begins) findRider = false
+    if (begins) {
+      findRider = false
+      following = true
+    }
+    if (newPosition == null) following = false
     position = newPosition
     nextKnot = newNextKnot
+    direction = newDirection
     style?.let { updateNavigation(it) }
-    if (begins && newPosition != null && offRoute && newNextKnot != null) {
+    if (newPosition == null || !following) return
+    val map = map ?: return
+    val rider = LatLng(newPosition.latitude, newPosition.longitude)
+    if (offRoute && newNextKnot != null) {
       // Off route, the rider and the next knot, so they see where the route is.
       val bounds =
         LatLngBounds.Builder()
-          .include(LatLng(newPosition.latitude, newPosition.longitude))
+          .include(rider)
           .include(LatLng(newNextKnot.latitude, newNextKnot.longitude))
           .build()
-      map?.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 160))
-    } else if (begins && newPosition != null) {
-      map?.let {
-        it.animateCamera(
-          CameraUpdateFactory.newLatLngZoom(
-            LatLng(newPosition.latitude, newPosition.longitude),
-            maxOf(it.cameraPosition.zoom, NAVIGATION_ZOOM),
-          )
-        )
-      }
+      map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 160))
+    } else if (begins) {
+      map.animateCamera(
+        CameraUpdateFactory.newLatLngZoom(rider, maxOf(map.cameraPosition.zoom, NAVIGATION_ZOOM))
+      )
+    } else {
+      map.animateCamera(CameraUpdateFactory.newLatLng(rider))
     }
+  }
+
+  /** Back to the rider at the navigation zoom, following them again. */
+  fun recenter() {
+    val rider = position ?: return
+    following = true
+    map?.animateCamera(
+      CameraUpdateFactory.newLatLngZoom(LatLng(rider.latitude, rider.longitude), NAVIGATION_ZOOM)
+    )
+  }
+
+  private var track: RiddenTrack? = null
+
+  fun showTrack(newTrack: RiddenTrack?) {
+    track = newTrack
+    style?.let { updateTrack(it) }
+  }
+
+  private fun updateTrack(style: Style) {
+    val points = track?.points.orEmpty()
+    val geoJson =
+      if (points.size < 2) """{"type": "FeatureCollection", "features": []}"""
+      else
+        points.joinToString(
+          prefix = """{"type": "LineString", "coordinates": [""",
+          postfix = "]}",
+        ) {
+          "[${it.longitude}, ${it.latitude}]"
+        }
+    style.getSourceAs<GeoJsonSource>("ridden-track")?.setGeoJson(geoJson)
   }
 
   private fun updateNavigation(style: Style) {
     fun point(latitude: Double, longitude: Double) =
       """{"type": "Point", "coordinates": [$longitude, $latitude]}"""
     val empty = """{"type": "FeatureCollection", "features": []}"""
+    // With a riding direction, the position is drawn as an arrow rotated by it, see
+    // `knot-navigation` "Riding direction on the map".
     style
       .getSourceAs<GeoJsonSource>("position")
-      ?.setGeoJson(position?.let { point(it.latitude, it.longitude) } ?: empty)
+      ?.setGeoJson(
+        position?.let { fix ->
+          val properties = direction?.let { """"direction": $it""" } ?: ""
+          """{"type": "Feature", "properties": {$properties}, "geometry": ${point(fix.latitude, fix.longitude)}}"""
+        } ?: empty
+      )
     style
       .getSourceAs<GeoJsonSource>("next-knot")
       ?.setGeoJson(nextKnot?.let { point(it.latitude, it.longitude) } ?: empty)
@@ -485,11 +576,24 @@ private class MapHolder {
   }
 
   private fun addLayers(style: Style) {
-    listOf("connections", "marker", "route", "next-knot", "route-knots", "knots", "position")
+    listOf(
+        "connections",
+        "marker",
+        "ridden-track",
+        "route",
+        "next-knot",
+        "route-knots",
+        "knots",
+        "position",
+      )
       .forEach {
         style.addSource(GeoJsonSource(it))
       }
     style.addImage("route-arrow", arrowBitmap())
+    style.addImage(
+      "rider-arrow",
+      riderArrowBitmap(android.graphics.Color.parseColor(POSITION_BLUE)),
+    )
     // The chosen search hit, drawn under route and knots, so it never hides a knot.
     style.addLayer(
       CircleLayer("marker", "marker")
@@ -506,6 +610,17 @@ private class MapHolder {
           PropertyFactory.lineColor(GREEN),
           PropertyFactory.lineWidth(2f),
           PropertyFactory.lineOpacity(0.7f),
+        )
+    )
+    // Below the route: where both overlap the route stays visible, detours show in blue.
+    style.addLayer(
+      LineLayer("ridden-track", "ridden-track")
+        .withProperties(
+          PropertyFactory.lineColor(TRACK_BLUE),
+          PropertyFactory.lineWidth(4f),
+          PropertyFactory.lineOpacity(0.8f),
+          PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+          PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
         )
     )
     style.addLayer(
@@ -582,11 +697,24 @@ private class MapHolder {
     // The rider's position while navigating, above everything else.
     style.addLayer(
       CircleLayer("position", "position")
+        .withFilter(Expression.not(Expression.has("direction")))
         .withProperties(
           PropertyFactory.circleRadius(9f),
           PropertyFactory.circleColor(POSITION_BLUE),
           PropertyFactory.circleStrokeColor("#FFFFFF"),
           PropertyFactory.circleStrokeWidth(3f),
+        )
+    )
+    style.addLayer(
+      SymbolLayer("position-arrow", "position")
+        .withFilter(Expression.has("direction"))
+        .withProperties(
+          PropertyFactory.iconImage("rider-arrow"),
+          PropertyFactory.iconRotate(Expression.get("direction")),
+          PropertyFactory.iconRotationAlignment(Property.ICON_ROTATION_ALIGNMENT_MAP),
+          PropertyFactory.iconSize(0.9f),
+          PropertyFactory.iconAllowOverlap(true),
+          PropertyFactory.iconIgnorePlacement(true),
         )
     )
   }
