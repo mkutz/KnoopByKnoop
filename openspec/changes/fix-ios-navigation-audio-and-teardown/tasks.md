@@ -2,11 +2,11 @@
 
 ## 1. Music back up after a notice
 
-- [ ] 1.1 `Navigator`: count pending utterances, deactivate the audio session with `.notifyOthersOnDeactivation` when the count reaches 0, log failures and retry once after 0.5 s; `stop()` stops the synthesizer; both iOS targets build ("Music playing")
+- [x] 1.1 `Navigator`: count pending utterances, deactivate the audio session with `.notifyOthersOnDeactivation` when the count reaches 0, log failures and retry once after 0.5 s; `stop()` stops the synthesizer; both iOS targets build ("Music playing")
 
 ## 2. Closing the app ends navigation
 
-- [ ] 2.1 `AppDelegate.applicationWillTerminate` calls `Navigator.shared.stop()` and waits up to 1 s for the Live Activity to end; the start-time cleanup stays; both iOS targets build ("Closing the app while navigating")
+- [x] 2.1 `AppDelegate.applicationWillTerminate` calls `Navigator.shared.stop()` and waits up to 1 s for the Live Activity to end; the start-time cleanup stays; both iOS targets build ("Closing the app while navigating")
 
 ## 3. Checks
 

@@ -33,6 +33,12 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 
   var downloads: NetworkDownloads?
 
+  /// Closing the app while navigating ends navigation, so the location indicator and the Live
+  /// Activity go away right then, see `knot-navigation` "Closing the app while navigating".
+  func applicationWillTerminate(_ application: UIApplication) {
+    MainActor.assumeIsolated { Navigator.shared.stopBeforeTermination() }
+  }
+
   func application(
     _ application: UIApplication, handleEventsForBackgroundURLSession identifier: String,
     completionHandler: @escaping () -> Void

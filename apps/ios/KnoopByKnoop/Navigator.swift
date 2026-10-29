@@ -100,6 +100,27 @@ final class Navigator: NSObject, ObservableObject {
   }
 
   func stop() {
+    let ending = endNavigation()
+    Task { await ending?.end(nil, dismissalPolicy: .immediate) }
+  }
+
+  /// Ends navigation when the app is closed, see `knot-navigation` "Closing the app while
+  /// navigating": waits up to a second for the Live Activity to go away, as the app ends right after.
+  func stopBeforeTermination() {
+    guard state != nil else { return }
+    let ending = endNavigation()
+    let ended = DispatchSemaphore(value: 0)
+    Task.detached {
+      await ending?.end(nil, dismissalPolicy: .immediate)
+      ended.signal()
+    }
+    _ = ended.wait(timeout: .now() + 1)
+  }
+
+  /// Stops speech, location and the background session; returns the Live Activity, for the caller to
+  /// end it.
+  private func endNavigation() -> Activity<NavigationActivityAttributes>? {
+    if speech.isSpeaking { speech.stopSpeaking(at: .immediate) }
     manager.stopUpdatingLocation()
     manager.allowsBackgroundLocationUpdates = false
     backgroundSession?.invalidate()
@@ -110,7 +131,7 @@ final class Navigator: NSObject, ObservableObject {
     state = nil
     let ending = activity
     activity = nil
-    Task { await ending?.end(nil, dismissalPolicy: .immediate) }
+    return ending
   }
 
   private func begin() {
@@ -186,6 +207,11 @@ final class Navigator: NSObject, ObservableObject {
 
   // MARK: Speaking, see `knot-navigation` "Spoken notices"
 
+  /// Notices handed to the synthesizer and not yet finished: other audio is lowered until none is
+  /// left, see `knot-navigation` "Music playing". Asking the synthesizer instead is unreliable: in
+  /// its `didFinish`, it may still report that it is speaking.
+  private var pendingNotices = 0
+
   private func speak(_ text: String) {
     let audio = AVAudioSession.sharedInstance()
     do {
@@ -197,13 +223,30 @@ final class Navigator: NSObject, ObservableObject {
     }
     let utterance = AVSpeechUtterance(string: text)
     utterance.voice = AVSpeechSynthesisVoice(language: "en-GB")
+    pendingNotices += 1
     speech.speak(utterance)
   }
 
   private func finishedSpeaking() {
-    guard !speech.isSpeaking else { return }
-    try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    pendingNotices = max(0, pendingNotices - 1)
+    guard pendingNotices == 0 else { return }
+    releaseAudio(retrying: true)
     if stopping { stop() }
+  }
+
+  /// Gives the audio back, so other audio plays at its volume again; retried once if the audio is
+  /// still busy.
+  private func releaseAudio(retrying: Bool) {
+    do {
+      try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    } catch {
+      logger.error("releasing audio: \(error.localizedDescription, privacy: .public)")
+      guard retrying else { return }
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+        guard let self, self.pendingNotices == 0 else { return }
+        self.releaseAudio(retrying: false)
+      }
+    }
   }
 
   // MARK: Live Activity, see `knot-navigation` "Navigation with the screen off"
