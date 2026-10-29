@@ -10,7 +10,7 @@
 
 ## 3. Checks
 
-- [ ] 3.1 Manual checks in `manual-checks.md`: all five scenarios on the Android emulator (display timeout set to 15 s and restored afterwards); on the iPhone by the maintainer, with Auto-Lock at 30 s: "Navigating with the app open", "Navigation ends", "Leaving the app"
+- [x] 3.1 Manual checks in `manual-checks.md`: all five scenarios on the Android emulator (display timeout set to 15 s and restored afterwards); on the iPhone by the maintainer, with Auto-Lock at 30 s: "Navigating with the app open", "Navigation ends", "Leaving the app"
 - [x] 3.2 `./gradlew check` passes, CI passes
 
 ## Workflow follow-up

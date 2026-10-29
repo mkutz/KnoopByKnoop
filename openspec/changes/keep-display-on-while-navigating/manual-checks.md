@@ -14,10 +14,15 @@ Emulator `Medium_Phone_API_37.0`, 2026-10-29, display timeout set to 15 s (`sett
 
 ## iOS
 
-Both targets build. Checks by the maintainer on the iPhone, with Auto-Lock at 30 s: ⏳.
+Both targets build. Checks by the maintainer on the iPhone, 2026-10-29, with Auto-Lock at 30 s, the app started from the home screen and the phone lying on the table.
 
 | Scenario | iPhone | Notes |
 |---|---|---|
-| Navigating with the app open | ⏳ | The display stays on longer than 30 s |
-| Navigation ends | ⏳ | After Stop, it locks after 30 s again |
-| Leaving the app | ⏳ | After switching to another app, it locks after 30 s |
+| Navigating with the app open | ✅ | Stays on beyond 40 s |
+| Navigation ends | ✅ | After Stop, it locks after about 30 s |
+| Leaving the app | ✅ | Locks with the app in the background |
+| Planning | ✅ | Locks after about 30 s |
+
+## Found and fixed
+
+- **iPhone: display stayed on in planning mode** (maintainer). Not the app: the app ran under the Xcode debugger, which keeps an iPhone from locking; it had also kept it on while navigating before this change. Started from the home screen, it locks as expected. Display checks on the iPhone count only with the app started from the home screen, and with nobody looking at it (Face ID's Attention Aware Features).
