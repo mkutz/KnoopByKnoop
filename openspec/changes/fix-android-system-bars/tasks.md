@@ -2,7 +2,7 @@
 
 ## 1. System bar icons
 
-- [x] 1.1 `enableEdgeToEdge()` in `MainActivity.onCreate`, and again in `onConfigurationChanged` for `uiMode` changes; on the emulator the status bar shows dark icons on the light map and light icons in dark mode, also after `cmd uimode night yes|no` while the app is open ("Status bar on the light map", "Status bar in dark mode")
+- [x] 1.1 `enableEdgeToEdge()` from a `LaunchedEffect` keyed on the appearance, so it runs at start and on every `uiMode` change; on the emulator the status bar shows dark icons on the light map and light icons in dark mode, also after `cmd uimode night yes|no` while the app is open ("Status bar on the light map", "Status bar in dark mode")
 
 ## 2. Insets
 

@@ -22,8 +22,9 @@ In portrait, the `BottomSheetScaffold` sheet already keeps clear of the navigati
 
 ## Decisions
 
-### `enableEdgeToEdge` with `SystemBarStyle.auto`, again on `uiMode` changes
-`ComponentActivity.enableEdgeToEdge()` makes the bars transparent and sets their icons dark or light from the current appearance. Because the activity is not recreated on a `uiMode` change, it is called again in `onConfigurationChanged`.
+### `enableEdgeToEdge` from the UI, whenever the appearance changes
+`ComponentActivity.enableEdgeToEdge()` makes the bars transparent and sets their icons dark or light. The activity is not recreated on a `uiMode` change, so it is called again from a `LaunchedEffect` keyed on `isSystemInDarkTheme()`, once the UI has been recomposed in the new appearance.
+Calling it in `onConfigurationChanged` was tried first: the app's window had the right appearance, but the system bars didn't always take it over until the window was laid out again, e.g. after the screen woke up.
 *Alternative:* setting `windowLightStatusBar` in the light and night themes. That would cover the start, but not a switch while the app is open, which keeps the old window theme.
 
 ### Insets on the overlays, not on the map

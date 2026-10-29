@@ -1,12 +1,12 @@
 package com.knoopbyknoop.android
 
-import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -25,19 +25,15 @@ class MainActivity : ComponentActivity() {
     super.onStop()
   }
 
-  // The activity is not recreated when the appearance changes, so the bar icons follow it here.
-  override fun onConfigurationChanged(newConfig: Configuration) {
-    super.onConfigurationChanged(newConfig)
-    showSystemBars(newConfig)
-  }
-
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    // The map extends behind the system bars, their icons dark or light like the appearance, see
-    // `map-planning` "Clear of the system bars".
-    showSystemBars(resources.configuration)
     setContent {
       KnoopTheme {
+        // The map extends behind the system bars, their icons dark or light like the appearance,
+        // see `map-planning` "Clear of the system bars". Set once the UI shows the appearance: set
+        // while the configuration changes, the system did not always take it over.
+        val dark = isSystemInDarkTheme()
+        LaunchedEffect(dark) { showSystemBars(dark) }
         val viewModel: AppViewModel = viewModel()
         val state = viewModel.state
         val snackbarHostState = remember { SnackbarHostState() }
@@ -52,10 +48,8 @@ class MainActivity : ComponentActivity() {
     }
   }
 
-  /** Transparent bars, with icons from the given configuration's appearance. */
-  private fun showSystemBars(configuration: Configuration) {
-    val dark =
-      configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+  /** Transparent bars, with light icons when [dark]. */
+  private fun showSystemBars(dark: Boolean) {
     val style = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { dark }
     enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
   }
