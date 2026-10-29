@@ -7,7 +7,7 @@ Emulator `Medium_Phone_API_37.0`, 2026-10-29, on the route 08 → 31 → 97 at t
 | Scenario | Android | Notes |
 |---|---|---|
 | Riding with the map following | ✅ | The map moves with the rider, south and then east ([screenshots](screenshots/android-following.png), 1 and 5) |
-| Looking around | ✅ | Dragging the map, and zooming by double tap, stop following; the map stays and "Recenter" appears below the zoom buttons ([screenshots](screenshots/android-following.png), 2). Pinch needs two fingers and can't be scripted: ⏳ on a phone |
+| Looking around | ✅ | Dragging the map, and zooming by double tap, stop following; the map stays and "Recenter" appears below the zoom buttons ([screenshots](screenshots/android-following.png), 2). Pinch needs two fingers and can't be scripted on the emulator: ✅ by the maintainer on the Pixel 7 |
 | Recentering | ✅ | "Recenter" moves the map to the rider at zoom 15, follows again, and disappears ([screenshots](screenshots/android-following.png), 4 and 5) |
 | No automatic return | ✅ | Riding on for 10 s after dragging: the map stays where it was, the button stays ([screenshots](screenshots/android-following.png), 3) |
 | Off route while following | ✅ | From 08, 2 km west: "Off route, next 31", the map shows the rider and the highlighted 31 together ([screenshot](screenshots/android-off-route.png)) |
@@ -18,19 +18,19 @@ Emulator `Medium_Phone_API_37.0`, 2026-10-29, on the route 08 → 31 → 97 at t
 | Navigation ends | ✅ | After Stop, the track is gone and the service has ended ([screenshots](screenshots/android-detour-screen-off-stop.png), right) |
 | Screen off | ✅ | 60 s ridden with the screen off: the track includes that stretch after waking up ([screenshots](screenshots/android-detour-screen-off-stop.png), middle); the precision changed to `COARSE` and back to `LIVE` as before |
 
-On a real Android phone (Pixel 7, by the maintainer, 2026-10-29): ✅ the arrow points in the direction of travel (on an ICE train); ⏳ pinch stops following.
+On a real Android phone (Pixel 7, by the maintainer on an ICE train, 2026-10-29): ✅ the arrow points in the direction of travel and turns into a dot when standing (also in tunnels); ✅ zooming (pinch) and swiping stop following and show Recenter; ✅ Recenter; ✅ the blue track is well visible.
 
 ## iOS
 
-Built for the simulator and in Release for a device; the simulator can't be tapped by script, so navigation can't be started there. iPhone checks by the maintainer on a real ride: ⏳.
+Built for the simulator and in Release for a device; the simulator can't be tapped by script, so navigation can't be started there. iPhone checks by the maintainer on an ICE train, 2026-10-29.
 
 | Scenario | iPhone | Notes |
 |---|---|---|
 | Riding | ✅ | By the maintainer on an ICE train, 2026-10-29: the arrow points in the direction of travel |
-| Standing still | ⏳ | |
-| Detour | ⏳ | |
-| Looking around | ⏳ | Drag, pinch and double tap each stop following |
-| Recentering | ⏳ | |
+| Standing still | ✅ | A dot when standing, also in tunnels without fixes |
+| Detour | ✅ | The blue track is well visible next to the route (on the train, the whole ride is off the route) |
+| Looking around | ✅ | Zooming or swiping stops following, and Recenter appears right away |
+| Recentering | ✅ | Recenter zooms in on the rider; off route, the next fix then shows the rider together with the next knot ("Off route while following") |
 
 ## Found and fixed
 
