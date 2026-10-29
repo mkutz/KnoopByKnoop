@@ -12,4 +12,4 @@
 ## 3. Checks
 
 - [x] 3.1 Manual checks in `manual-checks.md` with screenshots for all four scenarios, portrait and landscape, light and dark; restore the emulator's navigation mode, cutout and appearance afterwards
-- [ ] 3.2 `./gradlew check` passes, CI passes
+- [x] 3.2 `./gradlew check` passes, CI passes
