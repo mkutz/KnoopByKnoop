@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.1.4
+
+- While navigating, the map follows you, an arrow shows your riding direction and a blue line the track you rode; a button recenters the map after you looked around
+- The switch between cycling and hiking is hidden while navigating
+- The display stays on while navigating with the app open
+- iOS: music is back at full volume after each notice, and closing the app ends navigation
+
 ## 0.1.3
 
 - Android: the status bar is visible again, and the search field can be tapped all over
