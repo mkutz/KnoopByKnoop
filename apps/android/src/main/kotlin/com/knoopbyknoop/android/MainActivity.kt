@@ -1,8 +1,12 @@
 package com.knoopbyknoop.android
 
+import android.content.res.Configuration
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -21,8 +25,17 @@ class MainActivity : ComponentActivity() {
     super.onStop()
   }
 
+  // The activity is not recreated when the appearance changes, so the bar icons follow it here.
+  override fun onConfigurationChanged(newConfig: Configuration) {
+    super.onConfigurationChanged(newConfig)
+    showSystemBars(newConfig)
+  }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    // The map extends behind the system bars, their icons dark or light like the appearance, see
+    // `map-planning` "Clear of the system bars".
+    showSystemBars(resources.configuration)
     setContent {
       KnoopTheme {
         val viewModel: AppViewModel = viewModel()
@@ -37,5 +50,13 @@ class MainActivity : ComponentActivity() {
         PlannerScreen(state, viewModel, snackbarHostState)
       }
     }
+  }
+
+  /** Transparent bars, with icons from the given configuration's appearance. */
+  private fun showSystemBars(configuration: Configuration) {
+    val dark =
+      configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+    val style = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { dark }
+    enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
   }
 }

@@ -14,12 +14,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -93,8 +98,21 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
       Row(modifier = Modifier.fillMaxSize()) {
         mapArea(state, Modifier.weight(1f).fillMaxHeight())
         VerticalDivider()
-        Surface(modifier = Modifier.width(360.dp).fillMaxHeight()) {
-          Column(modifier = Modifier.padding(top = 16.dp)) { WaypointSheet(state, viewModel) }
+        // The panel's background reaches behind the navigation bar; its content keeps its width
+        // clear of it, so the header stays one row, see `map-planning` "Clear of the system bars".
+        Surface(modifier = Modifier.fillMaxHeight()) {
+          Column(
+            modifier =
+              Modifier.windowInsetsPadding(
+                  WindowInsets.safeDrawing.only(
+                    WindowInsetsSides.Top + WindowInsetsSides.End + WindowInsetsSides.Bottom
+                  )
+                )
+                .width(360.dp)
+                .padding(top = 16.dp)
+          ) {
+            WaypointSheet(state, viewModel)
+          }
         }
       }
       SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
@@ -130,6 +148,11 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
 }
 
 /** The map with the network switch, the info button, the courses note and the attribution. */
+/** The status bar and the cutout, at the top and the sides. */
+private val topInsets: WindowInsets
+  @Composable
+  get() = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
+
 @Composable
 private fun MapArea(
   state: AppState,
@@ -160,7 +183,11 @@ private fun MapArea(
       nextKnot = state.navigation?.navigation?.nextKnot,
       offRoute = state.navigation?.navigation?.offRoute == true,
     )
-    Column(modifier = Modifier.align(Alignment.TopStart).padding(12.dp)) {
+    // Below the status bar and clear of the cutout, where touches go to the system, see
+    // `map-planning` "Clear of the system bars".
+    Column(
+      modifier = Modifier.align(Alignment.TopStart).windowInsetsPadding(topInsets).padding(12.dp)
+    ) {
       PlaceSearchField(state, viewModel)
       Row(
         modifier =
@@ -192,12 +219,14 @@ private fun MapArea(
           if (state.status.dataDate == null && !state.online)
             "The knot networks need an internet connection once"
           else "Loading the ${state.network.name.lowercase()} knot network…",
-        modifier = Modifier.align(Alignment.TopCenter).padding(top = 140.dp),
+        modifier =
+          Modifier.align(Alignment.TopCenter).windowInsetsPadding(topInsets).padding(top = 140.dp),
       )
     } else if (!state.status.hasGeometry) {
       CoursesNote(
         online = state.online,
-        modifier = Modifier.align(Alignment.TopCenter).padding(top = 140.dp),
+        modifier =
+          Modifier.align(Alignment.TopCenter).windowInsetsPadding(topInsets).padding(top = 140.dp),
       )
     }
     Text(
@@ -205,6 +234,12 @@ private fun MapArea(
       style = MaterialTheme.typography.labelSmall,
       modifier =
         Modifier.align(Alignment.BottomEnd)
+          // In landscape the map reaches the bottom edge; in portrait the sheet is below it.
+          .windowInsetsPadding(
+            if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE)
+              WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)
+            else WindowInsets(0)
+          )
           .padding(4.dp)
           .background(mapOverlayColor.copy(alpha = 0.7f))
           .padding(horizontal = 4.dp),
