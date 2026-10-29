@@ -14,5 +14,5 @@
 ## 3. Checks
 
 - [x] 3.1 Contrast ratios computed with the WCAG formula from the colors in the code and recorded in `manual-checks.md`: labels ≥ 4.5:1, icons ≥ 3:1 ("Readable actions")
-- [ ] 3.2 Manual checks in `manual-checks.md` with screenshots: on the Android emulator "Navigate stands out", "Stop stands out", "Name of an icon button on Android" and "Icon buttons with a screen reader" with TalkBack, and the header in the smallest sheet and in landscape; on the iPhone by the maintainer the same with VoiceOver
+- [x] 3.2 Manual checks in `manual-checks.md` with screenshots: on the Android emulator "Navigate stands out", "Stop stands out", "Name of an icon button on Android" and "Icon buttons with a screen reader" with TalkBack, and the header in the smallest sheet and in landscape; on the iPhone by the maintainer the same with VoiceOver
 - [x] 3.3 `./gradlew check` passes, both iOS targets build, CI passes

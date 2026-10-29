@@ -22,17 +22,17 @@ Emulator `Medium_Phone_API_37.0`, 2026-10-28, on the route 08 → 31 → 97 at t
 | Navigate stands out | ✅ | Distance, Back to start, Clear and Navigate in one row ([screenshot](screenshots/android-planning.png)); also with "123.4 km" on a 360 dp wide screen (density 480, a debug build showing that distance, [screenshot](screenshots/android-header-360dp-123km.png)) and in landscape ([screenshot](screenshots/android-landscape.png)) |
 | Stop stands out | ✅ | "At 08 follow 31" with a red Stop ([screenshot](screenshots/android-stop.png)); Stop ends navigation, the service is gone and the route stays |
 | Name of an icon button on Android | ✅ | Long press on Clear shows "Clear" ([screenshot](screenshots/android-clear-long-press.png)) and does not clear the route. Needs a real touch: `adb shell input` touches don't open tooltips, the emulator console's `event send` does |
-| Icon buttons with a screen reader | ⏳ | The buttons carry "Back to start" and "Clear" as content descriptions in the accessibility tree. A TalkBack walk-through could not be driven on the emulator: keyboard navigation stays in the map. Needs a check on a phone |
+| Icon buttons with a screen reader | ✅ | Checked by the maintainer with TalkBack on their Android phone (0.1.1 or later); the emulator's TalkBack could not be driven past the map |
 
 ## iOS
 
-Simulator (iPhone 18 Pro), 2026-10-28: the planning header looks like on Android ([screenshot](screenshots/ios-simulator-planning.png)). The simulator cannot be tapped by script; iPhone checks by the maintainer: ⏳.
+Simulator (iPhone 18 Pro), 2026-10-28: the planning header looks like on Android ([screenshot](screenshots/ios-simulator-planning.png)). The simulator cannot be tapped by script; iPhone checks by the maintainer, 2026-10-29.
 
 | Scenario | Simulator | iPhone | Notes |
 |---|---|---|---|
-| Navigate stands out | ✅ | ⏳ | |
-| Stop stands out | – | ⏳ | |
-| Icon buttons with a screen reader | – | ⏳ | VoiceOver |
+| Navigate stands out | ✅ | ✅ | |
+| Stop stands out | – | ✅ | |
+| Icon buttons with a screen reader | – | ✅ | VoiceOver |
 
 ## Found and fixed
 
