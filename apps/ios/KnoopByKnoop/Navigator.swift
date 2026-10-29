@@ -76,12 +76,22 @@ final class Navigator: NSObject, ObservableObject {
   /// Ends a background session left over from a navigation the app did not end, e.g. because it
   /// was closed while navigating: the system keeps such a session, and with it the location
   /// indicator, beyond the app's end, see `knot-navigation` "No location use after navigation".
+  ///
+  /// Only after a navigation the app did not end: creating a session on every start and ending it
+  /// right away left a session of its own behind (found on the iPhone). The cleanup session is ended
+  /// a little later, once the system has registered it.
   func endLeftoverSession() {
-    // Without location access, there is no session to end.
+    guard state == nil, UserDefaults.standard.bool(forKey: Self.sessionActiveKey) else { return }
+    UserDefaults.standard.removeObject(forKey: Self.sessionActiveKey)
     let status = manager.authorizationStatus
-    guard state == nil, status == .authorizedWhenInUse || status == .authorizedAlways else { return }
-    CLBackgroundActivitySession().invalidate()
+    guard status == .authorizedWhenInUse || status == .authorizedAlways else { return }
+    let cleanup = CLBackgroundActivitySession()
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1) { cleanup.invalidate() }
   }
+
+  /// Set while a background session of a navigation is active, so a start after the app ended
+  /// without ending navigation knows there may be one left.
+  private static let sessionActiveKey = "navigationSessionActive"
 
   /// Starts navigating `route`, asking for location access first if needed.
   func start(_ route: NavigationRoute) {
@@ -125,6 +135,7 @@ final class Navigator: NSObject, ObservableObject {
     manager.allowsBackgroundLocationUpdates = false
     backgroundSession?.invalidate()
     backgroundSession = nil
+    UserDefaults.standard.removeObject(forKey: Self.sessionActiveKey)
     route = nil
     precision = nil
     stopping = false
@@ -141,6 +152,7 @@ final class Navigator: NSObject, ObservableObject {
     manager.allowsBackgroundLocationUpdates = true
     manager.showsBackgroundLocationIndicator = true
     backgroundSession = CLBackgroundActivitySession()
+    UserDefaults.standard.set(true, forKey: Self.sessionActiveKey)
     // The first fix decides where navigation begins, so it is sampled precisely.
     request(.fine)
     manager.startUpdatingLocation()

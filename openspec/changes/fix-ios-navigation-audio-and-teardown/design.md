@@ -24,7 +24,8 @@ See `proposal.md` for why.
 
 ### End navigation in `applicationWillTerminate`
 The `AppDelegate` calls `Navigator.shared.stop()` in `applicationWillTerminate`. With the location background mode active, iOS calls it when the user swipes the app away. `stop()` already does what's needed: it stops location updates, invalidates the session and ends the Live Activity with `.immediate`. The Live Activity's end is asynchronous, so the termination waits briefly for it, at most 1 s, using a semaphore on a background queue, before returning. The route is saved as before, so it's there at the next start.
-The cleanup at start (`endLeftoverSession`) stays for terminations without the callback, e.g. when iOS ends the app for memory.
+The cleanup at start (`endLeftoverSession`) stays for terminations without the callback, e.g. when iOS ends the app for memory, but only after such a termination. A flag in `UserDefaults` is set while a navigation's session is active, and cleared when navigation ends. At start, the cleanup runs only if the flag is still set, and it ends its session after a second instead of right away.
+The first version created a session and ended it immediately on every start. On the iPhone, a location indicator then stayed after Stop and outside navigation, until the phone restarted; while navigating, the Live Activity covered it. That fits a session that iOS registers asynchronously, so ending it at once came too early and left one behind on every start.
 *Alternative:* `sceneDidDisconnect`. It is also called in other situations, e.g. when the system discards a scene, which shouldn't end navigation.
 
 ## Risks / Trade-offs

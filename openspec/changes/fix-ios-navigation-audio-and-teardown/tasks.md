@@ -7,6 +7,7 @@
 ## 2. Closing the app ends navigation
 
 - [x] 2.1 `AppDelegate.applicationWillTerminate` calls `Navigator.shared.stop()` and waits up to 1 s for the Live Activity to end; the start-time cleanup stays; both iOS targets build ("Closing the app while navigating")
+- [x] 2.2 The start-time cleanup only after a navigation the app did not end (a flag in `UserDefaults`), ending its session after 1 s; both iOS targets build ("No location use after navigation")
 
 ## 3. Checks
 
