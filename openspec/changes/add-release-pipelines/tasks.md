@@ -18,9 +18,10 @@
 - [x] 3.3 A check in `build.yml` that no workflow uses `pull_request_target` and that store secrets appear only in the release workflows ("Pull requests from forks")
 - [x] 3.4 `CHANGELOG.md` gets a section for the first release
 
-## 4. Accounts, secrets and first releases (manual, once the developer accounts exist)
+## 4. Accounts, secrets and first releases
 
 - [x] 4.1 Create the Google Play app `com.knoopbyknoop`, an upload keystore and a Play service account
-- [ ] 4.2 Create the app `com.knoopbyknoop` in App Store Connect and an App Store Connect API key with the Admin role
-- [ ] 4.3 Store everything as repository secrets and document their names in CONTRIBUTING.md
-- [ ] 4.4 Verify "Successful release", "Build numbers increase" and "Release notes" with two releases to the test tracks
+- [x] 4.2 Store the Android secrets as repository secrets and document their names in CONTRIBUTING.md
+- [x] 4.3 Verify "Successful release", "Build numbers increase" and "Release notes" with two releases to the internal testing track
+
+The App Store Connect setup, the iOS secrets and the TestFlight releases moved to `add-ios-release`.

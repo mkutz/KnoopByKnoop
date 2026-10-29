@@ -6,11 +6,12 @@ All building and publishing happens in GitHub Actions. Builds already run for ev
 
 ## What Changes
 
-- A manually triggered release workflow takes a version, builds signed release artifacts for Android and iOS and uploads them to Google Play's internal testing track and TestFlight.
+- A manually triggered release workflow takes a version, builds a signed Android App Bundle and uploads it to Google Play's internal testing track.
+- The iOS release workflow (TestFlight) is written as well, but delivering iOS is the change `add-ios-release`: it waits for an Apple Developer Program membership.
 - Version name and build number are derived from the workflow input and the run number.
 - Release notes come from `CHANGELOG.md`, like in ApproveJ.
 
-Out of scope: promoting builds to production (done by hand in the store consoles), store listings and screenshots.
+Out of scope: delivering iOS (see `add-ios-release`), promoting builds to production (done by hand in the store consoles), store listings and screenshots.
 
 ## Capabilities
 
@@ -24,4 +25,4 @@ Out of scope: promoting builds to production (done by hand in the store consoles
 - New workflows `release.yml` (entry point), `release-android.yml` and `release-ios.yml`
 - Android release builds are signed with the upload key on CI and keep the debug key locally
 - Repository secrets: Android upload keystore and Play service account; App Store Connect API key and team ID; Apple manages the signing certificate and profiles
-- Requires a Google Play developer account and an Apple Developer Program membership; until they exist, the workflows can be written but not run
+- Requires a Google Play developer account; the iOS workflow fails until `add-ios-release` sets up the Apple side

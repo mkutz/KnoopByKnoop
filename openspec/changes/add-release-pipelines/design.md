@@ -7,7 +7,7 @@ See `proposal.md` for why. `build.yml` already builds and checks every push to `
 ## Goals / Non-Goals
 
 **Goals:**
-- One manual trigger delivers both apps to the test tracks with the same version and build number.
+- One manual trigger delivers the apps to the test tracks with the same version and build number. This change delivers Android; iOS follows in `add-ios-release`, with the workflow already written here.
 - As few secrets as possible, and none that expire every year.
 
 **Non-Goals:**
@@ -37,6 +37,8 @@ The release signing config reads `KNOOPBYKNOOP_UPLOAD_KEYSTORE` (the path to the
 *Alternative:* the Gradle Play Publisher plugin. It needs the service account during configuration and adds a plugin to the app build for something only CI does.
 
 ### iOS: cloud-managed signing with the API key
+Written in this change, run and verified in `add-ios-release`.
+
 CI keeps automatic signing and passes `-allowProvisioningUpdates` together with the App Store Connect API key (`-authenticationKeyPath`, `-authenticationKeyID`, `-authenticationKeyIssuerID`) to `xcodebuild archive` and `-exportArchive`. Apple creates and manages the distribution certificate and the profiles for the app and the widget extension. The team ID is written into `Signing.local.xcconfig`, which the project already includes. The version is passed as `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` build settings and applies to both targets. Upload and "What to Test" go through `fastlane pilot upload --changelog` with the same API key, because `xcrun altool` cannot set "What to Test".
 *Alternative:* manual signing with a `.p12` certificate and two profiles as secrets. That means four more secrets and renewing them every year.
 

@@ -2,21 +2,20 @@
 
 ## Purpose
 
-Lets the maintainer ship a version of both apps to the stores' test tracks from GitHub Actions with a single manual trigger.
+Lets the maintainer ship a version of the apps to the stores' test tracks from GitHub Actions with a single manual trigger.
 
 ## ADDED Requirements
 
-### Requirement: One trigger releases both apps
-Releasing a version SHALL be started manually with the version as input and SHALL deliver both the Android and the iOS app.
+### Requirement: One trigger releases the apps
+Releasing a version SHALL be started manually with the version as input and SHALL deliver the Android app.
 
 #### Scenario: Successful release
 - **WHEN** the maintainer starts a release for version 0.2.0
 - **THEN** a signed Android App Bundle with version name 0.2.0 is uploaded to the Google Play internal testing track
-- **AND** a signed iOS build with marketing version 0.2.0, including the Live Activity widget, is uploaded to TestFlight
 
 #### Scenario: Build numbers increase
 - **WHEN** two releases are started one after the other
-- **THEN** the second release has a higher build number on both platforms than the first
+- **THEN** the second release has a higher build number than the first
 
 ### Requirement: Releases only from a green main
 A release SHALL only be built from a commit on `main` whose checks passed.
@@ -30,7 +29,7 @@ A release SHALL take its release notes from the section of `CHANGELOG.md` for it
 
 #### Scenario: Release notes
 - **WHEN** the maintainer starts a release for version 0.2.0 and `CHANGELOG.md` has a section `## 0.2.0`
-- **THEN** the Google Play release notes and TestFlight's "What to Test" show that section's entries
+- **THEN** the Google Play release notes show that section's entries
 
 #### Scenario: Missing changelog section
 - **WHEN** `CHANGELOG.md` has no section for the version
