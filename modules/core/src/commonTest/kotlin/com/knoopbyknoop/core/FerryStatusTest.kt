@@ -27,18 +27,18 @@ class FerryStatusTest {
 
   @Test
   fun `opens later today`() {
-    assertEquals("Closed, opens at 07:00", status(seasonal, wednesday, "06:15"))
+    assertEquals("Closed until 07:00", status(seasonal, wednesday, "06:15"))
   }
 
   @Test
   fun `opens tomorrow`() {
-    assertEquals("Closed, opens tomorrow at 07:00", status(seasonal, wednesday, "20:00"))
+    assertEquals("Closed until tomorrow 07:00", status(seasonal, wednesday, "20:00"))
   }
 
   @Test
   fun `closed for the season`() {
     assertEquals(
-      "Closed, opens on 1 April at 07:00",
+      "Closed until 1 April 07:00",
       status(seasonal, CalendarDay(2026, 12, 2), "12:00"),
     )
   }
@@ -59,7 +59,7 @@ class FerryStatusTest {
   @Test
   fun `public holiday`() {
     assertEquals(
-      "Closed, opens at 09:00",
+      "Closed until 09:00",
       status("Mo-Sa 06:00-19:00; PH,Su 09:00-19:00", CalendarDay(2026, 12, 25), "08:00"),
     )
   }
@@ -126,13 +126,13 @@ class FerryStatusTest {
   fun `a later rule replaces the times of its days`() {
     val times =
       "Mo-Fr 07:00-18:00, Sa-Su 10:00-17:00; Oct 15-Mar 15 Sa-Su closed; Dec 24-Jan 07 closed"
-    assertEquals("Closed, opens tomorrow at 07:00", status(times, CalendarDay(2027, 1, 7), "12:00"))
+    assertEquals("Closed until tomorrow 07:00", status(times, CalendarDay(2027, 1, 7), "12:00"))
     assertEquals(
-      "Closed, opens on 8 January at 07:00",
+      "Closed until 8 January 07:00",
       status(times, CalendarDay(2026, 12, 23), "20:00"),
     )
     assertEquals(
-      "Closed, opens on 15 March at 07:00",
+      "Closed until 15 March 07:00",
       status(times, CalendarDay(2027, 3, 13), "12:00"),
       "Saturday, the weekend still closed",
     )
@@ -145,7 +145,7 @@ class FerryStatusTest {
       status("Mo-Fr 07:30-08:30,11:00-18:00; Sa,Su 11:00-18:00", wednesday, "11:30"),
     )
     assertEquals(
-      "Closed, opens at 11:00",
+      "Closed until 11:00",
       status("Mo-Fr 07:30-08:30,11:00-18:00; Sa,Su 11:00-18:00", wednesday, "09:00"),
     )
   }
@@ -171,7 +171,7 @@ class FerryStatusTest {
     val times = "Mar Su[-1]-Oct Su[-1] Mo-Sa 06:30-21:00; Oct Su[-1]-Mar Su[-1] Mo-Sa 06:30-20:00"
     assertEquals("Open until 21:00", status(times, wednesday, "20:30"))
     assertEquals(
-      "Closed, opens tomorrow at 06:30",
+      "Closed until tomorrow 06:30",
       status(times, CalendarDay(2026, 11, 4), "20:30"),
     )
   }
@@ -190,7 +190,7 @@ class FerryStatusTest {
   @Test
   fun `open for more than a day`() {
     assertEquals(
-      "Open until 31 October at 24:00",
+      "Open until 31 October 24:00",
       status("Apr-Oct", CalendarDay(2027, 10, 20), "12:00"),
     )
   }

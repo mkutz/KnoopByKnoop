@@ -22,7 +22,7 @@ class FerryClockTest {
     val moment = ferryMoment(london.toInstant())
 
     assertEquals(LocalMoment(CalendarDay(2027, 6, 16), 19 * 60 + 30), moment)
-    assertEquals("Closed, opens tomorrow at 07:00", ferry.statusAt(moment)?.text)
+    assertEquals("Closed until tomorrow 07:00", ferry.statusAt(moment)?.text)
   }
 
   @Test
@@ -40,6 +40,6 @@ class FerryClockTest {
 
     assertEquals(Instant.parse("2027-06-16T17:00:00Z"), nextUpdate)
     assertEquals("Open until 19:00", ferry.statusAt(ferryMoment(beforeClosing))?.text)
-    assertEquals("Closed, opens tomorrow at 07:00", ferry.statusAt(ferryMoment(nextUpdate))?.text)
+    assertEquals("Closed until tomorrow 07:00", ferry.statusAt(ferryMoment(nextUpdate))?.text)
   }
 }

@@ -109,6 +109,17 @@ class FerryTest {
   }
 
   @Test
+  fun `where the ferries are on the route`() {
+    val session =
+      sessionWith(mapOf(ferry12To30 to beusichem, ferry30To45 to culemborg))
+        .tap(knot12)
+        .tap(knot45)
+        .tap(knot30)
+
+    assertEquals(listOf("12 → 30", "30 → 45"), describe(session).ferries.map { it.place })
+  }
+
+  @Test
   fun `route without ferries`() {
     val session = sessionWith(mapOf()).tap(knot12).tap(knot45)
 

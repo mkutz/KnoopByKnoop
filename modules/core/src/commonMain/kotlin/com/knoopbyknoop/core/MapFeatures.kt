@@ -47,8 +47,11 @@ data class FerryStatus(val open: Boolean, val text: String)
 /**
  * A ferry the route takes, between the knots at [fromPosition] and [fromPosition] + 1 of
  * [RouteDescription.Complete.knots], with the texts the planner shows for it.
+ *
+ * @property place where the ferry is on the route: the numbers of the knots on both sides in riding
+ *   order, e.g. `76 → 02`
  */
-data class RouteFerry(val ferry: Ferry, val fromPosition: Int) {
+data class RouteFerry(val ferry: Ferry, val fromPosition: Int, val place: String = "") {
 
   /** The ferry's name, or just "Ferry". */
   val title: String = ferry.name ?: "Ferry"
@@ -82,7 +85,7 @@ data class RouteFerry(val ferry: Ferry, val fromPosition: Int) {
 
   /**
    * Whether the ferry is open at [now], in the ferry's local time, and when that changes, e.g.
-   * `Open until 19:00` or `Closed, opens tomorrow at 07:00`; `null` when the operating times do not
+   * `Open until 19:00` or `Closed until tomorrow 07:00`; `null` when the operating times do not
    * tell, see `map-planning` "Ferry open now".
    */
   fun statusAt(now: LocalMoment): FerryStatus? {
@@ -90,26 +93,31 @@ data class RouteFerry(val ferry: Ferry, val fromPosition: Int) {
     return FerryStatus(status.open, statusText(status, now))
   }
 
-  private fun statusText(status: OpeningStatus, now: LocalMoment): String {
-    val next = status.next
-    return if (status.open) {
-      val closing = next?.let(::endOfDayBefore)
-      when {
-        next == null || closing == null -> "Open"
-        minutesBetween(now, next) <= MINUTES_PER_DAY -> "Open until ${clock(closing)}"
-        else -> "Open until ${date(closing)} at ${clock(closing)}"
-      }
-    } else {
-      when {
-        next == null -> "Closed"
-        next.day == now.day -> "Closed, opens at ${clock(next)}"
-        next.day == now.day.plusDays(1) -> "Closed, opens tomorrow at ${clock(next)}"
-        else -> "Closed, opens on ${date(next)} at ${clock(next)}"
+  companion object {
+
+    /**
+     * [status] at [now] in words, e.g. `Open until 19:00`, `Closed until tomorrow 07:00` or `Closed
+     * until 1 April 07:00`.
+     */
+    internal fun statusText(status: OpeningStatus, now: LocalMoment): String {
+      val next = status.next
+      return if (status.open) {
+        val closing = next?.let(::endOfDayBefore)
+        when {
+          next == null || closing == null -> "Open"
+          minutesBetween(now, next) <= MINUTES_PER_DAY -> "Open until ${clock(closing)}"
+          else -> "Open until ${date(closing)} ${clock(closing)}"
+        }
+      } else {
+        when {
+          next == null -> "Closed"
+          next.day == now.day -> "Closed until ${clock(next)}"
+          next.day == now.day.plusDays(1) -> "Closed until tomorrow ${clock(next)}"
+          else -> "Closed until ${date(next)} ${clock(next)}"
+        }
       }
     }
-  }
 
-  companion object {
     const val UNKNOWN_TIMES = "Operating times not known, check before you go"
 
     private const val MINUTES_PER_DAY = 24 * 60
@@ -266,7 +274,9 @@ object MapFeatures {
           distance = formatDistance(summary.lengthMeters),
           ferries =
             knots.zipWithNext().mapIndexedNotNull { position, (from, to) ->
-              session.graph.ferryBetween(from.knot, to.knot)?.let { RouteFerry(it, position) }
+              session.graph.ferryBetween(from.knot, to.knot)?.let {
+                RouteFerry(it, position, "${from.knot.ref} → ${to.knot.ref}")
+              }
             },
         )
       }

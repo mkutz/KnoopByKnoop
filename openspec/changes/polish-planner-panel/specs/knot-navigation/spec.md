@@ -3,15 +3,15 @@
 ## MODIFIED Requirements
 
 ### Requirement: Ferry arrival estimate
-While navigating, the app SHALL estimate when the rider gets to each ferry still ahead on the route, from the route distance to it and the rider's pace on the route so far, renewed when navigation starts and whenever a knot is passed. Until the rider has covered 2 km of the route, it SHALL assume 16 km/h cycling and 4.5 km/h hiking. The ferry list SHALL show the estimate for each ferry ahead, rounded to five minutes, in one line that also tells whether the ferry is open then, in place of its status for now: in green when it is open then, as in "Open when you get there around 14:30", and without a color when the operating times do not tell.
+While navigating, the app SHALL estimate when the rider gets to each ferry still ahead on the route, from the route distance to it and the rider's pace on the route so far, renewed when navigation starts and whenever a knot is passed. Until the rider has covered 2 km of the route, it SHALL assume 16 km/h cycling and 4.5 km/h hiking. The ferry list SHALL show the estimate for each ferry ahead, rounded to five minutes, in one line that starts with the estimate and tells whether the ferry is open then, in place of its status for now, as in "At 14:30: open until 19:00": in green when it is open then, and only the estimate without a color when the operating times do not tell.
 
 #### Scenario: Arrival in the ferry list
 - **WHEN** the rider navigates a route with a ferry ahead that runs "Apr-Oct: Mo-Su 07:00-19:00" and that they get to around 14:30 on Wednesday, 16 June 2027
-- **THEN** the ferry list shows "Open when you get there around 14:30" in green in the ferry's line, and no status for now
+- **THEN** the ferry list shows "At 14:30: open until 19:00" in green in the ferry's line, and no status for now
 
 #### Scenario: Arrival when the times do not tell
 - **WHEN** the rider navigates a route with a ferry ahead without operating times in OpenStreetMap and gets there around 14:30
-- **THEN** the ferry list shows "You get there around 14:30" without a color
+- **THEN** the ferry list shows "At 14:30" without a color
 
 #### Scenario: Ferry passed in the list
 - **WHEN** the rider has passed the knot after a ferry
@@ -23,7 +23,7 @@ While navigating, the app SHALL estimate when the rider gets to each ferry still
 
 #### Scenario: Phone in another time zone
 - **WHEN** the phone is set to London time and the rider gets to a ferry at 18:15 London time, which is 19:15 in the Netherlands
-- **THEN** the ferry list and any warning say "around 19:15", compared with the ferry's times in Dutch time
+- **THEN** the ferry list says "At 19:15" and any warning "around 19:15", compared with the ferry's times in Dutch time
 
 ### Requirement: Ferry warning
 When a ferry ahead is closed at the rider's estimated arrival, or closes within 15 minutes after it, according to its operating times in OpenStreetMap in the ferry region's local time, the app SHALL warn the rider once per ferry with a spoken notice, and the ferry list SHALL show the warning in that ferry's arrival line in red. When the operating times do not tell whether the ferry runs then, the app SHALL NOT warn.
@@ -78,11 +78,11 @@ When a ferry ahead is closed at the rider's estimated arrival, or closes within 
 
 #### Scenario: Warning in the ferry list
 - **WHEN** the rider navigates a route with a ferry ahead that they get to around 19:15 and that closes at 19:00 on that day
-- **THEN** the ferry list shows "Closes at 19:00, before you get there around 19:15" in red in the ferry's line, and no status for now
+- **THEN** the ferry list shows "At 19:15: closed until tomorrow 07:00" in red in the ferry's line, and no status for now
 
 #### Scenario: Closed for the season in the ferry list
 - **WHEN** the rider navigates a route with a ferry ahead that is closed until 1 May at 10:00 and gets there around 18:10
-- **THEN** the ferry list shows "Closed when you get there around 18:10, opens on 1 May at 10:00" in red
+- **THEN** the ferry list shows "At 18:10: closed until 1 May 10:00" in red
 
 #### Scenario: Screen off
 - **WHEN** the screen is off when a ferry warning is due

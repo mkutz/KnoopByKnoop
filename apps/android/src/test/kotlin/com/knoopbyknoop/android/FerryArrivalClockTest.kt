@@ -35,7 +35,7 @@ class FerryArrivalClockTest {
       )
 
     assertEquals(
-      "Closes at 19:00, before you get there around 19:15",
+      "At 19:15: closed until tomorrow 07:00",
       started.navigation.ferryArrival(1)?.text,
       "18:15 in London",
     )

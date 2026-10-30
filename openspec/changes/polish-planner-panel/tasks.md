@@ -24,6 +24,11 @@
 - [x] 4.2 After the ferry rows: `./gradlew check` and `npx @fission-ai/openspec validate --all` pass again; CHANGELOG entry
 - [x] 4.1 `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; CHANGELOG entry under "Unreleased"
 
+## 5. Shorter ferry lines
+
+- [x] 5.1 Shorter status texts ("Closed until tomorrow 07:00") and the arrival-first line ("At 18:10: closed until 1 May 10:00") in the core; `RouteFerry.place` ("76 → 02"); verified by `FerryStatusTest`, `FerryWarningTest`, `FerryTest` "Where the ferries are on the route" and the Android clock tests, on the JVM and the iOS simulator
+- [x] 5.2 Both apps show "⛴ 76 → 02 · status" collapsed and the name first when expanded; verified on the emulator with the Driehoeksveer and Renkum routes (planning and navigating), with screenshots; iOS builds; `manual-checks.md`, CHANGELOG, `./gradlew check` and `openspec validate --all` updated and passing
+
 ## Workflow follow-up
 
 - The maintainer checks iOS on the iPhone before `/opsx:archive polish-planner-panel`.

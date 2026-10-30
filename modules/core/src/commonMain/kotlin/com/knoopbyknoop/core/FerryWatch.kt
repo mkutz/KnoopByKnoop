@@ -26,8 +26,7 @@ enum class FerryArrivalState {
  * When the rider gets to a ferry ahead and whether it runs then, the line the ferry list shows in
  * place of the status for now, see `knot-navigation` "Ferry arrival estimate".
  *
- * @property text e.g. `Open when you get there around 14:30` or `Closes at 19:00, before you get
- *   there around 19:15`
+ * @property text e.g. `At 14:30: open until 19:00` or `At 19:15: closed until tomorrow 07:00`
  */
 data class FerryArrival(val text: String, val state: FerryArrivalState)
 
@@ -86,12 +85,15 @@ private constructor(
       val status = ferry.hours?.statusAt(arrival)
       val warning = status?.let { warning(ferry.hours, it, now, arrival, around) }
       arrivals[position] =
-        when {
-          warning != null -> FerryArrival(listLine(warning), FerryArrivalState.WARNING)
-          status?.open == true ->
-            FerryArrival("Open when you get there around $around", FerryArrivalState.OPEN)
-          else -> FerryArrival("You get there around $around", FerryArrivalState.UNKNOWN)
-        }
+        if (status == null) FerryArrival("At $around", FerryArrivalState.UNKNOWN)
+        else
+          FerryArrival(
+            "At $around: ${RouteFerry.statusText(status, arrival).replaceFirstChar { it.lowercase() }}",
+            when {
+              warning != null -> FerryArrivalState.WARNING
+              else -> FerryArrivalState.OPEN
+            },
+          )
       if (warning != null && warned.add(position)) {
         val text = "The ${ferry.title} $warning"
         notices += Notice(NoticeKind.FERRY, text, text)
@@ -179,16 +181,6 @@ private constructor(
       return if (minute >= MINUTES_PER_DAY) LocalMoment(moment.day.plusDays(1), 0)
       else LocalMoment(moment.day, minute)
     }
-
-    /**
-     * The spoken [warning] as the ferry list shows it, without the ferry's name, e.g. `Closed when
-     * you get there around 18:10, opens on 1 May at 10:00`.
-     */
-    private fun listLine(warning: String): String =
-      warning
-        .replaceFirst("is closed when", "closed when")
-        .replaceFirst(", it opens", ", opens")
-        .replaceFirstChar { it.uppercase() }
 
     /**
      * What to warn about a ferry with [hours] and [status] at [arrival] ([around] rounded), e.g.

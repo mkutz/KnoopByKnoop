@@ -69,15 +69,13 @@ struct RouteFerries: View {
         if expanded { self.expanded.remove(ferry.fromPosition) } else { self.expanded.insert(ferry.fromPosition) }
       } label: {
         HStack(spacing: 0) {
-          // The name gives way to the status, which answers the usual question, see "Ferry line
-          // too long".
-          Text("⛴ \(ferry.title)").font(.callout).foregroundStyle(.primary)
-            .lineLimit(expanded ? nil : 1)
-            .layoutPriority(0)
+          // Where the ferry is on the route rather than its name, which is often long, see
+          // `map-planning` "Ferries on the route".
+          Text("⛴ \(ferry.place)").font(.callout).foregroundStyle(.primary)
+            .layoutPriority(1)
           if !expanded {
             Text(" · \(line.text)").font(.callout.weight(.medium)).foregroundStyle(line.color)
               .lineLimit(1)
-              .layoutPriority(1)
           }
           Spacer(minLength: 8)
           Image(systemName: "chevron.down").font(.caption).foregroundStyle(.secondary)
@@ -90,6 +88,7 @@ struct RouteFerries: View {
       .accessibilityValue(expanded ? "Expanded" : "Collapsed")
       if expanded {
         VStack(alignment: .leading, spacing: 2) {
+          Text(ferry.title).font(.callout)
           if line.isStatus { Text(line.text).font(.caption.weight(.medium)).foregroundStyle(line.color) }
           Text(ferry.times).font(.caption).foregroundStyle(ferry.timesKnown ? Color.secondary : Color.red)
           if let fee = ferry.fee { Text(fee).font(.caption).foregroundStyle(.secondary) }

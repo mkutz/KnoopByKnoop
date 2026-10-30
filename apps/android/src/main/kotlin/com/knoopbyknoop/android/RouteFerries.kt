@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -137,15 +136,9 @@ private fun FerryRow(ferry: RouteFerry, line: FerryLine, expanded: Boolean, onTo
           .semantics { stateDescription = if (expanded) "Expanded" else "Collapsed" },
     ) {
       Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-        // The name gives way to the status, which answers the usual question, see "Ferry line too
-        // long".
-        Text(
-          "⛴ ${ferry.title}",
-          style = MaterialTheme.typography.bodyMedium,
-          maxLines = if (expanded) Int.MAX_VALUE else 1,
-          overflow = TextOverflow.Ellipsis,
-          modifier = Modifier.weight(1f, fill = false),
-        )
+        // Where the ferry is on the route rather than its name, which is often long, see
+        // `map-planning` "Ferries on the route".
+        Text("⛴ ${ferry.place}", style = MaterialTheme.typography.bodyMedium)
         if (!expanded) {
           Text(
             " · ${line.text}",
@@ -154,7 +147,7 @@ private fun FerryRow(ferry: RouteFerry, line: FerryLine, expanded: Boolean, onTo
             color = line.color,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.widthIn(max = 220.dp),
+            modifier = Modifier.weight(1f, fill = false),
           )
         }
       }
@@ -167,6 +160,7 @@ private fun FerryRow(ferry: RouteFerry, line: FerryLine, expanded: Boolean, onTo
     }
     if (expanded) {
       Column(modifier = Modifier.padding(start = 20.dp, bottom = 8.dp)) {
+        Text(ferry.title, style = MaterialTheme.typography.bodyMedium)
         if (line.isStatus) {
           Text(
             line.text,
