@@ -12,17 +12,29 @@ struct FerryBadge: View {
   }
 }
 
-/// The route's ferries with their operating times, fee and website, see `map-planning`.
+/// The route's ferries with whether they are open now, their operating times, fee and website, see
+/// `map-planning`.
 struct RouteFerries: View {
 
   let ferries: [RouteFerry]
 
   var body: some View {
+    // Updated at every full minute while shown, see "Ferry open now".
+    TimelineView(.everyMinute) { context in
+      list(now: Self.ferryMoment(context.date))
+    }
+  }
+
+  private func list(now: LocalMoment) -> some View {
     VStack(alignment: .leading, spacing: 6) {
       Text("Ferries on this route").font(.subheadline.bold())
       ForEach(Array(ferries.enumerated()), id: \.offset) { _, ferry in
         VStack(alignment: .leading, spacing: 2) {
           Text("⛴ \(ferry.title)").font(.callout)
+          if let status = ferry.statusAt(now: now) {
+            Text(status.text).font(.caption.weight(.medium))
+              .foregroundStyle(status.open ? Color.actionIconGreen : Color.red)
+          }
           Text(ferry.times).font(.caption).foregroundStyle(ferry.timesKnown ? Color.secondary : Color.red)
           if let fee = ferry.fee { Text(fee).font(.caption).foregroundStyle(.secondary) }
           if let website = ferry.ferry.website,
@@ -34,5 +46,20 @@ struct RouteFerries: View {
       }
     }
     .padding(.top, 4)
+  }
+
+  /// The networks' local time: the Netherlands, Belgium and Nordrhein-Westfalen share it, whatever
+  /// time zone the phone is set to.
+  private static let ferryCalendar: Calendar = {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(identifier: "Europe/Amsterdam")!
+    return calendar
+  }()
+
+  static func ferryMoment(_ date: Date) -> LocalMoment {
+    let parts = ferryCalendar.dateComponents([.year, .month, .day, .hour, .minute], from: date)
+    return LocalMoment(
+      day: CalendarDay(year: Int32(parts.year!), month: Int32(parts.month!), day: Int32(parts.day!)),
+      minute: Int32(parts.hour! * 60 + parts.minute!))
   }
 }

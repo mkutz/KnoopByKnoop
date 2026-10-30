@@ -41,6 +41,9 @@ enum class KnotRole {
 
 data class RouteKnot(val knot: Knot, val role: KnotRole)
 
+/** Whether a ferry is open now, and the [text] that tells it, e.g. `Open until 19:00`. */
+data class FerryStatus(val open: Boolean, val text: String)
+
 /**
  * A ferry the route takes, between the knots at [fromPosition] and [fromPosition] + 1 of
  * [RouteDescription.Complete.knots], with the texts the planner shows for it.
@@ -75,8 +78,74 @@ data class RouteFerry(val ferry: Ferry, val fromPosition: Int) {
         else -> null
       }
 
+  private val openingHours = ferry.openingHours?.let(OpeningHours::parse)
+
+  /**
+   * Whether the ferry is open at [now], in the ferry's local time, and when that changes, e.g.
+   * `Open until 19:00` or `Closed, opens tomorrow at 07:00`; `null` when the operating times do not
+   * tell, see `map-planning` "Ferry open now".
+   */
+  fun statusAt(now: LocalMoment): FerryStatus? {
+    val status = openingHours?.statusAt(now) ?: return null
+    return FerryStatus(status.open, statusText(status, now))
+  }
+
+  private fun statusText(status: OpeningStatus, now: LocalMoment): String {
+    val next = status.next
+    return if (status.open) {
+      val closing = next?.let(::endOfDayBefore)
+      when {
+        next == null || closing == null -> "Open"
+        minutesBetween(now, next) <= MINUTES_PER_DAY -> "Open until ${clock(closing)}"
+        else -> "Open until ${date(closing)} at ${clock(closing)}"
+      }
+    } else {
+      when {
+        next == null -> "Closed"
+        next.day == now.day -> "Closed, opens at ${clock(next)}"
+        next.day == now.day.plusDays(1) -> "Closed, opens tomorrow at ${clock(next)}"
+        else -> "Closed, opens on ${date(next)} at ${clock(next)}"
+      }
+    }
+  }
+
   companion object {
     const val UNKNOWN_TIMES = "Operating times not known, check before you go"
+
+    private const val MINUTES_PER_DAY = 24 * 60
+
+    private val monthNames =
+      listOf(
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      )
+
+    private fun minutesBetween(from: LocalMoment, to: LocalMoment) =
+      (to.day.epochDay - from.day.epochDay) * MINUTES_PER_DAY + to.minute - from.minute
+
+    /** A closing at midnight reads as the end of the day before, e.g. `24:00`. */
+    private fun endOfDayBefore(moment: LocalMoment) =
+      if (moment.minute == 0) LocalMoment(moment.day.plusDays(-1), MINUTES_PER_DAY) else moment
+
+    private fun clock(moment: LocalMoment): String {
+      val minute = moment.minute
+      return "${(minute / 60).toString().padStart(2, '0')}:${(minute % 60).toString().padStart(2, '0')}"
+    }
+
+    private fun date(moment: LocalMoment): String {
+      val day = moment.day
+      return "${day.day} ${monthNames[day.month - 1]}"
+    }
   }
 }
 

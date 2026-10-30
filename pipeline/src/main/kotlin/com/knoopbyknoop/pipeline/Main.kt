@@ -6,6 +6,7 @@ import com.knoopbyknoop.core.IndexedNetworkType
 import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkIndex
 import com.knoopbyknoop.core.NetworkIndexEntry
+import com.knoopbyknoop.core.OpeningHours
 import com.knoopbyknoop.core.sha256Hex
 import java.nio.file.Path
 import java.time.Instant
@@ -87,6 +88,8 @@ fun build(area: String, outputDirectory: Path, extracts: List<Path>) {
     println(
       "${file.name}: ${ferries.size} ferries, " +
         "${ferries.count { it.openingHours != null }} with operating times, " +
+        "${ferries.count { hours -> hours.openingHours?.let(OpeningHours::parse) != null }} " +
+        "of them readable, " +
         "${ferries.count { it.openingHours == null && it.seasonal != null }} only seasonal, " +
         "${ferries.count { it.charge != null || it.fee != null }} with a fee or charge, " +
         "${ferries.count { it.name == null && it.operator == null }} without a name"

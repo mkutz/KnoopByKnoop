@@ -35,6 +35,7 @@ Rules apply in order. A normal rule (after `;` or first) whose day selectors mat
 
 ### Three answers, and trying both where the data cannot tell
 Each day selector matches, does not match, or cannot tell: `SH` always cannot tell, `PH` cannot tell on a day that is a public holiday in some but not all of the three regions. For a moment, the evaluator tries every combination of the selectors that cannot tell (at most a handful on one day) and gives a status only when all combinations agree. So "Christmas" works everywhere, and Easter Sunday works for the usual `PH,Su` rules, while Good Friday under a `PH` rule gives no status. A matching rule with `unknown`, `sunrise` or `sunset` gives no status for that day.
+The same goes for an additional rule without dates after a rule with dates, e.g. `Sa 08:00-21:00` in `Apr-Sep: Mo-Fr 06:00-21:00, Sa 08:00-21:00; Oct-Mar …`: the specification applies it all year, while authors mostly mean it for the dates before it (found in the real values while implementing). Such values are evaluated in both readings, and a status needs both to agree.
 *Alternative:* treat any `PH` or `SH` in a value as unknown. That would drop the many ferries with `PH` on the 360 days that are no holiday anywhere.
 
 ### Public holidays from the date
