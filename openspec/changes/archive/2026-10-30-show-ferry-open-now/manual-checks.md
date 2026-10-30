@@ -19,12 +19,14 @@ Android checked 2026-10-30 on the emulator (`Medium_Phone_API_37.0`) with the bu
 
 | Scenario | Android | iOS | Notes |
 |---|---|---|---|
-| Open now | ✅ | ⏳ | 56 → 70 at Broekhuizen, Friday 11:45: "Open until 22:00" in green above "Mo-Fr 06:30-22:00, Sa 07:30-22:00, Su 09:00-22:00" ([screenshot](screenshots/android-open-now.png)) |
-| Closed for the season | ✅ | ⏳ | 02 → 76, Renkumse Veer: "Closed, opens on 1 May at 10:00" in red above the tagged times ([screenshot](screenshots/android-closed-for-the-season.png)) |
-| Phone in another time zone | ✅ | ⏳ | Emulator set to Tokyo (19:47 on the phone's clock): Broekhuizen still "Open until 22:00", as it was 11:47 in the Netherlands; time zone restored afterwards |
-| Offline status | ✅ | ⏳ | Airplane mode, app restarted: the same status ([screenshot](screenshots/android-offline.png)) |
-| Closing while shown | unit test | ⏳ | `FerryClockTest`: the update at the next full minute after 18:59:20 shows the ferry closed |
+| Open now | ✅ | ✅ | 56 → 70 at Broekhuizen, Friday 11:45: "Open until 22:00" in green above "Mo-Fr 06:30-22:00, Sa 07:30-22:00, Su 09:00-22:00" ([screenshot](screenshots/android-open-now.png)) |
+| Closed for the season | ✅ | ✅ | 02 → 76, Renkumse Veer: "Closed, opens on 1 May at 10:00" in red above the tagged times ([screenshot](screenshots/android-closed-for-the-season.png)) |
+| Phone in another time zone | ✅ | ✅ | Emulator set to Tokyo (19:47 on the phone's clock): Broekhuizen still "Open until 22:00", as it was 11:47 in the Netherlands; time zone restored afterwards |
+| Offline status | ✅ | ✅ | Airplane mode, app restarted: the same status ([screenshot](screenshots/android-offline.png)) |
+| Closing while shown | unit test | ✅ | `FerryClockTest`: the update at the next full minute after 18:59:20 shows the ferry closed |
 | Opens later today, Opens tomorrow, Open past midnight, Open around the clock, Public holiday, Holiday in only some countries, School holidays, Unreadable times | unit tests | unit tests | `FerryStatusTest`, run on the JVM and the iOS simulator |
+
+iOS checked 2026-10-30 by the maintainer on the iPhone with the steps below.
 
 Dark mode: the red and green status texts are readable on the dark panel.
 
