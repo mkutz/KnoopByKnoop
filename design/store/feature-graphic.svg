@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 500" width="1024" height="500">
+  <rect width="1024" height="500" fill="#2E9E5B"/>
+  <g transform="translate(0,-6) scale(0.5)" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M250,790 L455,650 L360,450 L506,400" fill="none" stroke="#FFFFFF" stroke-width="44"/>
+    <path d="M192,790 a58,58 0 1,0 116,0 a58,58 0 1,0 -116,0 M397,650 a58,58 0 1,0 116,0 a58,58 0 1,0 -116,0 M302,450 a58,58 0 1,0 116,0 a58,58 0 1,0 -116,0" fill="#FFFFFF"/>
+    <path d="M512,340 a168,168 0 1,0 336,0 a168,168 0 1,0 -336,0" fill="#F28C28" stroke="#FFFFFF" stroke-width="32"/>
+    <path d="M600,420 L752,268 M652,262 L758,262 L758,368" fill="none" stroke="#FFFFFF" stroke-width="44"/>
+  </g>
+  <text x="470" y="238" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="bold" font-size="60" fill="#FFFFFF">Knoop by Knoop</text>
+  <text x="472" y="296" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="30" fill="#FFFFFF" fill-opacity="0.92">Cycling and hiking,</text>
+  <text x="472" y="336" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="30" fill="#FFFFFF" fill-opacity="0.92">knot by knot.</text>
+</svg>
