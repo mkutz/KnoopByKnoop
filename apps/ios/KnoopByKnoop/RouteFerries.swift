@@ -13,10 +13,12 @@ struct FerryBadge: View {
 }
 
 /// The route's ferries with whether they are open now, their operating times, fee and website, see
-/// `map-planning`.
+/// `map-planning`; while `navigation` runs, also when the rider gets to each ferry ahead, see
+/// `knot-navigation` "Ferry arrival estimate".
 struct RouteFerries: View {
 
   let ferries: [RouteFerry]
+  var navigation: Navigation? = nil
 
   var body: some View {
     // Updated at every full minute while shown, see "Ferry open now".
@@ -31,6 +33,10 @@ struct RouteFerries: View {
       ForEach(Array(ferries.enumerated()), id: \.offset) { _, ferry in
         VStack(alignment: .leading, spacing: 2) {
           Text("⛴ \(ferry.title)").font(.callout)
+          if let arrival = navigation?.ferryArrival(fromPosition: ferry.fromPosition) {
+            Text(arrival.text).font(.caption.weight(.medium))
+              .foregroundStyle(arrival.warning ? Color.red : Color.primary)
+          }
           if let status = ferry.statusAt(now: now) {
             Text(status.text).font(.caption.weight(.medium))
               .foregroundStyle(status.open ? Color.actionIconGreen : Color.red)

@@ -25,6 +25,7 @@ import com.knoopbyknoop.core.Navigation
 import com.knoopbyknoop.core.NavigationUpdate
 import com.knoopbyknoop.core.Precision
 import com.knoopbyknoop.core.RiddenTrack
+import java.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -123,8 +124,9 @@ class NavigationService : Service() {
       if (current != null) current.update(fix, visible)
       else {
         val newRoute = route ?: return
-        Navigation.start(newRoute.knots, newRoute.graph, newRoute.geometry, fix, visible)
-          ?: return stop()
+        Navigation.start(newRoute.knots, newRoute.graph, newRoute.geometry, fix, visible) {
+          ferryMoment(Instant.ofEpochMilli(it))
+        } ?: return stop()
       }
     apply(update, fix)
   }

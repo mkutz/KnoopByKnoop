@@ -130,19 +130,19 @@ data class RouteFerry(val ferry: Ferry, val fromPosition: Int) {
         "December",
       )
 
-    private fun minutesBetween(from: LocalMoment, to: LocalMoment) =
+    internal fun minutesBetween(from: LocalMoment, to: LocalMoment) =
       (to.day.epochDay - from.day.epochDay) * MINUTES_PER_DAY + to.minute - from.minute
 
     /** A closing at midnight reads as the end of the day before, e.g. `24:00`. */
-    private fun endOfDayBefore(moment: LocalMoment) =
+    internal fun endOfDayBefore(moment: LocalMoment) =
       if (moment.minute == 0) LocalMoment(moment.day.plusDays(-1), MINUTES_PER_DAY) else moment
 
-    private fun clock(moment: LocalMoment): String {
+    internal fun clock(moment: LocalMoment): String {
       val minute = moment.minute
       return "${(minute / 60).toString().padStart(2, '0')}:${(minute % 60).toString().padStart(2, '0')}"
     }
 
-    private fun date(moment: LocalMoment): String {
+    internal fun date(moment: LocalMoment): String {
       val day = moment.day
       return "${day.day} ${monthNames[day.month - 1]}"
     }

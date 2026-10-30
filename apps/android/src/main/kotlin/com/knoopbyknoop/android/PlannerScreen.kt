@@ -319,7 +319,9 @@ private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
       modifier = Modifier.weight(1f, fill = false),
     ) {
       if (complete != null && complete.ferries.isNotEmpty()) {
-        Box(modifier = Modifier.padding(bottom = 8.dp)) { RouteFerries(complete.ferries) }
+        Box(modifier = Modifier.padding(bottom = 8.dp)) {
+          RouteFerries(complete.ferries, state.navigation?.navigation)
+        }
       }
     }
   }

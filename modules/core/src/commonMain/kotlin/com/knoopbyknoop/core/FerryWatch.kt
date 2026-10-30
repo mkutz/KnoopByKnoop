@@ -1,0 +1,211 @@
+package com.knoopbyknoop.core
+
+import com.knoopbyknoop.core.RouteFerry.Companion.clock
+import com.knoopbyknoop.core.RouteFerry.Companion.date
+import com.knoopbyknoop.core.RouteFerry.Companion.endOfDayBefore
+import com.knoopbyknoop.core.RouteFerry.Companion.minutesBetween
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToLong
+
+/**
+ * When the rider gets to a ferry ahead, see `knot-navigation` "Ferry arrival estimate".
+ *
+ * @property text e.g. `You get there around 19:15`
+ * @property warning whether the ferry is closed then or closes shortly after, see `knot-navigation`
+ *   "Ferry warning"
+ */
+data class FerryArrival(val text: String, val warning: Boolean)
+
+/**
+ * The ferries ahead on a navigated route, with when the rider gets there and the warnings given,
+ * see `knot-navigation` "Ferry arrival estimate" and "Ferry warning". Immutable like [Navigation].
+ *
+ * @property offsets the route distance of each knot from the first, along the connections
+ */
+internal class FerryWatch
+private constructor(
+  private val ferries: List<FerryAhead>,
+  private val offsets: List<Double>,
+  private val localTime: (Long) -> LocalMoment,
+  private val assumedMetersPerSecond: Double,
+  private val startOffset: Double,
+  private val startMillis: Long,
+  private val arrivals: Map<Int, FerryArrival>,
+  private val warned: Set<Int>,
+) {
+
+  /** A ferry on the leg from the knot at [fromPosition] to the next one. */
+  private class FerryAhead(val fromPosition: Int, val title: String, val hours: OpeningHours?)
+
+  /** When the rider gets to the ferry from the knot at [fromPosition], or `null` once passed. */
+  fun arrivalAt(fromPosition: Int): FerryArrival? = arrivals[fromPosition]
+
+  /** Renews the estimates with the rider at the knot at [index] at [timeMillis]. */
+  fun atKnot(index: Int, timeMillis: Long): Pair<FerryWatch, List<Notice>> =
+    renew(offsets[index], timeMillis, nextIndex = index + 1)
+
+  /**
+   * Renews the estimates with the rider [offset] meters along the route at [timeMillis], before the
+   * knot at [nextIndex]; returns the warnings due, the nearer ferry first.
+   */
+  private fun renew(
+    offset: Double,
+    timeMillis: Long,
+    nextIndex: Int,
+  ): Pair<FerryWatch, List<Notice>> {
+    val covered = offset - startOffset
+    val elapsedMillis = timeMillis - startMillis
+    val metersPerSecond =
+      if (covered >= OWN_PACE_AFTER_METERS && elapsedMillis > 0) covered * 1000 / elapsedMillis
+      else assumedMetersPerSecond
+    val now = localTime(timeMillis)
+    val arrivals = mutableMapOf<Int, FerryArrival>()
+    val notices = mutableListOf<Notice>()
+    val warned = warned.toMutableSet()
+    for (ferry in ferries.filter { it.fromPosition + 1 >= nextIndex }) {
+      val position = ferry.fromPosition
+      val ferryOffset = (offsets[position] + offsets[position + 1]) / 2
+      val seconds = max(0.0, ferryOffset - offset) / metersPerSecond
+      val arrival = localTime(timeMillis + (seconds * 1000).roundToLong())
+      val around = clock(roundedToFiveMinutes(arrival))
+      val warning = ferry.hours?.let { warning(it, now, arrival, around) }
+      arrivals[position] = FerryArrival("You get there around $around", warning != null)
+      if (warning != null && warned.add(position)) {
+        val text = "The ${ferry.title} $warning"
+        notices += Notice(NoticeKind.FERRY, text, text)
+      }
+    }
+    return FerryWatch(
+      ferries,
+      offsets,
+      localTime,
+      assumedMetersPerSecond,
+      startOffset,
+      startMillis,
+      arrivals,
+      warned,
+    ) to notices
+  }
+
+  companion object {
+
+    /** The assumed pace until the rider covered [OWN_PACE_AFTER_METERS]: 16 km/h, 4.5 km/h. */
+    private val assumedKilometersPerHour =
+      mapOf(NetworkType.CYCLING to 16.0, NetworkType.HIKING to 4.5)
+
+    private const val OWN_PACE_AFTER_METERS = 2000.0
+
+    /** A ferry closing this soon after the arrival is warned about too. */
+    private const val SHORTLY_AFTER_MINUTES = 15
+
+    /** At most this many changes are walked to find the last closing before the arrival. */
+    private const val MAXIMUM_CHANGES = 20
+
+    /**
+     * Starts watching the ferries on the route through [knots], with the rider at [fix] before the
+     * knot at [nextIndex], or at the knot at [startIndex] if not `null`. `null` without ferries.
+     *
+     * @param localTime the ferries' local time of an instant in epoch milliseconds
+     */
+    fun start(
+      knots: List<Knot>,
+      graph: NetworkGraph,
+      localTime: (Long) -> LocalMoment,
+      startIndex: Int?,
+      nextIndex: Int,
+      fix: Fix,
+    ): Pair<FerryWatch, List<Notice>>? {
+      val ferries =
+        knots.zipWithNext().mapIndexedNotNull { position, (from, to) ->
+          graph.ferryBetween(from, to)?.let { ferry ->
+            val title = ferry.name?.let { "ferry $it" } ?: "ferry"
+            FerryAhead(position, title, ferry.openingHours?.let(OpeningHours::parse))
+          }
+        }
+      if (ferries.isEmpty()) return null
+      val legLengths = knots.zipWithNext { from, to -> lengthOf(graph, from, to) }
+      val offsets = legLengths.runningFold(0.0) { sum, length -> sum + length }
+      val offset =
+        if (startIndex != null) offsets[startIndex]
+        else {
+          val next = knots[nextIndex]
+          val toNext = distanceMeters(fix.latitude, fix.longitude, next.latitude, next.longitude)
+          offsets[nextIndex] - min(toNext, legLengths.getOrElse(nextIndex - 1) { 0.0 })
+        }
+      val metersPerSecond =
+        assumedKilometersPerHour.getValue(graph.network ?: NetworkType.CYCLING) / 3.6
+      val watch =
+        FerryWatch(
+          ferries,
+          offsets,
+          localTime,
+          metersPerSecond,
+          offset,
+          fix.timeMillis,
+          mapOf(),
+          setOf(),
+        )
+      return watch.renew(offset, fix.timeMillis, nextIndex)
+    }
+
+    private fun lengthOf(graph: NetworkGraph, from: Knot, to: Knot): Double =
+      graph.neighborsOf(from).filter { it.first.id == to.id }.minOfOrNull { it.second }?.toDouble()
+        ?: distanceMeters(from.latitude, from.longitude, to.latitude, to.longitude)
+
+    private fun roundedToFiveMinutes(moment: LocalMoment): LocalMoment {
+      val minute = (moment.minute + 2) / 5 * 5
+      return if (minute >= MINUTES_PER_DAY) LocalMoment(moment.day.plusDays(1), 0)
+      else LocalMoment(moment.day, minute)
+    }
+
+    /**
+     * What to warn about a ferry with [hours] the rider gets to at [arrival] ([around] rounded),
+     * e.g. `closes at 19:00, before you get there around 19:15`, or `null` without a warning.
+     */
+    private fun warning(
+      hours: OpeningHours,
+      now: LocalMoment,
+      arrival: LocalMoment,
+      around: String,
+    ): String? {
+      val status = hours.statusAt(arrival) ?: return null
+      val next = status.next
+      if (status.open) {
+        if (next == null || minutesBetween(arrival, next) > SHORTLY_AFTER_MINUTES) return null
+        return "closes at ${clock(endOfDayBefore(next))}, shortly after you get there around $around"
+      }
+      val closed = "is closed when you get there around $around"
+      if (next != null && next.day == arrival.day) return "$closed, it opens at ${clock(next)}"
+      val closing = lastClosing(hours, now, arrival)?.let(::endOfDayBefore)
+      if (closing != null && closing.day == arrival.day) {
+        return "closes at ${clock(closing)}, before you get there around $around"
+      }
+      return when {
+        next == null -> closed
+        next.day == now.day.plusDays(1) -> "$closed, it opens tomorrow at ${clock(next)}"
+        else -> "$closed, it opens on ${date(next)} at ${clock(next)}"
+      }
+    }
+
+    /** The last certain closing after [now] and before [arrival], or `null`. */
+    private fun lastClosing(
+      hours: OpeningHours,
+      now: LocalMoment,
+      arrival: LocalMoment,
+    ): LocalMoment? {
+      var moment = now
+      var closing: LocalMoment? = null
+      repeat(MAXIMUM_CHANGES) {
+        val status = hours.statusAt(moment) ?: return closing
+        val next = status.next ?: return closing
+        if (minutesBetween(next, arrival) < 0) return closing
+        if (status.open) closing = next
+        moment = next
+      }
+      return closing
+    }
+
+    private const val MINUTES_PER_DAY = 24 * 60
+  }
+}

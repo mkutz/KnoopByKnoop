@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- While navigating, the app warns when a ferry on the route is closed when you get there, or closes shortly after, and the ferry list shows when you get to each ferry
+
 ## 0.1.5
 
 - The ferries on a route show whether they are open now and when they open or close next, according to OpenStreetMap

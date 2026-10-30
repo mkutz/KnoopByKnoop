@@ -168,7 +168,10 @@ final class Navigator: NSObject, ObservableObject {
     if let navigation = state?.navigation {
       update = navigation.update(fix: fix, visible: visible)
     } else if let started = Navigation.companion.start(
-      knots: route.knots, graph: route.graph, geometry: route.geometry, fix: fix, visible: visible)
+      knots: route.knots, graph: route.graph, geometry: route.geometry, fix: fix, visible: visible,
+      localTime: { millis in
+        RouteFerries.ferryMoment(Date(timeIntervalSince1970: Double(millis.int64Value) / 1000))
+      })
     {
       update = started
     } else {

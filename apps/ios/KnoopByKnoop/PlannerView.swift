@@ -262,7 +262,7 @@ private struct WaypointSheet: View {
       .padding(.bottom, 8)
       List {
         if let complete, !complete.ferries.isEmpty {
-          RouteFerries(ferries: complete.ferries)
+          RouteFerries(ferries: complete.ferries, navigation: navigator.state?.navigation)
             .listRowSeparator(.hidden)
             .listRowBackground(Color.clear)
             .moveDisabled(true)

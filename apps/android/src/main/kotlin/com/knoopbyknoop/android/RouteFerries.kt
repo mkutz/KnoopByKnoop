@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.knoopbyknoop.core.Navigation
 import com.knoopbyknoop.core.RouteFerry
 import java.time.Instant
 import kotlinx.coroutines.delay
@@ -36,10 +37,11 @@ fun FerryBadge() {
 
 /**
  * The route's ferries with whether they are open now, their operating times, fee and website, see
- * `map-planning`.
+ * `map-planning`; while [navigation] runs, also when the rider gets to each ferry ahead, see
+ * `knot-navigation` "Ferry arrival estimate".
  */
 @Composable
-fun RouteFerries(ferries: List<RouteFerry>) {
+fun RouteFerries(ferries: List<RouteFerry>, navigation: Navigation? = null) {
   val uriHandler = LocalUriHandler.current
   // Updated at every full minute while shown, see "Ferry open now".
   val now by
@@ -54,6 +56,16 @@ fun RouteFerries(ferries: List<RouteFerry>) {
     for (ferry in ferries) {
       Column(modifier = Modifier.padding(top = 6.dp)) {
         Text("⛴ ${ferry.title}", style = MaterialTheme.typography.bodyMedium)
+        navigation?.ferryArrival(ferry.fromPosition)?.let { arrival ->
+          Text(
+            arrival.text,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Medium,
+            color =
+              if (arrival.warning) MaterialTheme.colorScheme.error
+              else MaterialTheme.colorScheme.onSurface,
+          )
+        }
         ferry.statusAt(now)?.let { status ->
           Text(
             status.text,

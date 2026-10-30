@@ -35,6 +35,9 @@ enum class NoticeKind {
   OFF_ROUTE,
   BACK_ON_ROUTE,
   ARRIVED,
+
+  /** A ferry ahead is closed when the rider gets there, see `knot-navigation` "Ferry warning". */
+  FERRY,
 }
 
 /**
@@ -95,6 +98,7 @@ private constructor(
   private val confirming: Boolean,
   private val lastPreciseFix: Fix?,
   val lastFix: Fix,
+  private val ferryWatch: FerryWatch?,
 ) {
 
   val nextKnot: Knot
@@ -102,6 +106,13 @@ private constructor(
 
   val display: NavigationDisplay
     get() = NavigationDisplay(nextKnot.ref, knots.getOrNull(nextIndex + 1)?.ref, offRoute)
+
+  /**
+   * When the rider gets to the ferry on the leg from the knot at [fromPosition] of [knots], as
+   * estimated at the last knot passed, or `null` once it is passed or without an estimate, see
+   * `knot-navigation` "Ferry arrival estimate".
+   */
+  fun ferryArrival(fromPosition: Int): FerryArrival? = ferryWatch?.arrivalAt(fromPosition)
 
   /** How precisely to sample next; [visible] is whether the app is on screen. */
   fun precision(visible: Boolean): Precision =
@@ -130,12 +141,15 @@ private constructor(
         val newNext = passedIndex + 1
         notices +=
           if (offRoute) backOnRouteNotice(newNext) else nextNotice(newNext, prefix = "Next")
+        val ferries = ferryWatch?.atKnot(passedIndex, fix.timeMillis)
+        ferries?.let { notices += it.second }
         navigation =
           navigation.copy(
             nextIndex = newNext,
             offRoute = false,
             offRouteKnot = null,
             remindedIndex = if (closeToPrevious(newNext)) newNext else remindedIndex,
+            ferryWatch = ferries?.first ?: ferryWatch,
           )
       }
     } else {
@@ -292,6 +306,7 @@ private constructor(
     confirming: Boolean = this.confirming,
     lastPreciseFix: Fix? = this.lastPreciseFix,
     lastFix: Fix = this.lastFix,
+    ferryWatch: FerryWatch? = this.ferryWatch,
   ) =
     Navigation(
       knots,
@@ -306,6 +321,7 @@ private constructor(
       confirming,
       lastPreciseFix,
       lastFix,
+      ferryWatch,
     )
 
   companion object {
@@ -335,6 +351,8 @@ private constructor(
      * @param graph the network, to tell knots that are not on the route
      * @param geometry the network's courses, or `null` if they are not installed: straight lines do
      *   not count as a course
+     * @param localTime the ferries' local time of an instant in epoch milliseconds, for the ferry
+     *   warnings; without it, there are none
      * @return the navigation with what to tell the rider, or `null` if [knots] is not a route
      */
     fun start(
@@ -343,6 +361,7 @@ private constructor(
       geometry: NetworkGeometry?,
       fix: Fix,
       visible: Boolean = false,
+      localTime: ((Long) -> LocalMoment)? = null,
     ): NavigationUpdate? {
       if (knots.size < 2) return null
       val courses = geometry?.let { network ->
@@ -364,6 +383,9 @@ private constructor(
           legIndex != null -> legIndex + 1 to false
           else -> knots.indices.minBy { distanceTo(fix, knots[it]) } to (courses != null)
         }
+      val ferries = localTime?.let {
+        FerryWatch.start(knots, graph, it, startIndex.takeIf { it >= 0 }, nextIndex, fix)
+      }
       val navigation =
         Navigation(
           knots = knots,
@@ -378,6 +400,7 @@ private constructor(
           confirming = false,
           lastPreciseFix = fix.takeIf { it.accuracyMeters <= PRECISE_ACCURACY_METERS },
           lastFix = fix,
+          ferryWatch = ferries?.first,
         )
       val notice =
         if (offRoute) navigation.offRouteNotice(nextIndex)
@@ -387,7 +410,8 @@ private constructor(
         if (distanceTo(fix, navigation.nextKnot) <= REMINDER_METERS)
           navigation.copy(remindedIndex = nextIndex)
         else navigation
-      return NavigationUpdate(reminded, listOf(notice), reminded.precision(visible))
+      val notices = listOf(notice) + ferries?.second.orEmpty()
+      return NavigationUpdate(reminded, notices, reminded.precision(visible))
     }
 
     /** How to speak a knot's number: `08` as `8`, so it is spoken as "eight". */
