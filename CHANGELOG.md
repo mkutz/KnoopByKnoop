@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.5
+
+- The ferries on a route show whether they are open now and when they open or close next, according to OpenStreetMap
+
 ## 0.1.4
 
 - While navigating, the map follows you, an arrow shows your riding direction and a blue line the track you rode; a button recenters the map after you looked around
