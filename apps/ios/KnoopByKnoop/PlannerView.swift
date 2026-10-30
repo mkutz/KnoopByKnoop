@@ -266,7 +266,13 @@ private struct WaypointSheet: View {
             }
           }
         }
-        if let complete { RouteKnots(description: complete) }
+        // While navigating, where the rider is on the route instead of the badges, see
+        // `knot-navigation` "Progress strip".
+        if let navigation = navigator.state?.navigation, let position = navigator.state?.position {
+          ProgressPanel(progress: navigation.progress(fix: position))
+        } else if let complete {
+          RouteKnots(description: complete)
+        }
       }
       .padding([.horizontal, .top])
       .padding(.bottom, 8)
@@ -315,7 +321,11 @@ private struct WaypointSheet: View {
   @ViewBuilder private var summary: some View {
     switch model.routeDescription {
     case let complete as RouteDescriptionComplete:
-      Text(complete.distance).font(.title2.bold())
+      VStack(alignment: .leading, spacing: 0) {
+        Text(complete.distance).font(.title2.bold())
+        // The time at the assumed pace, see `map-planning` "Show the route".
+        Text(complete.duration).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+      }
     case let startOnly as RouteDescriptionStartOnly:
       Text("Start at \(startOnly.start), tap a knot to set the end").font(.headline)
     case let unreachable as RouteDescriptionUnreachable:

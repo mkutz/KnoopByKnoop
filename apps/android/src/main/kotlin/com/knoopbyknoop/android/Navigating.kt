@@ -31,6 +31,8 @@ class NavigationRoute(
   val graph: NetworkGraph,
   /** The network's courses, or `null` without them: straight lines do not count as a course. */
   val geometry: NetworkGeometry?,
+  /** The positions of the stops in [knots], see `knot-navigation` "Distances and times ahead". */
+  val stops: Set<Int> = setOf(),
 )
 
 /**

@@ -7,8 +7,8 @@ While navigating, the panel shows the number to follow, the knot badges and the 
 ## What Changes
 
 - While navigating, a progress strip takes the place of the knot badge row: the route drawn to scale, with the start, the stops, the end and the ferries labeled, the other knots as small marks, the rider as a dot moving along it and the ridden part filled.
-- Below it, a table with distance and time to the next knot, and distance, time and arrival to the next stop (if one is left before the end) and to the end, e.g. "End 31 · 12.4 km · 47 min · 19:07". Distances run along the route from the rider's position; times use the rider's pace, the same as for the ferries. Both update with each position while the app is on screen.
-- The Android notification and the iOS Live Activity add the distance to the next knot and the arrival at the end, e.g. "0.8 km to 12 · end around 19:05", updated when a knot is passed, without extra location fixes.
+- Below it, a table with distance and time to the next knot, and distance, time and arrival to the next stop (if one is left before the end) and to the end, e.g. "End 31 · 12.4 km · 47 min · 19:05". Distances run along the route from the rider's position; times use the rider's pace, the same as for the ferries. Both update with each position while the app is on screen.
+- The Android notification and the iOS Live Activity add the distance to the next knot and the arrival at the end, e.g. "800 m to 12 · end around 19:05", updated when a knot is passed, without extra location fixes.
 - While planning, the route's header shows the estimated time next to the distance at the assumed pace, e.g. "12.4 km · about 47 min".
 - The pace and the distances along the route move from the ferry estimate into one route progress model in the core, which the ferries, the table, the strip and the notification share.
 

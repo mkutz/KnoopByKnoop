@@ -33,8 +33,8 @@ While navigating, the panel SHALL show the route as a strip drawn to scale by di
 While navigating, the panel SHALL show below the progress strip the distance and time to the next knot, and the distance, time and arrival to the next stop, if one remains before the end, and to the end. Distances SHALL run along the route from the rider's place on it; times SHALL use the pace of "Ferry arrival estimate". While the panel is shown, the values SHALL follow each position.
 
 #### Scenario: Ahead at the start
-- **WHEN** the rider starts navigating a cycling route at 18:20 at 24, with the next knot 12 at 0.8 km, the stop 30 at 5.2 km and the end 31 at 12.4 km
-- **THEN** the panel shows "Next knot 12 · 0.8 km · 3 min", "Next stop 30 · 5.2 km · 20 min · 18:40" and "End 31 · 12.4 km · 47 min · 19:05"
+- **WHEN** the rider starts navigating a cycling route at 18:20 at 24, with the next knot 12 at 800 m, the stop 30 at 5.2 km and the end 31 at 12.4 km
+- **THEN** the panel shows "Next knot 12 · 800 m · 3 min", "Next stop 30 · 5.2 km · 20 min · 18:40" and "End 31 · 12.4 km · 47 min · 19:05"
 
 #### Scenario: Along the way
 - **WHEN** the rider is halfway between 24 and 12 on that route
@@ -90,7 +90,7 @@ Navigation SHALL keep running with the screen off and while other apps are in us
 
 #### Scenario: Lock screen
 - **WHEN** the rider is navigating and looks at the lock screen
-- **THEN** it shows "At 45 follow 12" and, e.g., "0.8 km to 45 · end around 19:05", updated whenever the next knot changes
+- **THEN** it shows "At 45 follow 12" and, e.g., "800 m to 45 · end around 19:05", updated whenever the next knot changes
 
 #### Scenario: Dynamic Island
 - **WHEN** the rider is navigating on an iPhone with a Dynamic Island and uses another app
@@ -105,5 +105,5 @@ Navigation SHALL keep running with the screen off and while other apps are in us
 - **THEN** navigation stops, and the notification or Live Activity goes away
 
 #### Scenario: Progress outside the app
-- **WHEN** the rider passes a knot with the screen off, and the next knot is 0.8 km ahead and the end is reached around 19:05 at their pace
-- **THEN** the notification or Live Activity shows "0.8 km to 45 · end around 19:05" until the next knot is passed
+- **WHEN** the rider passes a knot with the screen off, and the next knot is 800 m ahead and the end is reached around 19:05 at their pace
+- **THEN** the notification or Live Activity shows "800 m to 45 · end around 19:05" until the next knot is passed

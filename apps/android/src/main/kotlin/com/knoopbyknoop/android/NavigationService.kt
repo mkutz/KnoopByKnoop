@@ -124,7 +124,14 @@ class NavigationService : Service() {
       if (current != null) current.update(fix, visible)
       else {
         val newRoute = route ?: return
-        Navigation.start(newRoute.knots, newRoute.graph, newRoute.geometry, fix, visible) {
+        Navigation.start(
+          newRoute.knots,
+          newRoute.graph,
+          newRoute.geometry,
+          fix,
+          visible,
+          newRoute.stops,
+        ) {
           ferryMoment(Instant.ofEpochMilli(it))
         } ?: return stop()
       }
@@ -151,7 +158,10 @@ class NavigationService : Service() {
     getSystemService(NotificationManager::class.java)
       .notify(
         NOTIFICATION_ID,
-        notification(if (display.offRoute) display.offRouteText else display.text),
+        notification(
+          if (display.offRoute) display.offRouteText else display.text,
+          newNavigation.progressLine,
+        ),
       )
     request(update.precision)
   }
@@ -187,7 +197,8 @@ class NavigationService : Service() {
     stopSelf()
   }
 
-  private fun notification(title: String): Notification {
+  /** [text] is the progress line, see `knot-navigation` "Navigation with the screen off". */
+  private fun notification(title: String, text: String? = null): Notification {
     val open =
       PendingIntent.getActivity(
         this,
@@ -205,6 +216,7 @@ class NavigationService : Service() {
     return Notification.Builder(this, CHANNEL)
       .setSmallIcon(R.drawable.ic_navigation)
       .setContentTitle(title)
+      .setContentText(text)
       .setContentIntent(open)
       .setOngoing(true)
       .setOnlyAlertOnce(true)

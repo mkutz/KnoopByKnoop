@@ -17,6 +17,9 @@ struct NavigationActivityAttributes: ActivityAttributes {
     var followRole: BadgeRole?
     /// What to show in full, e.g. `At 45 follow 12`, `31 is the end` or `Off route, next 45`.
     var text: String
+    /// The progress as of the last knot passed, e.g. `800 m to 45 · end around 19:05`, see
+    /// `knot-navigation` "Navigation with the screen off".
+    var progress: String? = nil
   }
 }
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- While navigating, a strip shows where you are on the route, with distance, time and arrival to the next knot, the next stop and the end
+- The notification and the Live Activity show the distance to the next knot and when you reach the end
+- While planning, the route shows how long it takes
+
 ## 0.2.1
 
 - Info is a small round ⓘ button now

@@ -118,7 +118,8 @@ final class AppModel: ObservableObject {
     Navigator.shared.start(
       NavigationRoute(
         knots: knots, roles: description.knots.map { BadgeRole($0.role) }, graph: session.graph,
-        geometry: loaded.hasGeometry ? loaded.geometry : nil))
+        geometry: loaded.hasGeometry ? loaded.geometry : nil,
+        stops: Set(description.stopPositions.map { Int(truncating: $0) })))
   }
 
   func stopNavigation() {

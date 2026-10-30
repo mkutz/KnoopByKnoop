@@ -99,7 +99,54 @@ private constructor(
   private val lastPreciseFix: Fix?,
   val lastFix: Fix,
   private val ferryWatch: FerryWatch?,
+  private val route: RouteProgress,
+  private val localTime: ((Long) -> LocalMoment)?,
+  private val pace: Pace,
+  private val place: Double,
+  /**
+   * The line outside the app, e.g. `0.8 km to 45 · end around 19:05`, as of the start or the last
+   * knot passed, see `knot-navigation` "Navigation with the screen off".
+   */
+  val progressLine: String,
 ) {
+
+  /**
+   * The rider's pace: the route covered since [startOffset] at [startMillis], renewed when a knot
+   * is passed, see `knot-navigation` "Ferry arrival estimate".
+   */
+  internal data class Pace(
+    val startOffset: Double,
+    val startMillis: Long,
+    val metersPerSecond: Double,
+  ) {
+    fun at(offset: Double, timeMillis: Long, assumed: Double): Pace {
+      val covered = offset - startOffset
+      val elapsedMillis = timeMillis - startMillis
+      val metersPerSecond =
+        if (covered >= OWN_PACE_AFTER_METERS && elapsedMillis > 0) covered * 1000 / elapsedMillis
+        else assumed
+      return copy(metersPerSecond = metersPerSecond)
+    }
+  }
+
+  /**
+   * The progress strip and the distances and times ahead with the rider at [fix], see
+   * `knot-navigation` "Progress strip" and "Distances and times ahead".
+   */
+  fun progress(fix: Fix): ProgressView {
+    val offRouteDistance = if (offRoute && !arrived) route.straightTo(fix, nextIndex) else null
+    val place =
+      if (offRoute || arrived || fix.accuracyMeters > PRECISE_ACCURACY_METERS) this.place
+      else route.placeOf(fix, nextIndex)
+    return route.view(
+      place,
+      nextIndex,
+      offRouteDistance,
+      pace.metersPerSecond,
+      fix.timeMillis,
+      localTime,
+    )
+  }
 
   val nextKnot: Knot
     get() = knots[nextIndex]
@@ -141,7 +188,9 @@ private constructor(
         val newNext = passedIndex + 1
         notices +=
           if (offRoute) backOnRouteNotice(newNext) else nextNotice(newNext, prefix = "Next")
-        val ferries = ferryWatch?.atKnot(passedIndex, fix.timeMillis)
+        val place = route.offsets[passedIndex]
+        val pace = pace.at(place, fix.timeMillis, route.assumedMetersPerSecond)
+        val ferries = ferryWatch?.atKnot(passedIndex, fix.timeMillis, pace.metersPerSecond)
         ferries?.let { notices += it.second }
         navigation =
           navigation.copy(
@@ -150,6 +199,10 @@ private constructor(
             offRouteKnot = null,
             remindedIndex = if (closeToPrevious(newNext)) newNext else remindedIndex,
             ferryWatch = ferries?.first ?: ferryWatch,
+            pace = pace,
+            place = place,
+            progressLine =
+              route.line(place, newNext, pace.metersPerSecond, fix.timeMillis, localTime),
           )
       }
     } else {
@@ -182,6 +235,9 @@ private constructor(
       navigation = navigation.copy(remindedIndex = navigation.nextIndex)
     }
 
+    if (passedIndex == null && !navigation.offRoute) {
+      navigation = navigation.copy(place = route.placeOf(fix, navigation.nextIndex))
+    }
     navigation = navigation.copy(lastPreciseFix = fix, lastFix = fix, confirming = false)
     return NavigationUpdate(navigation, notices, navigation.precision(visible))
   }
@@ -307,6 +363,9 @@ private constructor(
     lastPreciseFix: Fix? = this.lastPreciseFix,
     lastFix: Fix = this.lastFix,
     ferryWatch: FerryWatch? = this.ferryWatch,
+    pace: Pace = this.pace,
+    place: Double = this.place,
+    progressLine: String = this.progressLine,
   ) =
     Navigation(
       knots,
@@ -322,6 +381,11 @@ private constructor(
       lastPreciseFix,
       lastFix,
       ferryWatch,
+      route,
+      localTime,
+      pace,
+      place,
+      progressLine,
     )
 
   companion object {
@@ -341,6 +405,9 @@ private constructor(
     /** Within this distance of the next knot, the apps sample with [Precision.FINE]. */
     const val FINE_DISTANCE_METERS = 400.0
 
+    /** The assumed pace applies until the rider covered this much of the route. */
+    private const val OWN_PACE_AFTER_METERS = 2000.0
+
     /** Passing is checked on the line between fixes at most this far apart in time. */
     private const val LINE_MAX_MILLIS = 30_000L
 
@@ -351,8 +418,10 @@ private constructor(
      * @param graph the network, to tell knots that are not on the route
      * @param geometry the network's courses, or `null` if they are not installed: straight lines do
      *   not count as a course
+     * @param stops the positions of the stops in [knots], see `knot-navigation` "Distances and
+     *   times ahead"
      * @param localTime the ferries' local time of an instant in epoch milliseconds, for the ferry
-     *   warnings; without it, there are none
+     *   warnings and the arrivals; without it, there are none
      * @return the navigation with what to tell the rider, or `null` if [knots] is not a route
      */
     fun start(
@@ -361,6 +430,7 @@ private constructor(
       geometry: NetworkGeometry?,
       fix: Fix,
       visible: Boolean = false,
+      stops: Set<Int> = setOf(),
       localTime: ((Long) -> LocalMoment)? = null,
     ): NavigationUpdate? {
       if (knots.size < 2) return null
@@ -383,8 +453,19 @@ private constructor(
           legIndex != null -> legIndex + 1 to false
           else -> knots.indices.minBy { distanceTo(fix, knots[it]) } to (courses != null)
         }
+      val route = RouteProgress.of(knots, graph, courses, stops)
+      val place = if (startIndex >= 0) route.offsets[startIndex] else route.placeOf(fix, nextIndex)
+      val pace = Pace(place, fix.timeMillis, route.assumedMetersPerSecond)
       val ferries = localTime?.let {
-        FerryWatch.start(knots, graph, it, startIndex.takeIf { it >= 0 }, nextIndex, fix)
+        FerryWatch.start(
+          route,
+          graph,
+          it,
+          place,
+          nextIndex,
+          fix.timeMillis,
+          pace.metersPerSecond,
+        )
       }
       val navigation =
         Navigation(
@@ -401,6 +482,12 @@ private constructor(
           lastPreciseFix = fix.takeIf { it.accuracyMeters <= PRECISE_ACCURACY_METERS },
           lastFix = fix,
           ferryWatch = ferries?.first,
+          route = route,
+          localTime = localTime,
+          pace = pace,
+          place = place,
+          progressLine =
+            route.line(place, nextIndex, pace.metersPerSecond, fix.timeMillis, localTime),
         )
       val notice =
         if (offRoute) navigation.offRouteNotice(nextIndex)

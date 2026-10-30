@@ -74,7 +74,10 @@ class PlanningTest {
     assertTrue(features(MapFeatures.connections(straightLines)).all { coordinateCount(it) == 2 })
     val route = features(MapFeatures.route(planned, straightLines)).single()
     assertEquals(3, coordinateCount(route), "12, 7 and 45")
-    assertEquals(RouteDescription.Complete(route12To45, "3.5 km"), MapFeatures.describe(planned))
+    assertEquals(
+      RouteDescription.Complete(route12To45, "3.5 km", duration = "about 13 min"),
+      MapFeatures.describe(planned),
+    )
   }
 
   @Test
@@ -154,7 +157,7 @@ class PlanningTest {
   @Test
   fun `route summary`() {
     assertEquals(
-      RouteDescription.Complete(route12To45, "3.5 km"),
+      RouteDescription.Complete(route12To45, "3.5 km", duration = "about 13 min"),
       MapFeatures.describe(session.tapAll(knot12, knot45)),
     )
   }

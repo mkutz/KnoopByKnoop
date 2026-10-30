@@ -12,15 +12,21 @@ sealed interface RouteDescription {
   data class StartOnly(val start: String) : RouteDescription
 
   /**
-   * The route's [knots] in riding order with their roles, e.g. the distance `3.5 km`, and the
-   * [ferries] the route takes in the order it reaches them, see `map-planning` "Ferries on the
-   * route".
+   * The route's [knots] in riding order with their roles, e.g. the distance `3.5 km`, the time it
+   * takes at the assumed pace, e.g. `about 13 min`, and the [ferries] the route takes in the order
+   * it reaches them, see `map-planning` "Show the route" and "Ferries on the route".
    */
   data class Complete(
     val knots: List<RouteKnot>,
     val distance: String,
     val ferries: List<RouteFerry> = listOf(),
-  ) : RouteDescription
+    val duration: String = "",
+  ) : RouteDescription {
+
+    /** The positions of the stops in [knots], for `Navigation.start`. */
+    val stopPositions: Set<Int>
+      get() = knots.indices.filter { knots[it].role == KnotRole.STOP }.toSet()
+  }
 
   /** The legs that cannot be ridden, e.g. `45 → 99`. */
   data class Unreachable(val legs: List<String>) : RouteDescription
@@ -272,6 +278,11 @@ object MapFeatures {
         RouteDescription.Complete(
           knots = knots,
           distance = formatDistance(summary.lengthMeters),
+          duration =
+            "about " +
+              RouteProgress.formatDuration(
+                summary.lengthMeters / RouteProgress.assumedMetersPerSecond(session.graph.network)
+              ),
           ferries =
             knots.zipWithNext().mapIndexedNotNull { position, (from, to) ->
               session.graph.ferryBetween(from.knot, to.knot)?.let {

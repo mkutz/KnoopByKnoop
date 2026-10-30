@@ -153,7 +153,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val network = loaded ?: return
     NavigationService.start(
       getApplication(),
-      NavigationRoute(knots, session.graph, network.geometry.takeIf { network.hasGeometry }),
+      NavigationRoute(
+        knots,
+        session.graph,
+        network.geometry.takeIf { network.hasGeometry },
+        (state.description as? RouteDescription.Complete)?.stopPositions ?: setOf(),
+      ),
     )
   }
 

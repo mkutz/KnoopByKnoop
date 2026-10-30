@@ -23,6 +23,8 @@ struct NavigationRoute {
   let roles: [BadgeRole]
   let graph: NetworkGraph
   let geometry: NetworkGeometry?
+  /// The positions of the stops in `knots`, see `knot-navigation` "Distances and times ahead".
+  var stops: Set<Int> = []
 }
 
 /// Runs the navigation, also with the screen locked, see `knot-navigation`: it feeds the fixes to
@@ -169,6 +171,7 @@ final class Navigator: NSObject, ObservableObject {
       update = navigation.update(fix: fix, visible: visible)
     } else if let started = Navigation.companion.start(
       knots: route.knots, graph: route.graph, geometry: route.geometry, fix: fix, visible: visible,
+      stops: Set(route.stops.map { KotlinInt(int: Int32($0)) }),
       localTime: { millis in
         RouteFerries.ferryMoment(Date(timeIntervalSince1970: Double(millis.int64Value) / 1000))
       })
@@ -198,7 +201,7 @@ final class Navigator: NSObject, ObservableObject {
       if !speech.isSpeaking { stop() }
       return
     }
-    updateActivity(navigation.display, nextIndex: Int(navigation.nextIndex))
+    updateActivity(navigation.display, nextIndex: Int(navigation.nextIndex), progress: navigation.progressLine)
     request(update.precision)
   }
 
@@ -275,13 +278,14 @@ final class Navigator: NSObject, ObservableObject {
     activity = try? Activity.request(attributes: NavigationActivityAttributes(), content: content)
   }
 
-  private func updateActivity(_ display: NavigationDisplay, nextIndex: Int) {
+  private func updateActivity(_ display: NavigationDisplay, nextIndex: Int, progress: String? = nil) {
     let roles = route?.roles ?? []
     let state = NavigationActivityAttributes.ContentState(
       next: display.next, follow: display.follow, offRoute: display.offRoute,
       nextRole: roles.indices.contains(nextIndex) ? roles[nextIndex] : nil,
       followRole: roles.indices.contains(nextIndex + 1) ? roles[nextIndex + 1] : nil,
-      text: display.offRoute ? display.offRouteText : display.text)
+      text: display.offRoute ? display.offRouteText : display.text,
+      progress: progress)
     guard let activity else {
       // Live Activities end after about 8 hours; opening the app starts a new one.
       if visible { startActivity() }

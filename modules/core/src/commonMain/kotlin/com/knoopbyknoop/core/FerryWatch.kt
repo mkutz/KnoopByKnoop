@@ -5,7 +5,6 @@ import com.knoopbyknoop.core.RouteFerry.Companion.date
 import com.knoopbyknoop.core.RouteFerry.Companion.endOfDayBefore
 import com.knoopbyknoop.core.RouteFerry.Companion.minutesBetween
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.roundToLong
 
 /**
@@ -32,18 +31,14 @@ data class FerryArrival(val text: String, val state: FerryArrivalState)
 
 /**
  * The ferries ahead on a navigated route, with when the rider gets there and the warnings given,
- * see `knot-navigation` "Ferry arrival estimate" and "Ferry warning". Immutable like [Navigation].
- *
- * @property offsets the route distance of each knot from the first, along the connections
+ * see `knot-navigation` "Ferry arrival estimate" and "Ferry warning". Immutable like [Navigation];
+ * the distances along the route come from [RouteProgress], the pace from [Navigation].
  */
 internal class FerryWatch
 private constructor(
   private val ferries: List<FerryAhead>,
   private val offsets: List<Double>,
   private val localTime: (Long) -> LocalMoment,
-  private val assumedMetersPerSecond: Double,
-  private val startOffset: Double,
-  private val startMillis: Long,
   private val arrivals: Map<Int, FerryArrival>,
   private val warned: Set<Int>,
 ) {
@@ -55,23 +50,23 @@ private constructor(
   fun arrivalAt(fromPosition: Int): FerryArrival? = arrivals[fromPosition]
 
   /** Renews the estimates with the rider at the knot at [index] at [timeMillis]. */
-  fun atKnot(index: Int, timeMillis: Long): Pair<FerryWatch, List<Notice>> =
-    renew(offsets[index], timeMillis, nextIndex = index + 1)
+  fun atKnot(
+    index: Int,
+    timeMillis: Long,
+    metersPerSecond: Double,
+  ): Pair<FerryWatch, List<Notice>> =
+    renew(offsets[index], timeMillis, nextIndex = index + 1, metersPerSecond)
 
   /**
    * Renews the estimates with the rider [offset] meters along the route at [timeMillis], before the
-   * knot at [nextIndex]; returns the warnings due, the nearer ferry first.
+   * knot at [nextIndex], at [metersPerSecond]; returns the warnings due, the nearer ferry first.
    */
   private fun renew(
     offset: Double,
     timeMillis: Long,
     nextIndex: Int,
+    metersPerSecond: Double,
   ): Pair<FerryWatch, List<Notice>> {
-    val covered = offset - startOffset
-    val elapsedMillis = timeMillis - startMillis
-    val metersPerSecond =
-      if (covered >= OWN_PACE_AFTER_METERS && elapsedMillis > 0) covered * 1000 / elapsedMillis
-      else assumedMetersPerSecond
     val now = localTime(timeMillis)
     val arrivals = mutableMapOf<Int, FerryArrival>()
     val notices = mutableListOf<Notice>()
@@ -99,25 +94,10 @@ private constructor(
         notices += Notice(NoticeKind.FERRY, text, text)
       }
     }
-    return FerryWatch(
-      ferries,
-      offsets,
-      localTime,
-      assumedMetersPerSecond,
-      startOffset,
-      startMillis,
-      arrivals,
-      warned,
-    ) to notices
+    return FerryWatch(ferries, offsets, localTime, arrivals, warned) to notices
   }
 
   companion object {
-
-    /** The assumed pace until the rider covered [OWN_PACE_AFTER_METERS]: 16 km/h, 4.5 km/h. */
-    private val assumedKilometersPerHour =
-      mapOf(NetworkType.CYCLING to 16.0, NetworkType.HIKING to 4.5)
-
-    private const val OWN_PACE_AFTER_METERS = 2000.0
 
     /** A ferry closing this soon after the arrival is warned about too. */
     private const val SHORTLY_AFTER_MINUTES = 15
@@ -126,55 +106,31 @@ private constructor(
     private const val MAXIMUM_CHANGES = 20
 
     /**
-     * Starts watching the ferries on the route through [knots], with the rider at [fix] before the
-     * knot at [nextIndex], or at the knot at [startIndex] if not `null`. `null` without ferries.
+     * Starts watching the ferries on [route], with the rider [offset] meters along it before the
+     * knot at [nextIndex] at [timeMillis]. `null` without ferries.
      *
      * @param localTime the ferries' local time of an instant in epoch milliseconds
      */
     fun start(
-      knots: List<Knot>,
+      route: RouteProgress,
       graph: NetworkGraph,
       localTime: (Long) -> LocalMoment,
-      startIndex: Int?,
+      offset: Double,
       nextIndex: Int,
-      fix: Fix,
+      timeMillis: Long,
+      metersPerSecond: Double,
     ): Pair<FerryWatch, List<Notice>>? {
       val ferries =
-        knots.zipWithNext().mapIndexedNotNull { position, (from, to) ->
+        route.knots.zipWithNext().mapIndexedNotNull { position, (from, to) ->
           graph.ferryBetween(from, to)?.let { ferry ->
             val title = ferry.name?.let { "ferry $it" } ?: "ferry"
             FerryAhead(position, title, ferry.openingHours?.let(OpeningHours::parse))
           }
         }
       if (ferries.isEmpty()) return null
-      val legLengths = knots.zipWithNext { from, to -> lengthOf(graph, from, to) }
-      val offsets = legLengths.runningFold(0.0) { sum, length -> sum + length }
-      val offset =
-        if (startIndex != null) offsets[startIndex]
-        else {
-          val next = knots[nextIndex]
-          val toNext = distanceMeters(fix.latitude, fix.longitude, next.latitude, next.longitude)
-          offsets[nextIndex] - min(toNext, legLengths.getOrElse(nextIndex - 1) { 0.0 })
-        }
-      val metersPerSecond =
-        assumedKilometersPerHour.getValue(graph.network ?: NetworkType.CYCLING) / 3.6
-      val watch =
-        FerryWatch(
-          ferries,
-          offsets,
-          localTime,
-          metersPerSecond,
-          offset,
-          fix.timeMillis,
-          mapOf(),
-          setOf(),
-        )
-      return watch.renew(offset, fix.timeMillis, nextIndex)
+      val watch = FerryWatch(ferries, route.offsets, localTime, mapOf(), setOf())
+      return watch.renew(offset, timeMillis, nextIndex, metersPerSecond)
     }
-
-    private fun lengthOf(graph: NetworkGraph, from: Knot, to: Knot): Double =
-      graph.neighborsOf(from).filter { it.first.id == to.id }.minOfOrNull { it.second }?.toDouble()
-        ?: distanceMeters(from.latitude, from.longitude, to.latitude, to.longitude)
 
     private fun roundedToFiveMinutes(moment: LocalMoment): LocalMoment {
       val minute = (moment.minute + 2) / 5 * 5

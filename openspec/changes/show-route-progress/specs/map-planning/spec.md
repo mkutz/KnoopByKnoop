@@ -7,7 +7,7 @@ The app SHALL show the planned route on the map along its actual course, togethe
 
 #### Scenario: Route summary
 - **WHEN** the route goes from 12 via 7 to 45 over 3.5 km, with 12 and 45 as waypoints
-- **THEN** the app shows "3.5 km · about 13 min" and the badges 12, 7 and 45 in this order, with 12 and 45 highlighted as start and end and 7 shown as a passed knot
+- **THEN** the app shows 3.5 km with "about 13 min" below it, and the badges 12, 7 and 45 in this order, with 12 and 45 highlighted as start and end and 7 shown as a passed knot
 
 #### Scenario: Unreachable leg
 - **WHEN** a waypoint cannot be reached from the previous one
@@ -15,8 +15,8 @@ The app SHALL show the planned route on the map along its actual course, togethe
 
 #### Scenario: Hiking time
 - **WHEN** a hiking route is 3.5 km long
-- **THEN** the app shows "3.5 km · about 47 min"
+- **THEN** the app shows 3.5 km with "about 47 min" below it
 
 #### Scenario: Long route time
 - **WHEN** a cycling route is 40.0 km long
-- **THEN** the app shows "40.0 km · about 2 h 30 min"
+- **THEN** the app shows 40.0 km with "about 2 h 30 min" below it

@@ -281,7 +281,17 @@ private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
                 style = MaterialTheme.typography.titleMedium,
               )
             is RouteDescription.Complete ->
-              Text(description.distance, style = MaterialTheme.typography.titleLarge)
+              Column {
+                Text(description.distance, style = MaterialTheme.typography.titleLarge)
+                // The time at the assumed pace, below, so it never wraps next to the actions, see
+                // `map-planning` "Show the route".
+                Text(
+                  description.duration,
+                  style = MaterialTheme.typography.bodySmall,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  maxLines = 1,
+                )
+              }
             is RouteDescription.Unreachable ->
               Text(
                 "No route for ${description.legs.joinToString()}",
@@ -308,7 +318,11 @@ private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
         }
       }
     val complete = state.description as? RouteDescription.Complete
-    complete?.let { RouteKnots(it) }
+    // While navigating, where the rider is on the route instead of the badges, see
+    // `knot-navigation` "Progress strip".
+    val progress =
+      navigation?.position?.let { position -> navigation.navigation?.progress(position) }
+    if (progress != null) ProgressPanel(progress) else complete?.let { RouteKnots(it) }
     // Below the fixed header, the ferries and the waypoints scroll together, see `map-planning`
     // "Long routes in the panel". No waypoints while navigating: the route is fixed then and the
     // knot sequence shows it, see "Waypoint list with badges".

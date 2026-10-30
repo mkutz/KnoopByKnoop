@@ -23,6 +23,11 @@ struct NavigationLiveActivity: Widget {
         DynamicIslandExpandedRegion(.trailing) {
           StopButton()
         }
+        DynamicIslandExpandedRegion(.bottom) {
+          if let progress = context.state.progress {
+            Text(progress).font(.caption).foregroundStyle(.white.opacity(0.8))
+          }
+        }
       } compactLeading: {
         // Room for about three characters: "31 →" and "97" for at 31 follow 97, "97" and a flag at
         // the end, a warning sign and the next knot off route.
@@ -63,7 +68,12 @@ private struct LockScreenCard: View {
   var body: some View {
     let dark = colorScheme == .dark
     HStack(alignment: .center, spacing: 16) {
-      NextKnot(state: state, prominent: 1.8, textColor: dark ? .white : .knoopDark)
+      VStack(alignment: .leading, spacing: 6) {
+        NextKnot(state: state, prominent: 1.8, textColor: dark ? .white : .knoopDark)
+        if let progress = state.progress {
+          Text(progress).font(.caption).foregroundStyle(dark ? Color.white.opacity(0.8) : Color.secondary)
+        }
+      }
       Spacer()
       StopButton()
     }

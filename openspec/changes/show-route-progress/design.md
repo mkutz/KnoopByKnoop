@@ -39,7 +39,7 @@ The pace is renewed only when a knot is passed (route progress since the start o
 - the strip: the length, each marked knot with its fraction along the route and its label kind (start, stop, end, ferry, other), the rider's fraction, the ridden fraction and whether the rider is off route, and the text for screen readers ("4.0 of 12.4 km ridden, next knot 12")
 - the rows: label ("Next knot", "Next stop", "End"), knot number, distance ("800 m", "5.2 km", as `formatDistance`), time ("20 min", "2 h 30 min") and arrival ("18:40") where they apply
 
-`Navigation.progressLine` is the notification's text ("0.8 km to 45 · end around 19:05"), computed when a knot is passed and at the start, so it changes only then and causes no extra notification or Live Activity updates.
+`Navigation.progressLine` is the notification's text ("800 m to 45 · end around 19:05"), computed when a knot is passed and at the start, so it changes only then and causes no extra notification or Live Activity updates.
 
 ### The strip
 Android: a `Canvas` in the panel's fixed header, 40 dp high: a line for the route, filled up to the rider; ticks for passed-by knots; small badges for the start, the stops and the end, as in the badge row; ⛴ for ferries; the rider as a dot, in the off-route color while off route. Labels that would overlap a stronger one (end > stop > start > ferry) are left out; ticks are always drawn. iOS: the same with a SwiftUI `Canvas` and the badge views overlaid. The badge row stays while planning.
@@ -48,7 +48,7 @@ Android: a `Canvas` in the panel's fixed header, 40 dp high: a line for the rout
 Android: the line becomes the notification's content text below the title. iOS: `NavigationActivityAttributes.ContentState` gets `progress: String?`, shown below the text on the lock screen and in the expanded Dynamic Island; the compact Dynamic Island keeps the numbers only.
 
 ### Planning time
-`RouteDescription.Complete` gets `duration` ("about 47 min") at the network's assumed pace, from the route's length; the header shows "12.4 km · about 47 min".
+`RouteDescription.Complete` gets `duration` ("about 47 min") at the network's assumed pace, from the route's length; the header shows "about 47 min" in small type below "12.4 km" (first next to it, which wrapped beside the actions on the emulator).
 
 ### Rounding
 One function for durations (minutes under an hour, at least one; five minutes above) and the existing rounding of arrivals to five minutes, used by the table, the notification and the planning time.
