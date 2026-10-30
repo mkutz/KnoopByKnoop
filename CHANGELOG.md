@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.1
+
 - Info is a small round ⓘ button now
 - The waypoint list is more compact, and hidden while navigating
 - Each ferry on the route takes one line with where it is and its status, e.g. "76 → 02 · Closed until 1 May 10:00"; tap it for the name, times, fee and website
