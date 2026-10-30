@@ -20,5 +20,5 @@
 
 ## 4. Checks
 
-- [ ] 4.1 `./gradlew check`, iOS build and core tests on the iOS simulator in CI
+- [x] 4.1 `./gradlew check`, iOS build and core tests on the iOS simulator in CI
 - [x] 4.2 `manual-checks.md` with screenshots: Android emulator for the route over the Broekhuizen ferry and a seasonal ferry; iOS steps for the maintainer
