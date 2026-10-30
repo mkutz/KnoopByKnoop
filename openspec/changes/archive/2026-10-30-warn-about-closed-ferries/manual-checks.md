@@ -6,12 +6,14 @@ Android checked 2026-10-30 on the emulator (`Medium_Phone_API_37.0`) with the bu
 
 | Scenario | Android | iOS | Notes |
 |---|---|---|---|
-| Closed for the season | ✅ | ⏳ | 76 → 02 at Renkum, Friday 18:07, started south of 76: "The ferry Renkumse Veer is closed when you get there around 18:10, it opens on 1 May at 10:00" spoken after "Off route, next 76" |
-| Warning in the ferry list | ✅ | ⏳ | "You get there around 18:10" in red below the ferry's title, above its status and times ([screenshot](screenshots/android-ferry-warning.png)) |
-| Screen off | ✅ | ⏳ | Navigation started, screen locked before the first fix: the warning was logged and handed to the speech engine while the screen was asleep |
-| Offline | ✅ | ⏳ | Airplane mode: the same warning |
-| Phone in another time zone | unit test | ⏳ | `FerryArrivalClockTest`: started at 17:00 London time, 20 km ahead: "around 19:15" and the warning in Dutch time |
+| Closed for the season | ✅ | ✅ | 76 → 02 at Renkum, Friday 18:07, started south of 76: "The ferry Renkumse Veer is closed when you get there around 18:10, it opens on 1 May at 10:00" spoken after "Off route, next 76" |
+| Warning in the ferry list | ✅ | ✅ | "You get there around 18:10" in red below the ferry's title, above its status and times ([screenshot](screenshots/android-ferry-warning.png)) |
+| Screen off | ✅ | ✅ | Navigation started, screen locked before the first fix: the warning was logged and handed to the speech engine while the screen was asleep |
+| Offline | ✅ | ✅ | Airplane mode: the same warning |
+| Phone in another time zone | unit test | ✅ | `FerryArrivalClockTest`: started at 17:00 London time, 20 km ahead: "around 19:15" and the warning in Dutch time |
 | Closed when the rider gets there, Closes shortly after the rider gets there, Not open yet when the rider gets there, Open when the rider gets there, The rider's own pace, Hiking, Falling behind, Warned once, Ferry without a name, Times that cannot be told, Several ferries, Arrival in the ferry list, Ferry passed | unit tests | unit tests | `FerryWarningTest`, run on the JVM and the iOS simulator |
+
+iOS checked 2026-10-30 by the maintainer on the iPhone with the steps below.
 
 ### iOS steps for the maintainer
 
