@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.knoopbyknoop.core.FerryArrivalState
 import com.knoopbyknoop.core.Navigation
 import com.knoopbyknoop.core.RouteFerry
 import java.time.Instant
@@ -56,24 +57,30 @@ fun RouteFerries(ferries: List<RouteFerry>, navigation: Navigation? = null) {
     for (ferry in ferries) {
       Column(modifier = Modifier.padding(top = 6.dp)) {
         Text("⛴ ${ferry.title}", style = MaterialTheme.typography.bodyMedium)
-        navigation?.ferryArrival(ferry.fromPosition)?.let { arrival ->
+        // While navigating, the arrival line takes the place of the status for now, see
+        // `knot-navigation` "Ferry arrival estimate".
+        val arrival = navigation?.ferryArrival(ferry.fromPosition)
+        if (arrival != null) {
           Text(
             arrival.text,
             style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.Medium,
             color =
-              if (arrival.warning) MaterialTheme.colorScheme.error
-              else MaterialTheme.colorScheme.onSurface,
+              when (arrival.state) {
+                FerryArrivalState.OPEN -> ActionColors.iconGreen
+                FerryArrivalState.WARNING -> MaterialTheme.colorScheme.error
+                FerryArrivalState.UNKNOWN -> MaterialTheme.colorScheme.onSurface
+              },
           )
-        }
-        ferry.statusAt(now)?.let { status ->
-          Text(
-            status.text,
-            style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.Medium,
-            color = if (status.open) ActionColors.iconGreen else MaterialTheme.colorScheme.error,
-          )
-        }
+        } else
+          ferry.statusAt(now)?.let { status ->
+            Text(
+              status.text,
+              style = MaterialTheme.typography.bodySmall,
+              fontWeight = FontWeight.Medium,
+              color = if (status.open) ActionColors.iconGreen else MaterialTheme.colorScheme.error,
+            )
+          }
         Text(
           ferry.times,
           style = MaterialTheme.typography.bodySmall,

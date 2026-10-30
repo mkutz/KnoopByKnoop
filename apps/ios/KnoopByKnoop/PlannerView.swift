@@ -198,11 +198,21 @@ struct PlannerView: View {
     }
   }
 
+  /// A round button like the zoom buttons, see `network-sync` "Info sheet": a bare "i" could be
+  /// taken for the base map's tourist information symbol.
   private var infoButton: some View {
-    Button("Info") {
+    Button {
       showInfo = true
       detent = .medium
+    } label: {
+      Image(systemName: "info.circle")
+        .font(.system(size: 20))
+        .foregroundStyle(Color.knoopGreen)
+        .frame(width: 40, height: 40)
+        .background(Circle().fill(Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor(white: 0.17, alpha: 1) : .white })))
+        .shadow(color: .black.opacity(0.2), radius: 2, y: 1)
     }
+    .accessibilityLabel("Info")
   }
 
   /// The knots the map shows when it opens: the whole route if there is one.
@@ -268,13 +278,15 @@ private struct WaypointSheet: View {
             .moveDisabled(true)
             .deleteDisabled(true)
         }
-        ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+        // No waypoints while navigating: the route is fixed then and the knot sequence shows it,
+        // see `map-planning` "Waypoint list with badges".
+        ForEach(Array((navigator.state == nil ? rows : []).enumerated()), id: \.element.id) { index, row in
           HStack(spacing: 12) {
             KnotBadge(ref: row.knot.ref, role: role(index)).frame(width: 40)
-            Text(role(index).name.lowercased().capitalized).font(.body)
+            Text(role(index).name.lowercased().capitalized).font(.callout)
           }
-          .deleteDisabled(!session.canRemoveWaypoints || navigator.state != nil)
-          .moveDisabled(navigator.state != nil)
+          .deleteDisabled(!session.canRemoveWaypoints)
+          .listRowInsets(EdgeInsets(top: 2, leading: 16, bottom: 2, trailing: 16))
           .listRowBackground(Color.clear)
         }
         .onMove { source, destination in
@@ -291,6 +303,8 @@ private struct WaypointSheet: View {
         }
       }
       .listStyle(.plain)
+      // One compact line per waypoint, as high as a touch target.
+      .environment(\.defaultMinListRowHeight, 44)
       // So the sheet's own background shows, Liquid Glass on iOS 26 and later.
       .scrollContentBackground(.hidden)
     }

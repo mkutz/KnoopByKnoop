@@ -67,7 +67,7 @@ import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteSummary
 import kotlin.math.roundToInt
 
-private val WAYPOINT_ROW_HEIGHT = 56.dp
+private val WAYPOINT_ROW_HEIGHT = 48.dp
 
 /**
  * The map with the network, the network switch, the waypoints and the info sheet, see
@@ -223,7 +223,7 @@ private fun MapArea(
               modifier = Modifier.padding(end = 8.dp),
             )
           }
-        TextButton(onClick = onInfo) { Text("Info") }
+        InfoButton(onClick = onInfo, modifier = Modifier.padding(vertical = 4.dp))
       }
     }
     if (layers == null) {
@@ -310,9 +310,10 @@ private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
     val complete = state.description as? RouteDescription.Complete
     complete?.let { RouteKnots(it) }
     // Below the fixed header, the ferries and the waypoints scroll together, see `map-planning`
-    // "Long routes in the panel".
+    // "Long routes in the panel". No waypoints while navigating: the route is fixed then and the
+    // knot sequence shows it, see "Waypoint list with badges".
     WaypointList(
-      session.waypoints,
+      if (state.navigating) listOf() else session.waypoints,
       session.canRemoveWaypoints && !state.navigating,
       viewModel,
       editable = !state.navigating,

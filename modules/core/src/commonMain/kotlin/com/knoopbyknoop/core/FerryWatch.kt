@@ -9,13 +9,27 @@ import kotlin.math.min
 import kotlin.math.roundToLong
 
 /**
- * When the rider gets to a ferry ahead, see `knot-navigation` "Ferry arrival estimate".
- *
- * @property text e.g. `You get there around 19:15`
- * @property warning whether the ferry is closed then or closes shortly after, see `knot-navigation`
- *   "Ferry warning"
+ * Whether a ferry runs when the rider gets there, see `knot-navigation` "Ferry arrival estimate".
  */
-data class FerryArrival(val text: String, val warning: Boolean)
+enum class FerryArrivalState {
+  /** Open then, and not closing shortly after. */
+  OPEN,
+
+  /** Closed then, or closing shortly after, see `knot-navigation` "Ferry warning". */
+  WARNING,
+
+  /** The operating times do not tell. */
+  UNKNOWN,
+}
+
+/**
+ * When the rider gets to a ferry ahead and whether it runs then, the line the ferry list shows in
+ * place of the status for now, see `knot-navigation` "Ferry arrival estimate".
+ *
+ * @property text e.g. `Open when you get there around 14:30` or `Closes at 19:00, before you get
+ *   there around 19:15`
+ */
+data class FerryArrival(val text: String, val state: FerryArrivalState)
 
 /**
  * The ferries ahead on a navigated route, with when the rider gets there and the warnings given,
@@ -69,8 +83,15 @@ private constructor(
       val seconds = max(0.0, ferryOffset - offset) / metersPerSecond
       val arrival = localTime(timeMillis + (seconds * 1000).roundToLong())
       val around = clock(roundedToFiveMinutes(arrival))
-      val warning = ferry.hours?.let { warning(it, now, arrival, around) }
-      arrivals[position] = FerryArrival("You get there around $around", warning != null)
+      val status = ferry.hours?.statusAt(arrival)
+      val warning = status?.let { warning(ferry.hours, it, now, arrival, around) }
+      arrivals[position] =
+        when {
+          warning != null -> FerryArrival(listLine(warning), FerryArrivalState.WARNING)
+          status?.open == true ->
+            FerryArrival("Open when you get there around $around", FerryArrivalState.OPEN)
+          else -> FerryArrival("You get there around $around", FerryArrivalState.UNKNOWN)
+        }
       if (warning != null && warned.add(position)) {
         val text = "The ${ferry.title} $warning"
         notices += Notice(NoticeKind.FERRY, text, text)
@@ -160,16 +181,26 @@ private constructor(
     }
 
     /**
-     * What to warn about a ferry with [hours] the rider gets to at [arrival] ([around] rounded),
-     * e.g. `closes at 19:00, before you get there around 19:15`, or `null` without a warning.
+     * The spoken [warning] as the ferry list shows it, without the ferry's name, e.g. `Closed when
+     * you get there around 18:10, opens on 1 May at 10:00`.
+     */
+    private fun listLine(warning: String): String =
+      warning
+        .replaceFirst("is closed when", "closed when")
+        .replaceFirst(", it opens", ", opens")
+        .replaceFirstChar { it.uppercase() }
+
+    /**
+     * What to warn about a ferry with [hours] and [status] at [arrival] ([around] rounded), e.g.
+     * `closes at 19:00, before you get there around 19:15`, or `null` without a warning.
      */
     private fun warning(
       hours: OpeningHours,
+      status: OpeningStatus,
       now: LocalMoment,
       arrival: LocalMoment,
       around: String,
     ): String? {
-      val status = hours.statusAt(arrival) ?: return null
       val next = status.next
       if (status.open) {
         if (next == null || minutesBetween(arrival, next) > SHORTLY_AFTER_MINUTES) return null

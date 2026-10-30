@@ -12,6 +12,7 @@ import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
@@ -84,6 +85,29 @@ fun IconAction(label: String, @DrawableRes icon: Int, onClick: () -> Unit) {
         ),
     ) {
       Icon(painterResource(icon), contentDescription = label, modifier = Modifier.size(20.dp))
+    }
+  }
+}
+
+/**
+ * The round button that opens the info sheet, styled like the zoom buttons, see `network-sync`
+ * "Info sheet". The label is read by TalkBack and shown on long press.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun InfoButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+  TooltipBox(
+    positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Below),
+    tooltip = { PlainTooltip { Text("Info") } },
+    state = rememberTooltipState(),
+    modifier = modifier,
+  ) {
+    SmallFloatingActionButton(
+      onClick = onClick,
+      containerColor = mapOverlayColor,
+      contentColor = Green,
+    ) {
+      Icon(painterResource(R.drawable.ic_action_info), contentDescription = "Info")
     }
   }
 }

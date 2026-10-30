@@ -33,11 +33,12 @@ struct RouteFerries: View {
       ForEach(Array(ferries.enumerated()), id: \.offset) { _, ferry in
         VStack(alignment: .leading, spacing: 2) {
           Text("⛴ \(ferry.title)").font(.callout)
+          // While navigating, the arrival line takes the place of the status for now, see
+          // `knot-navigation` "Ferry arrival estimate".
           if let arrival = navigation?.ferryArrival(fromPosition: ferry.fromPosition) {
             Text(arrival.text).font(.caption.weight(.medium))
-              .foregroundStyle(arrival.warning ? Color.red : Color.primary)
-          }
-          if let status = ferry.statusAt(now: now) {
+              .foregroundStyle(Self.color(of: arrival.state))
+          } else if let status = ferry.statusAt(now: now) {
             Text(status.text).font(.caption.weight(.medium))
               .foregroundStyle(status.open ? Color.actionIconGreen : Color.red)
           }
@@ -52,6 +53,14 @@ struct RouteFerries: View {
       }
     }
     .padding(.top, 4)
+  }
+
+  private static func color(of state: FerryArrivalState) -> Color {
+    switch state {
+    case .open: Color.actionIconGreen
+    case .warning: Color.red
+    default: Color.primary
+    }
   }
 
   /// The networks' local time: the Netherlands, Belgium and Nordrhein-Westfalen share it, whatever

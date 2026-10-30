@@ -143,7 +143,7 @@ class FerryWarningTest {
 
     assertEquals(listOf(), started.ferryNotices())
     assertEquals(
-      FerryArrival("You get there around 14:30", warning = false),
+      FerryArrival("Open when you get there around 14:30", FerryArrivalState.OPEN),
       started.navigation.ferryArrival(1),
     )
   }
@@ -172,7 +172,7 @@ class FerryWarningTest {
     val update = ride.start("17:00").navigation.update(ride.fixAt(1, "17:30"))
 
     assertEquals(
-      FerryArrival("You get there around 18:00", warning = false),
+      FerryArrival("Open when you get there around 18:00", FerryArrivalState.OPEN),
       update.navigation.ferryArrival(2),
     )
   }
@@ -208,7 +208,7 @@ class FerryWarningTest {
     val update = started.navigation.update(ride.fixAt(1, "18:40"))
 
     assertEquals(listOf(), update.ferryNotices())
-    assertEquals(true, update.navigation.ferryArrival(2)?.warning)
+    assertEquals(FerryArrivalState.WARNING, update.navigation.ferryArrival(2)?.state)
   }
 
   @Test
@@ -228,7 +228,7 @@ class FerryWarningTest {
     assertEquals(listOf(), goodFriday.ferryNotices())
     assertEquals(listOf(), unknown.ferryNotices())
     assertEquals(
-      FerryArrival("You get there around 19:15", warning = false),
+      FerryArrival("You get there around 19:15", FerryArrivalState.UNKNOWN),
       unknown.navigation.ferryArrival(1),
     )
   }
@@ -251,8 +251,46 @@ class FerryWarningTest {
   @Test
   fun `warning in the ferry list`() {
     assertEquals(
-      FerryArrival("You get there around 19:15", warning = true),
+      FerryArrival("Closes at 19:00, before you get there around 19:15", FerryArrivalState.WARNING),
       ferryAhead(20.0).start("18:00").navigation.ferryArrival(1),
+    )
+  }
+
+  @Test
+  fun `closed for the season in the ferry list`() {
+    val renkum = Ferry(name = "Renkumse Veer", openingHours = "May 01-Sep 30 10:00-17:45")
+
+    assertEquals(
+      FerryArrival(
+        "Closed when you get there around 18:10, opens on 1 May at 10:00",
+        FerryArrivalState.WARNING,
+      ),
+      ferryAhead(2.0, renkum, day = CalendarDay(2026, 10, 30))
+        .start("18:02")
+        .navigation
+        .ferryArrival(1),
+    )
+  }
+
+  @Test
+  fun `closes shortly after in the ferry list`() {
+    assertEquals(
+      FerryArrival(
+        "Closes at 19:00, shortly after you get there around 18:50",
+        FerryArrivalState.WARNING,
+      ),
+      ferryAhead(12.0).start("18:05").navigation.ferryArrival(1),
+    )
+  }
+
+  @Test
+  fun `not open yet in the ferry list`() {
+    assertEquals(
+      FerryArrival(
+        "Closed when you get there around 06:15, opens at 07:00",
+        FerryArrivalState.WARNING,
+      ),
+      ferryAhead(8.0).start("05:45").navigation.ferryArrival(1),
     )
   }
 
@@ -263,16 +301,24 @@ class FerryWarningTest {
     val ride = ride(10_000, 9_900, 200, 1000, ferryLegs = mapOf(2 to broekhuizen))
     val started = ride.start("17:00")
     assertEquals(
-      FerryArrival("You get there around 18:15", warning = false),
+      FerryArrival("Open when you get there around 18:15", FerryArrivalState.OPEN),
       started.navigation.ferryArrival(2),
     )
 
     val update = started.navigation.update(ride.fixAt(1, "17:30"))
 
     assertEquals(
-      FerryArrival("You get there around 18:00", warning = false),
+      FerryArrival("Open when you get there around 18:00", FerryArrivalState.OPEN),
       update.navigation.ferryArrival(2),
       "10 km in 30 minutes, renewed at the knot",
+    )
+  }
+
+  @Test
+  fun `arrival when the times do not tell`() {
+    assertEquals(
+      FerryArrival("You get there around 14:30", FerryArrivalState.UNKNOWN),
+      ferryAhead(8.0, Ferry(name = "Veer")).start("14:00").navigation.ferryArrival(1),
     )
   }
 

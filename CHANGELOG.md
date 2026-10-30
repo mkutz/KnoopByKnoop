@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Info is a small round ⓘ button now
+- The waypoint list is more compact, and hidden while navigating
+- While navigating, each ferry ahead shows one line telling whether it is open when you get there
+
 ## 0.2.0
 
 - While navigating, the app warns when a ferry on the route is closed when you get there, or closes shortly after, and the ferry list shows when you get to each ferry
