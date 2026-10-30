@@ -4,6 +4,7 @@
 
 - Info is a small round ⓘ button now
 - The waypoint list is more compact, and hidden while navigating
+- Each ferry on the route takes one line with its status; tap it for the times, fee and website
 - While navigating, each ferry ahead shows one line telling whether it is open when you get there
 
 ## 0.2.0

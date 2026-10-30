@@ -2,6 +2,37 @@
 
 ## MODIFIED Requirements
 
+### Requirement: Ferries on the route
+The route's knot list SHALL mark every ferry between the two knots it connects, and SHALL list the ferries of the route, each in one line with its name and its status; where both do not fit, the name SHALL be cut off with "…", so the status stays visible. Tapping a ferry SHALL expand it to its full status, its operating times as tagged, its fee and its website as far as they are known, with a note that they are according to OpenStreetMap; tapping it again SHALL collapse it. A ferry without known operating times SHALL be listed as such, so the user knows to check it.
+
+#### Scenario: Route over a ferry
+- **WHEN** the route crosses a river by a ferry that runs "Apr-Oct: Mo-Su 07:00-19:00" for €1.50
+- **THEN** the knot list shows a ferry between the two knots on both banks, and lists the ferry in one line; expanded, it shows those times and that fee
+
+#### Scenario: Ferry without known times
+- **WHEN** the route uses a ferry without operating times in OpenStreetMap
+- **THEN** the ferry's line says "Operating times not known" in red, and expanded, it notes to check them before going
+
+#### Scenario: Several ferries
+- **WHEN** the route uses two ferries
+- **THEN** both are listed in the order the route reaches them
+
+#### Scenario: Route without ferries
+- **WHEN** the route uses no ferry
+- **THEN** the knot list shows no ferries and no ferry list
+
+#### Scenario: Offline
+- **WHEN** the device has no internet access
+- **THEN** the ferries and their details are shown as online
+
+#### Scenario: Expanding a ferry
+- **WHEN** the route uses two ferries and the user taps the first one
+- **THEN** the first one shows its status, times, fee and website and the note "according to OpenStreetMap", the second one stays one line, and tapping the first one again collapses it
+
+#### Scenario: Ferry line too long
+- **WHEN** a ferry's name and status do not fit into one line of the panel
+- **THEN** the name is cut off with "…" and the status stays visible, and expanded, the whole name and status are shown
+
 ### Requirement: Waypoint list with badges
 The waypoint list SHALL show each waypoint in one line as a badge with its number and its role, each line no higher than a touch target (48 dp on Android, 44 pt on iOS). While navigating, the waypoint list SHALL NOT be shown, as the route is fixed then and the knot sequence shows it.
 
@@ -18,11 +49,11 @@ The waypoint list SHALL show each waypoint in one line as a badge with its numbe
 - **THEN** the panel shows the knot sequence and any ferries, but no waypoint list
 
 ### Requirement: Ferry open now
-The ferry list SHALL show for each ferry with known operating times, except for the ferries ahead while navigating (see `knot-navigation` "Ferry arrival estimate"), whether it is open now according to OpenStreetMap and, where that can be told too, when that changes next, in the local time of the ferry's region. The operating times as tagged SHALL stay visible below the status, and the status SHALL stay current while the list is shown. When the operating times do not allow a sure answer, the ferry SHALL show no status.
+The ferry list SHALL show for each ferry with known operating times, except for the ferries ahead while navigating (see `knot-navigation` "Ferry arrival estimate"), whether it is open now according to OpenStreetMap and, where that can be told too, when that changes next, in the local time of the ferry's region. The status SHALL be shown in the ferry's line and the operating times as tagged when it is expanded, and the status SHALL stay current while the list is shown. When the operating times do not allow a sure answer, the ferry SHALL show no status.
 
 #### Scenario: Open now
 - **WHEN** a ferry runs "Apr-Oct: Mo-Su 07:00-19:00" and it is Wednesday, 16 June 2027, 14:00
-- **THEN** the ferry shows "Open until 19:00" above "Apr-Oct: Mo-Su 07:00-19:00"
+- **THEN** the ferry's line shows "Open until 19:00", and expanded, "Apr-Oct: Mo-Su 07:00-19:00" below it
 
 #### Scenario: Opens later today
 - **WHEN** the same ferry is shown on Wednesday, 16 June 2027, 06:15
@@ -42,7 +73,7 @@ The ferry list SHALL show for each ferry with known operating times, except for 
 
 #### Scenario: Open around the clock
 - **WHEN** a ferry runs `24/7; "Not in ice conditions"`
-- **THEN** it shows "Open" above the tagged times, which still show the comment
+- **THEN** it shows "Open", and expanded, the tagged times with the comment
 
 #### Scenario: Public holiday
 - **WHEN** a ferry runs "Mo-Sa 06:00-19:00; PH,Su 09:00-19:00" and it is Christmas Day, Friday, 25 December 2026, 08:00

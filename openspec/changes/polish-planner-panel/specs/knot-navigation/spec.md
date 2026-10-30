@@ -7,7 +7,7 @@ While navigating, the app SHALL estimate when the rider gets to each ferry still
 
 #### Scenario: Arrival in the ferry list
 - **WHEN** the rider navigates a route with a ferry ahead that runs "Apr-Oct: Mo-Su 07:00-19:00" and that they get to around 14:30 on Wednesday, 16 June 2027
-- **THEN** the ferry list shows "Open when you get there around 14:30" in green above the ferry's times, and no status for now
+- **THEN** the ferry list shows "Open when you get there around 14:30" in green in the ferry's line, and no status for now
 
 #### Scenario: Arrival when the times do not tell
 - **WHEN** the rider navigates a route with a ferry ahead without operating times in OpenStreetMap and gets there around 14:30
@@ -78,7 +78,7 @@ When a ferry ahead is closed at the rider's estimated arrival, or closes within 
 
 #### Scenario: Warning in the ferry list
 - **WHEN** the rider navigates a route with a ferry ahead that they get to around 19:15 and that closes at 19:00 on that day
-- **THEN** the ferry list shows "Closes at 19:00, before you get there around 19:15" in red above the ferry's times, and no status for now
+- **THEN** the ferry list shows "Closes at 19:00, before you get there around 19:15" in red in the ferry's line, and no status for now
 
 #### Scenario: Closed for the season in the ferry list
 - **WHEN** the rider navigates a route with a ferry ahead that is closed until 1 May at 10:00 and gets there around 18:10
