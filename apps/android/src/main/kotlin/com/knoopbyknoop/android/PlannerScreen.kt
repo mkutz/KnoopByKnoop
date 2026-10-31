@@ -1,9 +1,9 @@
 package com.knoopbyknoop.android
 
 import android.Manifest
-import android.app.Activity
 import android.content.res.Configuration
 import android.os.Build
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -62,7 +62,6 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -192,7 +191,7 @@ private fun MapArea(
   Box(modifier = modifier) {
     // The position once per tap, asking for location access first, see `map-planning` "Show my
     // position"; on the first start, asked right away.
-    val activity = LocalContext.current as? Activity
+    val activity = LocalActivity.current
     val locationLauncher =
       rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         granted ->
