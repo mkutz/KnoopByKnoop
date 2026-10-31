@@ -22,6 +22,10 @@ Android checked 2026-10-31 on the emulator (`Medium_Phone_API_37.0`, 411 dp; 360
 
 - A fifth element did not fit the header at 360 dp: the distance wrapped and the time was cut off ([screenshot](screenshots/android-header-360dp-five.png)). Decided with the maintainer: Back to start and Export GPX moved into a More actions menu.
 
+### Other apps
+
+- iPhone, 2026-10-31, route 02 → 79 from Siegburg to Bonn: imported in Komoot (14.7 km, the line along the route, the knots as grey markers) and in Outdooractive (title "Cycling 02 → 79", the line from Siegburg to Bonn).
+
 ### iOS steps for the maintainer
 
 1. Plan a route with a stop. The header shows the distance, a round ⋯ button, Clear and Navigate in one row.
