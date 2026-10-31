@@ -116,7 +116,10 @@ struct PlannerView: View {
       )
       .ignoresSafeArea()
       // While typing in landscape, the hits need the room up to the top, see `place-search`.
-      if !(landscape && keyboardShown) { networkSwitch }
+      // Not while navigating: the route is fixed then, see `knot-navigation` "Switching the network
+      // while navigating", and the info sheet is not needed on the ride, see `network-sync` "Info
+      // sheet".
+      if !(landscape && keyboardShown) && navigator.state == nil { networkSwitch }
       if model.layers == nil {
         // Only without bundled graphs, e.g. a debug build that was built without internet access,
         // or for the moment it takes to read the graph.
@@ -139,16 +142,12 @@ struct PlannerView: View {
   /// The network picker and the info button, at the top of the map.
   private var networkSwitch: some View {
     HStack {
-      // Not while navigating: the route is fixed then, see `knot-navigation` "Switching the network
-      // while navigating".
-      if navigator.state == nil {
-        Picker("Knot network", selection: networkBinding) {
-          Text("Cycling").tag(IndexedNetworkType.cycling)
-          Text("Hiking").tag(IndexedNetworkType.hiking)
-        }
-        .pickerStyle(.segmented)
-        .frame(width: 200)
+      Picker("Knot network", selection: networkBinding) {
+        Text("Cycling").tag(IndexedNetworkType.cycling)
+        Text("Hiking").tag(IndexedNetworkType.hiking)
       }
+      .pickerStyle(.segmented)
+      .frame(width: 200)
       infoButton
     }
     .padding(8)

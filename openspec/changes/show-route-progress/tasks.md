@@ -44,6 +44,10 @@
 - [x] 7.3 iOS: the same with `.popover`; builds with `xcodebuild`; steps in `manual-checks.md`
 - [x] 7.4 `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; CHANGELOG updated
 
+## 8. No info button while navigating
+
+- [x] 8.1 Android and iOS hide the ⓘ and its bar while navigating; verified on the emulator while planning and navigating ("Info button", "No info button while navigating"), with a screenshot; iOS builds; step in `manual-checks.md`
+
 ## Workflow follow-up
 
 - The maintainer checks iOS on the iPhone before `/opsx:archive show-route-progress`.

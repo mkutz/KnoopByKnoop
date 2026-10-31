@@ -17,6 +17,7 @@ Android checked 2026-10-30 (first version) and 2026-10-31 (revision) on the emul
 | Progress with a screen reader | ✅ | ✅ | `uiautomator dump`: content description "0.0 of 2.3 km ridden, next knot 02" at the start, "2.1 of 2.3 km ridden, next knot 20" after the stop |
 | Closed ferry before a stop, Ferry popover, Popover of a passed ferry, No ferry list while navigating, Ferry with a screen reader, Warning in the ferry list (strip), Closed for the season in the ferry list (popover) | ✅ | ✅ | Revision 2. Renkum 76 → 02 → 20 at 11:31: the ferry with a red ring and "1.0 km 11:35" in red ([screenshot](screenshots/android-ferry-on-strip.png)); tapping it: "⛴ 76 → 02", "Renkumse Veer", "At 11:35: closed until 1 May 10:00" in red, times, the OpenStreetMap note, Website ([screenshot](screenshots/android-ferry-popover.png)); after 02, the popover shows "Closed until 1 May 10:00" and the ring is gone ([screenshot](screenshots/android-ferry-popover-passed.png)); no ferry list while navigating; TalkBack (`uiautomator dump`): "Ferry 76 → 02, at 11:35 closed until 1 May 10:00". Long route: the closed ferry before the stop 02 is shown instead of 02, the open ferry "33 km 13:35" in green ([screenshot](screenshots/android-navigating-long-route.png)) |
 | Open ferry before a stop, Open ferry ahead | unit tests and ranking | ✅ | `RouteProgressTest` "Open ferry ahead" (state and arrival); the ranking puts open ferries after stops |
+| Info button, No info button while navigating | ✅ | ⏳ | Revision 3. While planning the ⓘ is there (`uiautomator dump`: one "Info" button); while navigating neither the ⓘ nor its bar ([screenshot](screenshots/android-navigating-without-info.png)); after Stop it is back |
 | Lock screen, Progress outside the app | ✅ | ✅ | Notification "Off route, next 20" over "321 m to the end, around 21:05", as of passing 02 ([screenshot](screenshots/android-notification.png)) |
 | Along the way, The rider's own pace, Distances that would overlap (core part), Round trip, Rounded times, Hiking time, Long route time | unit tests | unit tests | `RouteProgressTest`, JVM and iOS simulator |
 
@@ -35,6 +36,10 @@ Android checked 2026-10-30 (first version) and 2026-10-31 (revision) on the emul
 2. A closed ferry close to a stop shows instead of the stop; an open one gives way to the stop.
 3. Tap a ferry on the strip: a popover with "⛴ 76 → 02", its name, "At …: …" in its color, the times, fee, website and "Times according to OpenStreetMap"; tapping outside closes it. After passing the ferry, its popover shows the status for now.
 4. VoiceOver: each ferry on the strip is a button, e.g. "Ferry 76 → 02, at 21:10 closed until 1 May 10:00".
+
+### iOS steps for the maintainer (revision 3)
+
+1. While planning, the bar with Cycling/Hiking and ⓘ is at the top; start navigating: the bar is gone; stop: it is back.
 
 ### Found and fixed
 

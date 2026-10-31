@@ -201,16 +201,17 @@ private fun MapArea(
       modifier = Modifier.align(Alignment.TopStart).windowInsetsPadding(topInsets).padding(12.dp)
     ) {
       PlaceSearchField(state, viewModel)
-      Row(
-        modifier =
-          Modifier.padding(top = 8.dp)
-            .background(mapOverlayColor.copy(alpha = 0.85f), MaterialTheme.shapes.medium)
-            .padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        // Not while navigating: the route is fixed then, see `knot-navigation` "Switching the
-        // network while navigating".
-        if (!state.navigating)
+      // Not while navigating: the route is fixed then, see `knot-navigation` "Switching the network
+      // while navigating", and the info sheet is not needed on the ride, see `network-sync` "Info
+      // sheet".
+      if (!state.navigating)
+        Row(
+          modifier =
+            Modifier.padding(top = 8.dp)
+              .background(mapOverlayColor.copy(alpha = 0.85f), MaterialTheme.shapes.medium)
+              .padding(horizontal = 8.dp),
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
           IndexedNetworkType.entries.forEach { network ->
             FilterChip(
               selected = state.network == network,
@@ -223,8 +224,8 @@ private fun MapArea(
               modifier = Modifier.padding(end = 8.dp),
             )
           }
-        InfoButton(onClick = onInfo, modifier = Modifier.padding(vertical = 4.dp))
-      }
+          InfoButton(onClick = onInfo, modifier = Modifier.padding(vertical = 4.dp))
+        }
     }
     if (layers == null) {
       // Only without bundled graphs, e.g. a debug build that was built without internet access,
