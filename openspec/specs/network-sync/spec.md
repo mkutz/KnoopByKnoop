@@ -73,7 +73,7 @@ The app SHALL check the published index for newer data when it starts, at most o
 - **THEN** the route is kept, and a waypoint whose knot no longer exists is removed and pointed out to the user
 
 ### Requirement: Info sheet
-While planning, the map SHALL offer an info sheet, opened with a round info button (ⓘ) at the end of the network switch, with the data date of each installed network, the state of any download or update, and the attribution required by OpenStreetMap.
+While planning, the map SHALL offer an info sheet, opened with a round info button (ⓘ) at the end of the network switch, with the data date of each installed network, the state of any download or update, the attribution required by OpenStreetMap, and the choice of the appearance (System, Light, Dark), see `map-planning` "Light and dark appearance".
 
 #### Scenario: Opening the info sheet
 - **WHEN** both networks are installed and the user opens the info sheet
@@ -98,3 +98,7 @@ While planning, the map SHALL offer an info sheet, opened with a round info butt
 #### Scenario: No info button while navigating
 - **WHEN** the rider is navigating
 - **THEN** the map shows neither the ⓘ button nor the network switch, and the info sheet is available again after navigation ends
+
+#### Scenario: Appearance in the info sheet
+- **WHEN** the user opens the info sheet
+- **THEN** it shows the appearance with System, Light and Dark, the current choice selected, System by default

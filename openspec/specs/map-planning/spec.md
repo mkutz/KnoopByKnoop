@@ -383,7 +383,7 @@ The planner panel SHALL show Navigate, and Stop while navigating, as the most pr
 - **THEN** the labels of Navigate and Stop have a contrast of at least 4.5:1 to their fill, and the icons of all four at least 3:1 to their background
 
 ### Requirement: Light and dark appearance
-The app SHALL follow the system's light or dark appearance: the base map, the planner panel and the controls over the map SHALL all be light or all be dark. Switching the appearance while the app is open SHALL switch the app without moving the map or changing the route, and without interrupting navigation. The knots, the route and the highlighted knots SHALL stay distinguishable on the dark map.
+The app SHALL follow the appearance chosen in the info sheet, by default the system's light or dark appearance: the base map, the planner panel and the controls over the map SHALL all be light or all be dark. The dark base map SHALL show the same details as the light one, with water in blue and paths and roads visible against the land. Switching the appearance while the app is open SHALL switch the app without moving the map or changing the route, and without interrupting navigation. The knots, the route and the highlighted knots SHALL stay distinguishable on the dark map.
 
 #### Scenario: Dark mode
 - **WHEN** the system is set to dark mode and the user opens the app
@@ -420,6 +420,26 @@ The app SHALL follow the system's light or dark appearance: the base map, the pl
 #### Scenario: Slow base map
 - **WHEN** the app is online but the base map takes longer to load than the app waits for it, e.g. on the first start in dark mode
 - **THEN** the map shows the knot network on the plain background first, and the base map replaces it as soon as it has loaded, without moving the map
+
+#### Scenario: Details on the dark map
+- **WHEN** the dark map shows an area with a river, a park, footpaths and cycleways
+- **THEN** the river is blue, the park is green, and the footpaths and cycleways are drawn as on the light map, in colors visible on the dark land
+
+#### Scenario: Choosing light
+- **WHEN** the system is in dark mode and the user chooses Light in the info sheet
+- **THEN** the base map, the planner panel, the controls and the status bar turn light, without moving the map or changing the route
+
+#### Scenario: Choosing dark
+- **WHEN** the system is in light mode and the user chooses Dark
+- **THEN** the app turns dark
+
+#### Scenario: Back to the system
+- **WHEN** the user chooses System again
+- **THEN** the app follows the system's appearance, also when it switches later
+
+#### Scenario: Choice kept
+- **WHEN** the user chose Light and starts the app again
+- **THEN** the app is light, whatever the system's appearance
 
 ### Requirement: Show my position
 While planning, the map SHALL offer a round button below the zoom buttons that centers the map on the rider's current position, at least at the zoom where knots are shown, and marks it with a dot that does not follow the rider. Location access SHALL be asked for on the first tap, and on the very first start of the app, when there is neither a saved map position nor a route. The position SHALL be found once per request, without updates afterwards.

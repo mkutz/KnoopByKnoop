@@ -6,13 +6,13 @@ Android checked 2026-10-31 on the emulator (`Medium_Phone_API_37.0`), dark mode 
 
 | Scenario | Android | iOS | Notes |
 |---|---|---|---|
-| Details on the dark map | ✅ | ⏳ | Renkum, the same view light ([screenshot](screenshots/android-renkum-light.png)) and dark ([screenshot](screenshots/android-renkum-dark.png)): the Nederrijn and the lake blue, woods and meadows dark green, roads light, dotted footpaths visible; Arnhem centre ([screenshot](screenshots/android-arnhem-dark.png)): streets, rails, footpaths, POIs, light labels |
-| Dark mode | ✅ | ⏳ | Map, panel, search, network switch and buttons dark |
-| Appearance in the info sheet | ✅ | ⏳ | "Appearance" with System, Light, Dark, System selected by default ([screenshot](screenshots/android-appearance-setting.png)) |
-| Choosing light | ✅ | ⏳ | System dark, Light chosen: map, panel, controls and status bar light, the map in the same place |
-| Choice kept | ✅ | ⏳ | Restarted with Light chosen and the system dark: light ([screenshot](screenshots/android-light-chosen-system-dark.png)) |
-| Back to the system, Choosing dark | ✅ | ⏳ | System chosen: dark with the system dark, light after switching the system to light; Dark chosen with the system light: dark |
-| Switching while the app is open | ✅ | ⏳ | The appearance changes without moving the map |
+| Details on the dark map | ✅ | ✅ | Renkum, the same view light ([screenshot](screenshots/android-renkum-light.png)) and dark ([screenshot](screenshots/android-renkum-dark.png)): the Nederrijn and the lake blue, woods and meadows dark green, roads light, dotted footpaths visible; Arnhem centre ([screenshot](screenshots/android-arnhem-dark.png)): streets, rails, footpaths, POIs, light labels |
+| Dark mode | ✅ | ✅ | Map, panel, search, network switch and buttons dark |
+| Appearance in the info sheet | ✅ | ✅ | "Appearance" with System, Light, Dark, System selected by default ([screenshot](screenshots/android-appearance-setting.png)) |
+| Choosing light | ✅ | ✅ | System dark, Light chosen: map, panel, controls and status bar light, the map in the same place |
+| Choice kept | ✅ | ✅ | Restarted with Light chosen and the system dark: light ([screenshot](screenshots/android-light-chosen-system-dark.png)) |
+| Back to the system, Choosing dark | ✅ | ✅ | System chosen: dark with the system dark, light after switching the system to light; Dark chosen with the system light: dark |
+| Switching while the app is open | ✅ | ✅ | The appearance changes without moving the map |
 
 ### Found and fixed
 
