@@ -133,7 +133,7 @@ final class AppModel: ObservableObject {
       let description = routeDescription as? RouteDescriptionComplete
     else { return }
     Navigator.shared.onDenied = { [weak self] in
-      self?.message = String(localized: "Knoop by Knoop needs location access to navigate. You can allow it in Settings.")
+      self?.message = String(localized: "Knoop by Knoop needs location access to navigate. You can allow it in Settings.", bundle: AppLanguage.bundle)
     }
     Navigator.shared.start(
       NavigationRoute(
@@ -160,6 +160,12 @@ final class AppModel: ObservableObject {
     guard let route = session?.route, let course = exportCourse else { return nil }
     return ExportedGpx.write(
       fileName: Gpx.shared.fileName(route: route), content: Gpx.shared.write(route: route, course: course))
+  }
+
+  /// Writes the core's texts in the language just chosen, see `app-languages` "Language setting".
+  func languageChanged() {
+    guard let session else { return }
+    routeDescription = MapFeatures.shared.describe(session: session, language: AppLanguage.current)
   }
 
   func stopNavigation() {
@@ -340,7 +346,7 @@ final class AppModel: ObservableObject {
       locating = false
       switch result {
       case .found(let fix): myPosition = fix
-      case .notFound: message = String(localized: "Your position could not be found.")
+      case .notFound: message = String(localized: "Your position could not be found.", bundle: AppLanguage.bundle)
       case .denied:
         message = String(
           localized: "Knoop by Knoop needs location access to show your position. You can allow it in Settings.")

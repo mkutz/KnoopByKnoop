@@ -77,4 +77,6 @@
   <string name="zoom_in">Vergrößern</string>
   <string name="zoom_out">Verkleinern</string>
   <string name="clear_search">Suche löschen</string>
+  <string name="language">Sprache</string>
+  <string name="language_system">System</string>
 </resources>

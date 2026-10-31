@@ -62,6 +62,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -112,7 +113,8 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
     view.keepScreenOn = state.navigating
     onDispose { view.keepScreenOn = false }
   }
-  var showInfo by remember { mutableStateOf(false) }
+  // Kept when the activity is recreated, e.g. in another language chosen in the info sheet.
+  var showInfo by rememberSaveable { mutableStateOf(false) }
   if (showInfo) InfoSheet(state, viewModel, onDismiss = { showInfo = false })
   var pendingNetwork by remember { mutableStateOf<IndexedNetworkType?>(null) }
   val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE

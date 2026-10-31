@@ -77,4 +77,6 @@
   <string name="zoom_in">Zoom avant</string>
   <string name="zoom_out">Zoom arrière</string>
   <string name="clear_search">Effacer la recherche</string>
+  <string name="language">Langue</string>
+  <string name="language_system">Système</string>
 </resources>

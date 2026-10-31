@@ -455,9 +455,9 @@ private struct WaypointSheet: View {
   /// The waypoint's role in the list, e.g. `Start`; keys of their own, as Stop also ends navigation.
   private static func roleName(_ role: KnotRole) -> String {
     switch role {
-    case .start: String(localized: "waypoint.start", defaultValue: "Start")
-    case .end: String(localized: "waypoint.end", defaultValue: "End")
-    default: String(localized: "waypoint.stop", defaultValue: "Stop")
+    case .start: String(localized: "waypoint.start", defaultValue: "Start", bundle: AppLanguage.bundle)
+    case .end: String(localized: "waypoint.end", defaultValue: "End", bundle: AppLanguage.bundle)
+    default: String(localized: "waypoint.stop", defaultValue: "Stop", bundle: AppLanguage.bundle)
     }
   }
 
@@ -634,7 +634,7 @@ private struct NavigationHeader: View {
     }
     .minimumScaleFactor(0.8)
     .accessibilityElement(children: .ignore)
-    .accessibilityLabel([String(localized: "Off route, next \(next)"), guidance?.text].compactMap { $0 }.joined(separator: ", "))
+    .accessibilityLabel([String(localized: "Off route, next \(next)", bundle: AppLanguage.bundle), guidance?.text].compactMap { $0 }.joined(separator: ", "))
   }
 
   private func badge(_ ref: String, at index: Int, scale: CGFloat) -> some View {

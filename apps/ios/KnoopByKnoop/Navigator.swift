@@ -290,7 +290,7 @@ final class Navigator: NSObject, ObservableObject {
     guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
     let content = ActivityContent(
       state: NavigationActivityAttributes.ContentState(
-        next: "", follow: nil, offRoute: false, nextRole: nil, followRole: nil, text: String(localized: "Starting navigation…")),
+        next: "", follow: nil, offRoute: false, nextRole: nil, followRole: nil, text: String(localized: "Starting navigation…", bundle: AppLanguage.bundle)),
       staleDate: nil)
     activity = try? Activity.request(attributes: NavigationActivityAttributes(), content: content)
   }

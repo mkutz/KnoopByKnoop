@@ -167,7 +167,7 @@ struct NetworkMapView: UIViewRepresentable {
     recenter.layer.shadowOpacity = 0.2
     recenter.layer.shadowRadius = 2
     recenter.layer.shadowOffset = CGSize(width: 0, height: 1)
-    recenter.accessibilityLabel = String(localized: "Recenter")
+    recenter.accessibilityLabel = String(localized: "Recenter", bundle: AppLanguage.bundle)
     recenter.isHidden = true
     recenter.translatesAutoresizingMaskIntoConstraints = false
     recenter.addTarget(coordinator, action: #selector(Coordinator.recenter), for: .touchUpInside)
@@ -183,7 +183,7 @@ struct NetworkMapView: UIViewRepresentable {
     locate.layer.shadowOpacity = 0.2
     locate.layer.shadowRadius = 2
     locate.layer.shadowOffset = CGSize(width: 0, height: 1)
-    locate.accessibilityLabel = String(localized: "My position")
+    locate.accessibilityLabel = String(localized: "My position", bundle: AppLanguage.bundle)
     locate.translatesAutoresizingMaskIntoConstraints = false
     locate.addTarget(coordinator, action: #selector(Coordinator.locate), for: .touchUpInside)
     let spinner = UIActivityIndicatorView(style: .medium)
@@ -210,6 +210,11 @@ struct NetworkMapView: UIViewRepresentable {
   }
 
   func updateUIView(_ mapView: MLNMapView, context: Context) {
+    // Again on each update, so they follow the language chosen in the info sheet.
+    context.coordinator.recenterButton?.accessibilityLabel =
+      String(localized: "Recenter", bundle: AppLanguage.bundle)
+    context.coordinator.locateButton?.accessibilityLabel =
+      String(localized: "My position", bundle: AppLanguage.bundle)
     context.coordinator.onTap = onTap
     context.coordinator.onLeave = onLeave
     context.coordinator.onMove = onMove

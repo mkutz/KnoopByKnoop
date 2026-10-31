@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <!-- The window behind Compose, light or dark like the system, see values-night. -->
-  <style name="Theme.Knoop" parent="android:Theme.Material.Light.NoActionBar" />
+  <!-- AppCompat, as MainActivity is an AppCompatActivity for the per-app language. -->
+  <style name="Theme.Knoop" parent="Theme.AppCompat.Light.NoActionBar" />
 </resources>

@@ -2,7 +2,7 @@
 
 ## 0.6.0
 
-- The apps speak German, Dutch and French: texts, spoken notices, distances and dates follow the phone's language
+- The apps speak German, Dutch and French: texts, spoken notices, distances and dates follow the phone's language, or the one chosen in Info
 
 ## 0.5.0
 

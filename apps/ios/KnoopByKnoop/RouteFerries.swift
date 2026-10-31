@@ -69,7 +69,7 @@ struct RouteFerries: View {
     }
     return ferry.timesKnown
       ? Line(text: ferry.times, color: .secondary, isStatus: false)
-      : Line(text: String(localized: "Operating times not known"), color: .red, isStatus: false)
+      : Line(text: String(localized: "Operating times not known", bundle: AppLanguage.bundle), color: .red, isStatus: false)
   }
 
   private func row(_ ferry: RouteFerry, line: Line, expanded: Bool) -> some View {

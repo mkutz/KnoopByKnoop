@@ -9,6 +9,8 @@ struct InfoSheet: View {
   let onDone: () -> Void
   /// The appearance of the whole app, see `map-planning` "Light and dark appearance".
   @AppStorage("appearance") private var appearance = "system"
+  /// The language of the app, see `app-languages` "Language setting".
+  @AppStorage(AppLanguage.storageKey) private var language = "system"
 
   var body: some View {
     NavigationStack {
@@ -20,6 +22,17 @@ struct InfoSheet: View {
             Text("Dark").tag("dark")
           }
           .pickerStyle(.segmented)
+        }
+        Section("Language") {
+          Picker("Language", selection: $language) {
+            Text("System").tag("system")
+            // Each language in itself, so it can be found whatever the app's language.
+            Text(verbatim: "English").tag("en")
+            Text(verbatim: "Deutsch").tag("de")
+            Text(verbatim: "Nederlands").tag("nl")
+            Text(verbatim: "Français").tag("fr")
+          }
+          .pickerStyle(.menu)
         }
         Section("Knot network data") {
           ForEach(model.catalog.networks, id: \.network) { status in
@@ -52,16 +65,18 @@ struct InfoSheet: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbar { Button("Done", action: onDone) }
     }
+    // The navigation bar keeps its title until rebuilt, so it follows a new language too.
+    .id(language)
   }
 
   private func describe(_ status: NetworkStatus) -> String {
-    let data = status.dataDate.map { String(localized: "Data of \($0)") } ?? String(localized: "Not installed yet")
+    let data = status.dataDate.map { String(localized: "Data of \($0)", bundle: AppLanguage.bundle) } ?? String(localized: "Not installed yet", bundle: AppLanguage.bundle)
     let state: String? =
-      if status.lastAttemptFailed { String(localized: "the last download failed") }
-      else if status.state == .downloading { String(localized: "downloading") }
-      else if !status.hasGeometry && !model.online { String(localized: "courses need an internet connection") }
-      else if !status.hasGeometry { String(localized: "courses are loading") }
-      else if status.state == .updatable { String(localized: "update pending") }
+      if status.lastAttemptFailed { String(localized: "the last download failed", bundle: AppLanguage.bundle) }
+      else if status.state == .downloading { String(localized: "downloading", bundle: AppLanguage.bundle) }
+      else if !status.hasGeometry && !model.online { String(localized: "courses need an internet connection", bundle: AppLanguage.bundle) }
+      else if !status.hasGeometry { String(localized: "courses are loading", bundle: AppLanguage.bundle) }
+      else if status.state == .updatable { String(localized: "update pending", bundle: AppLanguage.bundle) }
       else { nil }
     return [data, state].compactMap { $0 }.joined(separator: ", ")
   }

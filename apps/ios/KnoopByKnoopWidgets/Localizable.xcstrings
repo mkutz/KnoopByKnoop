@@ -1,138 +1,139 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "At": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bei"
+  "sourceLanguage" : "en",
+  "strings" : {
+    "At" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bei"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bij"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Au"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Au"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bij"
           }
         }
       }
     },
-    "Off route, next": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abseits der Route, nächster"
+    "follow" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "folge"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Van de route af, volgende"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "suivre"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hors itinéraire, suivant"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "volg"
           }
         }
       }
     },
-    "Stop": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Beenden"
+    "is the end" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ist das Ende"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stoppen"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "est l'arrivée"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Arrêter"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "is het einde"
           }
         }
       }
     },
-    "Stop navigation": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Navigation beenden"
+    "Off route, next" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abseits der Route, nächster"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Navigatie stoppen"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hors itinéraire, suivant"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Arrêter la navigation"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Van de route af, volgende"
           }
         }
       }
     },
-    "follow": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "folge"
+    "Stop" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beenden"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "volg"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrêter"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "suivre"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stoppen"
           }
         }
       }
     },
-    "is the end": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ist das Ende"
+    "Stop navigation" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Navigation beenden"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "is het einde"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrêter la navigation"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "est l'arrivée"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Navigatie stoppen"
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

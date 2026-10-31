@@ -154,7 +154,7 @@ private struct ProgressStripView: View {
       ?? ferry.statusAt(now: RouteFerries.ferryMoment(Date())).map { status in
         status.text.prefix(1).lowercased() + status.text.dropFirst()
       }
-    return [String(localized: "Ferry \(ferry.place)"), status].compactMap { $0 }.joined(separator: ", ")
+    return [String(localized: "Ferry \(ferry.place)", bundle: AppLanguage.bundle), status].compactMap { $0 }.joined(separator: ", ")
   }
 
   /// How important a mark is where its badge or its distance would overlap another's: lower first.

@@ -1,37 +1,60 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "CFBundleDisplayName": {
-      "shouldTranslate": false
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "comment" : "Bundle display name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Knoop by Knoop"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
-    "NSLocationWhenInUseUsageDescription": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Knoop by Knoop uses your position to show where you are on the map and, while navigating, to tell you the number to follow at the next knot."
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "KnoopByKnoop"
+          }
+        }
+      }
+    },
+    "NSLocationWhenInUseUsageDescription" : {
+      "comment" : "Privacy - Location When In Use Usage Description",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Knoop by Knoop nutzt deine Position, um dir auf der Karte zu zeigen, wo du bist, und beim Navigieren die Nummer am nächsten Knotenpunkt anzusagen."
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Knoop by Knoop nutzt deine Position, um dir auf der Karte zu zeigen, wo du bist, und beim Navigieren die Nummer am nächsten Knotenpunkt anzusagen."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Knoop by Knoop uses your position to show where you are on the map and, while navigating, to tell you the number to follow at the next knot."
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Knoop by Knoop gebruikt je positie om op de kaart te tonen waar je bent en om tijdens het navigeren het nummer bij het volgende knooppunt te noemen."
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Knoop by Knoop utilise votre position pour vous montrer sur la carte où vous êtes et, pendant la navigation, vous indiquer le numéro à suivre au prochain point-nœud."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Knoop by Knoop utilise votre position pour vous montrer sur la carte où vous êtes et, pendant la navigation, vous indiquer le numéro à suivre au prochain point-nœud."
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Knoop by Knoop gebruikt je positie om op de kaart te tonen waar je bent en om tijdens het navigeren het nummer bij het volgende knooppunt te noemen."
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

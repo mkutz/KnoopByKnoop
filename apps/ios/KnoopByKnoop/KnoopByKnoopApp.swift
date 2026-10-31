@@ -7,6 +7,7 @@ struct KnoopByKnoopApp: App {
   @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
   @StateObject private var model = AppModel()
   @Environment(\.scenePhase) private var scenePhase
+  @AppStorage(AppLanguage.storageKey) private var language = "system"
 
   init() {
     Navigator.shared.endLeftoverSession()
@@ -33,6 +34,12 @@ struct KnoopByKnoopApp: App {
           model.message = nil
           model.messageOpensSettings = false
         }
+      }
+      // The language chosen in the info sheet applies right away, see `app-languages` "Language
+      // setting".
+      .onChange(of: language) {
+        AppLanguage.store()
+        model.languageChanged()
       }
       // While the app is visible, the navigation samples live, see `knot-navigation`.
       .onChange(of: scenePhase) { _, phase in Navigator.shared.visible = phase == .active }

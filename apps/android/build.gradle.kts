@@ -106,6 +106,8 @@ dependencies {
   implementation(project(":modules:core"))
   implementation(platform(libs.androidx.compose.bom))
   implementation(libs.androidx.activity.compose)
+  // The per-app language, also below Android 13, see `app-languages` "Language setting".
+  implementation(libs.androidx.appcompat)
   implementation(libs.androidx.compose.material3)
   implementation(libs.androidx.lifecycle.viewmodel.compose)
   implementation(libs.androidx.work.runtime)

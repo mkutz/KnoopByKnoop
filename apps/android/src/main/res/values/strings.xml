@@ -78,4 +78,11 @@
   <string name="zoom_in">Zoom in</string>
   <string name="zoom_out">Zoom out</string>
   <string name="clear_search">Clear search</string>
+  <string name="language">Language</string>
+  <string name="language_system">System</string>
+  <!-- Each language named in itself, see `app-languages` "Language setting". -->
+  <string name="language_en" translatable="false">English</string>
+  <string name="language_de" translatable="false">Deutsch</string>
+  <string name="language_nl" translatable="false">Nederlands</string>
+  <string name="language_fr" translatable="false">Français</string>
 </resources>

@@ -1,23 +1,34 @@
 package com.knoopbyknoop.android
 
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.os.LocaleListCompat
 import com.knoopbyknoop.core.NetworkState
 import com.knoopbyknoop.core.NetworkStatus
 
@@ -44,6 +55,9 @@ fun InfoSheet(state: AppState, viewModel: AppViewModel, onDismiss: () -> Unit) {
           }
         }
       }
+      // The app's language, see `app-languages` "Language setting".
+      Text(stringResource(R.string.language), style = MaterialTheme.typography.titleLarge)
+      LanguageChoice(modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 16.dp))
       Text(stringResource(R.string.knot_network_data), style = MaterialTheme.typography.titleLarge)
       state.catalog.networks.forEach { status ->
         Row(
@@ -78,6 +92,57 @@ fun InfoSheet(state: AppState, viewModel: AppViewModel, onDismiss: () -> Unit) {
         style = MaterialTheme.typography.bodySmall,
         modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
       )
+    }
+  }
+}
+
+/** The languages to choose, by language tag; the empty tag follows the phone. */
+private val languages =
+  listOf(
+    "" to R.string.language_system,
+    "en" to R.string.language_en,
+    "de" to R.string.language_de,
+    "nl" to R.string.language_nl,
+    "fr" to R.string.language_fr,
+  )
+
+/**
+ * The app's language as the system's per-app language, see `app-languages` "Language setting":
+ * choosing one recreates the activity in it.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LanguageChoice(modifier: Modifier = Modifier) {
+  val chosen = AppCompatDelegate.getApplicationLocales()[0]?.language.orEmpty()
+  var expanded by remember { mutableStateOf(false) }
+  ExposedDropdownMenuBox(
+    expanded = expanded,
+    onExpandedChange = { expanded = it },
+    modifier = modifier,
+  ) {
+    OutlinedTextField(
+      value =
+        stringResource(
+          languages.firstOrNull { it.first == chosen }?.second ?: R.string.language_system
+        ),
+      onValueChange = {},
+      readOnly = true,
+      singleLine = true,
+      trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+      modifier =
+        Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+    )
+    ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+      languages.forEach { (tag, name) ->
+        DropdownMenuItem(
+          text = { Text(stringResource(name)) },
+          onClick = {
+            expanded = false
+            if (tag != chosen)
+              AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
+          },
+        )
+      }
     }
   }
 }
