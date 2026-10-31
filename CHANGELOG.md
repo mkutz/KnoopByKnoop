@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.1
 
 - Navigation started away from the route leads to its start
 - Off route, the app shows and tells the direction and distance to the next knot, with a line on the map
