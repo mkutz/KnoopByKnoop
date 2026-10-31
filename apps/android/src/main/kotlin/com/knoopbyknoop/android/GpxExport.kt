@@ -22,5 +22,5 @@ fun shareGpx(context: Context, fileName: String, content: String) {
       putExtra(Intent.EXTRA_TITLE, fileName)
       addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
-  context.startActivity(Intent.createChooser(send, "Export GPX"))
+  context.startActivity(Intent.createChooser(send, context.getString(R.string.export_gpx)))
 }

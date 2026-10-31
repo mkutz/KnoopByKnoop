@@ -57,10 +57,17 @@ data class FerryStatus(val open: Boolean, val text: String)
  * @property place where the ferry is on the route: the numbers of the knots on both sides in riding
  *   order, e.g. `76 → 02`
  */
-data class RouteFerry(val ferry: Ferry, val fromPosition: Int, val place: String = "") {
+data class RouteFerry(
+  val ferry: Ferry,
+  val fromPosition: Int,
+  val place: String = "",
+  val language: Language = Language.EN,
+) {
+
+  private val texts = language.texts
 
   /** The ferry's name, or just "Ferry". */
-  val title: String = ferry.name ?: "Ferry"
+  val title: String = ferry.name ?: texts.ferry
 
   /** Whether OpenStreetMap has the ferry's operating times. */
   val timesKnown: Boolean = ferry.openingHours != null
@@ -73,17 +80,17 @@ data class RouteFerry(val ferry: Ferry, val fromPosition: Int, val place: String
     ferry.openingHours
       ?: when (val seasonal = ferry.seasonal) {
         null,
-        "no" -> UNKNOWN_TIMES
-        "yes" -> "Seasonal. $UNKNOWN_TIMES"
-        else -> "Seasonal ($seasonal). $UNKNOWN_TIMES"
+        "no" -> texts.unknownTimes
+        "yes" -> "${texts.seasonal} ${texts.unknownTimes}"
+        else -> "${texts.seasonalIn(seasonal)} ${texts.unknownTimes}"
       }
 
   /** e.g. `Fee: 1.50 EUR`, `Free` or `Fee charged`, or `null` if OpenStreetMap does not know. */
   val fee: String? =
-    ferry.charge?.let { "Fee: $it" }
+    ferry.charge?.let { texts.fee(it) }
       ?: when (ferry.fee) {
-        "no" -> "Free"
-        "yes" -> "Fee charged"
+        "no" -> texts.free
+        "yes" -> texts.feeCharged
         else -> null
       }
 
@@ -96,7 +103,7 @@ data class RouteFerry(val ferry: Ferry, val fromPosition: Int, val place: String
    */
   fun statusAt(now: LocalMoment): FerryStatus? {
     val status = openingHours?.statusAt(now) ?: return null
-    return FerryStatus(status.open, statusText(status, now))
+    return FerryStatus(status.open, statusText(status, now, language))
   }
 
   companion object {
@@ -105,44 +112,33 @@ data class RouteFerry(val ferry: Ferry, val fromPosition: Int, val place: String
      * [status] at [now] in words, e.g. `Open until 19:00`, `Closed until tomorrow 07:00` or `Closed
      * until 1 April 07:00`.
      */
-    internal fun statusText(status: OpeningStatus, now: LocalMoment): String {
+    internal fun statusText(
+      status: OpeningStatus,
+      now: LocalMoment,
+      language: Language = Language.EN,
+    ): String {
+      val texts = language.texts
       val next = status.next
       return if (status.open) {
         val closing = next?.let(::endOfDayBefore)
         when {
-          next == null || closing == null -> "Open"
-          minutesBetween(now, next) <= MINUTES_PER_DAY -> "Open until ${clock(closing)}"
-          else -> "Open until ${date(closing)} ${clock(closing)}"
+          next == null || closing == null -> texts.open
+          minutesBetween(now, next) <= MINUTES_PER_DAY -> texts.openUntil(clock(closing))
+          else -> texts.openUntil("${date(closing, language)} ${clock(closing)}")
         }
       } else {
         when {
-          next == null -> "Closed"
-          next.day == now.day -> "Closed until ${clock(next)}"
-          next.day == now.day.plusDays(1) -> "Closed until tomorrow ${clock(next)}"
-          else -> "Closed until ${date(next)} ${clock(next)}"
+          next == null -> texts.closed
+          next.day == now.day -> texts.closedUntil(clock(next))
+          next.day == now.day.plusDays(1) -> texts.closedUntilTomorrow(clock(next))
+          else -> texts.closedUntil("${date(next, language)} ${clock(next)}")
         }
       }
     }
 
-    const val UNKNOWN_TIMES = "Operating times not known, check before you go"
+    val UNKNOWN_TIMES = EnglishTexts.unknownTimes
 
     private const val MINUTES_PER_DAY = 24 * 60
-
-    private val monthNames =
-      listOf(
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
-      )
 
     internal fun minutesBetween(from: LocalMoment, to: LocalMoment) =
       (to.day.epochDay - from.day.epochDay) * MINUTES_PER_DAY + to.minute - from.minute
@@ -156,10 +152,8 @@ data class RouteFerry(val ferry: Ferry, val fromPosition: Int, val place: String
       return "${(minute / 60).toString().padStart(2, '0')}:${(minute % 60).toString().padStart(2, '0')}"
     }
 
-    internal fun date(moment: LocalMoment): String {
-      val day = moment.day
-      return "${day.day} ${monthNames[day.month - 1]}"
-    }
+    internal fun date(moment: LocalMoment, language: Language = Language.EN): String =
+      language.texts.date(moment.day.day, moment.day.month)
   }
 }
 
@@ -267,7 +261,7 @@ object MapFeatures {
       }
     }
 
-  fun describe(session: PlanningSession): RouteDescription {
+  fun describe(session: PlanningSession, language: Language = Language.EN): RouteDescription {
     val route =
       session.route
         ?: return session.waypoints.firstOrNull()?.let { RouteDescription.StartOnly(it.ref) }
@@ -277,16 +271,17 @@ object MapFeatures {
         val knots = routeKnots(session)
         RouteDescription.Complete(
           knots = knots,
-          distance = formatDistance(summary.lengthMeters),
+          distance = formatDistance(summary.lengthMeters, language),
           duration =
-            "about " +
+            language.texts.about(
               RouteProgress.formatDuration(
                 summary.lengthMeters / RouteProgress.assumedMetersPerSecond(session.graph.network)
-              ),
+              )
+            ),
           ferries =
             knots.zipWithNext().mapIndexedNotNull { position, (from, to) ->
               session.graph.ferryBetween(from.knot, to.knot)?.let {
-                RouteFerry(it, position, "${from.knot.ref} → ${to.knot.ref}")
+                RouteFerry(it, position, "${from.knot.ref} → ${to.knot.ref}", language)
               }
             },
         )
@@ -302,11 +297,12 @@ object MapFeatures {
    * e.g. `800 m` below one kilometer, `3.5 km` below ten, `200 km` above, see `knot-navigation`
    * "Rounded times and distances".
    */
-  fun formatDistance(meters: Int): String {
+  fun formatDistance(meters: Int, language: Language = Language.EN): String {
     if (meters < 1000) return "$meters m"
     val tenthsOfKilometers = (meters / 100.0).roundToInt()
     if (tenthsOfKilometers >= 100) return "${(meters / 1000.0).roundToInt()} km"
-    return "${tenthsOfKilometers / 10}.${tenthsOfKilometers % 10} km"
+    val separator = language.texts.decimalSeparator
+    return "${tenthsOfKilometers / 10}$separator${tenthsOfKilometers % 10} km"
   }
 
   private fun courseOf(path: Path, geometry: NetworkGeometry): List<GeoPoint> {

@@ -52,7 +52,7 @@ struct PlaceSearchView: View {
       HStack {
         Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
         TextField(
-          model.online ? "Search places" : "Search needs an internet connection",
+          model.online ? LocalizedStringKey("Search places") : "Search needs an internet connection",
           text: Binding(get: { model.online ? model.searchQuery : "" }, set: { model.search($0) })
         )
         .focused(focused)
@@ -114,7 +114,7 @@ struct PlaceSearchView: View {
     }
   }
 
-  private func message(_ text: String) -> some View {
+  private func message(_ text: LocalizedStringKey) -> some View {
     Text(text)
       .frame(maxWidth: .infinity, alignment: .leading)
       .padding(12)

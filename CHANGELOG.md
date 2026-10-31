@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- The apps speak German, Dutch and French: texts, spoken notices, distances and dates follow the phone's language
+
 ## 0.5.0
 
 - While navigating, swipe the panel up to see the coming knots; tap one to see it on the map

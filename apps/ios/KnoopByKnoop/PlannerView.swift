@@ -130,7 +130,7 @@ struct PlannerView: View {
       }
     }
     .confirmationDialog(
-      "Switch to \(pendingNetwork?.name.lowercased() ?? "")?", isPresented: Binding(
+      pendingNetwork == .hiking ? LocalizedStringKey("Switch to hiking?") : "Switch to cycling?", isPresented: Binding(
         get: { pendingNetwork != nil }, set: { if !$0 { pendingNetwork = nil } }), titleVisibility: .visible
     ) {
       Button("Switch", role: .destructive) {
@@ -174,8 +174,8 @@ struct PlannerView: View {
         // or for the moment it takes to read the graph.
         LoadingNote(
           text: model.status.dataDate == nil && !model.online
-            ? "The knot networks need an internet connection once"
-            : "Loading the \(model.network.name.lowercased()) knot network…"
+            ? LocalizedStringKey("The knot networks need an internet connection once")
+            : model.network == .hiking ? "Loading the hiking knot network…" : "Loading the cycling knot network…"
         )
         .padding(.top, notesTop)
       } else if !model.status.hasGeometry {
@@ -382,7 +382,7 @@ private struct WaypointSheet: View {
         ForEach(Array((navigator.state == nil ? rows : []).enumerated()), id: \.element.id) { index, row in
           HStack(spacing: 12) {
             KnotBadge(ref: row.knot.ref, role: role(index)).frame(width: 40)
-            Text(role(index).name.lowercased().capitalized).font(.callout)
+            Text(Self.roleName(role(index))).font(.callout)
           }
           .deleteDisabled(!session.canRemoveWaypoints)
           .listRowInsets(EdgeInsets(top: 2, leading: 16, bottom: 2, trailing: 16))
@@ -449,6 +449,15 @@ private struct WaypointSheet: View {
       FerryBadge(warning: coming.state == FerryArrivalState.warning)
     } else {
       KnotBadge(ref: coming.label, role: Self.role(of: coming.kind))
+    }
+  }
+
+  /// The waypoint's role in the list, e.g. `Start`; keys of their own, as Stop also ends navigation.
+  private static func roleName(_ role: KnotRole) -> String {
+    switch role {
+    case .start: String(localized: "waypoint.start", defaultValue: "Start")
+    case .end: String(localized: "waypoint.end", defaultValue: "End")
+    default: String(localized: "waypoint.stop", defaultValue: "Stop")
     }
   }
 
@@ -625,7 +634,7 @@ private struct NavigationHeader: View {
     }
     .minimumScaleFactor(0.8)
     .accessibilityElement(children: .ignore)
-    .accessibilityLabel(["Off route, next \(next)", guidance?.text].compactMap { $0 }.joined(separator: ", "))
+    .accessibilityLabel([String(localized: "Off route, next \(next)"), guidance?.text].compactMap { $0 }.joined(separator: ", "))
   }
 
   private func badge(_ ref: String, at index: Int, scale: CGFloat) -> some View {

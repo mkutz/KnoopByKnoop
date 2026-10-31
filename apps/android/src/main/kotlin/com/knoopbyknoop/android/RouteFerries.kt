@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -129,12 +130,17 @@ internal fun status(ferry: RouteFerry, now: LocalMoment, navigation: Navigation?
     ferry.timesKnown ->
       FerryLine(ferry.times, MaterialTheme.colorScheme.onSurfaceVariant, isStatus = false)
     else ->
-      FerryLine("Operating times not known", MaterialTheme.colorScheme.error, isStatus = false)
+      FerryLine(
+        stringResource(R.string.times_not_known),
+        MaterialTheme.colorScheme.error,
+        isStatus = false,
+      )
   }
 }
 
 @Composable
 private fun FerryRow(ferry: RouteFerry, line: FerryLine, expanded: Boolean, onToggle: () -> Unit) {
+  val expandedDescription = stringResource(if (expanded) R.string.expanded else R.string.collapsed)
   Column {
     Row(
       verticalAlignment = Alignment.CenterVertically,
@@ -142,7 +148,7 @@ private fun FerryRow(ferry: RouteFerry, line: FerryLine, expanded: Boolean, onTo
         Modifier.fillMaxWidth()
           .heightIn(min = 48.dp)
           .clickable(role = Role.Button, onClick = onToggle)
-          .semantics { stateDescription = if (expanded) "Expanded" else "Collapsed" },
+          .semantics { stateDescription = expandedDescription },
     ) {
       Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
         // Where the ferry is on the route rather than its name, which is often long, see
@@ -205,7 +211,7 @@ internal fun FerryDetails(ferry: RouteFerry, line: FerryLine, modifier: Modifier
       )
     }
     Text(
-      "Times according to OpenStreetMap",
+      stringResource(R.string.times_according_to_osm),
       style = MaterialTheme.typography.bodySmall,
       color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
@@ -213,7 +219,7 @@ internal fun FerryDetails(ferry: RouteFerry, line: FerryLine, modifier: Modifier
       TextButton(
         onClick = { uriHandler.openUri(if ("://" in website) website else "https://$website") }
       ) {
-        Text("Website")
+        Text(stringResource(R.string.website))
       }
     }
   }

@@ -13,7 +13,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.knoopbyknoop.core.Language
 
 class MainActivity : ComponentActivity() {
 
@@ -39,6 +41,10 @@ class MainActivity : ComponentActivity() {
         val dark = isAppInDarkTheme()
         LaunchedEffect(dark) { showSystemBars(dark) }
         val state = viewModel.state
+        // The core's texts follow the app's language, also when it changes while the app is open,
+        // see `app-languages` "Language of the texts".
+        val language = Language.of(LocalConfiguration.current.locales[0].language)
+        LaunchedEffect(language) { viewModel.useLanguage(language) }
         val snackbarHostState = remember { SnackbarHostState() }
         LaunchedEffect(state.message) {
           state.message?.let {
@@ -46,7 +52,7 @@ class MainActivity : ComponentActivity() {
             val result =
               snackbarHostState.showSnackbar(
                 it,
-                actionLabel = if (opensSettings) "Settings" else null,
+                actionLabel = if (opensSettings) getString(R.string.settings) else null,
               )
             if (opensSettings && result == SnackbarResult.ActionPerformed) {
               startActivity(

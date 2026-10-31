@@ -69,7 +69,7 @@ struct RouteFerries: View {
     }
     return ferry.timesKnown
       ? Line(text: ferry.times, color: .secondary, isStatus: false)
-      : Line(text: "Operating times not known", color: .red, isStatus: false)
+      : Line(text: String(localized: "Operating times not known"), color: .red, isStatus: false)
   }
 
   private func row(_ ferry: RouteFerry, line: Line, expanded: Bool) -> some View {
@@ -94,7 +94,7 @@ struct RouteFerries: View {
         .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
-      .accessibilityValue(expanded ? "Expanded" : "Collapsed")
+      .accessibilityValue(expanded ? Text("Expanded") : Text("Collapsed"))
       if expanded {
         FerryDetails(ferry: ferry, line: line)
         .padding(.leading, 20)

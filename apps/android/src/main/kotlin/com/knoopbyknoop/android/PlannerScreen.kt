@@ -75,6 +75,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -212,8 +213,15 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
   pendingNetwork?.let { network ->
     AlertDialog(
       onDismissRequest = { pendingNetwork = null },
-      title = { Text("Switch to ${network.name.lowercase()}?") },
-      text = { Text("The current route will be discarded.") },
+      title = {
+        Text(
+          stringResource(
+            if (network == IndexedNetworkType.CYCLING) R.string.switch_to_cycling
+            else R.string.switch_to_hiking
+          )
+        )
+      },
+      text = { Text(stringResource(R.string.route_discarded)) },
       confirmButton = {
         TextButton(
           onClick = {
@@ -221,10 +229,12 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
             pendingNetwork = null
           }
         ) {
-          Text("Switch")
+          Text(stringResource(R.string.switch_network))
         }
       },
-      dismissButton = { TextButton(onClick = { pendingNetwork = null }) { Text("Cancel") } },
+      dismissButton = {
+        TextButton(onClick = { pendingNetwork = null }) { Text(stringResource(R.string.cancel)) }
+      },
     )
   }
 }
@@ -329,7 +339,7 @@ private fun MapArea(
                 if (session?.waypoints.isNullOrEmpty()) viewModel.switchNetwork(network)
                 else onSwitch(network)
               },
-              label = { Text(network.name.lowercase().replaceFirstChar { it.uppercase() }) },
+              label = { Text(stringResource(network.label)) },
               modifier = Modifier.padding(end = 8.dp),
             )
           }
@@ -342,8 +352,12 @@ private fun MapArea(
       LoadingNote(
         text =
           if (state.status.dataDate == null && !state.online)
-            "The knot networks need an internet connection once"
-          else "Loading the ${state.network.name.lowercase()} knot network…",
+            stringResource(R.string.networks_need_internet)
+          else
+            stringResource(
+              if (state.network == IndexedNetworkType.CYCLING) R.string.loading_cycling
+              else R.string.loading_hiking
+            ),
         modifier =
           Modifier.align(Alignment.TopCenter).windowInsetsPadding(topInsets).padding(top = 140.dp),
       )
@@ -355,7 +369,7 @@ private fun MapArea(
       )
     }
     Text(
-      "© OpenStreetMap contributors",
+      stringResource(R.string.osm_contributors),
       style = MaterialTheme.typography.labelSmall,
       modifier =
         Modifier.align(Alignment.BottomEnd)
@@ -412,10 +426,13 @@ private fun WaypointSheet(
         summary = {
           when (val description = state.description) {
             RouteDescription.Empty ->
-              Text("Tap a knot to set the start", style = MaterialTheme.typography.titleMedium)
+              Text(
+                stringResource(R.string.tap_to_set_start),
+                style = MaterialTheme.typography.titleMedium,
+              )
             is RouteDescription.StartOnly ->
               Text(
-                "Start at ${description.start}, tap a knot to set the end",
+                stringResource(R.string.start_at_set_end, description.start),
                 style = MaterialTheme.typography.titleMedium,
               )
             is RouteDescription.Complete ->
@@ -436,7 +453,7 @@ private fun WaypointSheet(
               }
             is RouteDescription.Unreachable ->
               Text(
-                "No route for ${description.legs.joinToString()}",
+                stringResource(R.string.no_route_for, description.legs.joinToString()),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.error,
               )
@@ -453,14 +470,14 @@ private fun WaypointSheet(
               if (session.canReturnToStart)
                 add(
                   MenuAction(
-                    "Back to start",
+                    stringResource(R.string.back_to_start),
                     R.drawable.ic_action_back_to_start,
                     viewModel::returnToStart,
                   )
                 )
               if (viewModel.canExportGpx)
                 add(
-                  MenuAction("Export GPX", R.drawable.ic_action_export) {
+                  MenuAction(stringResource(R.string.export_gpx), R.drawable.ic_action_export) {
                     viewModel.gpx()?.let { (fileName, content) ->
                       shareGpx(context, fileName, content)
                     }
@@ -469,7 +486,11 @@ private fun WaypointSheet(
             }
             if (moreActions.isNotEmpty()) MoreActions(moreActions)
             if (session.waypoints.isNotEmpty())
-              IconAction("Clear", R.drawable.ic_action_clear, viewModel::clear)
+              IconAction(
+                stringResource(R.string.clear),
+                R.drawable.ic_action_clear,
+                viewModel::clear,
+              )
             if (state.canNavigate) NavigateButton(viewModel)
           }
         },
@@ -561,7 +582,7 @@ private fun NavigateButton(viewModel: AppViewModel) {
       else viewModel.locationDenied()
     }
   ProminentAction(
-    "Navigate",
+    stringResource(R.string.navigate),
     R.drawable.ic_action_navigate,
     onClick = {
       val permissions =
@@ -605,21 +626,24 @@ private fun NavigationHeader(
       val title = MaterialTheme.typography.titleLarge
       when {
         display == null ->
-          Text("Waiting for your position…", style = MaterialTheme.typography.titleMedium)
+          Text(
+            stringResource(R.string.waiting_for_position),
+            style = MaterialTheme.typography.titleMedium,
+          )
         display.offRoute -> {
           val guidance = navigation.position?.let { current.guidance(it) }
           OffRouteHeader(display.next, nextRole, guidance, navigation.direction)
           return@FlowRow
         }
         follow != null -> {
-          Text("At", style = title)
+          Text(stringResource(R.string.at), style = title)
           KnotBadge(display.next, nextRole, scale = 1.3f)
-          Text("follow", style = title)
+          Text(stringResource(R.string.follow), style = title)
           KnotBadge(follow, roleAt(current.nextIndex + 1), scale = 1.8f)
         }
         else -> {
           KnotBadge(display.next, nextRole, scale = 1.3f)
-          Text("is the end", style = title)
+          Text(stringResource(R.string.is_the_end), style = title)
         }
       }
       // The distance to the next knot in the same line, see `knot-navigation` "Number to follow".
@@ -632,7 +656,12 @@ private fun NavigationHeader(
         )
       }
     }
-    ProminentAction("Stop", R.drawable.ic_action_stop, onStop, color = ActionColors.red)
+    ProminentAction(
+      stringResource(R.string.stop),
+      R.drawable.ic_action_stop,
+      onStop,
+      color = ActionColors.red,
+    )
   }
 }
 
@@ -737,7 +766,13 @@ private fun WaypointList(
             order.lastIndex -> KnotRole.END
             else -> KnotRole.STOP
           }
-        val roleName = role.name.lowercase().replaceFirstChar { it.uppercase() }
+        val roleName = stringResource(role.label)
+        // Read outside the semantics block, which cannot read resources.
+        val moveUp = stringResource(R.string.move_up)
+        val moveDown = stringResource(R.string.move_down)
+        val remove = stringResource(R.string.remove)
+        val removeKnot = stringResource(R.string.remove_knot, knot.ref)
+        val moveKnot = stringResource(R.string.move_knot, knot.ref)
         Row(
           verticalAlignment = Alignment.CenterVertically,
           modifier =
@@ -749,17 +784,17 @@ private fun WaypointList(
                 if (editable)
                   customActions =
                     listOfNotNull(
-                      CustomAccessibilityAction("Move up") {
+                      CustomAccessibilityAction(moveUp) {
                           viewModel.moveWaypoint(index, index - 1)
                           true
                         }
                         .takeIf { index > 0 },
-                      CustomAccessibilityAction("Move down") {
+                      CustomAccessibilityAction(moveDown) {
                           viewModel.moveWaypoint(index, index + 1)
                           true
                         }
                         .takeIf { index < waypoints.lastIndex },
-                      CustomAccessibilityAction("Remove") {
+                      CustomAccessibilityAction(remove) {
                           viewModel.removeWaypoint(index)
                           true
                         }
@@ -791,7 +826,7 @@ private fun WaypointList(
             IconButton(onClick = { viewModel.removeWaypoint(index) }) {
               Icon(
                 painterResource(R.drawable.ic_remove),
-                contentDescription = "Remove ${knot.ref}",
+                contentDescription = removeKnot,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp),
               )
@@ -803,7 +838,7 @@ private fun WaypointList(
               contentAlignment = Alignment.Center,
               modifier =
                 Modifier.size(48.dp)
-                  .semantics { contentDescription = "Move ${knot.ref}" }
+                  .semantics { contentDescription = moveKnot }
                   .pointerInput(index, waypoints) {
                     detectDragGestures(
                       onDragStart = { startDrag(index) },
@@ -842,11 +877,11 @@ private fun OffRouteHeader(
   guidance: Guidance?,
   ridingDirection: Double?,
 ) {
+  val offRouteNext = stringResource(R.string.off_route_next)
   Column(
     modifier =
       Modifier.clearAndSetSemantics {
-        contentDescription =
-          listOfNotNull("Off route, next $next", guidance?.text).joinToString(", ")
+        contentDescription = listOfNotNull("$offRouteNext $next", guidance?.text).joinToString(", ")
       }
   ) {
     Row(
@@ -854,7 +889,7 @@ private fun OffRouteHeader(
       horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
       Text(
-        "Off route, next",
+        offRouteNext,
         style = MaterialTheme.typography.titleLarge,
         color = MaterialTheme.colorScheme.error,
       )

@@ -152,7 +152,9 @@ private constructor(
     now: Long,
     localTime: ((Long) -> LocalMoment)?,
     ferryState: (Int) -> FerryArrivalState? = { null },
+    language: Language = Language.EN,
   ): ProgressView {
+    val texts = language.texts
     fun distanceTo(offset: Double) =
       max(
         0.0,
@@ -169,7 +171,7 @@ private constructor(
         else {
           val meters = distanceTo(offset)
           mark.copy(
-            distance = MapFeatures.formatDistance(meters.roundToInt()),
+            distance = MapFeatures.formatDistance(meters.roundToInt(), language),
             arrival = localTime?.let { arrivalText(now, meters / metersPerSecond, it) },
             state = mark.position?.let(ferryState),
           )
@@ -188,12 +190,15 @@ private constructor(
             in stops -> ProgressMarkKind.STOP
             else -> ProgressMarkKind.KNOT
           }
-        offsets[index] to coming(kind, knots[index], distanceTo(offsets[index]), ::arrival)
+        offsets[index] to
+          coming(kind, knots[index], distanceTo(offsets[index]), ::arrival, language)
       }
     val comingFerries = ferryPositions.mapNotNull { position ->
       val offset = (offsets[position] + offsets[position + 1]) / 2
       if (offset <= from + 0.5) null
-      else offset to comingFerry(position, distanceTo(offset), ::arrival, ferryState(position))
+      else
+        offset to
+          comingFerry(position, distanceTo(offset), ::arrival, ferryState(position), language)
     }
     val coming = (comingKnots + comingFerries).sortedBy { it.first }.map { it.second }
     val toNext = offRouteDistance ?: max(0.0, offsets[nextIndex] - place)
@@ -203,9 +208,9 @@ private constructor(
         marks,
         rider,
         offRoute = offRouteDistance != null,
-        "${ridden(place)} ridden, next knot ${knots[nextIndex].ref}",
+        texts.ridden(ridden(place, texts), knots[nextIndex].ref),
       ),
-      MapFeatures.formatDistance(toNext.roundToInt()),
+      MapFeatures.formatDistance(toNext.roundToInt(), language),
       coming,
     )
   }
@@ -215,14 +220,16 @@ private constructor(
     knot: Knot,
     meters: Double,
     arrival: (Double) -> String?,
+    language: Language,
   ): ComingKnot {
-    val distance = MapFeatures.formatDistance(meters.roundToInt())
+    val texts = language.texts
+    val distance = MapFeatures.formatDistance(meters.roundToInt(), language)
     val at = arrival(meters)
     val role =
       when (kind) {
-        ProgressMarkKind.START -> "start"
-        ProgressMarkKind.STOP -> "stop"
-        ProgressMarkKind.END -> "end"
+        ProgressMarkKind.START -> texts.start
+        ProgressMarkKind.STOP -> texts.stop
+        ProgressMarkKind.END -> texts.end
         else -> null
       }
     return ComingKnot(
@@ -231,7 +238,7 @@ private constructor(
       knot.ref,
       distance,
       at,
-      description = listOfNotNull("Knot ${knot.ref}", role, distance, at).joinToString(", "),
+      description = listOfNotNull(texts.knot(knot.ref), role, distance, at).joinToString(", "),
     )
   }
 
@@ -240,8 +247,9 @@ private constructor(
     meters: Double,
     arrival: (Double) -> String?,
     state: FerryArrivalState?,
+    language: Language,
   ): ComingKnot {
-    val distance = MapFeatures.formatDistance(meters.roundToInt())
+    val distance = MapFeatures.formatDistance(meters.roundToInt(), language)
     val at = arrival(meters)
     val legs = "${knots[position].ref} → ${knots[position + 1].ref}"
     return ComingKnot(
@@ -252,7 +260,7 @@ private constructor(
       at,
       position,
       state,
-      listOfNotNull("Ferry $legs", distance, at).joinToString(", "),
+      listOfNotNull(language.texts.ferryBetween(legs), distance, at).joinToString(", "),
     )
   }
 
@@ -273,17 +281,16 @@ private constructor(
     metersPerSecond: Double,
     now: Long,
     localTime: ((Long) -> LocalMoment)?,
+    language: Language = Language.EN,
   ): String {
-    val toNext = MapFeatures.formatDistance(max(0.0, offsets[nextIndex] - place).roundToInt())
+    val texts = language.texts
+    val toNext =
+      MapFeatures.formatDistance(max(0.0, offsets[nextIndex] - place).roundToInt(), language)
     val arrival = localTime?.let {
       arrivalText(now, max(0.0, length - place) / metersPerSecond, it)
     }
-    return when {
-      nextIndex == knots.lastIndex && arrival != null -> "$toNext to the end, around $arrival"
-      nextIndex == knots.lastIndex -> "$toNext to the end"
-      arrival != null -> "$toNext to ${knots[nextIndex].ref} · end around $arrival"
-      else -> "$toNext to ${knots[nextIndex].ref}"
-    }
+    return if (nextIndex == knots.lastIndex) texts.toTheEnd(toNext, arrival)
+    else texts.toKnot(toNext, knots[nextIndex].ref, arrival)
   }
 
   private fun marks(): List<ProgressMark> {
@@ -311,14 +318,14 @@ private constructor(
   }
 
   /** e.g. `4.0 of 12.4 km` or `300 of 800 m`. */
-  private fun ridden(place: Double): String {
-    if (length < 1000) return "${place.roundToInt()} of ${length.roundToInt()} m"
-    return "${tenths(place)} of ${tenths(length)} km"
+  private fun ridden(place: Double, texts: Texts): String {
+    if (length < 1000) return texts.of("${place.roundToInt()}", "${length.roundToInt()}", "m")
+    return texts.of(tenths(place, texts), tenths(length, texts), "km")
   }
 
-  private fun tenths(meters: Double): String {
+  private fun tenths(meters: Double, texts: Texts): String {
     val tenths = (meters / 100).roundToInt()
-    return "${tenths / 10}.${tenths % 10}"
+    return "${tenths / 10}${texts.decimalSeparator}${tenths % 10}"
   }
 
   companion object {

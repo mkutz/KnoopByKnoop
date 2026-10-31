@@ -6,13 +6,24 @@ import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import com.knoopbyknoop.core.Language
 import java.util.Locale
 
 /**
- * Speaks the navigation's notices in English, lowering other audio meanwhile, see `knot-navigation`
- * "Spoken notices".
+ * Speaks the navigation's notices in the app's language, lowering other audio meanwhile, see
+ * `knot-navigation` "Spoken notices" and `app-languages` "Spoken notices in the language".
  */
 class Speaker(context: Context) {
+
+  private val locale = context.resources.configuration.locales[0]
+
+  /**
+   * The language the notices are spoken in: the app's where the phone has a voice for it, else
+   * English. The app's until the speech engine is ready.
+   */
+  @Volatile
+  var language: Language = Language.of(locale.language)
+    private set
 
   private val audioManager = context.getSystemService(AudioManager::class.java)
   private val attributes =
@@ -33,6 +44,10 @@ class Speaker(context: Context) {
   private val speech: TextToSpeech =
     TextToSpeech(context) { status ->
       if (status != TextToSpeech.SUCCESS) return@TextToSpeech
+      if (language != Language.EN && speech.setLanguage(locale) < TextToSpeech.LANG_AVAILABLE)
+        language = Language.EN
+      if (language == Language.EN && speech.setLanguage(Locale.UK) < TextToSpeech.LANG_AVAILABLE)
+        speech.setLanguage(Locale.ENGLISH)
       ready = true
       waiting.forEach(::speakNow)
       waiting.clear()
@@ -40,8 +55,6 @@ class Speaker(context: Context) {
 
   init {
     speech.setAudioAttributes(attributes)
-    if (speech.setLanguage(Locale.UK) < TextToSpeech.LANG_AVAILABLE)
-      speech.setLanguage(Locale.ENGLISH)
     speech.setOnUtteranceProgressListener(
       object : UtteranceProgressListener() {
         override fun onStart(utteranceId: String) {}

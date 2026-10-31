@@ -21,6 +21,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.knoopbyknoop.core.PlaceHit
@@ -39,7 +42,11 @@ fun PlaceSearchField(state: AppState, viewModel: AppViewModel) {
       enabled = state.online,
       singleLine = true,
       placeholder = {
-        Text(if (state.online) "Search places" else "Search needs an internet connection")
+        Text(
+          stringResource(
+            if (state.online) R.string.search_places else R.string.search_needs_internet
+          )
+        )
       },
       trailingIcon = {
         if (state.searchQuery.isNotEmpty() && state.online) {
@@ -49,7 +56,8 @@ fun PlaceSearchField(state: AppState, viewModel: AppViewModel) {
               focusManager.clearFocus()
             }
           ) {
-            Text("✕")
+            val clearSearch = stringResource(R.string.clear_search)
+            Text("✕", modifier = Modifier.clearAndSetSemantics { contentDescription = clearSearch })
           }
         }
       },
@@ -73,9 +81,9 @@ fun PlaceSearchField(state: AppState, viewModel: AppViewModel) {
         modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
       ) {
         when (result) {
-          SearchResult.Searching -> Message("Searching…")
-          SearchResult.NoHits -> Message("Nothing found")
-          SearchResult.Unavailable -> Message("Search is not available right now")
+          SearchResult.Searching -> Message(stringResource(R.string.searching))
+          SearchResult.NoHits -> Message(stringResource(R.string.nothing_found))
+          SearchResult.Unavailable -> Message(stringResource(R.string.search_unavailable))
           is SearchResult.Hits ->
             LazyColumn(modifier = Modifier.heightIn(max = 320.dp)) {
               items(result.hits) { hit ->

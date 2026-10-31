@@ -46,10 +46,19 @@ private constructor(
   private val localTime: (Long) -> LocalMoment,
   private val arrivals: Map<Int, FerryArrival>,
   private val warned: Set<Int>,
+  private val language: Language,
+  private val speechLanguage: Language,
 ) {
 
+  private val texts = language.texts
+  private val speech = speechLanguage.texts
+
   /** A ferry on the leg from the knot at [fromPosition] to the next one. */
-  private class FerryAhead(val fromPosition: Int, val title: String, val hours: OpeningHours?)
+  private class FerryAhead(
+    val fromPosition: Int,
+    val name: String?,
+    val hours: OpeningHours?,
+  )
 
   /** When the rider gets to the ferry from the knot at [fromPosition], or `null` once passed. */
   fun arrivalAt(fromPosition: Int): FerryArrival? = arrivals[fromPosition]
@@ -83,23 +92,33 @@ private constructor(
       val arrival = localTime(timeMillis + (seconds * 1000).roundToLong())
       val around = clock(roundedToFiveMinutes(arrival))
       val status = ferry.hours?.statusAt(arrival)
-      val warning = status?.let { warning(ferry.hours, it, now, arrival, around) }
+      val warning = status?.let { texts.warning(ferry.hours, it, now, arrival, around, language) }
+      val spokenWarning = status?.let {
+        speech.warning(ferry.hours, it, now, arrival, around, speechLanguage)
+      }
       arrivals[position] =
-        if (status == null) FerryArrival("At $around", FerryArrivalState.UNKNOWN)
+        if (status == null) FerryArrival(texts.atTime(around), FerryArrivalState.UNKNOWN)
         else
           FerryArrival(
-            "At $around: ${RouteFerry.statusText(status, arrival).replaceFirstChar { it.lowercase() }}",
+            "${texts.atTime(around)}: ${
+              RouteFerry.statusText(status, arrival, language).replaceFirstChar { it.lowercase() }
+            }",
             when {
               warning != null -> FerryArrivalState.WARNING
               else -> FerryArrivalState.OPEN
             },
           )
       if (warning != null && warned.add(position)) {
-        val text = "The ${ferry.title} $warning"
-        notices += Notice(NoticeKind.FERRY, text, text)
+        notices +=
+          Notice(
+            NoticeKind.FERRY,
+            texts.ferryWarning(texts.ferryTitle(ferry.name), warning),
+            speech.ferryWarning(speech.ferryTitle(ferry.name), spokenWarning ?: warning),
+          )
       }
     }
-    return FerryWatch(ferries, offsets, localTime, arrivals, warned) to notices
+    return FerryWatch(ferries, offsets, localTime, arrivals, warned, language, speechLanguage) to
+      notices
   }
 
   companion object {
@@ -124,16 +143,18 @@ private constructor(
       nextIndex: Int,
       timeMillis: Long,
       metersPerSecond: Double,
+      language: Language = Language.EN,
+      speechLanguage: Language = language,
     ): Pair<FerryWatch, List<Notice>>? {
       val ferries =
         route.knots.zipWithNext().mapIndexedNotNull { position, (from, to) ->
           graph.ferryBetween(from, to)?.let { ferry ->
-            val title = ferry.name?.let { "ferry $it" } ?: "ferry"
-            FerryAhead(position, title, ferry.openingHours?.let(OpeningHours::parse))
+            FerryAhead(position, ferry.name, ferry.openingHours?.let(OpeningHours::parse))
           }
         }
       if (ferries.isEmpty()) return null
-      val watch = FerryWatch(ferries, route.offsets, localTime, mapOf(), setOf())
+      val watch =
+        FerryWatch(ferries, route.offsets, localTime, mapOf(), setOf(), language, speechLanguage)
       return watch.renew(offset, timeMillis, nextIndex, metersPerSecond)
     }
 
@@ -147,28 +168,29 @@ private constructor(
      * What to warn about a ferry with [hours] and [status] at [arrival] ([around] rounded), e.g.
      * `closes at 19:00, before you get there around 19:15`, or `null` without a warning.
      */
-    private fun warning(
+    private fun Texts.warning(
       hours: OpeningHours,
       status: OpeningStatus,
       now: LocalMoment,
       arrival: LocalMoment,
       around: String,
+      language: Language,
     ): String? {
       val next = status.next
       if (status.open) {
         if (next == null || minutesBetween(arrival, next) > SHORTLY_AFTER_MINUTES) return null
-        return "closes at ${clock(endOfDayBefore(next))}, shortly after you get there around $around"
+        return closesShortlyAfter(clock(endOfDayBefore(next)), around)
       }
-      val closed = "is closed when you get there around $around"
-      if (next != null && next.day == arrival.day) return "$closed, it opens at ${clock(next)}"
+      val closed = closedWhenThere(around)
+      if (next != null && next.day == arrival.day) return closed + opensAt(clock(next))
       val closing = lastClosing(hours, now, arrival)?.let(::endOfDayBefore)
       if (closing != null && closing.day == arrival.day) {
-        return "closes at ${clock(closing)}, before you get there around $around"
+        return closesBefore(clock(closing), around)
       }
       return when {
         next == null -> closed
-        next.day == now.day.plusDays(1) -> "$closed, it opens tomorrow at ${clock(next)}"
-        else -> "$closed, it opens on ${date(next)} at ${clock(next)}"
+        next.day == now.day.plusDays(1) -> closed + opensTomorrowAt(clock(next))
+        else -> closed + opensOn(date(next, language), clock(next))
       }
     }
 

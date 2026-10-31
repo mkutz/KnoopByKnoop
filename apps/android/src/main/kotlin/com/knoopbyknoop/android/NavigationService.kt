@@ -21,6 +21,7 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.knoopbyknoop.core.Fix
+import com.knoopbyknoop.core.Language
 import com.knoopbyknoop.core.Navigation
 import com.knoopbyknoop.core.NavigationUpdate
 import com.knoopbyknoop.core.Precision
@@ -68,11 +69,16 @@ class NavigationService : Service() {
     manager.createNotificationChannel(
       // Default importance, so it is shown on the lock screen and with its Stop button; silent,
       // as the notices are spoken.
-      NotificationChannel(CHANNEL, "Navigation", NotificationManager.IMPORTANCE_DEFAULT).apply {
-        description = "The number to follow at the next knot while navigating"
-        setSound(null, null)
-        enableVibration(false)
-      }
+      NotificationChannel(
+          CHANNEL,
+          getString(R.string.channel_navigation),
+          NotificationManager.IMPORTANCE_DEFAULT,
+        )
+        .apply {
+          description = getString(R.string.channel_description)
+          setSound(null, null)
+          enableVibration(false)
+        }
     )
   }
 
@@ -92,7 +98,7 @@ class NavigationService : Service() {
     ServiceCompat.startForeground(
       this,
       NOTIFICATION_ID,
-      notification("Starting navigation…"),
+      notification(getString(R.string.starting_navigation)),
       ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION,
     )
     Navigating.update(NavigationState(navigation = null, position = null))
@@ -131,9 +137,12 @@ class NavigationService : Service() {
           fix,
           visible,
           newRoute.stops,
-        ) {
-          ferryMoment(Instant.ofEpochMilli(it))
-        } ?: return stop()
+          { ferryMoment(Instant.ofEpochMilli(it)) },
+          // The texts in the app's language, the notices in the language there is a voice for, see
+          // `app-languages` "Spoken notices in the language".
+          Language.of(resources.configuration.locales[0].language),
+          speaker.language,
+        ) ?: return stop()
       }
     apply(update, fix)
   }
@@ -142,7 +151,7 @@ class NavigationService : Service() {
     val newNavigation = update.navigation
     navigation = newNavigation
     update.notices.forEach {
-      Log.i(LOG_TAG, "notice: ${it.text}")
+      Log.i(LOG_TAG, "notice: ${it.text}, spoken in ${speaker.language}: ${it.speech}")
       speaker.speak(it.speech)
     }
     track = track.add(fix)
@@ -222,7 +231,7 @@ class NavigationService : Service() {
       .setOnlyAlertOnce(true)
       .setCategory(Notification.CATEGORY_NAVIGATION)
       .setVisibility(Notification.VISIBILITY_PUBLIC)
-      .addAction(Notification.Action.Builder(null, "Stop", stop).build())
+      .addAction(Notification.Action.Builder(null, getString(R.string.stop), stop).build())
       .build()
   }
 

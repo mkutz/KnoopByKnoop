@@ -174,7 +174,7 @@ final class Navigator: NSObject, ObservableObject {
       stops: Set(route.stops.map { KotlinInt(int: Int32($0)) }),
       localTime: { millis in
         RouteFerries.ferryMoment(Date(timeIntervalSince1970: Double(millis.int64Value) / 1000))
-      })
+      }, language: AppLanguage.current, speechLanguage: AppLanguage.speech)
     {
       update = started
     } else {
@@ -241,7 +241,7 @@ final class Navigator: NSObject, ObservableObject {
       // Spoken once the audio is taken, so the notice is not cut off at its start.
       Task { @MainActor in
         let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = AVSpeechSynthesisVoice(language: "en-GB")
+        utterance.voice = AppLanguage.voice
         self?.speech.speak(utterance)
       }
     }
@@ -290,7 +290,7 @@ final class Navigator: NSObject, ObservableObject {
     guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
     let content = ActivityContent(
       state: NavigationActivityAttributes.ContentState(
-        next: "", follow: nil, offRoute: false, nextRole: nil, followRole: nil, text: "Starting navigation…"),
+        next: "", follow: nil, offRoute: false, nextRole: nil, followRole: nil, text: String(localized: "Starting navigation…")),
       staleDate: nil)
     activity = try? Activity.request(attributes: NavigationActivityAttributes(), content: content)
   }

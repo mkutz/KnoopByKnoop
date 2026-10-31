@@ -71,18 +71,21 @@ class RouteProgressTest {
   /** 24 → 12 (0.8 km) → the stop 30 (5.2 km) → 31 (12.4 km). */
   private val withStop = ride(listOf("24", "12", "30", "31"), listOf(800, 4400, 7200), setOf(2))
 
-  private fun start(ride: Ride, fix: Fix): Navigation =
+  private fun started(ride: Ride, fix: Fix, language: Language = Language.EN): NavigationUpdate =
     assertNotNull(
-        Navigation.start(
-          ride.knots,
-          ride.graph,
-          NetworkGeometry.straightLines(ride.graph),
-          fix,
-          stops = ride.stops,
-          localTime = ::localTime,
-        )
+      Navigation.start(
+        ride.knots,
+        ride.graph,
+        NetworkGeometry.straightLines(ride.graph),
+        fix,
+        stops = ride.stops,
+        localTime = ::localTime,
+        language = language,
       )
-      .navigation
+    )
+
+  private fun start(ride: Ride, fix: Fix, language: Language = Language.EN): Navigation =
+    started(ride, fix, language).navigation
 
   /** The distances and arrivals on the strip by the marks' labels, e.g. `31` to `12.4 km 19:05`. */
   private fun labels(navigation: Navigation, fix: Fix): Map<String, String> =
@@ -281,6 +284,105 @@ class RouteProgressTest {
 
     assertEquals("Knot 30, stop, 5.2 km, 18:40", list.single { it.label == "30" }.description)
     assertEquals("Knot 45, 1.1 km, 18:25", list.single { it.label == "45" }.description)
+  }
+
+  // Requirements of `app-languages`
+
+  @Test
+  fun `german phone`() {
+    val fix = withStop.fix(0.0, "18:20")
+    val navigation = start(withStop, fix, Language.DE)
+
+    assertEquals("Bei 12 folge 30", navigation.display.text)
+    assertEquals("800 m", navigation.progress(fix).nextKnotDistance)
+  }
+
+  @Test
+  fun `french phone`() {
+    val navigation = start(withStop, withStop.fix(0.0, "18:20"), Language.FR)
+    val offRoute = withStop.fix(800.0, "18:24", north = 300.0)
+
+    val update = navigation.update(offRoute).navigation
+
+    assertEquals("Hors itinéraire, suivant 12", update.display.offRouteText)
+  }
+
+  @Test
+  fun `decimal comma`() {
+    val fix = withStop.fix(0.0, "18:20")
+
+    val labels =
+      start(withStop, fix, Language.DE).progress(fix).strip.marks.mapNotNull { it.distance }
+
+    assertEquals(listOf("5,2 km", "12 km"), labels)
+  }
+
+  @Test
+  fun `german notice`() {
+    val notice = started(withStop, withStop.fix(0.0, "18:20"), Language.DE).notices.first()
+
+    assertEquals("Nächster Knotenpunkt 12, dann 30", notice.text)
+    assertEquals("Nächster Knotenpunkt 12, dann 30", notice.speech)
+  }
+
+  @Test
+  fun `dutch arrival`() {
+    val ride = ride(listOf("10", "11"), listOf(500))
+    val navigation = start(ride, ride.fix(0.0, "10:00"), Language.NL)
+
+    val notices = navigation.update(ride.fix(500.0, "10:02")).notices
+
+    assertEquals("Je bent aangekomen", notices.single { it.kind == NoticeKind.ARRIVED }.speech)
+  }
+
+  @Test
+  fun `no voice for the language`() {
+    val update =
+      assertNotNull(
+        Navigation.start(
+          withStop.knots,
+          withStop.graph,
+          NetworkGeometry.straightLines(withStop.graph),
+          withStop.fix(0.0, "18:20"),
+          stops = withStop.stops,
+          localTime = ::localTime,
+          language = Language.FR,
+          speechLanguage = Language.EN,
+        )
+      )
+
+    assertEquals("Prochain point-nœud 12, puis 30", update.notices.first().text)
+    assertEquals("Next 12, then 30", update.notices.first().speech)
+    assertEquals("Au 12 suivre 30", update.navigation.display.text)
+  }
+
+  @Test
+  fun `notification in german`() {
+    assertEquals(
+      "800 m bis 12 · Ende gegen 19:05",
+      start(withStop, withStop.fix(0.0, "18:20"), Language.DE).progressLine,
+    )
+  }
+
+  @Test
+  fun `screen reader in dutch`() {
+    val fix = coming.fix(0.0, "18:20")
+
+    val list = start(coming, fix, Language.NL).progress(fix).coming
+
+    assertEquals(
+      "Knooppunt 30, tussenstop, 5,2 km, 18:40",
+      list.single { it.label == "30" }.description,
+    )
+  }
+
+  @Test
+  fun `english unchanged`() {
+    val fix = withStop.fix(0.0, "18:20")
+    val navigation = start(withStop, fix, Language.EN)
+
+    assertEquals("At 12 follow 30", navigation.display.text)
+    assertEquals("800 m to 12 · end around 19:05", navigation.progressLine)
   }
 
   // Requirement: Ferries on the strip

@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -144,6 +145,7 @@ private fun ProgressStripView(
         modifier = Modifier.height(STRIP_HEIGHT).width(BADGE_SPACE).offset(x = x),
       ) {
         val ferry = ferries.firstOrNull { it.fromPosition == mark.position }
+        val ferryLabel = ferry?.let { stringResource(R.string.ferry_place, it.place) }
         if (mark.kind == ProgressMarkKind.FERRY && ferry != null) {
           FerryBadge(
             warning = mark.state == FerryArrivalState.WARNING,
@@ -151,7 +153,7 @@ private fun ProgressStripView(
               Modifier.clip(CircleShape)
                 .clickable(role = Role.Button) { opened = ferry.fromPosition }
                 .clearAndSetSemantics {
-                  contentDescription = ferryDescription(ferry, navigation)
+                  contentDescription = ferryDescription(ferryLabel.orEmpty(), ferry, navigation)
                 },
           )
           if (opened == ferry.fromPosition) {
@@ -201,13 +203,16 @@ private fun ProgressStripView(
   }
 }
 
-/** E.g. `Ferry 76 → 02, at 21:10 closed until 1 May 10:00`, see "Ferry popover". */
-private fun ferryDescription(ferry: RouteFerry, navigation: Navigation): String {
+/**
+ * E.g. `Ferry 76 → 02, at 21:10 closed until 1 May 10:00` for the [label] `Ferry 76 → 02`, see
+ * "Ferry popover".
+ */
+private fun ferryDescription(label: String, ferry: RouteFerry, navigation: Navigation): String {
   val arrival = navigation.ferryArrival(ferry.fromPosition)
   val status =
     arrival?.accessibilityText
       ?: ferry.statusAt(ferryMoment(Instant.now()))?.text?.replaceFirstChar { it.lowercase() }
-  return listOfNotNull("Ferry ${ferry.place}", status).joinToString(", ")
+  return listOfNotNull(label, status).joinToString(", ")
 }
 
 /** The ferry's details above the strip, closed by tapping outside, see "Ferry popover". */

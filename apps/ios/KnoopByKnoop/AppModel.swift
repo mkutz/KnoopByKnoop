@@ -36,7 +36,7 @@ private struct PreparedSession: @unchecked Sendable {
 
   init(_ session: PlanningSession, geometry: NetworkGeometry) {
     self.session = session
-    description = MapFeatures.shared.describe(session: session)
+    description = MapFeatures.shared.describe(session: session, language: AppLanguage.current)
     route = MapFeatures.shared.route(session: session, geometry: geometry)
     routeKnots = MapFeatures.shared.routeKnotsLayer(session: session)
     routeKnotMarkers = MapFeatures.shared.routeKnotMarkers(session: session)
@@ -133,7 +133,7 @@ final class AppModel: ObservableObject {
       let description = routeDescription as? RouteDescriptionComplete
     else { return }
     Navigator.shared.onDenied = { [weak self] in
-      self?.message = "Knoop by Knoop needs location access to navigate. You can allow it in Settings."
+      self?.message = String(localized: "Knoop by Knoop needs location access to navigate. You can allow it in Settings.")
     }
     Navigator.shared.start(
       NavigationRoute(
@@ -298,7 +298,8 @@ final class AppModel: ObservableObject {
     loaded = withoutCourses
     show(restored.0)
     if !restored.1.isEmpty {
-      message = "Waypoint \(restored.1.joined(separator: ", ")) no longer exists and was removed from the route."
+      message = String(
+        localized: "Waypoint \(restored.1.joined(separator: ", ")) no longer exists and was removed from the route.")
     }
     await addCourses(network, graphFile: graphFile, to: withoutCourses)
   }
@@ -339,9 +340,10 @@ final class AppModel: ObservableObject {
       locating = false
       switch result {
       case .found(let fix): myPosition = fix
-      case .notFound: message = "Your position could not be found."
+      case .notFound: message = String(localized: "Your position could not be found.")
       case .denied:
-        message = "Knoop by Knoop needs location access to show your position. You can allow it in Settings."
+        message = String(
+          localized: "Knoop by Knoop needs location access to show your position. You can allow it in Settings.")
         messageOpensSettings = true
       }
     }

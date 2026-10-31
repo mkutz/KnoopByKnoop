@@ -5,6 +5,9 @@ options:
   bundleIdPrefix: com.knoopbyknoop
   deploymentTarget:
     iOS: "17.0"
+  # The languages of the texts, see `app-languages`.
+  developmentLanguage: en
+  knownRegions: [en, de, nl, fr, Base]
   # The Xcode version whose recommended settings are applied below; raise it after taking the next
   # version's recommendations into `settings`, not in Xcode, which would lose them on regenerating.
   xcodeVersion: "27.1"

@@ -16,6 +16,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.knoopbyknoop.core.NetworkState
 import com.knoopbyknoop.core.NetworkStatus
@@ -29,7 +30,7 @@ fun InfoSheet(state: AppState, viewModel: AppViewModel, onDismiss: () -> Unit) {
   ModalBottomSheet(onDismissRequest = onDismiss) {
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp)) {
       // The appearance of the whole app, see `map-planning` "Light and dark appearance".
-      Text("Appearance", style = MaterialTheme.typography.titleLarge)
+      Text(stringResource(R.string.appearance), style = MaterialTheme.typography.titleLarge)
       SingleChoiceSegmentedButtonRow(
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 16.dp)
       ) {
@@ -39,11 +40,11 @@ fun InfoSheet(state: AppState, viewModel: AppViewModel, onDismiss: () -> Unit) {
             onClick = { viewModel.chooseAppearance(appearance) },
             shape = SegmentedButtonDefaults.itemShape(index, Appearance.entries.size),
           ) {
-            Text(appearance.name.lowercase().replaceFirstChar { it.uppercase() })
+            Text(stringResource(appearance.label))
           }
         }
       }
-      Text("Knot network data", style = MaterialTheme.typography.titleLarge)
+      Text(stringResource(R.string.knot_network_data), style = MaterialTheme.typography.titleLarge)
       state.catalog.networks.forEach { status ->
         Row(
           modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
@@ -51,31 +52,29 @@ fun InfoSheet(state: AppState, viewModel: AppViewModel, onDismiss: () -> Unit) {
         ) {
           Column(modifier = Modifier.weight(1f)) {
             Text(
-              status.network.name.lowercase().replaceFirstChar { it.uppercase() },
+              stringResource(status.network.label),
               style = MaterialTheme.typography.titleMedium,
             )
             Text(describe(status, state.online), style = MaterialTheme.typography.bodyMedium)
           }
-          if (status.lastAttemptFailed) TextButton(onClick = viewModel::retrySync) { Text("Retry") }
+          if (status.lastAttemptFailed)
+            TextButton(onClick = viewModel::retrySync) { Text(stringResource(R.string.retry)) }
         }
       }
       if (state.needsAppUpdate) {
         Text(
-          "Newer network data needs a newer version of the app. Please update it.",
+          stringResource(R.string.needs_app_update),
           color = MaterialTheme.colorScheme.error,
           modifier = Modifier.padding(top = 12.dp),
         )
       }
       Text(
-        "Knot network data © OpenStreetMap contributors, available under the Open Database " +
-          "License " +
-          "(ODbL 1.0), openstreetmap.org/copyright",
+        stringResource(R.string.odbl_attribution),
         style = MaterialTheme.typography.bodySmall,
         modifier = Modifier.padding(top = 24.dp),
       )
       Text(
-        "Search by Photon (komoot), data © OpenStreetMap contributors. What you type and the " +
-          "map's center are sent to photon.komoot.io.",
+        stringResource(R.string.photon_attribution),
         style = MaterialTheme.typography.bodySmall,
         modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
       )
@@ -83,25 +82,28 @@ fun InfoSheet(state: AppState, viewModel: AppViewModel, onDismiss: () -> Unit) {
   }
 }
 
+@Composable
 private fun describe(status: NetworkStatus, online: Boolean): String {
-  val data = status.dataDate?.let { "Data of $it" } ?: "Not installed yet"
+  val data =
+    status.dataDate?.let { stringResource(R.string.data_of, it) }
+      ?: stringResource(R.string.not_installed)
   val state =
     when {
-      status.lastAttemptFailed -> "the last download failed"
-      status.state == NetworkState.DOWNLOADING -> "downloading"
-      !status.hasGeometry && !online -> "courses need an internet connection"
-      !status.hasGeometry -> "courses are loading"
-      status.state == NetworkState.UPDATABLE -> "update pending"
+      status.lastAttemptFailed -> R.string.last_download_failed
+      status.state == NetworkState.DOWNLOADING -> R.string.downloading
+      !status.hasGeometry && !online -> R.string.courses_need_internet
+      !status.hasGeometry -> R.string.courses_loading
+      status.state == NetworkState.UPDATABLE -> R.string.update_pending
       else -> null
     }
-  return listOfNotNull(data, state).joinToString(", ")
+  return listOfNotNull(data, state?.let { stringResource(it) }).joinToString(", ")
 }
 
 /** Shown while the courses of the selected network are missing, see `network-sync`. */
 @Composable
 fun CoursesNote(online: Boolean, modifier: Modifier = Modifier) {
   LoadingNote(
-    if (online) "Loading the courses…" else "The courses need an internet connection once",
+    stringResource(if (online) R.string.loading_courses else R.string.courses_need_internet_once),
     modifier,
   )
 }

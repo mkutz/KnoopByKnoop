@@ -44,6 +44,15 @@ class FerryStatusTest {
   }
 
   @Test
+  fun `date of a ferry's next opening`() {
+    val status =
+      RouteFerry(Ferry(openingHours = seasonal), 0, language = Language.DE)
+        .statusAt(LocalMoment(CalendarDay(2026, 12, 2), 12 * 60))
+
+    assertEquals("Geschlossen bis 1. April 07:00", status?.text)
+  }
+
+  @Test
   fun `open past midnight`() {
     assertEquals(
       "Open until 01:00",

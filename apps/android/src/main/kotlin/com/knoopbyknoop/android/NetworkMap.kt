@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -285,7 +286,11 @@ fun NetworkMap(
         ) {
           if (locating)
             CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-          else Icon(painterResource(R.drawable.ic_my_position), contentDescription = "My position")
+          else
+            Icon(
+              painterResource(R.drawable.ic_my_position),
+              contentDescription = stringResource(R.string.my_position),
+            )
         }
       }
       // Only while navigating and after the user moved the map away from the rider.
@@ -296,7 +301,10 @@ fun NetworkMap(
           contentColor = Color.White,
           modifier = Modifier.padding(top = 12.dp),
         ) {
-          Icon(painterResource(R.drawable.ic_action_recenter), contentDescription = "Recenter")
+          Icon(
+            painterResource(R.drawable.ic_action_recenter),
+            contentDescription = stringResource(R.string.recenter),
+          )
         }
       }
     }

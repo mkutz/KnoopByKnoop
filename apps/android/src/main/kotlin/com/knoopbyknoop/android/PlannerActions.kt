@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 
 /**
@@ -106,7 +107,7 @@ data class MenuAction(val label: String, @DrawableRes val icon: Int, val onClick
 fun MoreActions(actions: List<MenuAction>) {
   var expanded by remember { mutableStateOf(false) }
   Box {
-    IconAction("More actions", R.drawable.ic_action_more) { expanded = true }
+    IconAction(stringResource(R.string.more_actions), R.drawable.ic_action_more) { expanded = true }
     DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
       actions.forEach { action ->
         DropdownMenuItem(
@@ -138,7 +139,7 @@ fun MoreActions(actions: List<MenuAction>) {
 fun InfoButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
   TooltipBox(
     positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Below),
-    tooltip = { PlainTooltip { Text("Info") } },
+    tooltip = { PlainTooltip { Text(stringResource(R.string.info)) } },
     state = rememberTooltipState(),
     modifier = modifier,
   ) {
@@ -147,7 +148,10 @@ fun InfoButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
       containerColor = mapOverlayColor,
       contentColor = Green,
     ) {
-      Icon(painterResource(R.drawable.ic_action_info), contentDescription = "Info")
+      Icon(
+        painterResource(R.drawable.ic_action_info),
+        contentDescription = stringResource(R.string.info),
+      )
     }
   }
 }

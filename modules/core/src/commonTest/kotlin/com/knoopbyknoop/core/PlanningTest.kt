@@ -162,6 +162,15 @@ class PlanningTest {
   }
 
   @Test
+  fun `dutch phone`() {
+    val description =
+      MapFeatures.describe(session.tapAll(knot12, knot45), Language.NL) as RouteDescription.Complete
+
+    assertEquals("3,5 km", description.distance)
+    assertEquals("ongeveer 13 min", description.duration)
+  }
+
+  @Test
   fun `descriptions before there is a route`() {
     assertEquals(RouteDescription.Empty, MapFeatures.describe(session))
     assertEquals(RouteDescription.StartOnly("12"), MapFeatures.describe(session.tap(knot12)))

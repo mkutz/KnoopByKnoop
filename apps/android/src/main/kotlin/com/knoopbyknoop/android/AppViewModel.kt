@@ -6,6 +6,7 @@ import android.content.Context
 import android.location.Location
 import android.net.ConnectivityManager
 import android.net.Network
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -23,6 +24,7 @@ import com.knoopbyknoop.core.GraphFile
 import com.knoopbyknoop.core.IndexedNetworkType
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.KnotLocator
+import com.knoopbyknoop.core.Language
 import com.knoopbyknoop.core.MapFeatures
 import com.knoopbyknoop.core.NetworkCatalog
 import com.knoopbyknoop.core.NetworkGeometry
@@ -148,6 +150,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
   private val storage = NetworkStorage(application.filesDir)
   private val settings = application.getSharedPreferences("settings", Context.MODE_PRIVATE)
+
+  /** The language of the core's texts, see `app-languages` "Language of the texts". */
+  private var language = Language.of(application.resources.configuration.locales[0].language)
+
+  private fun text(@StringRes id: Int, vararg arguments: Any): String =
+    getApplication<Application>().getString(id, *arguments)
+
   private val sync = NetworkSync(application)
   private val connectivity = application.getSystemService(ConnectivityManager::class.java)
   private var loaded: LoadedNetwork? = null
@@ -205,6 +214,18 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     )
   }
 
+  /**
+   * Writes the core's texts in [newLanguage] from now on, e.g. after the app's language changed.
+   */
+  fun useLanguage(newLanguage: Language) {
+    if (newLanguage == language) return
+    language = newLanguage
+    state =
+      state.copy(
+        description = state.session?.let { MapFeatures.describe(it, language) } ?: state.description
+      )
+  }
+
   fun stopNavigation() {
     NavigationService.stop(getApplication())
   }
@@ -218,7 +239,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
   /** The user did not grant location access, see `knot-navigation` "Location access denied". */
   fun locationDenied() {
-    state = state.copy(message = "Knoop by Knoop needs location access to navigate.")
+    state = state.copy(message = text(R.string.needs_location_navigate))
   }
 
   /** The app is left: keeps the map's place and forgets the position found on request. */
@@ -249,7 +270,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
       val location = withTimeoutOrNull(LOCATE_TIMEOUT_MILLIS) { currentLocation() }
       state =
         if (location == null)
-          state.copy(locating = false, message = "Your position could not be found.")
+          state.copy(locating = false, message = text(R.string.position_not_found))
         else
           state.copy(
             locating = false,
@@ -270,7 +291,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   fun positionDenied(permanently: Boolean) {
     state =
       state.copy(
-        message = "Knoop by Knoop needs location access to show your position.",
+        message = text(R.string.needs_location_position),
         messageOpensSettings = permanently,
       )
   }
@@ -424,7 +445,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
       state.copy(
         session = session,
         layers = layersFor(session),
-        description = MapFeatures.describe(session),
+        description = MapFeatures.describe(session, language),
       )
   }
 
@@ -497,12 +518,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         loading = false,
         session = session,
         layers = layersFor(session),
-        description = MapFeatures.describe(session),
+        description = MapFeatures.describe(session, language),
         message =
           removedWaypoints
             ?.takeIf { it.isNotEmpty() }
             ?.let {
-              "Waypoint ${it.joinToString()} no longer exists and was removed from the route."
+              text(R.string.waypoint_removed, it.joinToString())
             } ?: state.message,
       )
     addCourses(network, prepared.first, loadedNetwork)

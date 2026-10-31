@@ -25,7 +25,7 @@ struct InfoSheet: View {
           ForEach(model.catalog.networks, id: \.network) { status in
             HStack {
               VStack(alignment: .leading) {
-                Text(status.network.name.lowercased().capitalized).font(.headline)
+                Text(status.network == .cycling ? "Cycling" : "Hiking").font(.headline)
                 Text(describe(status)).font(.subheadline).foregroundStyle(.secondary)
               }
               Spacer()
@@ -39,13 +39,11 @@ struct InfoSheet: View {
         }
         Section {
           Text(
-            "Knot network data © OpenStreetMap contributors, available under the Open Database License "
-              + "(ODbL 1.0), openstreetmap.org/copyright"
+            "Knot network data © OpenStreetMap contributors, available under the Open Database License (ODbL 1.0), openstreetmap.org/copyright"
           )
           .font(.footnote)
           Text(
-            "Search by Photon (komoot), data © OpenStreetMap contributors. What you type and the map's "
-              + "center are sent to photon.komoot.io."
+            "Search by Photon (komoot), data © OpenStreetMap contributors. What you type and the map's center are sent to photon.komoot.io."
           )
           .font(.footnote)
         }
@@ -57,13 +55,13 @@ struct InfoSheet: View {
   }
 
   private func describe(_ status: NetworkStatus) -> String {
-    let data = status.dataDate.map { "Data of \($0)" } ?? "Not installed yet"
+    let data = status.dataDate.map { String(localized: "Data of \($0)") } ?? String(localized: "Not installed yet")
     let state: String? =
-      if status.lastAttemptFailed { "the last download failed" }
-      else if status.state == .downloading { "downloading" }
-      else if !status.hasGeometry && !model.online { "courses need an internet connection" }
-      else if !status.hasGeometry { "courses are loading" }
-      else if status.state == .updatable { "update pending" }
+      if status.lastAttemptFailed { String(localized: "the last download failed") }
+      else if status.state == .downloading { String(localized: "downloading") }
+      else if !status.hasGeometry && !model.online { String(localized: "courses need an internet connection") }
+      else if !status.hasGeometry { String(localized: "courses are loading") }
+      else if status.state == .updatable { String(localized: "update pending") }
       else { nil }
     return [data, state].compactMap { $0 }.joined(separator: ", ")
   }
@@ -75,14 +73,14 @@ struct CoursesNote: View {
   let online: Bool
 
   var body: some View {
-    LoadingNote(text: online ? "Loading the courses…" : "The courses need an internet connection once")
+    LoadingNote(text: online ? LocalizedStringKey("Loading the courses…") : "The courses need an internet connection once")
   }
 }
 
 /// A short note over the map about something that is still loading.
 struct LoadingNote: View {
 
-  let text: String
+  let text: LocalizedStringKey
 
   var body: some View {
     Text(text)

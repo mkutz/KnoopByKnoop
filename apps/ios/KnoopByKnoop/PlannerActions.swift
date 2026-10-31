@@ -4,7 +4,7 @@ import SwiftUI
 /// in the planner panel".
 struct ProminentAction: View {
 
-  let title: String
+  let title: LocalizedStringKey
   let systemImage: String
   var color: Color = .actionGreen
   let action: () -> Void
@@ -20,7 +20,7 @@ struct ProminentAction: View {
 /// A round action with only an icon: Back to start or Clear. VoiceOver reads the title.
 struct IconAction: View {
 
-  let title: String
+  let title: LocalizedStringKey
   let systemImage: String
   let action: () -> Void
 

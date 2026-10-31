@@ -31,7 +31,13 @@ class FerryArrivalClockTest {
 
     val started =
       assertNotNull(
-        Navigation.start(knots, graph, null, fix) { ferryMoment(Instant.ofEpochMilli(it)) }
+        Navigation.start(
+          knots,
+          graph,
+          null,
+          fix,
+          localTime = { ferryMoment(Instant.ofEpochMilli(it)) },
+        )
       )
 
     assertEquals(
