@@ -62,6 +62,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -366,13 +367,26 @@ private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
           horizontalArrangement = Arrangement.spacedBy(4.dp),
           verticalAlignment = Alignment.CenterVertically,
         ) {
-          if (session.canReturnToStart) {
-            IconAction(
-              "Back to start",
-              R.drawable.ic_action_back_to_start,
-              viewModel::returnToStart,
-            )
+          val context = LocalContext.current
+          val moreActions = buildList {
+            if (session.canReturnToStart)
+              add(
+                MenuAction(
+                  "Back to start",
+                  R.drawable.ic_action_back_to_start,
+                  viewModel::returnToStart,
+                )
+              )
+            if (viewModel.canExportGpx)
+              add(
+                MenuAction("Export GPX", R.drawable.ic_action_export) {
+                  viewModel.gpx()?.let { (fileName, content) ->
+                    shareGpx(context, fileName, content)
+                  }
+                }
+              )
           }
+          if (moreActions.isNotEmpty()) MoreActions(moreActions)
           if (session.waypoints.isNotEmpty())
             IconAction("Clear", R.drawable.ic_action_clear, viewModel::clear)
           if (state.canNavigate) NavigateButton(viewModel)

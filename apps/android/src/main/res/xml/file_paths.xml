@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The exported GPX files shared with other apps, see `map-planning` "Export the route as GPX". -->
+<paths>
+  <cache-path name="export" path="export/" />
+</paths>

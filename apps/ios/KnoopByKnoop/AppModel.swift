@@ -133,6 +133,26 @@ final class AppModel: ObservableObject {
         stops: Set(description.stopPositions.map { Int(truncating: $0) })))
   }
 
+  /// The course of the planned route along the network, or `nil` while it cannot be exported, see
+  /// `map-planning` "Export the route as GPX": not while navigating, and not as straight lines.
+  private var exportCourse: [GeoPoint]? {
+    guard !navigating, let route = session?.route, let loaded, loaded.hasGeometry,
+      let course = loaded.geometry.courseOf(route: route),
+      Gpx.shared.canExport(route: route, course: course)
+    else { return nil }
+    return course
+  }
+
+  /// Whether the planned route can be exported as GPX.
+  var canExportGpx: Bool { exportCourse != nil }
+
+  /// Writes the planned route's GPX file for sharing, see [canExportGpx].
+  func exportGpx() -> ExportedGpx? {
+    guard let route = session?.route, let course = exportCourse else { return nil }
+    return ExportedGpx.write(
+      fileName: Gpx.shared.fileName(route: route), content: Gpx.shared.write(route: route, course: course))
+  }
+
   func stopNavigation() {
     Navigator.shared.stop()
   }

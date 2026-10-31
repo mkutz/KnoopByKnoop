@@ -27,7 +27,7 @@ Alternative: a GPX `<rte>` with the knots as route points. Rejected: devices rou
 
 ### Where the action sits
 
-An icon button "Export GPX" in the planner header between Back to start and Clear, with the platform's share icon (Material `share`, SF Symbol `square.and.arrow.up`). It is shown only with a complete route and its course, and hidden while navigating like the other planning actions. The header must stay one row on narrow phones (360 dp); if it does not, Back to start and Export GPX move into an overflow menu instead, raised as a spec question.
+A fifth element did not fit: at 360 dp the distance wrapped to "3.0 / km" and the time was cut off (screenshot `screenshots/android-header-360dp-five.png`). Decided with the maintainer: Back to start and Export GPX move into a menu behind a "More actions" icon button (Material `more_vert`, SF Symbol `ellipsis.circle`), each with icon and label; Clear stays an icon button and Navigate a filled button. The menu button is shown when one of its entries is available: Back to start while the route is not a round trip, Export GPX with a complete route and its course. Everything is hidden while navigating, as before.
 
 ### Sharing the file
 

@@ -7,7 +7,7 @@ Friends of the maintainer asked to export tours as GPX. With a GPX file, a route
 ## What Changes
 
 - The core writes a planned route as GPX 1.1: the route's line along the knot network as a track, and every knot passed as a waypoint named with its number, start, stops and end marked.
-- The planner panel gets an "Export GPX" icon button next to Back to start and Clear. It opens the system share sheet with a `.gpx` file, to save it to files or send it to another app.
+- The planner header gets a "More actions" menu with Back to start, moved there from its icon button, and the new Export GPX, so the header stays one row on narrow phones. Export GPX opens the system share sheet with a `.gpx` file, to save it to files or send it to another app.
 - Export is offered for a complete route whose line along the network is known, also while offline; not while navigating.
 
 Out of scope:

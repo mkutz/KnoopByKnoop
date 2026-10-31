@@ -17,6 +17,8 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.knoopbyknoop.core.Fix
 import com.knoopbyknoop.core.GeoBounds
+import com.knoopbyknoop.core.GeoPoint
+import com.knoopbyknoop.core.Gpx
 import com.knoopbyknoop.core.GraphFile
 import com.knoopbyknoop.core.IndexedNetworkType
 import com.knoopbyknoop.core.KnotLocator
@@ -366,6 +368,28 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
   fun removeWaypoint(position: Int) {
     state.session?.takeIf { it.canRemoveWaypoints }?.let { update(it.removeWaypoint(position)) }
+  }
+
+  /**
+   * The course of the planned route along the network, or `null` while it cannot be exported, see
+   * `map-planning` "Export the route as GPX": not while navigating, and not as straight lines.
+   */
+  private val exportCourse: List<GeoPoint>?
+    get() {
+      val route = state.session?.route ?: return null
+      val network = loaded?.takeIf { it.hasGeometry && !state.navigating } ?: return null
+      return network.geometry.courseOf(route)?.takeIf { Gpx.canExport(route, it) }
+    }
+
+  /** Whether the planned route can be exported as GPX. */
+  val canExportGpx: Boolean
+    get() = exportCourse != null
+
+  /** The GPX file of the planned route as its name and content, see [canExportGpx]. */
+  fun gpx(): Pair<String, String>? {
+    val route = state.session?.route ?: return null
+    val course = exportCourse ?: return null
+    return Gpx.fileName(route) to Gpx.write(route, course)
   }
 
   fun clear() {

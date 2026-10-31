@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Knoop by Knoop" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata><name>Cycling 93 → 94</name></metadata>
+  <wpt lat="51.986716" lon="5.892131"><name>93</name><type>start</type></wpt>
+  <wpt lat="51.993557" lon="5.896465"><name>42</name><type>stop</type></wpt>
+  <wpt lat="51.986716" lon="5.892131"><name>93</name><type>knot</type></wpt>
+  <wpt lat="51.983804" lon="5.897024"><name>94</name><type>end</type></wpt>
+  <trk>
+    <name>Cycling 93 → 94</name>
+    <trkseg>
+      <trkpt lat="51.986716" lon="5.892131"/>
+      <trkpt lat="51.986745" lon="5.892024"/>
+      <trkpt lat="51.986799" lon="5.892090"/>
+      <trkpt lat="51.989070" lon="5.891444"/>
+      <trkpt lat="51.991279" lon="5.889380"/>
+      <trkpt lat="51.991536" lon="5.890394"/>
+      <trkpt lat="51.992112" lon="5.894390"/>
+      <trkpt lat="51.992987" lon="5.893971"/>
+      <trkpt lat="51.993421" lon="5.896157"/>
+      <trkpt lat="51.993557" lon="5.896465"/>
+      <trkpt lat="51.993421" lon="5.896157"/>
+      <trkpt lat="51.992987" lon="5.893971"/>
+      <trkpt lat="51.992112" lon="5.894390"/>
+      <trkpt lat="51.991536" lon="5.890394"/>
+      <trkpt lat="51.991279" lon="5.889380"/>
+      <trkpt lat="51.989070" lon="5.891444"/>
+      <trkpt lat="51.986799" lon="5.892090"/>
+      <trkpt lat="51.986745" lon="5.892024"/>
+      <trkpt lat="51.986716" lon="5.892131"/>
+      <trkpt lat="51.986475" lon="5.892746"/>
+      <trkpt lat="51.986228" lon="5.894221"/>
+      <trkpt lat="51.985783" lon="5.896184"/>
+      <trkpt lat="51.985743" lon="5.896556"/>
+      <trkpt lat="51.985837" lon="5.896844"/>
+      <trkpt lat="51.983804" lon="5.897024"/>
+    </trkseg>
+  </trk>
+</gpx>

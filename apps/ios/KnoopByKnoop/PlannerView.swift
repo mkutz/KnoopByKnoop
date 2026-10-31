@@ -247,6 +247,8 @@ private struct WaypointSheet: View {
   let session: PlanningSession
   @ObservedObject private var navigator = Navigator.shared
   @State private var rows: [WaypointRow] = []
+  /// The exported GPX file while the share sheet shows it.
+  @State private var exportedGpx: ExportedGpx?
 
   var body: some View {
     let complete = model.routeDescription as? RouteDescriptionComplete
@@ -267,11 +269,28 @@ private struct WaypointSheet: View {
           HStack(alignment: .center) {
             summary
             Spacer()
-            // Side by side, so the header stays one row and the badges fit into the smallest sheet.
-            if session.canReturnToStart {
-              IconAction(title: "Back to start", systemImage: "arrow.uturn.backward") {
-                model.returnToStart()
+            // Side by side, so the header stays one row and the badges fit into the smallest sheet;
+            // the less frequent actions in a menu, see `map-planning` "Clear actions in the planner
+            // panel".
+            if session.canReturnToStart || model.canExportGpx {
+              Menu {
+                if session.canReturnToStart {
+                  Button("Back to start", systemImage: "arrow.uturn.backward") {
+                    model.returnToStart()
+                  }
+                }
+                if model.canExportGpx {
+                  Button("Export GPX", systemImage: "square.and.arrow.up") {
+                    exportedGpx = model.exportGpx()
+                  }
+                }
+              } label: {
+                Label("More actions", systemImage: "ellipsis")
               }
+              .labelStyle(.iconOnly)
+              .buttonStyle(.bordered)
+              .buttonBorderShape(.circle)
+              .tint(.actionIconGreen)
             }
             if !session.waypoints.isEmpty {
               IconAction(title: "Clear", systemImage: "trash") { model.clear() }
@@ -281,6 +300,13 @@ private struct WaypointSheet: View {
                 model.startNavigation()
               }
             }
+          }
+          // Presented from the planner sheet itself: presented from the map behind it, it would
+          // dismiss the sheet, see `PlannerView`.
+          .sheet(item: $exportedGpx) { exported in
+            ShareSheet(url: exported.url)
+              .presentationDetents([.medium, .large])
+              .appAppearance()
           }
         }
         // While navigating, where the rider is on the route instead of the badges, see

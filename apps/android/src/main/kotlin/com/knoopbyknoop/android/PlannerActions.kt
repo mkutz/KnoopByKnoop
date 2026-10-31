@@ -1,11 +1,14 @@
 package com.knoopbyknoop.android
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -18,6 +21,10 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -84,6 +91,40 @@ fun IconAction(label: String, @DrawableRes icon: Int, onClick: () -> Unit) {
         ),
     ) {
       Icon(painterResource(icon), contentDescription = label, modifier = Modifier.size(20.dp))
+    }
+  }
+}
+
+/** An entry of [MoreActions]: its label, icon and action. */
+data class MenuAction(val label: String, @DrawableRes val icon: Int, val onClick: () -> Unit)
+
+/**
+ * The "More actions" icon button with a menu of [actions], each with icon and label, so the header
+ * stays one row on narrow phones, see `map-planning` "Clear actions in the planner panel".
+ */
+@Composable
+fun MoreActions(actions: List<MenuAction>) {
+  var expanded by remember { mutableStateOf(false) }
+  Box {
+    IconAction("More actions", R.drawable.ic_action_more) { expanded = true }
+    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+      actions.forEach { action ->
+        DropdownMenuItem(
+          text = { Text(action.label) },
+          leadingIcon = {
+            Icon(
+              painterResource(action.icon),
+              contentDescription = null,
+              tint = ActionColors.iconGreen,
+              modifier = Modifier.size(20.dp),
+            )
+          },
+          onClick = {
+            expanded = false
+            action.onClick()
+          },
+        )
+      }
     }
   }
 }
