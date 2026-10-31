@@ -41,6 +41,12 @@ android {
       // Without the upload key, signed with the debug key, so local release builds can be
       // installed, e.g. to measure startup times (`faster-startup`).
       signingConfig = signingConfigs.getByName(if (uploadKeystore != null) "upload" else "debug")
+      // R8 shrinks, optimizes and obfuscates, as Google Play requires. The mapping file goes into
+      // the bundle, so Play can deobfuscate stack traces.
+      isMinifyEnabled = true
+      isShrinkResources = true
+      proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+      ndk { debugSymbolLevel = "SYMBOL_TABLE" }
     }
   }
 }

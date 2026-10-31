@@ -211,7 +211,7 @@ fun NetworkMap(
   holder.show(graph, layers, focus)
   // A chosen search hit: the map moves there, close enough to tap knots, see `place-search`.
   LaunchedEffect(marker) { holder.showMarker(marker) }
-  LaunchedEffect(position, nextKnot) {
+  LaunchedEffect(position, nextKnot, offRoute) {
     holder.showNavigation(position, nextKnot, offRoute, direction)
   }
   LaunchedEffect(track) { holder.showTrack(track) }
@@ -387,6 +387,7 @@ private class MapHolder {
 
   private var position: Fix? = null
   private var nextKnot: Knot? = null
+  private var offRoute = false
 
   /** Whether the map moves to the rider with the next position, e.g. after the app was opened. */
   var findRider = false
@@ -417,6 +418,7 @@ private class MapHolder {
     if (newPosition == null) following = false
     position = newPosition
     nextKnot = newNextKnot
+    this.offRoute = offRoute
     direction = newDirection
     style?.let { updateNavigation(it) }
     if (newPosition == null || !following) return
@@ -486,6 +488,17 @@ private class MapHolder {
     style
       .getSourceAs<GeoJsonSource>("next-knot")
       ?.setGeoJson(nextKnot?.let { point(it.latitude, it.longitude) } ?: empty)
+    // Off route, the straight way to the next knot, see `knot-navigation` "Way to the route on the
+    // map".
+    val fix = position
+    val knot = nextKnot
+    style
+      .getSourceAs<GeoJsonSource>("way-to-route")
+      ?.setGeoJson(
+        if (offRoute && fix != null && knot != null)
+          """{"type": "LineString", "coordinates": [[${fix.longitude}, ${fix.latitude}], [${knot.longitude}, ${knot.latitude}]]}"""
+        else empty
+      )
   }
 
   private fun updateMarker(style: Style) {
@@ -581,6 +594,7 @@ private class MapHolder {
         "marker",
         "ridden-track",
         "route",
+        "way-to-route",
         "next-knot",
         "route-knots",
         "knots",
@@ -665,6 +679,15 @@ private class MapHolder {
           PropertyFactory.iconIgnorePlacement(true),
         )
         .apply { minZoom = KNOT_MIN_ZOOM.toFloat() }
+    )
+    style.addLayer(
+      LineLayer("way-to-route", "way-to-route")
+        .withProperties(
+          PropertyFactory.lineColor("#D32F2F"),
+          PropertyFactory.lineWidth(4f),
+          PropertyFactory.lineDasharray(arrayOf(2f, 2f)),
+          PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+        )
     )
     // The next knot while navigating: a ring under its badge.
     style.addLayer(

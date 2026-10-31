@@ -202,6 +202,7 @@ struct NetworkMapView: UIViewRepresentable {
 
     private var position: Fix?
     private var nextKnot: Knot?
+    private var offRoute = false
 
     /// Whether the map moves to the rider with the next position, e.g. after the app was opened.
     var findRider = false
@@ -260,11 +261,12 @@ struct NetworkMapView: UIViewRepresentable {
       position newPosition: Fix?, nextKnot newNextKnot: Knot?, offRoute: Bool, direction newDirection: Double?,
       on mapView: MLNMapView
     ) {
-      guard newPosition !== position || newNextKnot !== nextKnot else { return }
+      guard newPosition !== position || newNextKnot !== nextKnot || offRoute != self.offRoute else { return }
       let begins = newPosition != nil && (position == nil || findRider)
       if begins { findRider = false }
       position = newPosition
       nextKnot = newNextKnot
+      self.offRoute = offRoute
       direction = newDirection
       if begins { following = true }
       if newPosition == nil { following = false }
@@ -306,6 +308,17 @@ struct NetworkMapView: UIViewRepresentable {
         }
       (style?.source(withIdentifier: "next-knot") as? MLNShapeSource)?.shape =
         nextKnot.map { point($0.latitude, $0.longitude) }
+      // Off route, the straight way to the next knot, see `knot-navigation` "Way to the route on
+      // the map".
+      var way: MLNShape? = nil
+      if offRoute, let position, let nextKnot {
+        var coordinates = [
+          CLLocationCoordinate2D(latitude: position.latitude, longitude: position.longitude),
+          CLLocationCoordinate2D(latitude: nextKnot.latitude, longitude: nextKnot.longitude),
+        ]
+        way = MLNPolylineFeature(coordinates: &coordinates, count: 2)
+      }
+      (style?.source(withIdentifier: "way-to-route") as? MLNShapeSource)?.shape = way
     }
 
     private func updateMarker() {
@@ -592,6 +605,14 @@ struct NetworkMapView: UIViewRepresentable {
       style.addLayer(knots)
 
       // The next knot while navigating: a ring under its badge.
+      let waySource = MLNShapeSource(identifier: "way-to-route", shape: nil)
+      style.addSource(waySource)
+      let wayLayer = MLNLineStyleLayer(identifier: "way-to-route", source: waySource)
+      wayLayer.lineColor = NSExpression(forConstantValue: UIColor.systemRed)
+      wayLayer.lineWidth = NSExpression(forConstantValue: 4)
+      wayLayer.lineDashPattern = NSExpression(forConstantValue: [2, 2])
+      wayLayer.lineCap = NSExpression(forConstantValue: "round")
+      style.addLayer(wayLayer)
       let nextKnotSource = MLNShapeSource(identifier: "next-knot", shape: nil)
       style.addSource(nextKnotSource)
       let nextKnotLayer = MLNCircleStyleLayer(identifier: "next-knot", source: nextKnotSource)

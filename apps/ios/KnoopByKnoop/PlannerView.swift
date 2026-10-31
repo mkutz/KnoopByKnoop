@@ -388,11 +388,11 @@ private struct NavigationHeader: View {
       if let navigation = state.navigation {
         let display = navigation.display
         let next = Int(navigation.nextIndex)
+        if display.offRoute {
+          offRouteHeader(display.next, at: next, guidance: state.position.flatMap { navigation.guidance(fix: $0) })
+        } else {
         HStack(alignment: .center, spacing: 8) {
-          if display.offRoute {
-            Text("Off route, next").font(.title2.bold()).foregroundStyle(.red)
-            badge(display.next, at: next, scale: 1.3)
-          } else if let follow = display.follow {
+          if let follow = display.follow {
             Text("At").font(.title2)
             badge(display.next, at: next, scale: 1.3)
             Text("follow").font(.title2)
@@ -406,12 +406,37 @@ private struct NavigationHeader: View {
           }
         }
         .minimumScaleFactor(0.8)
+        }
       } else {
         Text("Waiting for your position…").font(.headline)
       }
       Spacer()
       ProminentAction(title: "Stop", systemImage: "stop.fill", color: .actionRed, action: onStop)
     }
+  }
+
+  /// Off route: the next knot, and below it the distance, an arrow towards the knot relative to
+  /// the riding direction (to north while standing, as the map) and the compass direction, see
+  /// `knot-navigation` "Direction to the route".
+  private func offRouteHeader(_ next: String, at index: Int, guidance: Guidance?) -> some View {
+    VStack(alignment: .leading, spacing: 2) {
+      HStack(alignment: .center, spacing: 8) {
+        Text("Off route, next").font(.title2.bold()).foregroundStyle(.red)
+        badge(next, at: index, scale: 1.3)
+      }
+      if let guidance {
+        HStack(spacing: 6) {
+          Text(guidance.distance).font(.title3)
+          Image(systemName: "location.north.fill")
+            .foregroundStyle(.red)
+            .rotationEffect(.degrees(guidance.bearing - (state.direction ?? 0)))
+          Text(guidance.direction).font(.title3).foregroundStyle(.secondary)
+        }
+      }
+    }
+    .minimumScaleFactor(0.8)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(["Off route, next \(next)", guidance?.text].compactMap { $0 }.joined(separator: ", "))
   }
 
   private func badge(_ ref: String, at index: Int, scale: CGFloat) -> some View {

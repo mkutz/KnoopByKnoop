@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Navigation started away from the route leads to its start
+- Off route, the app shows and tells the direction and distance to the next knot, with a line on the map
+
 ## 0.3.0
 
 - While navigating, a strip shows where you are on the route, with distance and arrival at stops, ferries and the end

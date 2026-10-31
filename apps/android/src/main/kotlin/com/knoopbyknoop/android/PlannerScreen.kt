@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,6 +33,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -52,13 +54,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.knoopbyknoop.core.Guidance
 import com.knoopbyknoop.core.IndexedNetworkType
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.KnotRole
@@ -410,8 +417,9 @@ private fun NavigationHeader(
         display == null ->
           Text("Waiting for your position…", style = MaterialTheme.typography.titleMedium)
         display.offRoute -> {
-          Text("Off route, next", style = title, color = MaterialTheme.colorScheme.error)
-          KnotBadge(display.next, nextRole, scale = 1.3f)
+          val guidance = navigation.position?.let { current.guidance(it) }
+          OffRouteHeader(display.next, nextRole, guidance, navigation.direction)
+          return@Row
         }
         follow != null -> {
           Text("At", style = title)
@@ -570,5 +578,58 @@ private fun WaypointList(
       }
     }
     item(key = "end") { Spacer(modifier = Modifier.height(16.dp)) }
+  }
+}
+
+/**
+ * Off route: the next knot, and below it the distance, an arrow towards the knot relative to the
+ * riding direction (to north while standing, as the map) and the compass direction, see
+ * `knot-navigation` "Direction to the route".
+ */
+@Composable
+private fun OffRouteHeader(
+  next: String,
+  role: KnotRole?,
+  guidance: Guidance?,
+  ridingDirection: Double?,
+) {
+  Column(
+    modifier =
+      Modifier.clearAndSetSemantics {
+        contentDescription =
+          listOfNotNull("Off route, next $next", guidance?.text).joinToString(", ")
+      }
+  ) {
+    Row(
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+      Text(
+        "Off route, next",
+        style = MaterialTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.error,
+      )
+      KnotBadge(next, role, scale = 1.3f)
+    }
+    guidance?.let {
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier.padding(top = 2.dp),
+      ) {
+        Text(it.distance, style = MaterialTheme.typography.titleMedium)
+        Icon(
+          painterResource(R.drawable.ic_action_navigate),
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.error,
+          modifier = Modifier.size(22.dp).rotate((it.bearing - (ridingDirection ?: 0.0)).toFloat()),
+        )
+        Text(
+          it.direction,
+          style = MaterialTheme.typography.titleMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+    }
   }
 }

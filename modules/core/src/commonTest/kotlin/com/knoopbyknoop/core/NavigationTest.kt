@@ -102,9 +102,31 @@ class NavigationTest {
   fun `start away from the route`() {
     val started = start(east = 1000.0, north = -2000.0)
 
-    assertEquals(knot45, started.navigation.nextKnot)
+    assertEquals(knot24, started.navigation.nextKnot, "the first knot, not 45 nearest")
     assertTrue(started.navigation.offRoute)
-    assertEquals(listOf("Off route, next 45"), started.notices.map { it.text })
+    assertEquals(
+      listOf("Off route, next 24, 2.2 km to the north-west"),
+      started.notices.map { it.text },
+    )
+  }
+
+  @Test
+  fun `start away from the route without courses`() {
+    val started = start(east = 1000.0, north = -2000.0, geometry = null)
+
+    assertEquals(knot45, started.navigation.nextKnot)
+  }
+
+  @Test
+  fun `joining the route on the way to the start`() {
+    val started = start(east = 2000.0, north = -500.0)
+    assertEquals(knot24, started.navigation.nextKnot)
+
+    val (navigation, notices) = started.navigation.ride(fix(2000.0, north = -40.0), fix(2000.0))
+
+    assertEquals(knot31, navigation.nextKnot)
+    assertFalse(navigation.offRoute)
+    assertEquals("Back on route, next 31", notices.last().text)
   }
 
   @Test
@@ -234,7 +256,7 @@ class NavigationTest {
       started.navigation.ride(fix(300.0, north = 200.0), fix(500.0, north = 290.0))
 
     assertTrue(navigation.offRoute)
-    assertEquals(listOf("Off route, next 45"), notices.map { it.text })
+    assertEquals(listOf("Off route, next 45, 578 m to the south-east"), notices.map { it.text })
   }
 
   @Test
@@ -245,7 +267,7 @@ class NavigationTest {
         .ride(fix(300.0), fix(400.0, north = 60.0), fix(450.0, north = 130.0))
 
     assertTrue(navigation.offRoute)
-    assertEquals(listOf("Off route, next 45"), notices.map { it.text })
+    assertEquals(listOf("Off route, next 45, 565 m to the east"), notices.map { it.text })
   }
 
   @Test
@@ -342,7 +364,7 @@ class NavigationTest {
   @Test
   fun `off route text names the next knot`() {
     assertEquals(
-      "Off route, next 45",
+      "Off route, next 24",
       start(east = 1000.0, north = -2000.0).navigation.display.offRouteText,
     )
   }
