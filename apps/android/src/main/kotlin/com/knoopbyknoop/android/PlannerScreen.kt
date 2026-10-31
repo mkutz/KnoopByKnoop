@@ -42,7 +42,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
@@ -583,22 +582,14 @@ private fun WaypointList(
     items(order, key = { "${waypoints.hashCode()}-$it" }) { index ->
       val knot = waypoints[index]
       val isDragged = dragged == index
-      val dismissState =
-        rememberSwipeToDismissBoxState(
-          confirmValueChange = { value ->
-            if (value != SwipeToDismissBoxValue.Settled && canRemove) {
-              viewModel.removeWaypoint(index)
-              true
-            } else {
-              false
-            }
-          }
-        )
+      val dismissState = rememberSwipeToDismissBoxState()
       SwipeToDismissBox(
         state = dismissState,
         backgroundContent = {},
+        // Only directions that may remove are enabled, so every dismissal removes.
         enableDismissFromStartToEnd = canRemove && dragged == null,
         enableDismissFromEndToStart = canRemove && dragged == null,
+        onDismiss = { viewModel.removeWaypoint(index) },
         modifier =
           (if (isDragged) Modifier.zIndex(1f) else Modifier.animateItem()).graphicsLayer {
             translationY = if (isDragged) dragOffset else 0f

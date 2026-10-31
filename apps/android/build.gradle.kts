@@ -40,13 +40,21 @@ android {
     }
   }
 
+  // The only native libraries are prebuilt and already stripped (MapLibre, androidx.graphics.path);
+  // without an NDK, AGP warned that it cannot strip them. MapLibre's symbols are uploaded to Play
+  // by
+  // the release workflow.
+  packaging {
+    jniLibs.keepDebugSymbols += setOf("**/libmaplibre.so", "**/libandroidx.graphics.path.so")
+  }
+
   buildTypes {
     release {
       // Without the upload key, signed with the debug key, so local release builds can be
       // installed, e.g. to measure startup times (`faster-startup`).
       signingConfig = signingConfigs.getByName(if (uploadKeystore != null) "upload" else "debug")
-      // R8 shrinks, optimizes and obfuscates, as Google Play requires. The mapping file goes into
-      // the bundle, so Play can deobfuscate stack traces.
+      // R8 shrinks, optimizes and obfuscates, as Google Play requires. The mapping file is
+      // uploaded with the bundle by the release workflow, so Play can deobfuscate stack traces.
       isMinifyEnabled = true
       isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
