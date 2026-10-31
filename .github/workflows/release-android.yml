@@ -58,11 +58,11 @@ jobs:
       # The only native code is MapLibre's, shipped stripped. Its release publishes the symbols,
       # the Vulkan variant matches the default `android-sdk` artifact. Reduced to the symbol
       # table, like `debugSymbolLevel = "SYMBOL_TABLE"`, so Play can symbolicate native crashes.
-      # Downloaded from the public release URL: `gh release download` with the job's token answered
-      # "release not found" for maplibre/maplibre-native.
+      # From the public release URL, without a token. The version is matched with its quote, as the
+      # library entry `maplibre-android = { module = ... }` starts the same way.
       - name: Collect native debug symbols
         run: |
-          maplibre=$(grep '^maplibre-android = ' gradle/libs.versions.toml | cut -d '"' -f 2)
+          maplibre=$(grep '^maplibre-android = "' gradle/libs.versions.toml | cut -d '"' -f 2)
           release="https://github.com/maplibre/maplibre-native/releases/download/android-v$maplibre"
           mkdir -p "$RUNNER_TEMP/symbols"
           curl --fail --location --silent --show-error \
