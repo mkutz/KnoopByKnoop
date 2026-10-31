@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0
+
 - The ⓘ button is hidden while navigating
 - While navigating, a strip shows where you are on the route, with the distance and arrival at the stops, ferries and the end; the number to follow shows the knots as badges and the distance to the next knot
 - Fixed on iOS: tapping a ferry without a website opened the website of another ferry
