@@ -26,7 +26,7 @@ Out of scope:
 ### New Capabilities
 
 ### Modified Capabilities
-- `knot-navigation`: new requirements "Progress strip", "Distances and arrivals on the strip" and "Rounded times"; "Number to follow" shows badges and the distance to the next knot; "Navigation with the screen off" adds the distance to the next knot and the arrival at the end
+- `knot-navigation`: new requirements "Progress strip", "Distances and arrivals on the strip" and "Rounded times and distances"; "Number to follow" shows badges and the distance to the next knot; "Navigation with the screen off" adds the distance to the next knot and the arrival at the end
 - `map-planning`: "Show the route" adds the estimated time to the distance
 
 ## Impact

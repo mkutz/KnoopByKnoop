@@ -11,7 +11,7 @@ Android checked 2026-10-30 (first version) and 2026-10-31 (revision) on the emul
 | Route summary (planning time) | ✅ | ✅ | 76 → 02 → 20 at Renkum: "2.3 km" with "about 9 min" below ([screenshot](screenshots/android-planning-cycling.png)) |
 | Hiking time | ✅ | ✅ | O68 → O39 near Heteren: "2.6 km", "about 35 min" ([screenshot](screenshots/android-planning-hiking.png)) |
 | Strip at the start, Ferry on the strip | ✅ | ✅ | First iPhone check: strip with the start, ⛴, the stops and the end, the dot at the start |
-| Next knot in the middle of the route, Ahead at the start, Ferry ahead on the strip, Stops close together | ✅ | ⏳ | Revision, 76 → 02 → 19 (109.6 km) at 11:09: header "At ⓪② follow ②⓪ 2.0 km" with badges; below the strip "2.0 km 11:15" at the stop 02, "33.2 km 13:15" at a ferry, "109.6 km 18:00" at the end; the ferry right before 02 gives way to the stop; no table ([screenshot](screenshots/android-navigating-long-route.png)) |
+| Next knot in the middle of the route, Ahead at the start, Ferry ahead on the strip, Stops close together | ✅ | ⏳ | Revision, 76 → 02 → 19 (109.6 km) at 11:09: header "At ⓪② follow ②⓪ 2.0 km" with badges; below the strip "2.0 km 11:30" at the stop 02, "33 km 13:25" at a ferry, "110 km 18:10" at the end (whole kilometers from 10 km); the ferry right before 02 gives way to the stop; no table ([screenshot](screenshots/android-navigating-long-route.png)) |
 | Distance off route, Off route on the strip ahead, Off route on the strip | ✅ | ⏳ | Revision, off route near Renkum: "Off route, next ⓪② 1.8 km", the dot red, the distances counted from 02 plus the straight distance ([screenshot](screenshots/android-navigating-off-route.png)) |
 | Moving along, Stop passed (first version) | ✅ | ✅ | After the stop 02 on 76 → 02 → 20: filled up to the dot; the stop no longer ahead ([screenshot](screenshots/android-navigating-after-stop.png), with the first version's table) |
 | Progress with a screen reader | ✅ | ⏳ | `uiautomator dump`: content description "0.0 of 2.3 km ridden, next knot 02" at the start, "2.1 of 2.3 km ridden, next knot 20" after the stop |
@@ -24,10 +24,12 @@ Android checked 2026-10-30 (first version) and 2026-10-31 (revision) on the emul
 2. Below the strip, the stops, ferries and the end that have a badge show their distance and arrival; close stops before the end (96, 37, 62) show none, and labels never overlap.
 3. Off route: "Off route, next ⓪②" with the straight distance; the labels count from the next knot.
 4. A route with two ferries, the first with a website, the second without (e.g. Wesseling): tapping the second one expands it and opens no website; "Website" of the first still opens its site.
-5. VoiceOver on the strip: "… of … km ridden, next knot …".
+5. Long distances: from 10 km in whole kilometers ("200 km", "280 km"), not clipped below the strip.
+6. VoiceOver on the strip: "… of … km ridden, next knot …".
 
 ### Found and fixed
 
+- iPhone, revision: distances over 100 km were cut off below the strip ("200.2…", "279.6 k…"): from 10 km they are whole kilometers now ("200 km").
 - iOS, from `polish-planner-panel`: tapping a ferry without a website (Wesseling) opened the website of the ferry before it, as all ferries were one list row and a row sends taps to its first link. Each ferry is its own row now, with a borderless link.
 - At a labeled knot, the badge covered the rider's dot (at the start, at 76): the dot is drawn above the badges now.
 - The planning time wrapped next to the actions ("about 35" / "min"): it is on its own line below the distance now.

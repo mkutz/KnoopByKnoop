@@ -298,10 +298,14 @@ object MapFeatures {
     }
   }
 
-  /** e.g. `800 m` below one kilometer, `3.5 km` above. */
+  /**
+   * e.g. `800 m` below one kilometer, `3.5 km` below ten, `200 km` above, see `knot-navigation`
+   * "Rounded times and distances".
+   */
   fun formatDistance(meters: Int): String {
     if (meters < 1000) return "$meters m"
     val tenthsOfKilometers = (meters / 100.0).roundToInt()
+    if (tenthsOfKilometers >= 100) return "${(meters / 1000.0).roundToInt()} km"
     return "${tenthsOfKilometers / 10}.${tenthsOfKilometers % 10} km"
   }
 

@@ -100,7 +100,7 @@ class RouteProgressTest {
     val fix = withStop.fix(0.0, "18:20")
 
     assertEquals(
-      mapOf("30" to "5.2 km 18:40", "31" to "12.4 km 19:05"),
+      mapOf("30" to "5.2 km 18:40", "31" to "12 km 19:05"),
       labels(start(withStop, fix), fix),
     )
   }
@@ -113,7 +113,7 @@ class RouteProgressTest {
     val labels = labels(navigation.update(halfway).navigation, halfway)
 
     assertTrue(labels.getValue("30").startsWith("4.8 km"), labels.toString())
-    assertTrue(labels.getValue("31").startsWith("12.0 km"), labels.toString())
+    assertTrue(labels.getValue("31").startsWith("12 km"), labels.toString())
   }
 
   @Test
@@ -124,7 +124,7 @@ class RouteProgressTest {
 
     val navigation = started.update(atKnot).navigation
 
-    assertEquals(mapOf("12" to "10.0 km 18:50"), labels(navigation, atKnot))
+    assertEquals(mapOf("12" to "10 km 18:50"), labels(navigation, atKnot))
   }
 
   @Test
@@ -132,7 +132,7 @@ class RouteProgressTest {
     val ride = ride(listOf("10", "11"), listOf(40_000))
     val fix = ride.fix(0.0, "12:00")
 
-    assertEquals(mapOf("11" to "40.0 km 14:30"), labels(start(ride, fix), fix))
+    assertEquals(mapOf("11" to "40 km 14:30"), labels(start(ride, fix), fix))
   }
 
   @Test
@@ -182,7 +182,7 @@ class RouteProgressTest {
 
     assertTrue(update.offRoute)
     assertTrue(labels.getValue("30").startsWith("4.7 km"), "4.4 km from 12 plus 300 m")
-    assertTrue(labels.getValue("31").startsWith("11.9 km"))
+    assertTrue(labels.getValue("31").startsWith("12 km"))
   }
 
   // Requirement: Number to follow
@@ -330,7 +330,7 @@ class RouteProgressTest {
     assertEquals("800 m to 12", navigation.progressLine)
   }
 
-  // Requirement: Rounded times
+  // Requirement: Rounded times and distances
 
   @Test
   fun `short time`() {
@@ -345,6 +345,22 @@ class RouteProgressTest {
   @Test
   fun `long time rounded`() {
     assertEquals("2 h 35 min", RouteProgress.formatDuration(2 * 3600 + 33 * 60.0))
+  }
+
+  @Test
+  fun `short distance`() {
+    assertEquals("800 m", MapFeatures.formatDistance(800))
+  }
+
+  @Test
+  fun `middle distance`() {
+    assertEquals("3.5 km", MapFeatures.formatDistance(3456))
+  }
+
+  @Test
+  fun `long distance`() {
+    assertEquals("200 km", MapFeatures.formatDistance(200_200))
+    assertEquals("10 km", MapFeatures.formatDistance(9960))
   }
 
   @Test

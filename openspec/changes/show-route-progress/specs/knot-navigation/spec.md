@@ -34,15 +34,15 @@ While navigating, the progress strip SHALL show below each labeled stop, ferry a
 
 #### Scenario: Ahead at the start
 - **WHEN** the rider starts navigating a cycling route at 18:20 at 24, with the stop 30 at 5.2 km and the end 31 at 12.4 km
-- **THEN** the strip shows "5.2 km" and "18:40" below 30, and "12.4 km" and "19:05" below 31
+- **THEN** the strip shows "5.2 km" and "18:40" below 30, and "12 km" and "19:05" below 31
 
 #### Scenario: Along the way
 - **WHEN** the rider has ridden 400 m of that route
-- **THEN** the strip shows "4.8 km" below 30 and "12.0 km" below 31
+- **THEN** the strip shows "4.8 km" below 30 and "12 km" below 31
 
 #### Scenario: The rider's own pace
 - **WHEN** the rider has covered 10 km in 50 minutes and 10 km are left to the end at 18:00
-- **THEN** the strip shows "10.0 km" and "18:50" below the end
+- **THEN** the strip shows "10 km" and "18:50" below the end
 
 #### Scenario: Ferry ahead on the strip
 - **WHEN** a ferry is 3.0 km ahead at 18:20 on a cycling route
@@ -68,8 +68,8 @@ While navigating, the progress strip SHALL show below each labeled stop, ferry a
 - **WHEN** the rider is off route, 300 m from the next knot 12, and 30 is 4.4 km after 12
 - **THEN** 30 shows "4.7 km", counted from 12 plus those 300 m
 
-### Requirement: Rounded times
-Durations under an hour SHALL be shown rounded to the minute, at least "1 min"; longer durations, as "2 h 30 min", and the arrivals SHALL be rounded to five minutes, so they do not suggest more precision than the estimate has.
+### Requirement: Rounded times and distances
+Durations under an hour SHALL be shown rounded to the minute, at least "1 min"; longer durations, as "2 h 30 min", and the arrivals SHALL be rounded to five minutes, so they do not suggest more precision than the estimate has. Distances SHALL be shown in meters under 1 km, with one decimal under 10 km and in whole kilometers from 10 km, so they stay short.
 
 #### Scenario: Short time
 - **WHEN** a duration is 19 minutes and 30 seconds
@@ -86,6 +86,18 @@ Durations under an hour SHALL be shown rounded to the minute, at least "1 min"; 
 #### Scenario: Arrival rounded
 - **WHEN** the rider arrives at 19:06 and 30 seconds by the estimate
 - **THEN** the arrival is shown as "19:05"
+
+#### Scenario: Short distance
+- **WHEN** a distance is 800 m
+- **THEN** it is shown as "800 m"
+
+#### Scenario: Middle distance
+- **WHEN** a distance is 3456 m
+- **THEN** it is shown as "3.5 km"
+
+#### Scenario: Long distance
+- **WHEN** a distance is 200.2 km, or 9.96 km
+- **THEN** it is shown as "200 km", or "10 km"
 
 ## MODIFIED Requirements
 

@@ -33,6 +33,10 @@
 - [x] 5.3 iOS: the same, and each ferry in its own list row with a borderless website link (tapping a ferry without a website no longer opens another's); builds with `xcodebuild`; steps in `manual-checks.md`
 - [x] 5.4 `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; CHANGELOG updated
 
+## 6. Shorter long distances
+
+- [x] 6.1 Distances from 10 km in whole kilometers ("200 km"), in the core's distance format used by the strip, the notification and the planner; verified by `RouteProgressTest` "Short distance", "Middle distance", "Long distance" and the updated strip tests; iOS and Android show "280 km" unclipped on the long route, with a screenshot
+
 ## Workflow follow-up
 
 - The maintainer checks iOS on the iPhone before `/opsx:archive show-route-progress`.

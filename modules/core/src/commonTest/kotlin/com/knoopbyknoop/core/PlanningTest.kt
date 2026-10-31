@@ -184,7 +184,7 @@ class PlanningTest {
   fun `distances below and above one kilometer`() {
     assertEquals("800 m", MapFeatures.formatDistance(800))
     assertEquals("3.5 km", MapFeatures.formatDistance(3456))
-    assertEquals("12.0 km", MapFeatures.formatDistance(11_960))
+    assertEquals("12 km", MapFeatures.formatDistance(11_960))
   }
 
   // Requirement: Edit the waypoint list
