@@ -55,6 +55,22 @@ jobs:
         if: always()
         run: rm -f "$RUNNER_TEMP/upload.jks"
 
+      # The only native code is MapLibre's, shipped stripped. Its release publishes the symbols,
+      # the Vulkan variant matches the default `android-sdk` artifact. Reduced to the symbol
+      # table, like `debugSymbolLevel = "SYMBOL_TABLE"`, so Play can symbolicate native crashes.
+      - name: Collect native debug symbols
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          maplibre=$(grep '^maplibre-android = ' gradle/libs.versions.toml | cut -d '"' -f 2)
+          mkdir -p "$RUNNER_TEMP/symbols"
+          gh release download "android-v$maplibre" --repo maplibre/maplibre-native \
+            --pattern "debug-symbols-maplibre-android-vulkan-release-android-v$maplibre.tar.gz" \
+            --output - | tar xz -C "$RUNNER_TEMP/symbols"
+          strip="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip"
+          find "$RUNNER_TEMP/symbols" -name '*.so' -exec "$strip" --strip-debug {} +
+          (cd "$RUNNER_TEMP/symbols" && zip -r "$RUNNER_TEMP/native-debug-symbols.zip" .)
+
       # Kept, e.g. to install a release build without going through Play.
       - uses: actions/upload-artifact@v7
         with:
@@ -74,6 +90,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.knoopbyknoop
           releaseFiles: apps/android/build/outputs/bundle/release/*.aab
+          debugSymbols: ${{ runner.temp }}/native-debug-symbols.zip
           tracks: internal
           status: completed
           whatsNewDirectory: ${{ runner.temp }}/whatsnew
