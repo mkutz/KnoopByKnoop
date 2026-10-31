@@ -27,6 +27,10 @@ enum class ProgressMarkKind {
  * @property distance for a stop, ferry or the end still ahead, the distance to it along the route,
  *   e.g. `5.2 km`, see `knot-navigation` "Distances and arrivals on the strip"
  * @property arrival when the rider gets there, e.g. `18:40`, where the local time is known
+ * @property position for a ferry, the route position of the knot before it, as
+ *   [RouteFerry.fromPosition]
+ * @property state for a ferry ahead, whether it runs when the rider gets there, see
+ *   `knot-navigation` "Ferries on the strip"
  */
 data class ProgressMark(
   val kind: ProgressMarkKind,
@@ -34,6 +38,8 @@ data class ProgressMark(
   val fraction: Double,
   val distance: String? = null,
   val arrival: String? = null,
+  val position: Int? = null,
+  val state: FerryArrivalState? = null,
 )
 
 /**
@@ -108,6 +114,7 @@ private constructor(
    *
    * @param now the instant of the position, in epoch milliseconds
    * @param localTime the networks' local time, for the arrivals; without it, there are none
+   * @param ferryState whether the ferry after the knot at a route position runs at the arrival
    */
   fun view(
     place: Double,
@@ -116,6 +123,7 @@ private constructor(
     metersPerSecond: Double,
     now: Long,
     localTime: ((Long) -> LocalMoment)?,
+    ferryState: (Int) -> FerryArrivalState? = { null },
   ): ProgressView {
     fun distanceTo(offset: Double) =
       max(
@@ -135,6 +143,7 @@ private constructor(
           mark.copy(
             distance = MapFeatures.formatDistance(meters.roundToInt()),
             arrival = localTime?.let { arrivalText(now, meters / metersPerSecond, it) },
+            state = mark.position?.let(ferryState),
           )
         }
       }
@@ -199,6 +208,7 @@ private constructor(
         ProgressMarkKind.FERRY,
         "⛴",
         fraction((offsets[position] + offsets[position + 1]) / 2),
+        position = position,
       )
     }
     return (knotMarks + ferryMarks).sortedBy { it.fraction }

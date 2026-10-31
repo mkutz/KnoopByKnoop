@@ -37,6 +37,13 @@
 
 - [x] 6.1 Distances from 10 km in whole kilometers ("200 km"), in the core's distance format used by the strip, the notification and the planner; verified by `RouteProgressTest` "Short distance", "Middle distance", "Long distance" and the updated strip tests; iOS and Android show "280 km" unclipped on the long route, with a screenshot
 
+## 7. Ferries on the strip
+
+- [x] 7.1 Core: ferry marks with their route position and arrival state; `FerryArrival.description` for screen readers; verified by `RouteProgressTest` "Closed ferry before a stop" and "Open ferry before a stop" (the core part: the states), "Open ferry ahead", and a test of the description, on the JVM and the iOS simulator
+- [x] 7.2 Android: badge and label ranking with warned ferries, red ring and colored arrivals, the popover on tap, ferries as buttons for TalkBack, no ferry list while navigating; verified on the emulator with the Renkum and the long route ("Ferry popover", "Popover of a passed ferry", "No ferry list while navigating", "Ferry with a screen reader" via `uiautomator dump`), with screenshots
+- [x] 7.3 iOS: the same with `.popover`; builds with `xcodebuild`; steps in `manual-checks.md`
+- [x] 7.4 `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; CHANGELOG updated
+
 ## Workflow follow-up
 
 - The maintainer checks iOS on the iPhone before `/opsx:archive show-route-progress`.

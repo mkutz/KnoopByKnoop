@@ -1,6 +1,7 @@
 package com.knoopbyknoop.android
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,13 +41,22 @@ import com.knoopbyknoop.core.RouteFerry
 import java.time.Instant
 import kotlinx.coroutines.delay
 
-/** Marks a ferry between two knots of the route summary, see `map-planning`. */
+/**
+ * Marks a ferry between two knots of the route summary, see `map-planning`; with a red ring when it
+ * is closed at the rider's arrival, see `knot-navigation` "Ferry warning".
+ */
 @Composable
-fun FerryBadge() {
+fun FerryBadge(warning: Boolean = false, modifier: Modifier = Modifier) {
   Box(
     contentAlignment = Alignment.Center,
     modifier =
-      Modifier.size(28.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+      modifier
+        .size(28.dp)
+        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+        .then(
+          if (warning) Modifier.border(3.dp, MaterialTheme.colorScheme.error, CircleShape)
+          else Modifier
+        ),
   ) {
     Text("⛴", fontSize = 14.sp)
   }
@@ -90,14 +100,14 @@ fun RouteFerries(ferries: List<RouteFerry>, navigation: Navigation? = null) {
  *
  * @property isStatus whether it is a status or arrival, not the tagged times or their absence
  */
-private data class FerryLine(val text: String, val color: Color, val isStatus: Boolean = true)
+internal data class FerryLine(val text: String, val color: Color, val isStatus: Boolean = true)
 
 /**
  * While navigating, the arrival takes the place of the status for now, see `knot-navigation` "Ferry
  * arrival estimate"; without a status, the tagged times, see `map-planning` "Ferry open now".
  */
 @Composable
-private fun status(ferry: RouteFerry, now: LocalMoment, navigation: Navigation?): FerryLine {
+internal fun status(ferry: RouteFerry, now: LocalMoment, navigation: Navigation?): FerryLine {
   val arrival = navigation?.ferryArrival(ferry.fromPosition)
   if (arrival != null) {
     return FerryLine(
@@ -125,7 +135,6 @@ private fun status(ferry: RouteFerry, now: LocalMoment, navigation: Navigation?)
 
 @Composable
 private fun FerryRow(ferry: RouteFerry, line: FerryLine, expanded: Boolean, onToggle: () -> Unit) {
-  val uriHandler = LocalUriHandler.current
   Column {
     Row(
       verticalAlignment = Alignment.CenterVertically,
@@ -159,42 +168,52 @@ private fun FerryRow(ferry: RouteFerry, line: FerryLine, expanded: Boolean, onTo
       )
     }
     if (expanded) {
-      Column(modifier = Modifier.padding(start = 20.dp, bottom = 8.dp)) {
-        Text(ferry.title, style = MaterialTheme.typography.bodyMedium)
-        if (line.isStatus) {
-          Text(
-            line.text,
-            style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.Medium,
-            color = line.color,
-          )
-        }
-        Text(
-          ferry.times,
-          style = MaterialTheme.typography.bodySmall,
-          color =
-            if (ferry.timesKnown) MaterialTheme.colorScheme.onSurfaceVariant
-            else MaterialTheme.colorScheme.error,
-        )
-        ferry.fee?.let {
-          Text(
-            it,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
-        }
-        Text(
-          "Times according to OpenStreetMap",
-          style = MaterialTheme.typography.bodySmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        ferry.ferry.website?.let { website ->
-          TextButton(
-            onClick = { uriHandler.openUri(if ("://" in website) website else "https://$website") }
-          ) {
-            Text("Website")
-          }
-        }
+      FerryDetails(ferry, line, modifier = Modifier.padding(start = 20.dp, bottom = 8.dp))
+    }
+  }
+}
+
+/**
+ * A ferry's name, its status or arrival, operating times, fee and website: the expanded ferry row,
+ * and the popover of a ferry on the progress strip, see `knot-navigation` "Ferry popover".
+ */
+@Composable
+internal fun FerryDetails(ferry: RouteFerry, line: FerryLine, modifier: Modifier = Modifier) {
+  val uriHandler = LocalUriHandler.current
+  Column(modifier = modifier) {
+    Text(ferry.title, style = MaterialTheme.typography.bodyMedium)
+    if (line.isStatus) {
+      Text(
+        line.text,
+        style = MaterialTheme.typography.bodySmall,
+        fontWeight = FontWeight.Medium,
+        color = line.color,
+      )
+    }
+    Text(
+      ferry.times,
+      style = MaterialTheme.typography.bodySmall,
+      color =
+        if (ferry.timesKnown) MaterialTheme.colorScheme.onSurfaceVariant
+        else MaterialTheme.colorScheme.error,
+    )
+    ferry.fee?.let {
+      Text(
+        it,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+    }
+    Text(
+      "Times according to OpenStreetMap",
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    ferry.ferry.website?.let { website ->
+      TextButton(
+        onClick = { uriHandler.openUri(if ("://" in website) website else "https://$website") }
+      ) {
+        Text("Website")
       }
     }
   }

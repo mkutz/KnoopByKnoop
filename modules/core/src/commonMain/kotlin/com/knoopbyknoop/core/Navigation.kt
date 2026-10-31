@@ -145,7 +145,9 @@ private constructor(
       pace.metersPerSecond,
       fix.timeMillis,
       localTime,
-    )
+    ) {
+      ferryWatch?.arrivalAt(it)?.state
+    }
   }
 
   val nextKnot: Knot

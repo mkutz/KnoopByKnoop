@@ -6,6 +6,7 @@
 - Fixed on iOS: tapping a ferry without a website opened the website of another ferry
 - The notification and the Live Activity show the distance to the next knot and when you reach the end
 - While planning, the route shows how long it takes
+- While navigating, the ferries are on the strip with their arrival, red when closed then; tap one for its details
 - Distances from 10 km are shown in whole kilometers
 
 ## 0.2.1

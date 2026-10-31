@@ -64,5 +64,9 @@ One function for durations (minutes under an hour, at least one; five minutes ab
 - [Updating the panel every second costs battery] → Only while the app is on screen, when fixes come every second anyway; the computation is a projection onto one leg's course.
 - [The notification's distance goes stale between knots] → It says the distance as of the last knot; refreshing it would need fixes the screen-off budget does not allow.
 
+### Ferries on the strip and their popover
+`ProgressMark` gets the ferry's route position and its `FerryArrivalState` (from `FerryWatch`, as of the last knot passed) for ferries ahead. The apps rank the badges end, ferries with a warning, stops, start, other ferries, and the distances and arrivals end, warned ferries, stops, other ferries. A warned ferry's badge gets a red ring and its arrival is red; an open ferry's arrival is green.
+Tapping a ferry badge opens a popover anchored to it: Android a `Popup` with a card, iOS `.popover` kept as a popover on the iPhone (`presentationCompactAdaptation(.popover)`). It shows the same details as the expanded ferry row: place, name, the arrival line (`Navigation.ferryArrival`) or, once passed, the status for now, the times, fee, the OpenStreetMap note and the website. The strip stays one element for screen readers ("… ridden, next knot …"), except the ferries, which are buttons named by `FerryArrival.description` ("Ferry 76 → 02, at 21:10 closed until 1 May 10:00"). While navigating, the ferry list below the strip is not shown.
+
 ### Ferry website links on iOS
 Found during the iPhone checks (from `polish-planner-panel`): all ferries were one row of the sheet's `List`, and a `List` row sends taps anywhere in it to its first `Link`, so tapping a ferry without a website opened the website of the one before. Each ferry is its own `List` row now, and the link uses `.buttonStyle(.borderless)`, so it only reacts to taps on itself.

@@ -15,6 +15,8 @@ Android checked 2026-10-30 (first version) and 2026-10-31 (revision) on the emul
 | Distance off route, Off route on the strip ahead, Off route on the strip | ✅ | ⏳ | Revision, off route near Renkum: "Off route, next ⓪② 1.8 km", the dot red, the distances counted from 02 plus the straight distance ([screenshot](screenshots/android-navigating-off-route.png)) |
 | Moving along, Stop passed (first version) | ✅ | ✅ | After the stop 02 on 76 → 02 → 20: filled up to the dot; the stop no longer ahead ([screenshot](screenshots/android-navigating-after-stop.png), with the first version's table) |
 | Progress with a screen reader | ✅ | ⏳ | `uiautomator dump`: content description "0.0 of 2.3 km ridden, next knot 02" at the start, "2.1 of 2.3 km ridden, next knot 20" after the stop |
+| Closed ferry before a stop, Ferry popover, Popover of a passed ferry, No ferry list while navigating, Ferry with a screen reader, Warning in the ferry list (strip), Closed for the season in the ferry list (popover) | ✅ | ⏳ | Revision 2. Renkum 76 → 02 → 20 at 11:31: the ferry with a red ring and "1.0 km 11:35" in red ([screenshot](screenshots/android-ferry-on-strip.png)); tapping it: "⛴ 76 → 02", "Renkumse Veer", "At 11:35: closed until 1 May 10:00" in red, times, the OpenStreetMap note, Website ([screenshot](screenshots/android-ferry-popover.png)); after 02, the popover shows "Closed until 1 May 10:00" and the ring is gone ([screenshot](screenshots/android-ferry-popover-passed.png)); no ferry list while navigating; TalkBack (`uiautomator dump`): "Ferry 76 → 02, at 11:35 closed until 1 May 10:00". Long route: the closed ferry before the stop 02 is shown instead of 02, the open ferry "33 km 13:35" in green ([screenshot](screenshots/android-navigating-long-route.png)) |
+| Open ferry before a stop, Open ferry ahead | unit tests and ranking | ⏳ | `RouteProgressTest` "Open ferry ahead" (state and arrival); the ranking puts open ferries after stops |
 | Lock screen, Progress outside the app | ✅ | ✅ | Notification "Off route, next 20" over "321 m to the end, around 21:05", as of passing 02 ([screenshot](screenshots/android-notification.png)) |
 | Along the way, The rider's own pace, Distances that would overlap (core part), Round trip, Rounded times, Hiking time, Long route time | unit tests | unit tests | `RouteProgressTest`, JVM and iOS simulator |
 
@@ -26,6 +28,13 @@ Android checked 2026-10-30 (first version) and 2026-10-31 (revision) on the emul
 4. A route with two ferries, the first with a website, the second without (e.g. Wesseling): tapping the second one expands it and opens no website; "Website" of the first still opens its site.
 5. Long distances: from 10 km in whole kilometers ("200 km", "280 km"), not clipped below the strip.
 6. VoiceOver on the strip: "… of … km ridden, next knot …".
+
+### iOS steps for the maintainer (revision 2)
+
+1. Navigate a route with ferries: no ferry list below the strip. Ferries ahead keep their badge; one closed when you get there has a red ring and a red arrival below it, an open one a green arrival.
+2. A closed ferry close to a stop shows instead of the stop; an open one gives way to the stop.
+3. Tap a ferry on the strip: a popover with "⛴ 76 → 02", its name, "At …: …" in its color, the times, fee, website and "Times according to OpenStreetMap"; tapping outside closes it. After passing the ferry, its popover shows the status for now.
+4. VoiceOver: each ferry on the strip is a button, e.g. "Ferry 76 → 02, at 21:10 closed until 1 May 10:00".
 
 ### Found and fixed
 

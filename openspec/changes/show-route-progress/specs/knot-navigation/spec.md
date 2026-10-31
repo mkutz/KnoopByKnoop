@@ -30,7 +30,7 @@ While navigating, the panel SHALL show, below the number to follow, the route as
 - **THEN** it announces "4.0 of 12.4 km ridden, next knot 12"
 
 ### Requirement: Distances and arrivals on the strip
-While navigating, the progress strip SHALL show below each labeled stop, ferry and end still ahead the distance along the route to it and the arrival, at the pace of "Ferry arrival estimate", following each position while shown. Where they would overlap those of a more important mark (end, then stops, then ferries), they SHALL be left out; the start and passed marks SHALL show none.
+While navigating, the progress strip SHALL show below each labeled stop, ferry and end still ahead the distance along the route to it and the arrival, at the pace of "Ferry arrival estimate", following each position while shown. Where they would overlap those of a more important mark (the end, then ferries with a warning, then stops, then other ferries), they SHALL be left out; the start and passed marks SHALL show none.
 
 #### Scenario: Ahead at the start
 - **WHEN** the rider starts navigating a cycling route at 18:20 at 24, with the stop 30 at 5.2 km and the end 31 at 12.4 km
@@ -99,6 +99,40 @@ Durations under an hour SHALL be shown rounded to the minute, at least "1 min"; 
 - **WHEN** a distance is 200.2 km, or 9.96 km
 - **THEN** it is shown as "200 km", or "10 km"
 
+### Requirement: Ferries on the strip
+While navigating, the progress strip SHALL show each ferry of the route as a badge, giving way only to the end where a ferry ahead with a warning would overlap, and to the end, the stops and the start otherwise. The arrival below a ferry ahead SHALL be green when it is open then. The ferry list SHALL NOT be shown while navigating.
+
+#### Scenario: Closed ferry before a stop
+- **WHEN** a ferry closed at the rider's arrival is so close to a stop on the strip that their badges would overlap
+- **THEN** the strip shows the ferry with its distance and arrival, and not the stop
+
+#### Scenario: Open ferry before a stop
+- **WHEN** a ferry open at the rider's arrival is that close to a stop
+- **THEN** the strip shows the stop, and not the ferry
+
+#### Scenario: Open ferry ahead
+- **WHEN** a ferry ahead is open when the rider gets there around 14:30
+- **THEN** "14:30" below it is green
+
+#### Scenario: No ferry list while navigating
+- **WHEN** the rider navigates a route with ferries
+- **THEN** the panel shows no ferry list below the strip
+
+### Requirement: Ferry popover
+While navigating, tapping a ferry on the progress strip SHALL open a popover with where it is, its name, its arrival line or, once passed, its status for now, its operating times, fee and website, noting that they are according to OpenStreetMap. Screen readers SHALL reach each ferry on the strip as a button.
+
+#### Scenario: Ferry popover
+- **WHEN** the rider taps the ferry between 76 and 02 on the strip
+- **THEN** a popover shows "76 → 02", "Renkumse Veer", e.g. "At 21:10: closed until 1 May 10:00", the tagged times, the website and "Times according to OpenStreetMap"
+
+#### Scenario: Popover of a passed ferry
+- **WHEN** the rider taps a ferry already passed
+- **THEN** its popover shows its status for now in place of an arrival
+
+#### Scenario: Ferry with a screen reader
+- **WHEN** a screen reader reaches the ferry between 76 and 02 on the strip
+- **THEN** it announces it as a button, "Ferry 76 → 02, at 21:10 closed until 1 May 10:00"
+
 ## MODIFIED Requirements
 
 ### Requirement: Number to follow
@@ -138,3 +172,93 @@ Navigation SHALL keep running with the screen off and while other apps are in us
 #### Scenario: Progress outside the app
 - **WHEN** the rider passes a knot with the screen off, and the next knot is 800 m ahead and the end is reached around 19:05 at their pace
 - **THEN** the notification or Live Activity shows "800 m to 45 · end around 19:05" until the next knot is passed
+
+### Requirement: Ferry arrival estimate
+While navigating, the app SHALL estimate when the rider gets to each ferry still ahead on the route, from the route distance to it and the rider's pace on the route so far, renewed when navigation starts and whenever a knot is passed. Until the rider has covered 2 km of the route, it SHALL assume 16 km/h cycling and 4.5 km/h hiking. The popover of a ferry ahead on the progress strip SHALL show the estimate, rounded to five minutes, in one line that starts with it and tells whether the ferry is open then, in place of its status for now, as in "At 14:30: open until 19:00": in green when it is open then, and only the estimate without a color when the operating times do not tell.
+
+#### Scenario: Arrival in the ferry list
+- **WHEN** the rider navigates a route with a ferry ahead that runs "Apr-Oct: Mo-Su 07:00-19:00" and that they get to around 14:30 on Wednesday, 16 June 2027
+- **THEN** tapping the ferry on the strip shows "At 14:30: open until 19:00" in green above the ferry's times, and no status for now
+
+#### Scenario: Arrival when the times do not tell
+- **WHEN** the rider navigates a route with a ferry ahead without operating times in OpenStreetMap and gets there around 14:30
+- **THEN** the ferry's popover shows "At 14:30" without a color
+
+#### Scenario: Ferry passed in the list
+- **WHEN** the rider has passed the knot after a ferry
+- **THEN** the ferry's popover shows its status for now, as the ferry list while planning
+
+#### Scenario: Ferry passed
+- **WHEN** the rider has passed the knot after a ferry
+- **THEN** the strip shows no distance and arrival for it, and the app gives no warning about it
+
+#### Scenario: Phone in another time zone
+- **WHEN** the phone is set to London time and the rider gets to a ferry at 18:15 London time, which is 19:15 in the Netherlands
+- **THEN** the ferry's popover says "At 19:15", the strip "19:15" and any warning "around 19:15", compared with the ferry's times in Dutch time
+
+### Requirement: Ferry warning
+When a ferry ahead is closed at the rider's estimated arrival, or closes within 15 minutes after it, according to its operating times in OpenStreetMap in the ferry region's local time, the app SHALL warn the rider once per ferry with a spoken notice, and the progress strip SHALL show that ferry's badge with a red ring and its arrival in red, and its popover the warning in red. When the operating times do not tell whether the ferry runs then, the app SHALL NOT warn.
+
+#### Scenario: Closed when the rider gets there
+- **WHEN** the rider starts navigating a cycling route at 18:00 on Wednesday, 16 June 2027, and the ferry Veer Broekhuizen, which runs "Apr-Oct: Mo-Su 07:00-19:00", is 20 km ahead
+- **THEN** the app says "The ferry Veer Broekhuizen closes at 19:00, before you get there around 19:15"
+
+#### Scenario: Closes shortly after the rider gets there
+- **WHEN** the same ferry is 12 km ahead at 18:05 on that day
+- **THEN** the app says "The ferry Veer Broekhuizen closes at 19:00, shortly after you get there around 18:50"
+
+#### Scenario: Not open yet when the rider gets there
+- **WHEN** the same ferry is 8 km ahead at 05:45 on that day
+- **THEN** the app says "The ferry Veer Broekhuizen is closed when you get there around 06:15, it opens at 07:00"
+
+#### Scenario: Closed for the season
+- **WHEN** the same ferry is 8 km ahead at 12:00 on Wednesday, 2 December 2026
+- **THEN** the app says "The ferry Veer Broekhuizen is closed when you get there around 12:30, it opens on 1 April at 07:00"
+
+#### Scenario: Open when the rider gets there
+- **WHEN** the same ferry is 8 km ahead at 14:00 on Wednesday, 16 June 2027
+- **THEN** the app gives no ferry warning
+
+#### Scenario: The rider's own pace
+- **WHEN** the rider has covered 10 km of the route in 50 minutes, and at 18:00 on Wednesday, 16 June 2027 the same ferry is 10 km ahead
+- **THEN** the app says "The ferry Veer Broekhuizen closes at 19:00, shortly after you get there around 18:50", where the assumed 16 km/h would have given 18:40 and no warning
+
+#### Scenario: Hiking
+- **WHEN** the rider starts navigating a hiking route at 18:30 on Wednesday, 16 June 2027, with the same ferry 3 km ahead
+- **THEN** the app says "The ferry Veer Broekhuizen closes at 19:00, before you get there around 19:10"
+
+#### Scenario: Falling behind
+- **WHEN** the ferry was reachable when navigation started, and the rider is so slow that the estimate at a later knot is after its closing
+- **THEN** the app warns at that knot
+
+#### Scenario: Warned once
+- **WHEN** the rider was warned about a ferry and passes further knots before it
+- **THEN** the app does not warn about that ferry again
+
+#### Scenario: Ferry without a name
+- **WHEN** a ferry without a name in OpenStreetMap is closed when the rider gets there around 19:15
+- **THEN** the app says "The ferry closes at 19:00, before you get there around 19:15"
+
+#### Scenario: Times that cannot be told
+- **WHEN** a ferry ahead runs "Mo-Sa 06:00-19:00; PH,Su 09:00-19:00" and the rider gets there at 08:00 on Good Friday, 26 March 2027, or a ferry ahead has no operating times in OpenStreetMap
+- **THEN** the app gives no warning about that ferry
+
+#### Scenario: Several ferries
+- **WHEN** two ferries ahead are closed when the rider gets there
+- **THEN** the app warns about both, the nearer one first
+
+#### Scenario: Warning in the ferry list
+- **WHEN** the rider navigates a route with a ferry ahead that they get to around 19:15 and that closes at 19:00 on that day
+- **THEN** the ferry's badge on the strip has a red ring, "19:15" below it is red, and its popover shows "At 19:15: closed until tomorrow 07:00" in red
+
+#### Scenario: Closed for the season in the ferry list
+- **WHEN** the rider navigates a route with a ferry ahead that is closed until 1 May at 10:00 and gets there around 18:10
+- **THEN** the ferry's popover shows "At 18:10: closed until 1 May 10:00" in red
+
+#### Scenario: Screen off
+- **WHEN** the screen is off when a ferry warning is due
+- **THEN** the warning is spoken
+
+#### Scenario: Offline
+- **WHEN** the device has no internet access
+- **THEN** the ferry warnings are given as online

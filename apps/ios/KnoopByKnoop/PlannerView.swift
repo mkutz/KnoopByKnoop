@@ -275,8 +275,8 @@ private struct WaypointSheet: View {
         }
         // While navigating, where the rider is on the route instead of the badges, see
         // `knot-navigation` "Progress strip".
-        if let progress {
-          ProgressPanel(progress: progress)
+        if let progress, let navigation = navigator.state?.navigation {
+          ProgressPanel(progress: progress, ferries: complete?.ferries ?? [], navigation: navigation)
         } else if let complete {
           RouteKnots(description: complete)
         }
@@ -284,7 +284,9 @@ private struct WaypointSheet: View {
       .padding([.horizontal, .top])
       .padding(.bottom, 8)
       List {
-        if let complete, !complete.ferries.isEmpty {
+        // While navigating, the ferries are on the progress strip, see `knot-navigation` "Ferries on
+        // the strip".
+        if let complete, !complete.ferries.isEmpty, navigator.state == nil {
           // Each ferry in its own row: a row sends taps anywhere in it to its first link, so with
           // one row for all, a ferry without a website opened the website of another.
           RouteFerries(ferries: complete.ferries, navigation: navigator.state?.navigation)

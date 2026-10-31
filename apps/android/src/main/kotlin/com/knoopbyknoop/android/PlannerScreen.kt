@@ -327,7 +327,10 @@ private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
           if (state.canNavigate) NavigateButton(viewModel)
         }
       }
-    if (progress != null) ProgressPanel(progress) else complete?.let { RouteKnots(it) }
+    val current = navigation?.navigation
+    if (progress != null && current != null)
+      ProgressPanel(progress, complete?.ferries.orEmpty(), current)
+    else complete?.let { RouteKnots(it) }
     // Below the fixed header, the ferries and the waypoints scroll together, see `map-planning`
     // "Long routes in the panel". No waypoints while navigating: the route is fixed then and the
     // knot sequence shows it, see "Waypoint list with badges".
@@ -338,9 +341,11 @@ private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
       editable = !state.navigating,
       modifier = Modifier.weight(1f, fill = false),
     ) {
-      if (complete != null && complete.ferries.isNotEmpty()) {
+      // While navigating, the ferries are on the progress strip, see `knot-navigation` "Ferries on
+      // the strip".
+      if (complete != null && complete.ferries.isNotEmpty() && !state.navigating) {
         Box(modifier = Modifier.padding(bottom = 8.dp)) {
-          RouteFerries(complete.ferries, state.navigation?.navigation)
+          RouteFerries(complete.ferries)
         }
       }
     }

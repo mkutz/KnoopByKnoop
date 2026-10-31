@@ -4,11 +4,15 @@ import SwiftUI
 /// Marks a ferry between two knots of the route summary, see `map-planning`.
 struct FerryBadge: View {
 
+  /// Closed at the rider's arrival: a red ring, see `knot-navigation` "Ferry warning".
+  var warning = false
+
   var body: some View {
     Text("⛴")
       .font(.system(size: 14))
       .frame(width: 28, height: 28)
       .background(Circle().fill(Color.accentColor.opacity(0.2)))
+      .overlay(Circle().stroke(Color.red, lineWidth: warning ? 3 : 0))
   }
 }
 
@@ -41,7 +45,7 @@ struct RouteFerries: View {
 
   /// What a ferry's line tells after its name, in which color, and whether it is a status or
   /// arrival rather than the tagged times or their absence.
-  private struct Line {
+  struct Line {
     let text: String
     let color: Color
     var isStatus = true
@@ -51,6 +55,10 @@ struct RouteFerries: View {
   /// "Ferry arrival estimate"; without a status, the tagged times, see `map-planning` "Ferry open
   /// now".
   private func line(of ferry: RouteFerry, now: LocalMoment) -> Line {
+    Self.line(of: ferry, now: now, navigation: navigation)
+  }
+
+  static func line(of ferry: RouteFerry, now: LocalMoment, navigation: Navigation?) -> Line {
     if let arrival = navigation?.ferryArrival(fromPosition: ferry.fromPosition) {
       return Line(text: arrival.text, color: Self.color(of: arrival.state))
     }
@@ -86,25 +94,14 @@ struct RouteFerries: View {
       .buttonStyle(.plain)
       .accessibilityValue(expanded ? "Expanded" : "Collapsed")
       if expanded {
-        VStack(alignment: .leading, spacing: 2) {
-          Text(ferry.title).font(.callout)
-          if line.isStatus { Text(line.text).font(.caption.weight(.medium)).foregroundStyle(line.color) }
-          Text(ferry.times).font(.caption).foregroundStyle(ferry.timesKnown ? Color.secondary : Color.red)
-          if let fee = ferry.fee { Text(fee).font(.caption).foregroundStyle(.secondary) }
-          Text("Times according to OpenStreetMap").font(.caption).foregroundStyle(.secondary)
-          if let website = ferry.ferry.website,
-            let url = URL(string: website.contains("://") ? website : "https://\(website)")
-          {
-            Link("Website", destination: url).font(.caption).buttonStyle(.borderless)
-          }
-        }
+        FerryDetails(ferry: ferry, line: line)
         .padding(.leading, 20)
         .padding(.bottom, 8)
       }
     }
   }
 
-  private static func color(of state: FerryArrivalState) -> Color {
+  static func color(of state: FerryArrivalState) -> Color {
     switch state {
     case .open: Color.actionIconGreen
     case .warning: Color.red
@@ -125,5 +122,28 @@ struct RouteFerries: View {
     return LocalMoment(
       day: CalendarDay(year: Int32(parts.year!), month: Int32(parts.month!), day: Int32(parts.day!)),
       minute: Int32(parts.hour! * 60 + parts.minute!))
+  }
+}
+
+/// A ferry's name, its status or arrival, operating times, fee and website: the expanded ferry row,
+/// and the popover of a ferry on the progress strip, see `knot-navigation` "Ferry popover".
+struct FerryDetails: View {
+
+  let ferry: RouteFerry
+  let line: RouteFerries.Line
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 2) {
+      Text(ferry.title).font(.callout)
+      if line.isStatus { Text(line.text).font(.caption.weight(.medium)).foregroundStyle(line.color) }
+      Text(ferry.times).font(.caption).foregroundStyle(ferry.timesKnown ? Color.secondary : Color.red)
+      if let fee = ferry.fee { Text(fee).font(.caption).foregroundStyle(.secondary) }
+      Text("Times according to OpenStreetMap").font(.caption).foregroundStyle(.secondary)
+      if let website = ferry.ferry.website,
+        let url = URL(string: website.contains("://") ? website : "https://\(website)")
+      {
+        Link("Website", destination: url).font(.caption).buttonStyle(.borderless)
+      }
+    }
   }
 }

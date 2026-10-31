@@ -27,7 +27,12 @@ enum class FerryArrivalState {
  *
  * @property text e.g. `At 14:30: open until 19:00` or `At 19:15: closed until tomorrow 07:00`
  */
-data class FerryArrival(val text: String, val state: FerryArrivalState)
+data class FerryArrival(val text: String, val state: FerryArrivalState) {
+
+  /** What screen readers say after the ferry's place, e.g. `at 21:10 closed until 1 May 10:00`. */
+  val accessibilityText: String
+    get() = text.replaceFirst(": ", " ").replaceFirstChar { it.lowercase() }
+}
 
 /**
  * The ferries ahead on a navigated route, with when the rider gets there and the warnings given,

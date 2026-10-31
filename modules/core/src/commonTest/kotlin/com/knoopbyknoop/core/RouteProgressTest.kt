@@ -185,6 +185,65 @@ class RouteProgressTest {
     assertTrue(labels.getValue("31").startsWith("12 km"))
   }
 
+  // Requirement: Ferries on the strip
+
+  private val renkum = Ferry(name = "Renkumse Veer", openingHours = "Apr-Oct: Mo-Su 07:00-19:00")
+
+  private fun ferryRide(): Ride {
+    val ride = ride(listOf("24", "12", "30", "31"), listOf(2900, 200, 1000), setOf(2), setOf(1))
+    val connection = ride.graph.connections[1]
+    return Ride(
+      ride.knots,
+      NetworkGraph(ride.knots, ride.graph.connections, mapOf(connection to renkum)),
+      ride.stops,
+    )
+  }
+
+  private fun ferryMark(at: String): ProgressMark {
+    val ride = ferryRide()
+    val fix = ride.fix(0.0, at)
+    return start(ride, fix).progress(fix).strip.marks.single { it.kind == ProgressMarkKind.FERRY }
+  }
+
+  @Test
+  fun `closed ferry ahead`() {
+    val ferry = ferryMark("18:55")
+
+    assertEquals(1, ferry.position)
+    assertEquals(FerryArrivalState.WARNING, ferry.state, "at 19:06, closed from 19:00")
+  }
+
+  @Test
+  fun `open ferry ahead`() {
+    val ferry = ferryMark("14:20")
+
+    assertEquals(FerryArrivalState.OPEN, ferry.state)
+    assertEquals("14:30", ferry.arrival)
+  }
+
+  @Test
+  fun `passed ferry has no state`() {
+    val ride = ferryRide()
+    val started = start(ride, ride.fix(0.0, "14:20"))
+    val after = ride.fix(3100.0, "14:35")
+    val passed = started.update(ride.fix(2900.0, "14:30")).navigation.update(after).navigation
+
+    val ferry = passed.progress(after).strip.marks.single { it.kind == ProgressMarkKind.FERRY }
+
+    assertNull(ferry.state)
+    assertNull(ferry.distance)
+  }
+
+  @Test
+  fun `ferry with a screen reader`() {
+    assertEquals(
+      "at 21:10 closed until 1 May 10:00",
+      FerryArrival("At 21:10: closed until 1 May 10:00", FerryArrivalState.WARNING)
+        .accessibilityText,
+    )
+    assertEquals("at 14:30", FerryArrival("At 14:30", FerryArrivalState.UNKNOWN).accessibilityText)
+  }
+
   // Requirement: Number to follow
 
   @Test
