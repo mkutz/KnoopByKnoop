@@ -343,8 +343,8 @@ private struct WaypointSheet: View {
       }
       .padding([.horizontal, .top])
       .padding(.bottom, 8)
-      .onGeometryChange(for: CGFloat.self) { navigator.state == nil ? 0 : $0.size.height } action: {
-        onNavigationHeight($0)
+      .onGeometryChange(for: CGFloat.self) { $0.size.height } action: {
+        onNavigationHeight(navigator.state == nil ? 0 : $0)
       }
       List {
         // While navigating, the ferries are on the progress strip, see `knot-navigation` "Ferries on

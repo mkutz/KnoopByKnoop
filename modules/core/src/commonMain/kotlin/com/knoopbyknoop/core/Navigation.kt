@@ -426,9 +426,9 @@ private constructor(
     val renewLine = last == null || kotlin.math.abs(meters - last.lineMeters) >= LINE_METERS
     val guided =
       Guided(
-        noticeMeters = if (told) meters else last!!.noticeMeters,
-        noticeBearing = if (told) bearing else last!!.noticeBearing,
-        lineMeters = if (renewLine) meters else last!!.lineMeters,
+        noticeMeters = if (told) meters else last.noticeMeters,
+        noticeBearing = if (told) bearing else last.noticeBearing,
+        lineMeters = if (renewLine) meters else last.lineMeters,
       )
     val line =
       if (renewLine) "${way.distance} ${way.direction} to ${nextKnot.ref}" else progressLine

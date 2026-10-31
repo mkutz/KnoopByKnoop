@@ -63,7 +63,7 @@ final class Navigator: NSObject, ObservableObject {
 
   /// Notices and precision changes are logged, to check navigation on a ride and to tune the
   /// precision for the battery. Read them in Console with the category `Navigation`.
-  private let logger = Logger(subsystem: "com.knoopbyknoop", category: "Navigation")
+  nonisolated private let logger = Logger(subsystem: "com.knoopbyknoop", category: "Navigation")
 
   private override init() {
     super.init()
@@ -230,7 +230,24 @@ final class Navigator: NSObject, ObservableObject {
   /// its `didFinish`, it may still report that it is speaking.
   private var pendingNotices = 0
 
+  /// The audio session's calls can block for a while, so they run off the main thread; one after
+  /// the other, so taking and giving back the audio keep their order.
+  private static let audioQueue = DispatchQueue(label: "com.knoopbyknoop.audio")
+
   private func speak(_ text: String) {
+    pendingNotices += 1
+    Self.audioQueue.async { [weak self] in
+      self?.takeAudio()
+      // Spoken once the audio is taken, so the notice is not cut off at its start.
+      Task { @MainActor in
+        let utterance = AVSpeechUtterance(string: text)
+        utterance.voice = AVSpeechSynthesisVoice(language: "en-GB")
+        self?.speech.speak(utterance)
+      }
+    }
+  }
+
+  nonisolated private func takeAudio() {
     let audio = AVAudioSession.sharedInstance()
     do {
       // Other audio is lowered while a notice is spoken, and comes back after it.
@@ -239,10 +256,6 @@ final class Navigator: NSObject, ObservableObject {
     } catch {
       logger.error("audio session: \(error.localizedDescription, privacy: .public)")
     }
-    let utterance = AVSpeechUtterance(string: text)
-    utterance.voice = AVSpeechSynthesisVoice(language: "en-GB")
-    pendingNotices += 1
-    speech.speak(utterance)
   }
 
   private func finishedSpeaking() {
@@ -255,14 +268,18 @@ final class Navigator: NSObject, ObservableObject {
   /// Gives the audio back, so other audio plays at its volume again; retried once if the audio is
   /// still busy.
   private func releaseAudio(retrying: Bool) {
-    do {
-      try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
-    } catch {
-      logger.error("releasing audio: \(error.localizedDescription, privacy: .public)")
-      guard retrying else { return }
-      DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-        guard let self, self.pendingNotices == 0 else { return }
-        self.releaseAudio(retrying: false)
+    Self.audioQueue.async { [weak self] in
+      guard let self else { return }
+      do {
+        try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+      } catch {
+        logger.error("releasing audio: \(error.localizedDescription, privacy: .public)")
+        guard retrying else { return }
+        Task { @MainActor [weak self] in
+          try? await Task.sleep(for: .milliseconds(500))
+          guard let self, self.pendingNotices == 0 else { return }
+          self.releaseAudio(retrying: false)
+        }
       }
     }
   }

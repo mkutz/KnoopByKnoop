@@ -4,6 +4,7 @@
 
 - When navigation starts, the panel takes the height of the number to follow and the strip, so distances and arrivals are always readable
 - iOS: in landscape, the map no longer zooms out to the whole region to show the next knot off route or the planned route
+- iOS: a place search without any answer, e.g. offline, says search is unavailable instead of closing the app
 
 ## 0.4.0
 

@@ -130,6 +130,7 @@ object PlaceSearch {
    *
    * @throws IllegalArgumentException if no response is a Photon response
    */
+  @Throws(IllegalArgumentException::class)
   fun merge(prominent: String?, nearby: String?, network: KnotLocator): List<PlaceHit> {
     val prominentCandidates = prominent?.let { runCatching { candidates(it, network) }.getOrNull() }
     val nearbyCandidates = nearby?.let { runCatching { candidates(it, network) }.getOrNull() }
