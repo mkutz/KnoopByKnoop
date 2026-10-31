@@ -12,15 +12,12 @@ struct KnoopByKnoopApp: App {
     Navigator.shared.endLeftoverSession()
   }
 
-  @AppStorage("appearance") private var appearance = "system"
-
   var body: some Scene {
     WindowGroup {
       PlannerView(model: model)
       .tint(.knoopGreen)
-      // Light or dark as chosen in the info sheet, by default like the system, see `map-planning`
-      // "Light and dark appearance"; also the sheets and the status bar.
-      .preferredColorScheme(appearance == "light" ? .light : appearance == "dark" ? .dark : nil)
+      // Light or dark as chosen in the info sheet, also the status bar.
+      .appAppearance()
       .onAppear { appDelegate.downloads = model.downloads }
       .alert(
         model.message ?? "", isPresented: Binding(get: { model.message != nil }, set: { if !$0 { model.message = nil } })

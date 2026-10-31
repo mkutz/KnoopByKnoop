@@ -18,6 +18,7 @@ Android checked 2026-10-31 on the emulator (`Medium_Phone_API_37.0`), dark mode 
 
 - The wetland areas stayed bright on the dark map: their pattern comes from the shared sprite and cannot be recolored; patterned areas are dimmed ([first version](screenshots/android-renkum-dark-first.png)).
 - iPhone: MapLibre warned at startup that `UIViewController.automaticallyAdjustsScrollViewInsets` is deprecated; the map view now sets `automaticallyAdjustsContentInset` explicitly (to `true`, what the fallback did), so the warning should be gone.
+- iPhone: with Light chosen and the system dark, the planner sheet (and with it the info) stayed dark: a sheet keeps the system's appearance unless it is set on the sheet itself. The chosen appearance is now applied to the root, the planner sheet and the ferry popover (`AppAppearance.swift`).
 - Maintainer: street names were hard to read on the lighter streets. Liberty sets no halo color for them, so MapLibre's transparent default applied; labels along lines now get a dark halo at least 1.5 wide, and the streets are a little darker (55 % instead of 65 % lightness).
 
 ### iOS steps for the maintainer

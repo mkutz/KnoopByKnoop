@@ -58,6 +58,8 @@ struct PlannerView: View {
           .presentationDetents([Self.smallestDetent, .medium, .large], selection: $detent)
           .presentationBackgroundInteraction(.enabled(upThrough: .medium))
           .interactiveDismissDisabled()
+          // A sheet keeps the system's appearance unless told otherwise.
+          .appAppearance()
       }
       // The keyboard covers the smallest sheet, but not a higher one, which would hide the field.
       .onChange(of: keyboardShown) { _, shown in

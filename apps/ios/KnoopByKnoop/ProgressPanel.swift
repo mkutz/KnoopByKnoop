@@ -123,6 +123,7 @@ private struct ProgressStripView: View {
       ) {
         FerryPopover(ferry: ferry, navigation: navigation)
           .presentationCompactAdaptation(.popover)
+          .appAppearance()
       }
     } else {
       Group {
