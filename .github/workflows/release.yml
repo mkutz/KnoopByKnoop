@@ -28,6 +28,8 @@ jobs:
 
     outputs:
       release-notes: ${{ steps.release-notes.outputs.release-notes }}
+      android: ${{ steps.credentials.outputs.android }}
+      ios: ${{ steps.credentials.outputs.ios }}
 
     steps:
 
@@ -41,6 +43,49 @@ jobs:
         run: |
           if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
             echo "::error::The version must look like 0.2.0, got: $VERSION"
+            exit 1
+          fi
+
+      # A platform without its store credentials is skipped, see `release-delivery` "Platforms
+      # without store credentials are skipped". Job conditions cannot read secrets, so this step
+      # tells the platform jobs whether theirs are set, without printing them.
+      - id: credentials
+        name: Check store credentials
+        env:
+          ANDROID_UPLOAD_KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+          ANDROID_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          # Whether all the named variables are set; a notice names the missing ones.
+          ready() {
+            platform=$1; shift
+            missing=""
+            for name in "$@"; do
+              eval "value=\${$name:-}"
+              [ -n "$value" ] || missing="$missing $name"
+            done
+            if [ -n "$missing" ]; then
+              echo "::notice::Skipping $platform, its store credentials are not set:$missing"
+              return 1
+            fi
+          }
+          android=true
+          ready Android ANDROID_UPLOAD_KEYSTORE_BASE64 ANDROID_UPLOAD_KEYSTORE_PASSWORD \
+            ANDROID_UPLOAD_KEY_ALIAS ANDROID_UPLOAD_KEY_PASSWORD PLAY_SERVICE_ACCOUNT_JSON \
+            || android=false
+          ios=true
+          ready iOS APP_STORE_CONNECT_API_KEY APP_STORE_CONNECT_API_KEY_ID \
+            APP_STORE_CONNECT_API_ISSUER_ID APPLE_TEAM_ID || ios=false
+          echo "android=$android" >> "$GITHUB_OUTPUT"
+          echo "ios=$ios" >> "$GITHUB_OUTPUT"
+          if [ "$android" = false ] && [ "$ios" = false ]; then
+            echo "::error::No platform can be released: neither store's credentials are set"
             exit 1
           fi
 
@@ -82,6 +127,7 @@ jobs:
 
   android:
     needs: check
+    if: needs.check.outputs.android == 'true'
     uses: ./.github/workflows/release-android.yml
     with:
       version: ${{ inputs.version }}
@@ -91,6 +137,7 @@ jobs:
 
   ios:
     needs: check
+    if: needs.check.outputs.ios == 'true'
     uses: ./.github/workflows/release-ios.yml
     with:
       version: ${{ inputs.version }}

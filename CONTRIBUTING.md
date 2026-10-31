@@ -37,6 +37,7 @@ Releases are started by hand with the workflow **Release** in GitHub Actions, wi
 `CHANGELOG.md` needs a section `## <version>`; its entries become the release notes.
 The release only runs when the latest Build on `main` succeeded; later commits may only change Markdown files.
 It uploads the Android App Bundle to Google Play's internal testing track, with the run number of the Release workflow as build number.
+A platform whose secrets are not all set is skipped with a notice in the run, e.g. iOS until the App Store Connect secrets exist; the release fails only when neither platform can be released.
 
 The release workflows need these repository secrets:
 

@@ -2,7 +2,7 @@
 
 ## 1. Skipping platforms without credentials
 
-- [ ] 1.1 `release.yml`: the `check` job outputs per platform whether its secrets are set, with a notice for a skipped platform; the platform jobs run only when their output is `true`; the release fails when both are skipped ("No App Store Connect credentials", "Credentials set")
+- [x] 1.1 `release.yml`: the `check` job outputs per platform whether its secrets are set, with a notice for a skipped platform; the platform jobs run only when their output is `true`; the release fails when both are skipped ("No App Store Connect credentials", "Credentials set")
 - [ ] 1.2 Run a release without the Apple secrets: Android is delivered, iOS is skipped with the notice, the run is green
 
 ## 2. Apple setup (manual, once the Apple Developer Program membership exists)
