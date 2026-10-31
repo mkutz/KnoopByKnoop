@@ -73,7 +73,7 @@ The app SHALL check the published index for newer data when it starts, at most o
 - **THEN** the route is kept, and a waypoint whose knot no longer exists is removed and pointed out to the user
 
 ### Requirement: Info sheet
-The map SHALL offer an info sheet, opened with a round info button (ⓘ) at the end of the network switch, with the data date of each installed network, the state of any download or update, and the attribution required by OpenStreetMap.
+While planning, the map SHALL offer an info sheet, opened with a round info button (ⓘ) at the end of the network switch, with the data date of each installed network, the state of any download or update, and the attribution required by OpenStreetMap.
 
 #### Scenario: Opening the info sheet
 - **WHEN** both networks are installed and the user opens the info sheet
@@ -84,7 +84,7 @@ The map SHALL offer an info sheet, opened with a round info button (ⓘ) at the 
 - **THEN** the info sheet says so and offers to retry, while the installed data keeps working
 
 #### Scenario: Info button
-- **WHEN** the map is shown, while planning or navigating
+- **WHEN** the map is shown while planning
 - **THEN** the info sheet is opened with a round ⓘ button, styled like the zoom buttons, not with a text button
 
 #### Scenario: Info button with a screen reader
@@ -94,3 +94,7 @@ The map SHALL offer an info sheet, opened with a round info button (ⓘ) at the 
 #### Scenario: Readable info button
 - **WHEN** the ⓘ button is measured against its background, in light and in dark appearance
 - **THEN** its icon has a contrast of at least 3:1
+
+#### Scenario: No info button while navigating
+- **WHEN** the rider is navigating
+- **THEN** the map shows neither the ⓘ button nor the network switch, and the info sheet is available again after navigation ends

@@ -60,15 +60,23 @@ Tapping a knot SHALL make it the start if there is no start yet, the end if ther
 - **THEN** exactly the tapped knot becomes part of the route
 
 ### Requirement: Show the route
-The app SHALL show the planned route on the map along its actual course, together with its knot sequence and its total distance. Unreachable legs SHALL be pointed out. The knot sequence SHALL show each knot as a badge with its number, like on the map, and SHALL make the chosen waypoints clearly stand out from the knots the route only passes.
+The app SHALL show the planned route on the map along its actual course, together with its knot sequence, its total distance and the time it takes at an assumed pace of 16 km/h cycling and 4.5 km/h hiking, rounded as in `knot-navigation` "Rounded times and distances". Unreachable legs SHALL be pointed out. The knot sequence SHALL show each knot as a badge with its number, like on the map, and SHALL make the chosen waypoints clearly stand out from the knots the route only passes.
 
 #### Scenario: Route summary
 - **WHEN** the route goes from 12 via 7 to 45 over 3.5 km, with 12 and 45 as waypoints
-- **THEN** the app shows 3.5 km and the badges 12, 7 and 45 in this order, with 12 and 45 highlighted as start and end and 7 shown as a passed knot
+- **THEN** the app shows 3.5 km with "about 13 min" below it, and the badges 12, 7 and 45 in this order, with 12 and 45 highlighted as start and end and 7 shown as a passed knot
 
 #### Scenario: Unreachable leg
 - **WHEN** a waypoint cannot be reached from the previous one
 - **THEN** the app marks that leg as unreachable instead of showing a route summary
+
+#### Scenario: Hiking time
+- **WHEN** a hiking route is 3.5 km long
+- **THEN** the app shows 3.5 km with "about 47 min" below it
+
+#### Scenario: Long route time
+- **WHEN** a cycling route is 40.0 km long
+- **THEN** the app shows 40 km with "about 2 h 30 min" below it
 
 ### Requirement: Edit the waypoint list
 The app SHALL list the waypoints in order. The user SHALL be able to move any waypoint to another position and to remove waypoints as long as two remain.
@@ -215,7 +223,7 @@ The planner panel (the sheet in portrait, the side panel in landscape) SHALL sta
 - **THEN** nothing scrolls
 
 ### Requirement: Ferries on the route
-The route's knot list SHALL mark every ferry between the two knots it connects, and SHALL list the ferries of the route, each in one line with where it is on the route, the numbers of the knots on both sides in riding order, and its status, cut off with "…" at the end where it does not fit. Tapping a ferry SHALL expand it to its name, its full status, its operating times as tagged, its fee and its website as far as they are known, with a note that they are according to OpenStreetMap; tapping it again SHALL collapse it. A ferry without known operating times SHALL be listed as such, so the user knows to check it.
+The route's knot list SHALL mark every ferry between the two knots it connects, and, while planning, SHALL list the ferries of the route, each in one line with where it is on the route, the numbers of the knots on both sides in riding order, and its status, cut off with "…" at the end where it does not fit. Tapping a ferry SHALL expand it to its name, its full status, its operating times as tagged, its fee and its website as far as they are known, with a note that they are according to OpenStreetMap; tapping it again SHALL collapse it. A ferry without known operating times SHALL be listed as such, so the user knows to check it.
 
 #### Scenario: Route over a ferry
 - **WHEN** the route crosses a river by a ferry that runs "Apr-Oct: Mo-Su 07:00-19:00" for €1.50
@@ -245,8 +253,12 @@ The route's knot list SHALL mark every ferry between the two knots it connects, 
 - **WHEN** the route goes from 76 across Renkumse Veer to 02 and on to 20
 - **THEN** the ferry's line starts with "⛴ 76 → 02", and its name "Renkumse Veer" is shown when it is expanded
 
+#### Scenario: Ferries while navigating
+- **WHEN** the rider starts navigating a route with ferries
+- **THEN** the ferry list is replaced by the ferries on the progress strip, see `knot-navigation` "Ferries on the strip"
+
 ### Requirement: Ferry open now
-The ferry list SHALL show for each ferry with known operating times, except for the ferries ahead while navigating (see `knot-navigation` "Ferry arrival estimate"), whether it is open now according to OpenStreetMap and, where that can be told too, when that changes next, in the local time of the ferry's region. The status SHALL be shown in the ferry's line and the operating times as tagged when it is expanded, and the status SHALL stay current while the list is shown. When the operating times do not allow a sure answer, the ferry SHALL show no status.
+The ferry list while planning, and the popover of a passed ferry while navigating, SHALL show for each ferry with known operating times whether it is open now according to OpenStreetMap and, where that can be told too, when that changes next, in the local time of the ferry's region. The status SHALL be shown in the ferry's line and the operating times as tagged when it is expanded, and the status SHALL stay current while the list is shown. When the operating times do not allow a sure answer, the ferry SHALL show no status.
 
 #### Scenario: Open now
 - **WHEN** a ferry runs "Apr-Oct: Mo-Su 07:00-19:00" and it is Wednesday, 16 June 2027, 14:00
