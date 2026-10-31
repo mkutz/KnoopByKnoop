@@ -11,7 +11,9 @@ struct FerryBadge: View {
     Text("⛴")
       .font(.system(size: 14))
       .frame(width: 28, height: 28)
+      // Opaque like the knots' badges: the light tint on the background color, not on what is behind.
       .background(Circle().fill(Color.accentColor.opacity(0.2)))
+      .background(Circle().fill(Color(uiColor: .systemBackground)))
       .overlay(Circle().stroke(Color.red, lineWidth: warning ? 3 : 0))
   }
 }
