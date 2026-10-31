@@ -13,6 +13,15 @@ struct ProgressPanel: View {
   var body: some View {
     ProgressStripView(strip: progress.strip, ferries: ferries, navigation: navigation)
   }
+  /// Red where a ferry is closed at the arrival, green where it runs, on the strip and in the list
+  /// of coming knots.
+  static func arrivalColor(_ state: FerryArrivalState?) -> Color {
+    switch state {
+    case .warning: .red
+    case .open: .actionIconGreen
+    default: .secondary
+    }
+  }
 }
 
 /// The route drawn to scale with the rider as a dot and the ridden part filled; labels that would
@@ -86,7 +95,7 @@ private struct ProgressStripView: View {
             if let arrival = mark.arrival {
               Text(arrival)
                 .font(mark.state != nil ? .callout.weight(.medium) : .callout)
-                .foregroundStyle(Self.arrivalColor(mark.state))
+                .foregroundStyle(ProgressPanel.arrivalColor(mark.state))
             }
           }
           .lineLimit(1)
@@ -135,14 +144,6 @@ private struct ProgressStripView: View {
         }
       }
       .accessibilityHidden(true)
-    }
-  }
-
-  private static func arrivalColor(_ state: FerryArrivalState?) -> Color {
-    switch state {
-    case .warning: .red
-    case .open: .actionIconGreen
-    default: .secondary
     }
   }
 

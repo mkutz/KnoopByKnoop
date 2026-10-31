@@ -32,7 +32,7 @@ struct PlannerView: View {
     summaryHeight + 24 > 170 ? .height((summaryHeight + 24).rounded(.up)) : Self.smallestDetent
   }
 
-  /// While navigating, the sheet's only height: the number to follow and the whole strip, see
+  /// While navigating, the sheet's smallest height: the number to follow and the whole strip, see
   /// `knot-navigation` "Panel height while navigating". Rounded up, so a relayout does not move the
   /// sheet by fractions of a point.
   private var navigationDetent: PresentationDetent? {
@@ -76,13 +76,10 @@ struct PlannerView: View {
             sheetHeight = $0
           }
           .presentationDetents(
-            navigationDetent.map { [$0] } ?? [planningDetent, .medium, .large], selection: $detent
+            [navigationDetent ?? planningDetent, .medium, .large], selection: $detent
           )
-          // Fixed while navigating, so nothing suggests dragging it.
-          .presentationDragIndicator(navigationDetent == nil ? .automatic : .hidden)
-          // The map stays usable and undimmed below the sheet; while navigating, `.medium` is not one
-          // of the sheet's detents, and the map was dimmed and ignored touches.
-          .presentationBackgroundInteraction(.enabled(upThrough: navigationDetent ?? .medium))
+          // The map stays usable and undimmed below the sheet up to half the screen.
+          .presentationBackgroundInteraction(.enabled(upThrough: .medium))
           .interactiveDismissDisabled()
           // A sheet keeps the system's appearance unless told otherwise.
           .appAppearance()
@@ -93,8 +90,11 @@ struct PlannerView: View {
       }
       // Starting navigation brings the sheet to the navigation height whatever its height was, and
       // ending it brings it back to the smallest planning height.
-      .onChange(of: navigationDetent) { _, navigation in
-        detent = navigation ?? planningDetent
+      // A sheet the rider pulled up stays up when the navigation height changes, e.g. off route.
+      .onChange(of: navigationDetent) { previous, navigation in
+        if previous == nil || navigation == nil || detent == previous {
+          detent = navigation ?? planningDetent
+        }
       }
       // A sheet at its smallest stays there when that height changes.
       .onChange(of: planningDetent) { previous, planning in
@@ -118,7 +118,13 @@ struct PlannerView: View {
       } else if let session = model.session, model.layers != nil, !model.loading {
         WaypointSheet(
           model: model, session: session, onNavigationHeight: { navigationHeight = $0 },
-          onSummaryHeight: { summaryHeight = $0 })
+          onSummaryHeight: { summaryHeight = $0 },
+          // The sheet comes down, so the knot is not hidden by it, see `knot-navigation` "Showing a
+          // coming knot on the map".
+          onShowKnot: { knot in
+            model.showOnMap(knot)
+            if let navigationDetent { detent = navigationDetent }
+          })
       } else {
         ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
       }
@@ -154,7 +160,8 @@ struct PlannerView: View {
         direction: navigator.state?.direction,
         myPosition: navigator.state == nil ? model.myPosition : nil,
         locating: model.locating,
-        onLocate: locateAction
+        onLocate: locateAction,
+        shownKnot: model.shownKnot
       )
       .ignoresSafeArea()
       // While typing in landscape, the hits need the room up to the top, see `place-search`.
@@ -290,6 +297,8 @@ private struct WaypointSheet: View {
   let onNavigationHeight: (CGFloat) -> Void
   /// The height of the summary and the actions while planning.
   let onSummaryHeight: (CGFloat) -> Void
+  /// Shows a coming knot on the map.
+  let onShowKnot: (Knot) -> Void
 
   var body: some View {
     let complete = model.routeDescription as? RouteDescriptionComplete
@@ -363,8 +372,13 @@ private struct WaypointSheet: View {
             .moveDisabled(true)
             .deleteDisabled(true)
         }
-        // No waypoints while navigating: the route is fixed then and the knot sequence shows it,
-        // see `map-planning` "Waypoint list with badges".
+        // While navigating, the coming knots in place of the waypoints, as the route is fixed then,
+        // see `knot-navigation` "Coming knots" and `map-planning` "Waypoint list with badges".
+        ForEach(Array((progress?.coming ?? []).enumerated()), id: \.offset) { _, coming in
+          comingRow(coming)
+            .listRowInsets(EdgeInsets(top: 2, leading: 16, bottom: 2, trailing: 16))
+            .listRowBackground(Color.clear)
+        }
         ForEach(Array((navigator.state == nil ? rows : []).enumerated()), id: \.element.id) { index, row in
           HStack(spacing: 12) {
             KnotBadge(ref: row.knot.ref, role: role(index)).frame(width: 40)
@@ -398,6 +412,53 @@ private struct WaypointSheet: View {
     }
     .onAppear { rows = WaypointRow.rows(of: session) }
     .onChange(of: WaypointRow.rows(of: session)) { _, newRows in rows = newRows }
+  }
+
+  /// A coming knot or ferry with its distance and arrival; tapping a knot shows it on the map.
+  @ViewBuilder private func comingRow(_ coming: ComingKnot) -> some View {
+    if let knot = coming.knot {
+      Button { onShowKnot(knot) } label: { comingContent(coming) }
+        .buttonStyle(.plain)
+    } else {
+      comingContent(coming)
+    }
+  }
+
+  private func comingContent(_ coming: ComingKnot) -> some View {
+    let description: String = coming.description_
+    return HStack(spacing: 12) {
+      comingBadge(coming).frame(width: 40)
+      Text(coming.distance).bold()
+      Spacer()
+      comingArrival(coming)
+    }
+    .contentShape(Rectangle())
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(Text(description))
+  }
+
+  @ViewBuilder private func comingArrival(_ coming: ComingKnot) -> some View {
+    if let arrival = coming.arrival {
+      let color: Color = ProgressPanel.arrivalColor(coming.state)
+      Text(arrival).fontWeight(coming.state == nil ? .regular : .medium).foregroundStyle(color)
+    }
+  }
+
+  @ViewBuilder private func comingBadge(_ coming: ComingKnot) -> some View {
+    if coming.knot == nil {
+      FerryBadge(warning: coming.state == FerryArrivalState.warning)
+    } else {
+      KnotBadge(ref: coming.label, role: Self.role(of: coming.kind))
+    }
+  }
+
+  private static func role(of kind: ProgressMarkKind) -> KnotRole {
+    switch kind {
+    case .start: .start
+    case .stop: .stop
+    case .end: .end
+    default: .passed
+    }
   }
 
   /// Side by side with the summary where they fit, so the header stays one row and the badges fit
@@ -434,6 +495,8 @@ private struct WaypointSheet: View {
         }
       }
     }
+    // Never squeezed: the summary and the spacer give way, or the actions move below them.
+    .fixedSize(horizontal: true, vertical: false)
   }
 
   @ViewBuilder private var summary: some View {

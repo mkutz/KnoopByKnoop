@@ -21,6 +21,7 @@ import com.knoopbyknoop.core.GeoPoint
 import com.knoopbyknoop.core.Gpx
 import com.knoopbyknoop.core.GraphFile
 import com.knoopbyknoop.core.IndexedNetworkType
+import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.KnotLocator
 import com.knoopbyknoop.core.MapFeatures
 import com.knoopbyknoop.core.NetworkCatalog
@@ -64,6 +65,9 @@ data class MapLayers(
  * @property network the selected network type
  * @property online whether the device has network access, for the note while courses are loading
  */
+/** A [knot] to show on the map; [request] counts the taps, so the same knot can be shown again. */
+data class ShownKnot(val knot: Knot, val request: Int)
+
 data class AppState(
   val network: IndexedNetworkType = IndexedNetworkType.CYCLING,
   val catalog: NetworkCatalog = NetworkCatalog(null, listOf()),
@@ -95,6 +99,10 @@ data class AppState(
   val appearance: Appearance = Appearance.SYSTEM,
   /** The navigation, or `null` when not navigating, see `knot-navigation`. */
   val navigation: NavigationState? = null,
+  /**
+   * The coming knot last tapped, shown on the map, see `knot-navigation` "Showing a coming knot".
+   */
+  val shownKnot: ShownKnot? = null,
 ) {
   val status: NetworkStatus
     get() = catalog.status(network)
@@ -199,6 +207,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
   fun stopNavigation() {
     NavigationService.stop(getApplication())
+  }
+
+  /**
+   * Shows the coming [knot] on the map, see `knot-navigation` "Showing a coming knot on the map".
+   */
+  fun showOnMap(knot: Knot) {
+    state = state.copy(shownKnot = ShownKnot(knot, (state.shownKnot?.request ?: 0) + 1))
   }
 
   /** The user did not grant location access, see `knot-navigation` "Location access denied". */

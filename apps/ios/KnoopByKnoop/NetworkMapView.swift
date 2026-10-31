@@ -85,6 +85,9 @@ struct NetworkMapView: UIViewRepresentable {
   var locating = false
   /// Asks for the position; `nil` while navigating, which hides the button.
   var onLocate: (() -> Void)? = nil
+  /// A coming knot to show while navigating, see `knot-navigation` "Showing a coming knot on the
+  /// map".
+  var shownKnot: ShownKnot? = nil
 
   func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -98,6 +101,9 @@ struct NetworkMapView: UIViewRepresentable {
     // `UIViewController.automaticallyAdjustsScrollViewInsets` and warns at startup; `true` is what
     // that fallback did.
     mapView.automaticallyAdjustsContentInset = true
+    // The planner sheet is presented over the map; without this, UIKit dims the tint of the map's
+    // buttons behind it, so the recenter icon turned pale green and the zoom icons gray.
+    mapView.tintAdjustmentMode = .normal
     mapView.delegate = coordinator
     if online { coordinator.loadBaseMap(on: mapView) } else { coordinator.useOfflineStyle(on: mapView) }
     if let initialPlace {
@@ -211,6 +217,7 @@ struct NetworkMapView: UIViewRepresentable {
     context.coordinator.showNavigation(
       position: position, nextKnot: nextKnot, offRoute: offRoute, direction: direction, on: mapView)
     context.coordinator.showTrack(track)
+    context.coordinator.showKnot(shownKnot, on: mapView)
     context.coordinator.onLocate = onLocate
     context.coordinator.showLocating(locating, available: onLocate != nil)
     context.coordinator.showMyPosition(myPosition, on: mapView)
@@ -295,6 +302,19 @@ struct NetworkMapView: UIViewRepresentable {
 
     private func updateRecenterButton() {
       recenterButton?.isHidden = position == nil || following
+    }
+
+    /// The request of the knot shown last, so each tap shows it once.
+    private var shownRequest = 0
+
+    /// Shows the knot at the navigation zoom and stops following the rider, as a move by hand.
+    func showKnot(_ shown: ShownKnot?, on mapView: MLNMapView) {
+      guard let shown, shown.request != shownRequest else { return }
+      shownRequest = shown.request
+      following = false
+      mapView.setCenter(
+        CLLocationCoordinate2D(latitude: shown.knot.latitude, longitude: shown.knot.longitude),
+        zoomLevel: navigationZoom, animated: true)
     }
 
     /// Back to the rider at the navigation zoom, following them again.

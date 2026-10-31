@@ -185,6 +185,104 @@ class RouteProgressTest {
     assertTrue(labels.getValue("31").startsWith("12 km"))
   }
 
+  // Requirement: Coming knots
+
+  /** 24 → 45 (1.1 km) → the stop 30 (5.2 km) → 12 (8.0 km) → 31 (12.4 km). */
+  private val coming =
+    ride(listOf("24", "45", "30", "12", "31"), listOf(1100, 4100, 2800, 4400), setOf(2))
+
+  /** The coming knots as `label distance arrival`, e.g. `30 5.2 km 18:40`. */
+  private fun comingKnots(navigation: Navigation, fix: Fix): List<String> =
+    navigation.progress(fix).coming.map {
+      listOfNotNull(it.label, it.distance, it.arrival).joinToString(" ")
+    }
+
+  @Test
+  fun `coming knots at the start`() {
+    val fix = coming.fix(0.0, "18:20")
+
+    val list = start(coming, fix).progress(fix).coming
+
+    assertEquals(
+      listOf("45 1.1 km 18:25", "30 5.2 km 18:40", "12 8.0 km 18:50", "31 12 km 19:05"),
+      comingKnots(start(coming, fix), fix),
+    )
+    assertEquals(
+      listOf(
+        ProgressMarkKind.KNOT,
+        ProgressMarkKind.STOP,
+        ProgressMarkKind.KNOT,
+        ProgressMarkKind.END,
+      ),
+      list.map { it.kind },
+    )
+    assertEquals(coming.knots.drop(1), list.map { it.knot })
+  }
+
+  @Test
+  fun `after passing knots`() {
+    val started = start(coming, coming.fix(0.0, "18:20"))
+    val after =
+      started
+        .update(coming.fix(1100.0, "18:24"))
+        .navigation
+        .update(coming.fix(5200.0, "18:40"))
+        .navigation
+    val fix = coming.fix(5600.0, "18:42")
+
+    val labels = after.update(fix).navigation.progress(fix).coming.map { it.label }
+
+    assertEquals(listOf("12", "31"), labels)
+  }
+
+  @Test
+  fun `ferry in the list`() {
+    val ride = ferryRide()
+    val fix = ride.fix(0.0, "18:55")
+
+    val list = start(ride, fix).progress(fix).coming
+
+    assertEquals(listOf("12", "⛴", "30", "31"), list.map { it.label })
+    val ferry = list[1]
+    assertEquals(1, ferry.position)
+    assertNull(ferry.knot)
+    assertEquals(FerryArrivalState.WARNING, ferry.state, "at 19:06, closed from 19:00")
+  }
+
+  @Test
+  fun `coming knots off route`() {
+    val navigation = start(coming, coming.fix(0.0, "18:20"))
+    val passed = navigation.update(coming.fix(5200.0, "18:40")).navigation
+    val offRoute = coming.fix(8000.0, "18:44", north = 1700.0)
+
+    val update = passed.update(offRoute).navigation
+    val list = update.progress(offRoute).coming
+
+    assertTrue(update.offRoute)
+    assertEquals("12", list.first().label)
+    assertEquals("1.7 km", list.first().distance, "straight to 12")
+    assertEquals("6.1 km", list.last().distance, "4.4 km from 12 to 31 plus 1.7 km")
+  }
+
+  @Test
+  fun `long list of coming knots`() {
+    val refs = (1..81).map { it.toString().padStart(2, '0') }
+    val ride = ride(refs, List(80) { 500 }, setOf(40))
+    val fix = ride.fix(0.0, "08:00")
+
+    assertEquals(80, start(ride, fix).progress(fix).coming.size)
+  }
+
+  @Test
+  fun `coming knots with a screen reader`() {
+    val fix = coming.fix(0.0, "18:20")
+
+    val list = start(coming, fix).progress(fix).coming
+
+    assertEquals("Knot 30, stop, 5.2 km, 18:40", list.single { it.label == "30" }.description)
+    assertEquals("Knot 45, 1.1 km, 18:25", list.single { it.label == "45" }.description)
+  }
+
   // Requirement: Ferries on the strip
 
   private val renkum = Ferry(name = "Renkumse Veer", openingHours = "Apr-Oct: Mo-Su 07:00-19:00")

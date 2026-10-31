@@ -56,12 +56,40 @@ data class ProgressStrip(
 )
 
 /**
+ * A knot or ferry still ahead on the route, see `knot-navigation` "Coming knots".
+ *
+ * @property knot the knot, to show it on the map; `null` for a ferry
+ * @property label the knot's number, or `⛴` for a ferry
+ * @property distance the distance to it along the route, e.g. `5.2 km`, as on the strip
+ * @property arrival when the rider gets there, e.g. `18:40`, where the local time is known
+ * @property position for a ferry, the route position of the knot before it, as
+ *   [RouteFerry.fromPosition]
+ * @property state for a ferry, whether it runs when the rider gets there
+ * @property description what screen readers say, e.g. `Knot 30, stop, 5.2 km, 18:40`
+ */
+data class ComingKnot(
+  val kind: ProgressMarkKind,
+  val knot: Knot?,
+  val label: String,
+  val distance: String,
+  val arrival: String?,
+  val position: Int? = null,
+  val state: FerryArrivalState? = null,
+  val description: String,
+)
+
+/**
  * What the panel shows about the rider's progress while navigating.
  *
  * @property nextKnotDistance the distance to the next knot, along the route or straight while off
  *   route, e.g. `800 m`, see `knot-navigation` "Number to follow"
+ * @property coming the knots and ferries ahead in riding order, from the next knot to the end
  */
-data class ProgressView(val strip: ProgressStrip, val nextKnotDistance: String)
+data class ProgressView(
+  val strip: ProgressStrip,
+  val nextKnotDistance: String,
+  val coming: List<ComingKnot> = listOf(),
+)
 
 /**
  * A navigated route measured along its connections: where each knot is, which knots are stops, and
@@ -147,6 +175,27 @@ private constructor(
           )
         }
       }
+    fun arrival(meters: Double) = localTime?.let { arrivalText(now, meters / metersPerSecond, it) }
+    // The knots from the next one, and the ferries ahead between them, see `knot-navigation`
+    // "Coming knots".
+    val from = aheadFrom(place, nextIndex, offRouteDistance)
+    val comingKnots =
+      (nextIndex..knots.lastIndex).map { index ->
+        val kind =
+          when (index) {
+            0 -> ProgressMarkKind.START
+            knots.lastIndex -> ProgressMarkKind.END
+            in stops -> ProgressMarkKind.STOP
+            else -> ProgressMarkKind.KNOT
+          }
+        offsets[index] to coming(kind, knots[index], distanceTo(offsets[index]), ::arrival)
+      }
+    val comingFerries = ferryPositions.mapNotNull { position ->
+      val offset = (offsets[position] + offsets[position + 1]) / 2
+      if (offset <= from + 0.5) null
+      else offset to comingFerry(position, distanceTo(offset), ::arrival, ferryState(position))
+    }
+    val coming = (comingKnots + comingFerries).sortedBy { it.first }.map { it.second }
     val toNext = offRouteDistance ?: max(0.0, offsets[nextIndex] - place)
     val rider = if (length > 0) (place / length).coerceIn(0.0, 1.0) else 0.0
     return ProgressView(
@@ -157,6 +206,53 @@ private constructor(
         "${ridden(place)} ridden, next knot ${knots[nextIndex].ref}",
       ),
       MapFeatures.formatDistance(toNext.roundToInt()),
+      coming,
+    )
+  }
+
+  private fun coming(
+    kind: ProgressMarkKind,
+    knot: Knot,
+    meters: Double,
+    arrival: (Double) -> String?,
+  ): ComingKnot {
+    val distance = MapFeatures.formatDistance(meters.roundToInt())
+    val at = arrival(meters)
+    val role =
+      when (kind) {
+        ProgressMarkKind.START -> "start"
+        ProgressMarkKind.STOP -> "stop"
+        ProgressMarkKind.END -> "end"
+        else -> null
+      }
+    return ComingKnot(
+      kind,
+      knot,
+      knot.ref,
+      distance,
+      at,
+      description = listOfNotNull("Knot ${knot.ref}", role, distance, at).joinToString(", "),
+    )
+  }
+
+  private fun comingFerry(
+    position: Int,
+    meters: Double,
+    arrival: (Double) -> String?,
+    state: FerryArrivalState?,
+  ): ComingKnot {
+    val distance = MapFeatures.formatDistance(meters.roundToInt())
+    val at = arrival(meters)
+    val legs = "${knots[position].ref} → ${knots[position + 1].ref}"
+    return ComingKnot(
+      ProgressMarkKind.FERRY,
+      null,
+      "⛴",
+      distance,
+      at,
+      position,
+      state,
+      listOfNotNull("Ferry $legs", distance, at).joinToString(", "),
     )
   }
 

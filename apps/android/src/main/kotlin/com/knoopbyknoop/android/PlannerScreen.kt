@@ -61,6 +61,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -90,6 +91,7 @@ import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteSummary
 import kotlin.math.ceil
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 private val WAYPOINT_ROW_HEIGHT = 48.dp
 
@@ -145,16 +147,16 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
                 .width(360.dp)
                 .padding(top = 16.dp)
           ) {
-            WaypointSheet(state, viewModel)
+            WaypointSheet(state, viewModel, onShowKnot = viewModel::showOnMap)
           }
         }
       }
       SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
     }
   } else {
-    // While navigating, the sheet is fixed at the height of the number to follow and the whole
-    // strip, and starting or ending navigation brings it down to its smallest height, see
-    // `knot-navigation` "Panel height while navigating".
+    // While navigating, the sheet is at least as high as the number to follow and the whole strip,
+    // with the coming knots above, and starting or ending navigation brings it down to its smallest
+    // height, see `knot-navigation` "Panel height while navigating".
     val scaffoldState = rememberBottomSheetScaffoldState()
     var navigationHeight by remember { mutableIntStateOf(0) }
     var summaryHeight by remember { mutableIntStateOf(0) }
@@ -163,35 +165,30 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
     val navigationBar = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     fun Int.toDp() = ceil(this / density.density).dp
     val peekHeight =
-      if (state.navigating && navigationHeight > 0) navigationHeight.toDp() + 8.dp + navigationBar
+      if (state.navigating && navigationHeight > 0)
+        (dragHandleHeight + navigationHeight).toDp() + 8.dp + navigationBar
       // While planning, at least the summary and the actions, which are below it at large text
       // sizes, see `map-planning` "Route summary at large text sizes".
       else if (!state.navigating)
         maxOf(150.dp, (dragHandleHeight + summaryHeight).toDp() + 8.dp + navigationBar)
       else 150.dp
     LaunchedEffect(state.navigating) { scaffoldState.bottomSheetState.partialExpand() }
-    // Also when the height changes while navigating, e.g. off route or with another font size: the
-    // sheet does not follow a changed peek height by itself. While planning only at its smallest,
-    // so a sheet the user pulled up stays up.
+    // Also when the height changes, e.g. off route or with another font size: the sheet does not
+    // follow a changed peek height by itself. Only at its smallest, so a sheet the user pulled up
+    // stays up.
     LaunchedEffect(peekHeight) {
-      if (
-        state.navigating ||
-          scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded
-      )
+      if (scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded)
         scaffoldState.bottomSheetState.partialExpand()
     }
+    val scope = rememberCoroutineScope()
     BottomSheetScaffold(
       scaffoldState = scaffoldState,
       sheetPeekHeight = peekHeight,
-      sheetDragHandle =
-        if (state.navigating) null
-        else
-          ({
-            BottomSheetDefaults.DragHandle(
-              modifier = Modifier.onSizeChanged { dragHandleHeight = it.height }
-            )
-          }),
-      sheetSwipeEnabled = !state.navigating,
+      sheetDragHandle = {
+        BottomSheetDefaults.DragHandle(
+          modifier = Modifier.onSizeChanged { dragHandleHeight = it.height }
+        )
+      },
       snackbarHost = { SnackbarHost(snackbarHostState) },
       sheetContent = {
         WaypointSheet(
@@ -199,6 +196,12 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
           viewModel,
           onNavigationHeight = { navigationHeight = it },
           onSummaryHeight = { summaryHeight = it },
+          // The sheet comes down, so the knot is not hidden by it, see `knot-navigation` "Showing
+          // a coming knot on the map".
+          onShowKnot = { knot ->
+            viewModel.showOnMap(knot)
+            scope.launch { scaffoldState.bottomSheetState.partialExpand() }
+          },
         )
       },
     ) { padding ->
@@ -299,6 +302,7 @@ private fun MapArea(
       myPosition = state.myPosition.takeUnless { state.navigating },
       locating = state.locating,
       onLocate = locate.takeUnless { state.navigating },
+      shownKnot = state.shownKnot,
     )
     // Below the status bar and clear of the cutout, where touches go to the system, see
     // `map-planning` "Clear of the system bars".
@@ -375,6 +379,7 @@ private fun WaypointSheet(
   viewModel: AppViewModel,
   onNavigationHeight: (Int) -> Unit = {},
   onSummaryHeight: (Int) -> Unit = {},
+  onShowKnot: (Knot) -> Unit = {},
 ) {
   val session = state.session ?: return
   Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
@@ -385,12 +390,7 @@ private fun WaypointSheet(
       navigation?.position?.let { position -> navigation.navigation?.progress(position) }
     if (navigation != null)
       // Measured for the sheet's smallest height while navigating, see `PlannerScreen`.
-      Column(
-        modifier =
-          Modifier.onSizeChanged { onNavigationHeight(it.height) }
-            // In place of the drag handle, which is not shown while navigating.
-            .padding(top = 16.dp)
-      ) {
+      Column(modifier = Modifier.onSizeChanged { onNavigationHeight(it.height) }) {
         NavigationHeader(
           navigation,
           complete?.knots?.map { it.role },
@@ -476,24 +476,31 @@ private fun WaypointSheet(
       )
       complete?.let { RouteKnots(it) }
     }
+    // While navigating, the coming knots below the strip in place of the waypoints, as the route is
+    // fixed then, see `knot-navigation` "Coming knots" and `map-planning` "Waypoint list with
+    // badges".
+    if (state.navigating)
+      ComingKnots(
+        progress?.coming.orEmpty(),
+        onShowKnot,
+        modifier = Modifier.weight(1f, fill = false),
+      )
+    else
     // Below the fixed header, the ferries and the waypoints scroll together, see `map-planning`
-    // "Long routes in the panel". No waypoints while navigating: the route is fixed then and the
-    // knot sequence shows it, see "Waypoint list with badges".
+    // "Long routes in the panel".
     WaypointList(
-      if (state.navigating) listOf() else session.waypoints,
-      session.canRemoveWaypoints && !state.navigating,
-      viewModel,
-      editable = !state.navigating,
-      modifier = Modifier.weight(1f, fill = false),
-    ) {
-      // While navigating, the ferries are on the progress strip, see `knot-navigation` "Ferries on
-      // the strip".
-      if (complete != null && complete.ferries.isNotEmpty() && !state.navigating) {
-        Box(modifier = Modifier.padding(bottom = 8.dp)) {
-          RouteFerries(complete.ferries)
+        session.waypoints,
+        session.canRemoveWaypoints,
+        viewModel,
+        editable = true,
+        modifier = Modifier.weight(1f, fill = false),
+      ) {
+        if (complete != null && complete.ferries.isNotEmpty()) {
+          Box(modifier = Modifier.padding(bottom = 8.dp)) {
+            RouteFerries(complete.ferries)
+          }
         }
       }
-    }
   }
 }
 

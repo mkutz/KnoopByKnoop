@@ -147,6 +147,8 @@ fun NetworkMap(
   locating: Boolean = false,
   /** Asks for the position; `null` while navigating, which hides the button. */
   onLocate: (() -> Unit)? = null,
+  /** A coming knot to show while navigating, see `knot-navigation` "Showing a coming knot". */
+  shownKnot: ShownKnot? = null,
 ) {
   val context = LocalContext.current
   val touchTargetPixels = with(LocalDensity.current) { TOUCH_TARGET_DP * density }
@@ -230,6 +232,7 @@ fun NetworkMap(
     holder.showNavigation(position, nextKnot, offRoute, direction)
   }
   LaunchedEffect(track) { holder.showTrack(track) }
+  LaunchedEffect(shownKnot) { shownKnot?.let { holder.showKnot(it.knot) } }
   // The offline style has no base map; it is loaded as soon as network access is back.
   LaunchedEffect(online) { if (online && holder.usesOfflineStyle) holder.loadBaseMap() }
   // Switched in place, the camera stays, see `map-planning` "Switching while the app is open".
@@ -493,6 +496,14 @@ private class MapHolder {
         if (fix == null) """{"type": "FeatureCollection", "features": []}"""
         else """{"type": "Point", "coordinates": [${fix.longitude}, ${fix.latitude}]}"""
       )
+  }
+
+  /** Shows [knot] at the navigation zoom and stops following the rider, as a move by hand. */
+  fun showKnot(knot: Knot) {
+    following = false
+    map?.animateCamera(
+      CameraUpdateFactory.newLatLngZoom(LatLng(knot.latitude, knot.longitude), NAVIGATION_ZOOM)
+    )
   }
 
   /** Back to the rider at the navigation zoom, following them again. */

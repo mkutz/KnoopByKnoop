@@ -43,6 +43,12 @@ private struct PreparedSession: @unchecked Sendable {
   }
 }
 
+/// A `knot` to show on the map; `request` counts the taps, so the same knot can be shown again.
+struct ShownKnot {
+  let knot: Knot
+  let request: Int
+}
+
 /// Connects the planner with storage, the network sync and the core's planning logic.
 @MainActor
 final class AppModel: ObservableObject {
@@ -68,6 +74,9 @@ final class AppModel: ObservableObject {
   @Published private(set) var searchResult: SearchResult = .none
   /// The chosen search hit, shown with a marker on the map.
   @Published private(set) var marker: PlaceHit?
+  /// The coming knot last tapped, shown on the map, see `knot-navigation` "Showing a coming knot on
+  /// the map".
+  @Published private(set) var shownKnot: ShownKnot?
 
   var status: NetworkStatus { catalog.status(network: network) }
 
@@ -155,6 +164,11 @@ final class AppModel: ObservableObject {
 
   func stopNavigation() {
     Navigator.shared.stop()
+  }
+
+  /// Shows the coming `knot` on the map, see `knot-navigation` "Showing a coming knot on the map".
+  func showOnMap(_ knot: Knot) {
+    shownKnot = ShownKnot(knot: knot, request: (shownKnot?.request ?? 0) + 1)
   }
 
   func switchNetwork(_ network: IndexedNetworkType) {
