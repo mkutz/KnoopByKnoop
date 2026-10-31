@@ -2,6 +2,7 @@ package com.knoopbyknoop.android
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.content.Context
 import android.location.Location
 import android.net.ConnectivityManager
 import android.net.Network
@@ -88,6 +89,8 @@ data class AppState(
   val locating: Boolean = false,
   /** Whether to ask for location access on start: the first start, with nothing else to show. */
   val askLocationOnStart: Boolean = false,
+  /** The appearance chosen in the info sheet, see `map-planning` "Light and dark appearance". */
+  val appearance: Appearance = Appearance.SYSTEM,
   /** The navigation, or `null` when not navigating, see `knot-navigation`. */
   val navigation: NavigationState? = null,
 ) {
@@ -134,6 +137,7 @@ private class LoadedNetwork(
 class AppViewModel(application: Application) : AndroidViewModel(application) {
 
   private val storage = NetworkStorage(application.filesDir)
+  private val settings = application.getSharedPreferences("settings", Context.MODE_PRIVATE)
   private val sync = NetworkSync(application)
   private val connectivity = application.getSystemService(ConnectivityManager::class.java)
   private var loaded: LoadedNetwork? = null
@@ -145,6 +149,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val camera = storage.camera()
     state =
       state.copy(
+        appearance =
+          settings.getString(KEY_APPEARANCE, null)?.let { saved ->
+            Appearance.entries.firstOrNull { it.name == saved }
+          } ?: Appearance.SYSTEM,
         initialPlace = camera,
         askLocationOnStart = camera == null && storage.route()?.waypoints.isNullOrEmpty(),
       )
@@ -200,6 +208,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   fun saveCamera(place: CameraPlace) {
     storage.saveCamera(place)
     state = state.copy(myPosition = null)
+  }
+
+  /** Chooses and keeps the [appearance], see `map-planning` "Light and dark appearance". */
+  fun chooseAppearance(appearance: Appearance) {
+    settings.edit().putString(KEY_APPEARANCE, appearance.name).apply()
+    state = state.copy(appearance = appearance)
   }
 
   /** The start's question for location access was asked, see "Show my position". */
@@ -538,3 +552,5 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
 /** How long finding the position on request may take, see "Show my position". */
 private const val LOCATE_TIMEOUT_MILLIS = 15_000L
+
+private const val KEY_APPEARANCE = "appearance"

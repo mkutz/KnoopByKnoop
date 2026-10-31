@@ -8,6 +8,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -25,6 +28,21 @@ import com.knoopbyknoop.core.NetworkStatus
 fun InfoSheet(state: AppState, viewModel: AppViewModel, onDismiss: () -> Unit) {
   ModalBottomSheet(onDismissRequest = onDismiss) {
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp)) {
+      // The appearance of the whole app, see `map-planning` "Light and dark appearance".
+      Text("Appearance", style = MaterialTheme.typography.titleLarge)
+      SingleChoiceSegmentedButtonRow(
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 16.dp)
+      ) {
+        Appearance.entries.forEachIndexed { index, appearance ->
+          SegmentedButton(
+            selected = state.appearance == appearance,
+            onClick = { viewModel.chooseAppearance(appearance) },
+            shape = SegmentedButtonDefaults.itemShape(index, Appearance.entries.size),
+          ) {
+            Text(appearance.name.lowercase().replaceFirstChar { it.uppercase() })
+          }
+        }
+      }
       Text("Knot network data", style = MaterialTheme.typography.titleLarge)
       state.catalog.networks.forEach { status ->
         Row(

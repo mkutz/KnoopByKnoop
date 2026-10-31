@@ -9,7 +9,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.LaunchedEffect
@@ -32,13 +31,13 @@ class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContent {
-      KnoopTheme {
+      val viewModel: AppViewModel = viewModel()
+      KnoopTheme(viewModel.state.appearance) {
         // The map extends behind the system bars, their icons dark or light like the appearance,
         // see `map-planning` "Clear of the system bars". Set once the UI shows the appearance: set
         // while the configuration changes, the system did not always take it over.
-        val dark = isSystemInDarkTheme()
+        val dark = isAppInDarkTheme()
         LaunchedEffect(dark) { showSystemBars(dark) }
-        val viewModel: AppViewModel = viewModel()
         val state = viewModel.state
         val snackbarHostState = remember { SnackbarHostState() }
         LaunchedEffect(state.message) {

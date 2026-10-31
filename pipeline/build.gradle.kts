@@ -10,6 +10,7 @@ application { mainClass = "com.knoopbyknoop.pipeline.MainKt" }
 dependencies {
   implementation(project(":modules:core"))
   implementation(libs.osmpbf)
+  implementation(libs.kotlinx.serialization.json)
   testImplementation(libs.kotlin.test)
 }
 
@@ -44,6 +45,20 @@ fun registerBundleTask(name: String, buildType: String, allowUnavailable: Boolea
       )
     )
   }
+
+// The dark map, generated from OpenFreeMap's liberty style and checked in, see `map-planning`
+// "Light
+// and dark appearance". Run by hand when liberty changes.
+tasks.register<JavaExec>("darkStyle") {
+  description = "Generates map-styles/liberty-dark.json from OpenFreeMap's liberty style"
+  classpath = sourceSets.main.get().runtimeClasspath
+  mainClass = application.mainClass
+  args(
+    "dark-style",
+    "https://tiles.openfreemap.org/styles/liberty",
+    rootProject.file("map-styles/liberty-dark.json").absolutePath,
+  )
+}
 
 registerBundleTask("bundleNetworkGraphs", "debug", allowUnavailable = true)
 

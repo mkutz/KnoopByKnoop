@@ -5,7 +5,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 /** The green and orange of the app icon, see `design/icon`. */
@@ -28,17 +30,36 @@ private val darkColors =
     surfaceVariant = Color(0xFF2B2F2A),
   )
 
-/** Light or dark like the system, see `map-planning` "Light and dark appearance". */
+/** The appearance chosen in the info sheet, see `map-planning` "Light and dark appearance". */
+enum class Appearance {
+  SYSTEM,
+  LIGHT,
+  DARK,
+}
+
+/** Whether the app is dark, resolved from the [Appearance] and the system by [KnoopTheme]. */
+private val LocalDark = staticCompositionLocalOf { false }
+
+/** Whether the app is dark: the map, the panel and the controls all follow it. */
+@Composable @ReadOnlyComposable fun isAppInDarkTheme(): Boolean = LocalDark.current
+
+/**
+ * Light or dark as chosen, by default like the system, see `map-planning` "Light and dark
+ * appearance".
+ */
 @Composable
-fun KnoopTheme(content: @Composable () -> Unit) {
-  MaterialTheme(
-    colorScheme = if (isSystemInDarkTheme()) darkColors else lightColors,
-    content = content,
-  )
+fun KnoopTheme(appearance: Appearance, content: @Composable () -> Unit) {
+  val dark =
+    when (appearance) {
+      Appearance.SYSTEM -> isSystemInDarkTheme()
+      Appearance.LIGHT -> false
+      Appearance.DARK -> true
+    }
+  CompositionLocalProvider(LocalDark provides dark) {
+    MaterialTheme(colorScheme = if (dark) darkColors else lightColors, content = content)
+  }
 }
 
 /** The background of the controls floating over the map: white, or dark grey in dark mode. */
 val mapOverlayColor: Color
-  @Composable
-  @ReadOnlyComposable
-  get() = if (isSystemInDarkTheme()) Color(0xFF2A2C2A) else Color.White
+  @Composable @ReadOnlyComposable get() = if (isAppInDarkTheme()) Color(0xFF2A2C2A) else Color.White

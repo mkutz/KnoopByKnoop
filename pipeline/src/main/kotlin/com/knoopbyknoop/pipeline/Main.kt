@@ -34,7 +34,8 @@ private const val USAGE =
   pipeline build <area> <output-dir> <extract.osm.pbf>...   extract one graph per network type from all extracts
   pipeline index <output-dir>                               write index.json for all graph files
   pipeline bundle [--allow-unavailable] <base-url> <output-dir>
-                                                            fetch and verify the published graphs for the apps"""
+                                                            fetch and verify the published graphs for the apps
+  pipeline dark-style <liberty-url-or-file> <output.json>   generate the dark map from OpenFreeMap's liberty"""
 
 /** Turns OpenStreetMap node network data into the graph files the apps download. */
 fun main(args: Array<String>) {
@@ -42,6 +43,7 @@ fun main(args: Array<String>) {
     "build" if args.size >= 4 -> build(args[1], Path(args[2]), args.drop(3).map(::Path))
     "index" if args.size == 2 -> index(Path(args[1]))
     "bundle" if args.size == 3 -> bundle(args[1], Path(args[2]))
+    "dark-style" if args.size == 3 -> DarkStyle.generate(args[1], Path(args[2]))
     "bundle" if args.size == 4 && args[1] == "--allow-unavailable" ->
       bundle(args[2], Path(args[3]), allowUnavailable = true)
     else -> {

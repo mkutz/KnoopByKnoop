@@ -7,10 +7,20 @@ struct InfoSheet: View {
 
   @ObservedObject var model: AppModel
   let onDone: () -> Void
+  /// The appearance of the whole app, see `map-planning` "Light and dark appearance".
+  @AppStorage("appearance") private var appearance = "system"
 
   var body: some View {
     NavigationStack {
       List {
+        Section("Appearance") {
+          Picker("Appearance", selection: $appearance) {
+            Text("System").tag("system")
+            Text("Light").tag("light")
+            Text("Dark").tag("dark")
+          }
+          .pickerStyle(.segmented)
+        }
         Section("Knot network data") {
           ForEach(model.catalog.networks, id: \.network) { status in
             HStack {
