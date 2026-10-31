@@ -4,12 +4,12 @@
 
 Android checked 2026-10-31 on the emulator (`Medium_Phone_API_37.0`) on the round trip 93 → 29 (stop) → 94 (end) in Arnhem, positions mocked with `adb emu geo fix`, at font scales 1.0, 1.3 and 2.0.
 
-The maintainer checked iOS on the iPhone on 2026-10-31 at the default and the largest text size: "Looks great". The overlap scenario was not seen on either platform.
+The maintainer checked iOS on the iPhone on 2026-10-31 at the default and the largest text size: "Looks great". The overlap scenario was checked on the iPhone afterwards.
 
 | Scenario | Android | iOS | Notes |
 |---|---|---|---|
 | Largest text size | ✅ | ✅ | Font scale 2.0: "2.2 km 17:55" below 29 and "4.0 km 18:00" below 94, complete ([screenshot](screenshots/android-navigating-2.0.png)); 1.3 ([screenshot](screenshots/android-navigating-1.3.png)) |
-| Labels that would overlap at a large text size | not seen | ⏳ | On this route the labels did not overlap even at 2.0. The ranking is unchanged and works with the scaled width |
+| Labels that would overlap at a large text size | not seen | ✅ | Not seen on the emulator's route, where the labels did not overlap even at 2.0; checked on the iPhone |
 | Default text size | ✅ | ✅ | Font scale 1.0 as before ([screenshot](screenshots/android-navigating-1.0.png)) |
 | Number to follow at the largest text size | ✅ | ✅ | Font scale 2.0: "At ⑨④ follow ④①" and Stop complete, "467 m" below them ([screenshot](screenshots/android-navigating-2.0.png)) |
 | Number to follow at the default text size | ✅ | ✅ | Font scale 1.0: the distance in the same line, as before ([screenshot](screenshots/android-navigating-1.0.png)) |

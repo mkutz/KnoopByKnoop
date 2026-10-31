@@ -2,18 +2,18 @@
 
 ## Scenarios
 
-The maintainer checked iOS on the iPhone on 2026-10-31, navigating off route after the dimming fix: "Looks great now". Landscape, with the zoom fix, checked on the iPhone too: "Works in landscape now". The other iOS rows are still open.
+The maintainer checked iOS on the iPhone on 2026-10-31, navigating off route after the dimming fix: "Looks great now". Landscape, with the zoom fix, checked on the iPhone too: "Works in landscape now". The other iOS rows were checked on the iPhone afterwards, as were the music getting quieter during spoken notices and coming back after them, with the audio session off the main thread.
 
 Android checked 2026-10-31 on the emulator (`Medium_Phone_API_37.0`), positions mocked with `adb emu geo fix` in Arnhem on the round trip 93 → 29 (stop) → 94 (end). The emulator had no courses, so off route could not be triggered there.
 
 | Scenario | Android | iOS | Notes |
 |---|---|---|---|
 | Starting with the smallest panel | ✅ | ✅ | "At ⑨④ follow ④① 573 m", the strip with "2.3 km 17:15" below 29 and "4.1 km 17:25" below 94, clear of the gesture bar ([screenshot](screenshots/android-start-from-smallest.png)) |
-| Starting with a high panel | ✅ | ⏳ | The planning sheet dragged up to the waypoint list; Navigate brings it down to the header and strip ([screenshot](screenshots/android-start-from-raised.png)) |
-| Dragging the panel | ✅ | ⏳ | No handle while navigating; dragging down or up moves the map, not the sheet ([screenshot](screenshots/android-dragging.png)) |
-| Ending navigation | ✅ (Stop) | ⏳ | After Stop, back to the 150 dp planning sheet with the handle ([screenshot](screenshots/android-after-stop.png)). Arriving ends navigation through the same state change as Stop |
+| Starting with a high panel | ✅ | ✅ | The planning sheet dragged up to the waypoint list; Navigate brings it down to the header and strip ([screenshot](screenshots/android-start-from-raised.png)) |
+| Dragging the panel | ✅ | ✅ | No handle while navigating; dragging down or up moves the map, not the sheet ([screenshot](screenshots/android-dragging.png)) |
+| Ending navigation | ✅ (Stop) | ✅ | After Stop, back to the 150 dp planning sheet with the handle ([screenshot](screenshots/android-after-stop.png)). Arriving ends navigation through the same state change as Stop |
 | Navigating in landscape | ✅ | ✅ | Side panel unchanged ([screenshot](screenshots/android-landscape.png)) |
-| Larger font sizes | ✅ | ⏳ | Font scale 1.3 fits; switching to 1.0 while navigating brings the sheet down with the header ([screenshot](screenshots/android-font-scale-1.3-to-1.0.png)). At 2.0 the sheet grows, but the strip's labels are clipped in their fixed 64 × 40 dp boxes ([screenshot](screenshots/android-font-scale-2.0.png)). That is in the strip itself and was there before this change |
+| Larger font sizes | ✅ | ✅ | Font scale 1.3 fits; switching to 1.0 while navigating brings the sheet down with the header ([screenshot](screenshots/android-font-scale-1.3-to-1.0.png)). At 2.0 the sheet grows, but the strip's labels are clipped in their fixed 64 × 40 dp boxes ([screenshot](screenshots/android-font-scale-2.0.png)). That is in the strip itself and was there before this change |
 
 ## Found and fixed
 
