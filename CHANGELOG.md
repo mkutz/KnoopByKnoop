@@ -4,13 +4,13 @@
 
 ## 0.3.0
 
-- The ⓘ button is hidden while navigating
-- While navigating, a strip shows where you are on the route, with the distance and arrival at the stops, ferries and the end; the number to follow shows the knots as badges and the distance to the next knot
-- Fixed on iOS: tapping a ferry without a website opened the website of another ferry
-- The notification and the Live Activity show the distance to the next knot and when you reach the end
+- While navigating, a strip shows where you are on the route, with distance and arrival at stops, ferries and the end
+- Ferries on the strip are red when closed on arrival; tap one for its details
+- The number to follow shows the knots as badges and the distance to the next knot
+- The lock screen shows the distance to the next knot and the arrival
 - While planning, the route shows how long it takes
-- While navigating, the ferries are on the strip with their arrival, red when closed then; tap one for its details
-- Distances from 10 km are shown in whole kilometers
+- Whole kilometers from 10 km; ⓘ hidden while navigating
+- iOS: ferry website links fixed
 
 ## 0.2.1
 
