@@ -94,6 +94,10 @@ struct NetworkMapView: UIViewRepresentable {
     coordinator.online = online
     // Offline, MapLibre would wait for the base map, and nothing can be drawn without a style.
     let mapView = MLNMapView(frame: .zero, styleURL: nil)
+    // Set explicitly, as MapLibre otherwise falls back on the deprecated
+    // `UIViewController.automaticallyAdjustsScrollViewInsets` and warns at startup; `true` is what
+    // that fallback did.
+    mapView.automaticallyAdjustsContentInset = true
     mapView.delegate = coordinator
     if online { coordinator.loadBaseMap(on: mapView) } else { coordinator.useOfflineStyle(on: mapView) }
     if let initialPlace {
