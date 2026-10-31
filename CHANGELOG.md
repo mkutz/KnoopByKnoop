@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.0
 
 - The apps speak German, Dutch and French: texts, spoken notices, distances and dates follow the phone's language
 
