@@ -37,7 +37,10 @@ The pace is renewed only when a knot is passed (route progress since the start o
 ### What the apps get
 `Navigation.progress(fix)` returns a `ProgressView` for the panel:
 - the strip: the length, each marked knot with its fraction along the route and its label kind (start, stop, end, ferry, other), the rider's fraction, the ridden fraction and whether the rider is off route, and the text for screen readers ("4.0 of 12.4 km ridden, next knot 12")
-- the rows: label ("Next knot", "Next stop", "End"), knot number, distance ("800 m", "5.2 km", as `formatDistance`), time ("20 min", "2 h 30 min") and arrival ("18:40") where they apply
+- for each stop, ferry and the end still ahead, its distance ("800 m", "5.2 km", as `formatDistance`) and arrival ("18:40") on its mark
+- the distance to the next knot for the header (straight while off route)
+
+The apps choose which marks show their badge and which their distance and arrival: badges first by priority (end, stop, start, ferry) where 30 pt/dp of room are left, then distance and arrival for the shown stops, ferries and the end where the wider label (about 60 pt/dp) does not overlap a stronger one. A first version had a table of next knot, next stop and end below the strip; on the iPhone it read small and repeated the header, so the maintainer chose labels on the strip instead.
 
 `Navigation.progressLine` is the notification's text ("800 m to 45 · end around 19:05"), computed when a knot is passed and at the start, so it changes only then and causes no extra notification or Live Activity updates.
 
@@ -60,3 +63,6 @@ One function for durations (minutes under an hour, at least one; five minutes ab
 - [Crowded strip on long routes with many stops] → Labels give way by priority, ticks stay; the table names the next stop and the end in full.
 - [Updating the panel every second costs battery] → Only while the app is on screen, when fixes come every second anyway; the computation is a projection onto one leg's course.
 - [The notification's distance goes stale between knots] → It says the distance as of the last knot; refreshing it would need fixes the screen-off budget does not allow.
+
+### Ferry website links on iOS
+Found during the iPhone checks (from `polish-planner-panel`): all ferries were one row of the sheet's `List`, and a `List` row sends taps anywhere in it to its first `Link`, so tapping a ferry without a website opened the website of the one before. Each ferry is its own `List` row now, and the link uses `.buttonStyle(.borderless)`, so it only reacts to taps on itself.

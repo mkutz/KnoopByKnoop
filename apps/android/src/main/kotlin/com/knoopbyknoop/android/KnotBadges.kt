@@ -147,11 +147,11 @@ fun riderArrowBitmap(color: Int): Bitmap {
   return bitmap
 }
 
-/** The same badge as on the map, for the sheet. */
+/** The same badge as on the map, for the sheet; [scale] makes it larger, e.g. to stand out. */
 @Composable
-fun KnotBadge(ref: String, role: KnotRole?, modifier: Modifier = Modifier) {
+fun KnotBadge(ref: String, role: KnotRole?, modifier: Modifier = Modifier, scale: Float = 1f) {
   val style = styleOf(role)
-  val size = if (style.large) 34.dp else 28.dp
+  val size = (if (style.large) 34.dp else 28.dp) * scale
   Box(
     contentAlignment = Alignment.Center,
     modifier =
@@ -171,7 +171,7 @@ fun KnotBadge(ref: String, role: KnotRole?, modifier: Modifier = Modifier) {
       ref,
       color = style.text,
       fontWeight = FontWeight.Bold,
-      fontSize = (if (ref.length > 2) 10 else 12).sp * (if (style.large) 1.2f else 1f),
+      fontSize = (if (ref.length > 2) 10 else 12).sp * (if (style.large) 1.2f else 1f) * scale,
     )
   }
 }

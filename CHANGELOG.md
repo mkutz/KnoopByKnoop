@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- While navigating, a strip shows where you are on the route, with distance, time and arrival to the next knot, the next stop and the end
+- While navigating, a strip shows where you are on the route, with the distance and arrival at the stops, ferries and the end; the number to follow shows the knots as badges and the distance to the next knot
+- Fixed on iOS: tapping a ferry without a website opened the website of another ferry
 - The notification and the Live Activity show the distance to the next knot and when you reach the end
 - While planning, the route shows how long it takes
 

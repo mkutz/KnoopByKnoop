@@ -26,6 +26,13 @@
 
 - [x] 4.1 `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; CHANGELOG entry under "Unreleased"
 
+## 5. Revision after the iPhone checks
+
+- [x] 5.1 Core: distance and arrival on the strip's stops, ferries and end ahead (none for the start, passed marks and plain knots), the distance to the next knot for the header, no rows; verified by `RouteProgressTest` "Ahead at the start", "Along the way", "The rider's own pace", "Ferry ahead on the strip", "Stop passed", "Round trip", "Off route on the strip ahead", "Distance off route", on the JVM and the iOS simulator
+- [x] 5.2 Android: header with badges and the distance, labels below the strip's marks with the overlap rules, no table; verified on the emulator with the Renkum and the long route ("Stops close together", "Distances that would overlap", "Next knot in the middle of the route"), with screenshots
+- [x] 5.3 iOS: the same, and each ferry in its own list row with a borderless website link (tapping a ferry without a website no longer opens another's); builds with `xcodebuild`; steps in `manual-checks.md`
+- [x] 5.4 `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; CHANGELOG updated
+
 ## Workflow follow-up
 
 - The maintainer checks iOS on the iPhone before `/opsx:archive show-route-progress`.

@@ -7,7 +7,9 @@ While navigating, the panel shows the number to follow, the knot badges and the 
 ## What Changes
 
 - While navigating, a progress strip takes the place of the knot badge row: the route drawn to scale, with the start, the stops, the end and the ferries labeled, the other knots as small marks, the rider as a dot moving along it and the ridden part filled.
-- Below it, a table with distance and time to the next knot, and distance, time and arrival to the next stop (if one is left before the end) and to the end, e.g. "End 31 · 12.4 km · 47 min · 19:05". Distances run along the route from the rider's position; times use the rider's pace, the same as for the ferries. Both update with each position while the app is on screen.
+- Below each stop, ferry and the end shown on the strip, the distance along the route to it and the arrival, e.g. "12.4 km" over "19:05"; where they would overlap, the more important mark keeps them. Distances run along the route from the rider's position; arrivals use the rider's pace, the same as for the ferries. Both update with each position while the app is on screen.
+- The number to follow shows the knots as badges like on the map, with the distance to the next knot in the same line, e.g. "At (12) follow (30) 800 m".
+- (After the first iPhone check, the maintainer replaced a table of next knot, next stop and end below the strip with these labels and the header distance.)
 - The Android notification and the iOS Live Activity add the distance to the next knot and the arrival at the end, e.g. "800 m to 12 · end around 19:05", updated when a knot is passed, without extra location fixes.
 - While planning, the route's header shows the estimated time next to the distance at the assumed pace, e.g. "12.4 km · about 47 min".
 - The pace and the distances along the route move from the ferry estimate into one route progress model in the core, which the ferries, the table, the strip and the notification share.
@@ -24,7 +26,7 @@ Out of scope:
 ### New Capabilities
 
 ### Modified Capabilities
-- `knot-navigation`: new requirements "Progress strip" and "Distances and times ahead"; "Navigation with the screen off" adds the distance to the next knot and the arrival at the end
+- `knot-navigation`: new requirements "Progress strip", "Distances and arrivals on the strip" and "Rounded times"; "Number to follow" shows badges and the distance to the next knot; "Navigation with the screen off" adds the distance to the next knot and the arrival at the end
 - `map-planning`: "Show the route" adds the estimated time to the distance
 
 ## Impact

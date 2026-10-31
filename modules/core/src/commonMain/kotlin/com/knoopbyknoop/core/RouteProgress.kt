@@ -24,8 +24,17 @@ enum class ProgressMarkKind {
  *
  * @property label the knot's number, or `⛴` for a ferry
  * @property fraction where along the route, from 0 at the start to 1 at the end
+ * @property distance for a stop, ferry or the end still ahead, the distance to it along the route,
+ *   e.g. `5.2 km`, see `knot-navigation` "Distances and arrivals on the strip"
+ * @property arrival when the rider gets there, e.g. `18:40`, where the local time is known
  */
-data class ProgressMark(val kind: ProgressMarkKind, val label: String, val fraction: Double)
+data class ProgressMark(
+  val kind: ProgressMarkKind,
+  val label: String,
+  val fraction: Double,
+  val distance: String? = null,
+  val arrival: String? = null,
+)
 
 /**
  * The route drawn to scale with the rider on it, see `knot-navigation` "Progress strip".
@@ -41,23 +50,12 @@ data class ProgressStrip(
 )
 
 /**
- * A line of the distances and times ahead, see `knot-navigation` "Distances and times ahead".
+ * What the panel shows about the rider's progress while navigating.
  *
- * @property label `Next knot`, `Next stop` or `End`
- * @property distance e.g. `800 m` or `5.2 km`
- * @property time e.g. `20 min`, or `null` where it is not told
- * @property arrival e.g. `18:40`, or `null` where it is not told
+ * @property nextKnotDistance the distance to the next knot, along the route or straight while off
+ *   route, e.g. `800 m`, see `knot-navigation` "Number to follow"
  */
-data class ProgressRow(
-  val label: String,
-  val knot: String,
-  val distance: String,
-  val time: String?,
-  val arrival: String?,
-)
-
-/** What the panel shows about the rider's progress while navigating. */
-data class ProgressView(val strip: ProgressStrip, val rows: List<ProgressRow>)
+data class ProgressView(val strip: ProgressStrip, val nextKnotDistance: String)
 
 /**
  * A navigated route measured along its connections: where each knot is, which knots are stops, and
@@ -119,41 +117,46 @@ private constructor(
     now: Long,
     localTime: ((Long) -> LocalMoment)?,
   ): ProgressView {
-    fun distanceTo(index: Int) =
-      if (offRouteDistance != null) offsets[index] - offsets[nextIndex] + offRouteDistance
-      else max(0.0, offsets[index] - place)
-    fun row(label: String, index: Int, arrival: Boolean, timed: Boolean = true): ProgressRow {
-      val meters = distanceTo(index)
-      val seconds = meters / metersPerSecond
-      return ProgressRow(
-        label,
-        knots[index].ref,
-        MapFeatures.formatDistance(meters.roundToInt()),
-        if (timed) formatDuration(seconds) else null,
-        if (arrival && localTime != null) arrivalText(now, seconds, localTime) else null,
+    fun distanceTo(offset: Double) =
+      max(
+        0.0,
+        if (offRouteDistance != null) offset - offsets[nextIndex] + offRouteDistance
+        else offset - place,
       )
-    }
-    val rows = buildList {
-      add(row("Next knot", nextIndex, arrival = false, timed = offRouteDistance == null))
-      stops
-        .filter { it in nextIndex until knots.lastIndex }
-        .minOrNull()
-        ?.let {
-          add(row("Next stop", it, arrival = true))
+    val ahead = setOf(ProgressMarkKind.STOP, ProgressMarkKind.FERRY, ProgressMarkKind.END)
+    val marks =
+      marks().map { mark ->
+        val offset = mark.fraction * length
+        // Half a meter of slack, as the offset comes back from the fraction.
+        if (mark.kind !in ahead || offset <= aheadFrom(place, nextIndex, offRouteDistance) + 0.5)
+          mark
+        else {
+          val meters = distanceTo(offset)
+          mark.copy(
+            distance = MapFeatures.formatDistance(meters.roundToInt()),
+            arrival = localTime?.let { arrivalText(now, meters / metersPerSecond, it) },
+          )
         }
-      add(row("End", knots.lastIndex, arrival = true))
-    }
+      }
+    val toNext = offRouteDistance ?: max(0.0, offsets[nextIndex] - place)
     val rider = if (length > 0) (place / length).coerceIn(0.0, 1.0) else 0.0
     return ProgressView(
       ProgressStrip(
-        marks(),
+        marks,
         rider,
         offRoute = offRouteDistance != null,
         "${ridden(place)} ridden, next knot ${knots[nextIndex].ref}",
       ),
-      rows,
+      MapFeatures.formatDistance(toNext.roundToInt()),
     )
   }
+
+  /**
+   * Where the marks ahead begin: the rider's place, or while off route the knot before the next
+   * one, so the next knot and what follows still count as ahead.
+   */
+  private fun aheadFrom(place: Double, nextIndex: Int, offRouteDistance: Double?): Double =
+    if (offRouteDistance != null) offsets[maxOf(0, nextIndex - 1)] else place
 
   /**
    * The line outside the app, e.g. `0.8 km to 45 · end around 19:05`, with the rider at [place]

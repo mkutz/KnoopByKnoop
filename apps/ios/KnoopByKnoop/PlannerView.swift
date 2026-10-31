@@ -240,12 +240,19 @@ private struct WaypointSheet: View {
 
   var body: some View {
     let complete = model.routeDescription as? RouteDescriptionComplete
+    // While navigating, where the rider is on the route, see `knot-navigation` "Progress strip".
+    let progress = navigator.state.flatMap { state in
+      state.position.flatMap { state.navigation?.progress(fix: $0) }
+    }
     VStack(alignment: .leading, spacing: 0) {
       // The header stays in place; below it, the ferries and the waypoints scroll together, see
       // `map-planning` "Long routes in the panel".
       VStack(alignment: .leading, spacing: 8) {
         if let navigation = navigator.state {
-          NavigationHeader(state: navigation) { model.stopNavigation() }
+          NavigationHeader(
+            state: navigation, roles: complete?.knots.map(\.role) ?? [],
+            nextKnotDistance: progress?.nextKnotDistance
+          ) { model.stopNavigation() }
         } else {
           HStack(alignment: .center) {
             summary
@@ -268,8 +275,8 @@ private struct WaypointSheet: View {
         }
         // While navigating, where the rider is on the route instead of the badges, see
         // `knot-navigation` "Progress strip".
-        if let navigation = navigator.state?.navigation, let position = navigator.state?.position {
-          ProgressPanel(progress: navigation.progress(fix: position))
+        if let progress {
+          ProgressPanel(progress: progress)
         } else if let complete {
           RouteKnots(description: complete)
         }
@@ -278,9 +285,9 @@ private struct WaypointSheet: View {
       .padding(.bottom, 8)
       List {
         if let complete, !complete.ferries.isEmpty {
+          // Each ferry in its own row: a row sends taps anywhere in it to its first link, so with
+          // one row for all, a ferry without a website opened the website of another.
           RouteFerries(ferries: complete.ferries, navigation: navigator.state?.navigation)
-            .listRowSeparator(.hidden)
-            .listRowBackground(Color.clear)
             .moveDisabled(true)
             .deleteDisabled(true)
         }
@@ -365,32 +372,49 @@ private struct RouteKnots: View {
   }
 }
 
-/// The number to follow at the next knot as the most prominent information, and Stop, see
-/// `knot-navigation` "Number to follow".
+/// The number to follow at the next knot as the most prominent information, with the knots as
+/// badges and the distance to the next knot, and Stop, see `knot-navigation` "Number to follow".
 private struct NavigationHeader: View {
 
   let state: NavigationState
+  /// How each knot of the route takes part in it, for the badges.
+  let roles: [KnotRole]
+  let nextKnotDistance: String?
   let onStop: () -> Void
 
   var body: some View {
     HStack(alignment: .center) {
-      if let display = state.navigation?.display {
-        if display.offRoute {
-          Text(display.offRouteText).font(.title2.bold()).foregroundStyle(.red)
-        } else if let follow = display.follow {
-          HStack(alignment: .firstTextBaseline, spacing: 10) {
-            Text("At \(display.next) follow").font(.title2)
-            Text(follow).font(.system(size: 44, weight: .bold)).foregroundStyle(Color.knoopGreen)
+      if let navigation = state.navigation {
+        let display = navigation.display
+        let next = Int(navigation.nextIndex)
+        HStack(alignment: .center, spacing: 8) {
+          if display.offRoute {
+            Text("Off route, next").font(.title2.bold()).foregroundStyle(.red)
+            badge(display.next, at: next, scale: 1.3)
+          } else if let follow = display.follow {
+            Text("At").font(.title2)
+            badge(display.next, at: next, scale: 1.3)
+            Text("follow").font(.title2)
+            badge(follow, at: next + 1, scale: 1.8)
+          } else {
+            badge(display.next, at: next, scale: 1.3)
+            Text("is the end").font(.title2)
           }
-        } else {
-          Text(display.text).font(.title2.bold())
+          if let nextKnotDistance {
+            Text(nextKnotDistance).font(.title3).foregroundStyle(.secondary).lineLimit(1)
+          }
         }
+        .minimumScaleFactor(0.8)
       } else {
         Text("Waiting for your position…").font(.headline)
       }
       Spacer()
       ProminentAction(title: "Stop", systemImage: "stop.fill", color: .actionRed, action: onStop)
     }
+  }
+
+  private func badge(_ ref: String, at index: Int, scale: CGFloat) -> some View {
+    Badge(ref: ref, role: roles.indices.contains(index) ? BadgeRole(roles[index]) : nil, scale: scale)
   }
 }
 

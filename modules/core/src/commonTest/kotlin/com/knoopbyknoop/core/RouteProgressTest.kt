@@ -84,24 +84,24 @@ class RouteProgressTest {
       )
       .navigation
 
-  private fun rows(navigation: Navigation, fix: Fix) =
-    navigation.progress(fix).rows.map {
-      listOfNotNull(it.label, it.knot, it.distance, it.time, it.arrival).joinToString(" · ")
-    }
+  /** The distances and arrivals on the strip by the marks' labels, e.g. `31` to `12.4 km 19:05`. */
+  private fun labels(navigation: Navigation, fix: Fix): Map<String, String> =
+    navigation
+      .progress(fix)
+      .strip
+      .marks
+      .filter { it.distance != null }
+      .associate { it.label to listOfNotNull(it.distance, it.arrival).joinToString(" ") }
 
-  // Requirement: Distances and times ahead
+  // Requirement: Distances and arrivals on the strip
 
   @Test
   fun `ahead at the start`() {
     val fix = withStop.fix(0.0, "18:20")
 
     assertEquals(
-      listOf(
-        "Next knot · 12 · 800 m · 3 min",
-        "Next stop · 30 · 5.2 km · 20 min · 18:40",
-        "End · 31 · 12.4 km · 47 min · 19:05",
-      ),
-      rows(start(withStop, fix), fix),
+      mapOf("30" to "5.2 km 18:40", "31" to "12.4 km 19:05"),
+      labels(start(withStop, fix), fix),
     )
   }
 
@@ -110,11 +110,10 @@ class RouteProgressTest {
     val navigation = start(withStop, withStop.fix(0.0, "18:20"))
     val halfway = withStop.fix(400.0, "18:21")
 
-    val rows = rows(navigation.update(halfway).navigation, halfway)
+    val labels = labels(navigation.update(halfway).navigation, halfway)
 
-    assertEquals("Next knot · 12 · 400 m · 2 min", rows[0])
-    assertTrue(rows[1].startsWith("Next stop · 30 · 4.8 km"), rows[1])
-    assertTrue(rows[2].startsWith("End · 31 · 12.0 km"), rows[2])
+    assertTrue(labels.getValue("30").startsWith("4.8 km"), labels.toString())
+    assertTrue(labels.getValue("31").startsWith("12.0 km"), labels.toString())
   }
 
   @Test
@@ -125,7 +124,7 @@ class RouteProgressTest {
 
     val navigation = started.update(atKnot).navigation
 
-    assertEquals("End · 12 · 10.0 km · 50 min · 18:50", rows(navigation, atKnot).last())
+    assertEquals(mapOf("12" to "10.0 km 18:50"), labels(navigation, atKnot))
   }
 
   @Test
@@ -133,30 +132,33 @@ class RouteProgressTest {
     val ride = ride(listOf("10", "11"), listOf(40_000))
     val fix = ride.fix(0.0, "12:00")
 
-    assertEquals(
-      listOf("Next knot · 11 · 40.0 km · 2 h 30 min", "End · 11 · 40.0 km · 2 h 30 min · 14:30"),
-      rows(start(ride, fix), fix),
-    )
+    assertEquals(mapOf("11" to "40.0 km 14:30"), labels(start(ride, fix), fix))
   }
 
   @Test
-  fun `no stop left`() {
+  fun `ferry ahead on the strip`() {
+    val ride = ride(listOf("24", "12", "30", "31"), listOf(2900, 200, 1000), ferryLegs = setOf(1))
+    val fix = ride.fix(0.0, "18:20")
+
+    assertEquals("3.0 km 18:30", labels(start(ride, fix), fix)["⛴"])
+  }
+
+  @Test
+  fun `stop passed`() {
     val started = start(withStop, withStop.fix(0.0, "18:20"))
     val atStop = withStop.fix(5200.0, "18:40")
     val passed = started.update(withStop.fix(800.0, "18:23")).navigation.update(atStop).navigation
 
-    assertEquals(listOf("Next knot", "End"), passed.progress(atStop).rows.map { it.label })
+    assertEquals(setOf("31"), labels(passed, atStop).keys)
   }
 
   @Test
-  fun `next knot is the next stop`() {
-    val ride = ride(listOf("24", "30", "31"), listOf(2000, 3000), setOf(1))
-    val fix = ride.fix(0.0, "10:00")
+  fun `no distance for the start and plain knots`() {
+    val fix = withStop.fix(0.0, "18:20")
+    val marks = start(withStop, fix).progress(fix).strip.marks
 
-    val rows = start(ride, fix).progress(fix).rows
-
-    assertEquals(listOf("30", "30", "31"), rows.map { it.knot })
-    assertEquals(rows[0].distance, rows[1].distance)
+    assertNull(marks.single { it.label == "24" }.distance)
+    assertNull(marks.single { it.label == "12" }.distance)
   }
 
   @Test
@@ -164,24 +166,43 @@ class RouteProgressTest {
     val ride = ride(listOf("24", "12", "30", "24"), listOf(1000, 2000, 3000))
     val fix = ride.fix(0.0, "10:00")
 
-    val end = start(ride, fix).progress(fix).rows.last()
+    val end = start(ride, fix).progress(fix).strip.marks.single { it.kind == ProgressMarkKind.END }
 
-    assertEquals("24", end.knot)
+    assertEquals("24", end.label)
     assertEquals("6.0 km", end.distance)
   }
 
   @Test
-  fun `off route ahead`() {
+  fun `off route on the strip ahead`() {
     val navigation = start(withStop, withStop.fix(0.0, "18:20"))
     val offRoute = withStop.fix(800.0, "18:24", north = 300.0)
 
     val update = navigation.update(offRoute).navigation
-    val rows = update.progress(offRoute).rows
+    val labels = labels(update, offRoute)
 
     assertTrue(update.offRoute)
-    assertEquals(ProgressRow("Next knot", "12", "300 m", null, null), rows[0])
-    assertEquals("4.7 km", rows[1].distance, "4.4 km from 12 plus 300 m")
-    assertEquals("11.9 km", rows[2].distance)
+    assertTrue(labels.getValue("30").startsWith("4.7 km"), "4.4 km from 12 plus 300 m")
+    assertTrue(labels.getValue("31").startsWith("11.9 km"))
+  }
+
+  // Requirement: Number to follow
+
+  @Test
+  fun `distance to the next knot`() {
+    val fix = withStop.fix(0.0, "18:20")
+
+    assertEquals("800 m", start(withStop, fix).progress(fix).nextKnotDistance)
+  }
+
+  @Test
+  fun `distance off route`() {
+    val navigation = start(withStop, withStop.fix(0.0, "18:20"))
+    val offRoute = withStop.fix(800.0, "18:24", north = 300.0)
+
+    assertEquals(
+      "300 m",
+      navigation.update(offRoute).navigation.progress(offRoute).nextKnotDistance,
+    )
   }
 
   // Requirement: Progress strip
@@ -199,7 +220,7 @@ class RouteProgressTest {
         ProgressMark(ProgressMarkKind.STOP, "30", 5200.0 / 12_400),
         ProgressMark(ProgressMarkKind.END, "31", 1.0),
       ),
-      strip.marks,
+      strip.marks.map { it.copy(distance = null, arrival = null) },
     )
     assertEquals(0.0, strip.rider)
   }
@@ -305,7 +326,7 @@ class RouteProgressTest {
         )
         .navigation
 
-    assertNull(navigation.progress(fix).rows.last().arrival)
+    assertNull(navigation.progress(fix).strip.marks.last().arrival)
     assertEquals("800 m to 12", navigation.progressLine)
   }
 

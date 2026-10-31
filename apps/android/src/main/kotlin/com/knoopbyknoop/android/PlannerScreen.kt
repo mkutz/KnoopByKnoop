@@ -57,12 +57,12 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.knoopbyknoop.core.IndexedNetworkType
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.KnotRole
+import com.knoopbyknoop.core.ProgressView
 import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteSummary
 import kotlin.math.roundToInt
@@ -268,7 +268,17 @@ private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
   val session = state.session ?: return
   Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
     val navigation = state.navigation
-    if (navigation != null) NavigationHeader(navigation, onStop = viewModel::stopNavigation)
+    val complete = state.description as? RouteDescription.Complete
+    // While navigating, where the rider is on the route, see `knot-navigation` "Progress strip".
+    val progress =
+      navigation?.position?.let { position -> navigation.navigation?.progress(position) }
+    if (navigation != null)
+      NavigationHeader(
+        navigation,
+        complete?.knots?.map { it.role },
+        progress,
+        onStop = viewModel::stopNavigation,
+      )
     else
       Row(verticalAlignment = Alignment.CenterVertically) {
         Column(modifier = Modifier.weight(1f)) {
@@ -317,11 +327,6 @@ private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
           if (state.canNavigate) NavigateButton(viewModel)
         }
       }
-    val complete = state.description as? RouteDescription.Complete
-    // While navigating, where the rider is on the route instead of the badges, see
-    // `knot-navigation` "Progress strip".
-    val progress =
-      navigation?.position?.let { position -> navigation.navigation?.progress(position) }
     if (progress != null) ProgressPanel(progress) else complete?.let { RouteKnots(it) }
     // Below the fixed header, the ferries and the waypoints scroll together, see `map-planning`
     // "Long routes in the panel". No waypoints while navigating: the route is fixed then and the
@@ -377,32 +382,50 @@ private fun NavigateButton(viewModel: AppViewModel) {
  * `knot-navigation` "Number to follow".
  */
 @Composable
-private fun NavigationHeader(navigation: NavigationState, onStop: () -> Unit) {
+private fun NavigationHeader(
+  navigation: NavigationState,
+  roles: List<KnotRole>?,
+  progress: ProgressView?,
+  onStop: () -> Unit,
+) {
   Row(verticalAlignment = Alignment.CenterVertically) {
-    Column(modifier = Modifier.weight(1f)) {
-      val display = navigation.navigation?.display
+    Row(
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(6.dp),
+      modifier = Modifier.weight(1f),
+    ) {
+      val current = navigation.navigation
+      val display = current?.display
       val follow = display?.follow
+      fun roleAt(index: Int) = roles?.getOrNull(index)
+      val nextRole = current?.let { roleAt(it.nextIndex) }
+      val title = MaterialTheme.typography.titleLarge
       when {
         display == null ->
           Text("Waiting for your position…", style = MaterialTheme.typography.titleMedium)
-        display.offRoute ->
-          Text(
-            display.offRouteText,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.error,
-          )
-        follow != null ->
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("At ${display.next} follow", style = MaterialTheme.typography.titleLarge)
-            Text(
-              follow,
-              style = MaterialTheme.typography.displayMedium,
-              fontWeight = FontWeight.Bold,
-              color = MaterialTheme.colorScheme.primary,
-              modifier = Modifier.padding(start = 12.dp),
-            )
-          }
-        else -> Text(display.text, style = MaterialTheme.typography.titleLarge)
+        display.offRoute -> {
+          Text("Off route, next", style = title, color = MaterialTheme.colorScheme.error)
+          KnotBadge(display.next, nextRole, scale = 1.3f)
+        }
+        follow != null -> {
+          Text("At", style = title)
+          KnotBadge(display.next, nextRole, scale = 1.3f)
+          Text("follow", style = title)
+          KnotBadge(follow, roleAt(current.nextIndex + 1), scale = 1.8f)
+        }
+        else -> {
+          KnotBadge(display.next, nextRole, scale = 1.3f)
+          Text("is the end", style = title)
+        }
+      }
+      // The distance to the next knot in the same line, see `knot-navigation` "Number to follow".
+      progress?.let {
+        Text(
+          it.nextKnotDistance,
+          style = MaterialTheme.typography.titleMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          maxLines = 1,
+        )
       }
     }
     ProminentAction("Stop", R.drawable.ic_action_stop, onStop, color = ActionColors.red)

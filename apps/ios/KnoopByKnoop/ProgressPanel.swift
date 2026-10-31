@@ -1,29 +1,15 @@
 import KnoopByKnoopCore
 import SwiftUI
 
-/// Where the rider is on the route while navigating: the progress strip and the distances and
-/// times ahead, see `knot-navigation` "Progress strip" and "Distances and times ahead".
+/// Where the rider is on the route while navigating: the progress strip with the distances and
+/// arrivals below its marks, see `knot-navigation` "Progress strip" and "Distances and arrivals on
+/// the strip".
 struct ProgressPanel: View {
 
   let progress: KnoopByKnoopCore.ProgressView
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      ProgressStripView(strip: progress.strip)
-      Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 2) {
-        ForEach(Array(progress.rows.enumerated()), id: \.offset) { _, row in
-          GridRow {
-            Text(row.label).foregroundStyle(.secondary)
-            Text(row.knot).bold()
-            Text(row.distance).gridColumnAlignment(.trailing)
-            Text(row.time ?? "").gridColumnAlignment(.trailing)
-            Text(row.arrival ?? "").gridColumnAlignment(.trailing)
-          }
-          .font(.callout)
-          .lineLimit(1)
-        }
-      }
-    }
+    ProgressStripView(strip: progress.strip)
   }
 }
 
@@ -35,6 +21,9 @@ private struct ProgressStripView: View {
 
   private static let badgeSpace: CGFloat = 30
   private static let height: CGFloat = 44
+  /// The room for a mark's distance and arrival, e.g. `279.6 km` over `04:30`.
+  private static let labelWidth: CGFloat = 70
+  private static let labelHeight: CGFloat = 40
   /// The rider's color, as their position on the map.
   private static let riderBlue = Color(red: 0x1A / 255, green: 0x73 / 255, blue: 0xE8 / 255)
 
@@ -68,6 +57,21 @@ private struct ProgressStripView: View {
           label(mark)
             .position(x: inset + lineWidth * CGFloat(mark.fraction), y: y)
         }
+        let badges = Self.shownLabels(strip.marks, lineWidth: lineWidth)
+        ForEach(Array(Self.shownDistances(badges, lineWidth: lineWidth).enumerated()), id: \.offset) {
+          _, mark in
+          // Centered below the mark, but within the strip at both ends.
+          let x = min(
+            max(inset + lineWidth * CGFloat(mark.fraction), Self.labelWidth / 2),
+            geometry.size.width - Self.labelWidth / 2)
+          VStack(spacing: 0) {
+            Text(mark.distance ?? "").font(.callout.bold())
+            if let arrival = mark.arrival { Text(arrival).font(.callout).foregroundStyle(.secondary) }
+          }
+          .lineLimit(1)
+          .frame(width: Self.labelWidth)
+          .position(x: x, y: Self.height + Self.labelHeight / 2)
+        }
         // Above the badges, so the rider stays visible at a labeled knot.
         Circle()
           .fill(strip.offRoute ? Color.red : Self.riderBlue)
@@ -76,7 +80,7 @@ private struct ProgressStripView: View {
           .position(x: riderX, y: y)
       }
     }
-    .frame(height: Self.height)
+    .frame(height: Self.height + Self.labelHeight)
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(strip.description_)
   }
@@ -96,6 +100,18 @@ private struct ProgressStripView: View {
     for kind in [ProgressMarkKind.end, .stop, .start, .ferry] {
       for mark in marks where mark.kind == kind {
         let fits = shown.allSatisfy { lineWidth * abs(CGFloat($0.fraction - mark.fraction)) >= badgeSpace }
+        if fits { shown.append(mark) }
+      }
+    }
+    return shown
+  }
+
+  /// The shown stops, ferries and end ahead whose distance and arrival fit, the stronger ones first.
+  private static func shownDistances(_ badges: [ProgressMark], lineWidth: CGFloat) -> [ProgressMark] {
+    var shown: [ProgressMark] = []
+    for kind in [ProgressMarkKind.end, .stop, .ferry] {
+      for mark in badges where mark.kind == kind && mark.distance != nil {
+        let fits = shown.allSatisfy { lineWidth * abs(CGFloat($0.fraction - mark.fraction)) >= labelWidth }
         if fits { shown.append(mark) }
       }
     }

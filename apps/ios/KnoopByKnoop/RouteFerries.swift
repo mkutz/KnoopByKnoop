@@ -24,20 +24,19 @@ struct RouteFerries: View {
   /// The route positions of the expanded ferries; a new route starts collapsed.
   @State private var expanded: Set<Int32> = []
 
+  /// One list row per ferry: a row sends taps anywhere in it to its first link, so with one row
+  /// for all, tapping a ferry without a website opened the website of another.
   var body: some View {
-    // Updated at every full minute while shown, see "Ferry open now".
-    TimelineView(.everyMinute) { context in
-      list(now: Self.ferryMoment(context.date))
-    }
-    .onChange(of: ferries.map(\.fromPosition)) { _, _ in expanded = [] }
-  }
-
-  private func list(now: LocalMoment) -> some View {
-    VStack(alignment: .leading, spacing: 0) {
-      ForEach(Array(ferries.enumerated()), id: \.offset) { _, ferry in
+    ForEach(Array(ferries.enumerated()), id: \.offset) { _, ferry in
+      // Updated at every full minute while shown, see "Ferry open now".
+      TimelineView(.everyMinute) { context in
+        let now = Self.ferryMoment(context.date)
         row(ferry, line: line(of: ferry, now: now), expanded: expanded.contains(ferry.fromPosition))
       }
+      .listRowSeparator(.hidden)
+      .listRowBackground(Color.clear)
     }
+    .onChange(of: ferries.map(\.fromPosition)) { _, _ in expanded = [] }
   }
 
   /// What a ferry's line tells after its name, in which color, and whether it is a status or
@@ -96,7 +95,7 @@ struct RouteFerries: View {
           if let website = ferry.ferry.website,
             let url = URL(string: website.contains("://") ? website : "https://\(website)")
           {
-            Link("Website", destination: url).font(.caption)
+            Link("Website", destination: url).font(.caption).buttonStyle(.borderless)
           }
         }
         .padding(.leading, 20)
