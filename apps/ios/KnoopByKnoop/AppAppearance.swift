@@ -1,14 +1,21 @@
 import SwiftUI
 
 /// The appearance chosen in the info sheet, by default like the system, see `map-planning` "Light
-/// and dark appearance". Applied to the root and to every sheet and popover, as each presentation
-/// keeps the system's appearance otherwise.
+/// and dark appearance". Set on the windows, so every sheet and popover in them follows it. Not with
+/// `preferredColorScheme`: an open sheet kept light when switching from Light back to System while
+/// the system was dark, as `nil` does not undo an earlier choice there.
 private struct AppAppearance: ViewModifier {
 
   @AppStorage("appearance") private var appearance = "system"
 
   func body(content: Content) -> some View {
-    content.preferredColorScheme(appearance == "light" ? .light : appearance == "dark" ? .dark : nil)
+    content.onChange(of: appearance, initial: true) { _, appearance in
+      let style: UIUserInterfaceStyle =
+        appearance == "light" ? .light : appearance == "dark" ? .dark : .unspecified
+      for case let scene as UIWindowScene in UIApplication.shared.connectedScenes {
+        for window in scene.windows { window.overrideUserInterfaceStyle = style }
+      }
+    }
   }
 }
 
