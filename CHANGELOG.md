@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0
+
+- Export the route as a GPX file, with the knots as waypoints, from the new ⋯ menu; Back to start moved there too
+- Waypoints have a handle to reorder them and × to remove them, always visible
+- A button shows your position; on the first start the app asks for location access
+- The dark map shows the same details as the light one, with blue water and readable streets
+- Info lets you choose the appearance: System, Light or Dark
+
 ## 0.3.1
 
 - Navigation started away from the route leads to its start
