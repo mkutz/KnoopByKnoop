@@ -2,12 +2,10 @@
 
 ## 0.5.0
 
-- While navigating, swipe the panel up to see the coming knots with distance and arrival; tap one to see it on the map
-- At large text sizes, the distances and arrivals below the strip grow with the text instead of being cut off, the distance to the next knot and the route's time move to their own lines, and on Android the knot badges' numbers stay whole
-- When navigation starts, the panel takes the height of the number to follow and the strip, so distances and arrivals are always readable
-- iOS: in landscape, the map no longer zooms out to the whole region to show the next knot off route or the planned route
-- iOS: a place search without any answer, e.g. offline, says search is unavailable instead of closing the app
-- iOS: switching the appearance from Light to System turns the open sheet dark too when the system is dark
+- While navigating, swipe the panel up to see the coming knots; tap one to see it on the map
+- The panel always shows the distances and arrivals on the strip while navigating
+- Easier to read at large text sizes
+- iOS: no more zooming out to the whole region in landscape, no crash when searching offline, and System appearance works in open sheets
 
 ## 0.4.0
 
