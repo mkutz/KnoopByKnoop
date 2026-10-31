@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.5.0
 
 - While navigating, swipe the panel up to see the coming knots with distance and arrival; tap one to see it on the map
 - At large text sizes, the distances and arrivals below the strip grow with the text instead of being cut off, the distance to the next knot and the route's time move to their own lines, and on Android the knot badges' numbers stay whole
