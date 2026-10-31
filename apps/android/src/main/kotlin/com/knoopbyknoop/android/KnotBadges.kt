@@ -19,9 +19,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.knoopbyknoop.core.KnotRole
 
 /** The colors of the app icon, see `design/icon`. */
@@ -167,11 +167,19 @@ fun KnotBadge(ref: String, role: KnotRole?, modifier: Modifier = Modifier, scale
         )
         .border(if (role == KnotRole.PASSED) 3.dp else 2.dp, style.ring, CircleShape),
   ) {
+    // In dp, so the number fits the badge at any text size, like on the map, see `map-planning`
+    // "Knot badges at large text sizes"; the line height too, which would push the number down.
+    val textSize =
+      with(LocalDensity.current) {
+        ((if (ref.length > 2) 10 else 12).dp * (if (style.large) 1.2f else 1f) * scale).toSp()
+      }
     Text(
       ref,
       color = style.text,
       fontWeight = FontWeight.Bold,
-      fontSize = (if (ref.length > 2) 10 else 12).sp * (if (style.large) 1.2f else 1f) * scale,
+      fontSize = textSize,
+      lineHeight = textSize,
+      maxLines = 1,
     )
   }
 }

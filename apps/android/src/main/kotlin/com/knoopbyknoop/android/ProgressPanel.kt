@@ -28,6 +28,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -97,7 +98,12 @@ private fun ProgressStripView(
   val rider = if (strip.offRoute) MaterialTheme.colorScheme.error else RiderBlue
   // The route position of the ferry whose popover is open.
   var opened by remember { mutableStateOf<Int?>(null) }
-  BoxWithConstraints(modifier = Modifier.fillMaxWidth().height(STRIP_HEIGHT + LABEL_HEIGHT)) {
+  // The room for the labels grows with their text, see `knot-navigation` "Strip labels at large
+  // text sizes".
+  val fontScale = LocalDensity.current.fontScale
+  val labelWidth = LABEL_WIDTH * fontScale
+  val labelHeight = LABEL_HEIGHT * fontScale
+  BoxWithConstraints(modifier = Modifier.fillMaxWidth().height(STRIP_HEIGHT + labelHeight)) {
     // The line keeps half a badge free at both ends, so the start and end badges fit.
     val inset = BADGE_SPACE / 2
     val lineWidth = maxWidth - BADGE_SPACE
@@ -148,14 +154,14 @@ private fun ProgressStripView(
         }
       }
     }
-    val labeled = shown(badges, lineWidth, LABEL_WIDTH) { it.distance != null }
+    val labeled = shown(badges, lineWidth, labelWidth) { it.distance != null }
     for (mark in labeled) {
       // Centered below the mark, but within the strip at both ends.
-      val x = (xOf(mark.fraction) - LABEL_WIDTH / 2).coerceIn(0.dp, maxWidth - LABEL_WIDTH)
+      val x = (xOf(mark.fraction) - labelWidth / 2).coerceIn(0.dp, maxWidth - labelWidth)
       Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier =
-          Modifier.offset(x = x, y = STRIP_HEIGHT).width(LABEL_WIDTH).clearAndSetSemantics {},
+          Modifier.offset(x = x, y = STRIP_HEIGHT).width(labelWidth).clearAndSetSemantics {},
       ) {
         Text(
           mark.distance.orEmpty(),

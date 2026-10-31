@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -41,6 +42,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -65,6 +67,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -154,24 +157,49 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
     // `knot-navigation` "Panel height while navigating".
     val scaffoldState = rememberBottomSheetScaffoldState()
     var navigationHeight by remember { mutableIntStateOf(0) }
+    var summaryHeight by remember { mutableIntStateOf(0) }
+    var dragHandleHeight by remember { mutableIntStateOf(0) }
     val density = LocalDensity.current
+    val navigationBar = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    fun Int.toDp() = ceil(this / density.density).dp
     val peekHeight =
-      if (state.navigating && navigationHeight > 0)
-        ceil(navigationHeight / density.density).dp +
-          8.dp +
-          WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+      if (state.navigating && navigationHeight > 0) navigationHeight.toDp() + 8.dp + navigationBar
+      // While planning, at least the summary and the actions, which are below it at large text
+      // sizes, see `map-planning` "Route summary at large text sizes".
+      else if (!state.navigating)
+        maxOf(150.dp, (dragHandleHeight + summaryHeight).toDp() + 8.dp + navigationBar)
       else 150.dp
+    LaunchedEffect(state.navigating) { scaffoldState.bottomSheetState.partialExpand() }
     // Also when the height changes while navigating, e.g. off route or with another font size: the
-    // sheet does not follow a changed peek height by itself.
-    LaunchedEffect(state.navigating, peekHeight) { scaffoldState.bottomSheetState.partialExpand() }
+    // sheet does not follow a changed peek height by itself. While planning only at its smallest,
+    // so a sheet the user pulled up stays up.
+    LaunchedEffect(peekHeight) {
+      if (
+        state.navigating ||
+          scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded
+      )
+        scaffoldState.bottomSheetState.partialExpand()
+    }
     BottomSheetScaffold(
       scaffoldState = scaffoldState,
       sheetPeekHeight = peekHeight,
-      sheetDragHandle = if (state.navigating) null else ({ BottomSheetDefaults.DragHandle() }),
+      sheetDragHandle =
+        if (state.navigating) null
+        else
+          ({
+            BottomSheetDefaults.DragHandle(
+              modifier = Modifier.onSizeChanged { dragHandleHeight = it.height }
+            )
+          }),
       sheetSwipeEnabled = !state.navigating,
       snackbarHost = { SnackbarHost(snackbarHostState) },
       sheetContent = {
-        WaypointSheet(state, viewModel, onNavigationHeight = { navigationHeight = it })
+        WaypointSheet(
+          state,
+          viewModel,
+          onNavigationHeight = { navigationHeight = it },
+          onSummaryHeight = { summaryHeight = it },
+        )
       },
     ) { padding ->
       mapArea(state, Modifier.fillMaxSize().padding(padding))
@@ -346,6 +374,7 @@ private fun WaypointSheet(
   state: AppState,
   viewModel: AppViewModel,
   onNavigationHeight: (Int) -> Unit = {},
+  onSummaryHeight: (Int) -> Unit = {},
 ) {
   val session = state.session ?: return
   Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
@@ -374,8 +403,13 @@ private fun WaypointSheet(
         else complete?.let { RouteKnots(it) }
       }
     else {
-      Row(verticalAlignment = Alignment.CenterVertically) {
-        Column(modifier = Modifier.weight(1f)) {
+      SummaryWithActions(
+        whole = state.description is RouteDescription.Complete,
+        // Measured for the sheet's smallest height while planning, see `PlannerScreen`.
+        modifier = Modifier.onSizeChanged { onSummaryHeight(it.height) },
+        // The distance and time stay in one line each, with the actions below them where they do
+        // not fit next to them, see `map-planning` "Route summary at large text sizes".
+        summary = {
           when (val description = state.description) {
             RouteDescription.Empty ->
               Text("Tap a knot to set the start", style = MaterialTheme.typography.titleMedium)
@@ -386,14 +420,18 @@ private fun WaypointSheet(
               )
             is RouteDescription.Complete ->
               Column {
-                Text(description.distance, style = MaterialTheme.typography.titleLarge)
+                Text(
+                  description.distance,
+                  style = MaterialTheme.typography.titleLarge,
+                  softWrap = false,
+                )
                 // The time at the assumed pace, below, so it never wraps next to the actions, see
                 // `map-planning` "Show the route".
                 Text(
                   description.duration,
                   style = MaterialTheme.typography.bodySmall,
                   color = MaterialTheme.colorScheme.onSurfaceVariant,
-                  maxLines = 1,
+                  softWrap = false,
                 )
               }
             is RouteDescription.Unreachable ->
@@ -403,37 +441,39 @@ private fun WaypointSheet(
                 color = MaterialTheme.colorScheme.error,
               )
           }
-        }
+        },
         // Side by side, so the header stays one row and the badges fit into the smallest sheet.
-        Row(
-          horizontalArrangement = Arrangement.spacedBy(4.dp),
-          verticalAlignment = Alignment.CenterVertically,
-        ) {
-          val context = LocalContext.current
-          val moreActions = buildList {
-            if (session.canReturnToStart)
-              add(
-                MenuAction(
-                  "Back to start",
-                  R.drawable.ic_action_back_to_start,
-                  viewModel::returnToStart,
+        actions = {
+          Row(
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+          ) {
+            val context = LocalContext.current
+            val moreActions = buildList {
+              if (session.canReturnToStart)
+                add(
+                  MenuAction(
+                    "Back to start",
+                    R.drawable.ic_action_back_to_start,
+                    viewModel::returnToStart,
+                  )
                 )
-              )
-            if (viewModel.canExportGpx)
-              add(
-                MenuAction("Export GPX", R.drawable.ic_action_export) {
-                  viewModel.gpx()?.let { (fileName, content) ->
-                    shareGpx(context, fileName, content)
+              if (viewModel.canExportGpx)
+                add(
+                  MenuAction("Export GPX", R.drawable.ic_action_export) {
+                    viewModel.gpx()?.let { (fileName, content) ->
+                      shareGpx(context, fileName, content)
+                    }
                   }
-                }
-              )
+                )
+            }
+            if (moreActions.isNotEmpty()) MoreActions(moreActions)
+            if (session.waypoints.isNotEmpty())
+              IconAction("Clear", R.drawable.ic_action_clear, viewModel::clear)
+            if (state.canNavigate) NavigateButton(viewModel)
           }
-          if (moreActions.isNotEmpty()) MoreActions(moreActions)
-          if (session.waypoints.isNotEmpty())
-            IconAction("Clear", R.drawable.ic_action_clear, viewModel::clear)
-          if (state.canNavigate) NavigateButton(viewModel)
-        }
-      }
+        },
+      )
       complete?.let { RouteKnots(it) }
     }
     // Below the fixed header, the ferries and the waypoints scroll together, see `map-planning`
@@ -452,6 +492,49 @@ private fun WaypointSheet(
         Box(modifier = Modifier.padding(bottom = 8.dp)) {
           RouteFerries(complete.ferries)
         }
+      }
+    }
+  }
+}
+
+/**
+ * The [summary] with the [actions] at its end, or the actions below it where the summary does not
+ * fit next to them: [whole] in its full width, e.g. a route's distance and time at a large text
+ * size, otherwise wrapped down to its longest word.
+ */
+@Composable
+private fun SummaryWithActions(
+  whole: Boolean,
+  summary: @Composable () -> Unit,
+  actions: @Composable () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  Layout(contents = listOf(summary, actions), modifier = modifier) {
+    (summaryMeasurables, actionMeasurables),
+    constraints ->
+    val free = constraints.copy(minWidth = 0, minHeight = 0)
+    val actionPlaceables = actionMeasurables.map { it.measure(free) }
+    val actionsWidth = actionPlaceables.maxOfOrNull { it.width } ?: 0
+    val actionsHeight = actionPlaceables.maxOfOrNull { it.height } ?: 0
+    val besideWidth = constraints.maxWidth - actionsWidth
+    val beside = summaryMeasurables.all {
+      (if (whole) it.maxIntrinsicWidth(constraints.maxHeight)
+      else it.minIntrinsicWidth(constraints.maxHeight)) <= besideWidth
+    }
+    val summaryPlaceables = summaryMeasurables.map {
+      it.measure(free.copy(maxWidth = if (beside) besideWidth else constraints.maxWidth))
+    }
+    val summaryHeight = summaryPlaceables.maxOfOrNull { it.height } ?: 0
+    val height = if (beside) maxOf(summaryHeight, actionsHeight) else summaryHeight + actionsHeight
+    layout(constraints.maxWidth, height) {
+      summaryPlaceables.forEach {
+        it.place(0, if (beside) (height - it.height) / 2 else 0)
+      }
+      actionPlaceables.forEach {
+        it.place(
+          constraints.maxWidth - it.width,
+          if (beside) (height - it.height) / 2 else summaryHeight,
+        )
       }
     }
   }
@@ -491,6 +574,7 @@ private fun NavigateButton(viewModel: AppViewModel) {
  * The number to follow at the next knot as the most prominent information, and Stop, see
  * `knot-navigation` "Number to follow".
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun NavigationHeader(
   navigation: NavigationState,
@@ -499,8 +583,10 @@ private fun NavigationHeader(
   onStop: () -> Unit,
 ) {
   Row(verticalAlignment = Alignment.CenterVertically) {
-    Row(
-      verticalAlignment = Alignment.CenterVertically,
+    // The distance moves below the number to follow where it does not fit next to it, see
+    // `knot-navigation` "Number to follow at large text sizes".
+    FlowRow(
+      itemVerticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(6.dp),
       modifier = Modifier.weight(1f),
     ) {
@@ -516,7 +602,7 @@ private fun NavigationHeader(
         display.offRoute -> {
           val guidance = navigation.position?.let { current.guidance(it) }
           OffRouteHeader(display.next, nextRole, guidance, navigation.direction)
-          return@Row
+          return@FlowRow
         }
         follow != null -> {
           Text("At", style = title)

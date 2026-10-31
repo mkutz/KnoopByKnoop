@@ -28,9 +28,10 @@ private struct ProgressStripView: View {
 
   private static let badgeSpace: CGFloat = 30
   private static let height: CGFloat = 44
-  /// The room for a mark's distance and arrival, e.g. `280 km` over `04:30`.
-  private static let labelWidth: CGFloat = 70
-  private static let labelHeight: CGFloat = 40
+  /// The room for a mark's distance and arrival, e.g. `280 km` over `04:30`; growing with the
+  /// text, see `knot-navigation` "Strip labels at large text sizes".
+  @ScaledMetric(relativeTo: .callout) private var labelWidth: CGFloat = 70
+  @ScaledMetric(relativeTo: .callout) private var labelHeight: CGFloat = 40
   /// The rider's color, as their position on the map.
   private static let riderBlue = Color(red: 0x1A / 255, green: 0x73 / 255, blue: 0xE8 / 255)
 
@@ -72,14 +73,14 @@ private struct ProgressStripView: View {
           badge(mark)
             .position(x: inset + lineWidth * CGFloat(mark.fraction), y: y)
         }
-        let labeled = Self.shown(badges, lineWidth: lineWidth, space: Self.labelWidth) {
+        let labeled = Self.shown(badges, lineWidth: lineWidth, space: labelWidth) {
           $0.distance != nil
         }
         ForEach(Array(labeled.enumerated()), id: \.offset) { _, mark in
           // Centered below the mark, but within the strip at both ends.
           let x = min(
-            max(inset + lineWidth * CGFloat(mark.fraction), Self.labelWidth / 2),
-            geometry.size.width - Self.labelWidth / 2)
+            max(inset + lineWidth * CGFloat(mark.fraction), labelWidth / 2),
+            geometry.size.width - labelWidth / 2)
           VStack(spacing: 0) {
             Text(mark.distance ?? "").font(.callout.bold())
             if let arrival = mark.arrival {
@@ -89,8 +90,8 @@ private struct ProgressStripView: View {
             }
           }
           .lineLimit(1)
-          .frame(width: Self.labelWidth)
-          .position(x: x, y: Self.height + Self.labelHeight / 2)
+          .frame(width: labelWidth)
+          .position(x: x, y: Self.height + labelHeight / 2)
           .accessibilityHidden(true)
         }
         // Above the badges, so the rider stays visible at a labeled knot.
@@ -103,7 +104,7 @@ private struct ProgressStripView: View {
           .accessibilityHidden(true)
       }
     }
-    .frame(height: Self.height + Self.labelHeight)
+    .frame(height: Self.height + labelHeight)
     .accessibilityElement(children: .contain)
   }
 

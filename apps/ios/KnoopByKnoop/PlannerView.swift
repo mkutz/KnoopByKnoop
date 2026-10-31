@@ -12,6 +12,8 @@ struct PlannerView: View {
   @State private var pendingNetwork: IndexedNetworkType?
   @State private var showInfo = false
   @State private var detent: PresentationDetent = smallestDetent
+  /// The height of the summary and the actions while planning, see `planningDetent`.
+  @State private var summaryHeight: CGFloat = 0
   /// How far the sheet reaches up from the bottom of the screen, see `searchOverlay`.
   @State private var sheetHeight: CGFloat = 0
   /// The height of the number to follow and the progress strip while navigating, see
@@ -22,6 +24,13 @@ struct PlannerView: View {
   @FocusState private var searchFocused: Bool
 
   private static let smallestDetent = PresentationDetent.height(170)
+
+  /// The smallest sheet while planning: at least the summary and the actions, which are below it at
+  /// large text sizes, see `map-planning` "Route summary at large text sizes". The 24 points are the
+  /// space above the summary.
+  private var planningDetent: PresentationDetent {
+    summaryHeight + 24 > 170 ? .height((summaryHeight + 24).rounded(.up)) : Self.smallestDetent
+  }
 
   /// While navigating, the sheet's only height: the number to follow and the whole strip, see
   /// `knot-navigation` "Panel height while navigating". Rounded up, so a relayout does not move the
@@ -67,7 +76,7 @@ struct PlannerView: View {
             sheetHeight = $0
           }
           .presentationDetents(
-            navigationDetent.map { [$0] } ?? [Self.smallestDetent, .medium, .large], selection: $detent
+            navigationDetent.map { [$0] } ?? [planningDetent, .medium, .large], selection: $detent
           )
           // Fixed while navigating, so nothing suggests dragging it.
           .presentationDragIndicator(navigationDetent == nil ? .automatic : .hidden)
@@ -80,12 +89,16 @@ struct PlannerView: View {
       }
       // The keyboard covers the smallest sheet, but not a higher one, which would hide the field.
       .onChange(of: keyboardShown) { _, shown in
-        if shown && !landscape { detent = Self.smallestDetent }
+        if shown && !landscape { detent = planningDetent }
       }
       // Starting navigation brings the sheet to the navigation height whatever its height was, and
       // ending it brings it back to the smallest planning height.
       .onChange(of: navigationDetent) { _, navigation in
-        detent = navigation ?? Self.smallestDetent
+        detent = navigation ?? planningDetent
+      }
+      // A sheet at its smallest stays there when that height changes.
+      .onChange(of: planningDetent) { previous, planning in
+        if detent == previous { detent = planning }
       }
     }
     // The display stays on while navigating with the app open, see `knot-navigation` "Display on
@@ -103,7 +116,9 @@ struct PlannerView: View {
       if showInfo {
         InfoSheet(model: model, onDone: { showInfo = false })
       } else if let session = model.session, model.layers != nil, !model.loading {
-        WaypointSheet(model: model, session: session) { navigationHeight = $0 }
+        WaypointSheet(
+          model: model, session: session, onNavigationHeight: { navigationHeight = $0 },
+          onSummaryHeight: { summaryHeight = $0 })
       } else {
         ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
       }
@@ -273,6 +288,8 @@ private struct WaypointSheet: View {
   @State private var exportedGpx: ExportedGpx?
   /// The height of the number to follow and the progress strip while navigating, 0 otherwise.
   let onNavigationHeight: (CGFloat) -> Void
+  /// The height of the summary and the actions while planning.
+  let onSummaryHeight: (CGFloat) -> Void
 
   var body: some View {
     let complete = model.routeDescription as? RouteDescriptionComplete
@@ -290,41 +307,31 @@ private struct WaypointSheet: View {
             nextKnotDistance: progress?.nextKnotDistance
           ) { model.stopNavigation() }
         } else {
-          HStack(alignment: .center) {
-            summary
-            Spacer()
-            // Side by side, so the header stays one row and the badges fit into the smallest sheet;
-            // the less frequent actions in a menu, see `map-planning` "Clear actions in the planner
-            // panel".
-            if session.canReturnToStart || model.canExportGpx {
-              Menu {
-                if session.canReturnToStart {
-                  Button("Back to start", systemImage: "arrow.uturn.backward") {
-                    model.returnToStart()
-                  }
+          // The distance and time stay in one line each, with the actions below them where they do
+          // not fit next to them, see `map-planning` "Route summary at large text sizes".
+          Group {
+            if complete != nil {
+              ViewThatFits(in: .horizontal) {
+                HStack(alignment: .center) {
+                  summary
+                  Spacer()
+                  actions
                 }
-                if model.canExportGpx {
-                  Button("Export GPX", systemImage: "square.and.arrow.up") {
-                    exportedGpx = model.exportGpx()
-                  }
+                VStack(alignment: .trailing, spacing: 8) {
+                  summary.frame(maxWidth: .infinity, alignment: .leading)
+                  actions
                 }
-              } label: {
-                Label("More actions", systemImage: "ellipsis")
               }
-              .labelStyle(.iconOnly)
-              .buttonStyle(.bordered)
-              .buttonBorderShape(.circle)
-              .tint(.actionIconGreen)
-            }
-            if !session.waypoints.isEmpty {
-              IconAction(title: "Clear", systemImage: "trash") { model.clear() }
-            }
-            if model.canNavigate {
-              ProminentAction(title: "Navigate", systemImage: "location.north.fill") {
-                model.startNavigation()
+            } else {
+              HStack(alignment: .center) {
+                summary
+                Spacer()
+                actions
               }
             }
           }
+          // Measured for the sheet's smallest height while planning, see `PlannerView`.
+          .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { onSummaryHeight($0) }
           // Presented from the planner sheet itself: presented from the map behind it, it would
           // dismiss the sheet, see `PlannerView`.
           .sheet(item: $exportedGpx) { exported in
@@ -393,11 +400,47 @@ private struct WaypointSheet: View {
     .onChange(of: WaypointRow.rows(of: session)) { _, newRows in rows = newRows }
   }
 
+  /// Side by side with the summary where they fit, so the header stays one row and the badges fit
+  /// into the smallest sheet; the less frequent actions in a menu, see `map-planning` "Clear actions
+  /// in the planner panel".
+  @ViewBuilder private var actions: some View {
+    HStack(alignment: .center) {
+      if session.canReturnToStart || model.canExportGpx {
+        Menu {
+          if session.canReturnToStart {
+            Button("Back to start", systemImage: "arrow.uturn.backward") {
+              model.returnToStart()
+            }
+          }
+          if model.canExportGpx {
+            Button("Export GPX", systemImage: "square.and.arrow.up") {
+              exportedGpx = model.exportGpx()
+            }
+          }
+        } label: {
+          Label("More actions", systemImage: "ellipsis")
+        }
+        .labelStyle(.iconOnly)
+        .buttonStyle(.bordered)
+        .buttonBorderShape(.circle)
+        .tint(.actionIconGreen)
+      }
+      if !session.waypoints.isEmpty {
+        IconAction(title: "Clear", systemImage: "trash") { model.clear() }
+      }
+      if model.canNavigate {
+        ProminentAction(title: "Navigate", systemImage: "location.north.fill") {
+          model.startNavigation()
+        }
+      }
+    }
+  }
+
   @ViewBuilder private var summary: some View {
     switch model.routeDescription {
     case let complete as RouteDescriptionComplete:
       VStack(alignment: .leading, spacing: 0) {
-        Text(complete.distance).font(.title2.bold())
+        Text(complete.distance).font(.title2.bold()).lineLimit(1)
         // The time at the assumed pace, see `map-planning` "Show the route".
         Text(complete.duration).font(.caption).foregroundStyle(.secondary).lineLimit(1)
       }
@@ -458,27 +501,43 @@ private struct NavigationHeader: View {
         if display.offRoute {
           offRouteHeader(display.next, at: next, guidance: state.position.flatMap { navigation.guidance(fix: $0) })
         } else {
-        HStack(alignment: .center, spacing: 8) {
-          if let follow = display.follow {
-            Text("At").font(.title2)
-            badge(display.next, at: next, scale: 1.3)
-            Text("follow").font(.title2)
-            badge(follow, at: next + 1, scale: 1.8)
-          } else {
-            badge(display.next, at: next, scale: 1.3)
-            Text("is the end").font(.title2)
+          // The distance moves below the number to follow where it does not fit next to it, see
+          // `knot-navigation` "Number to follow at large text sizes".
+          ViewThatFits(in: .horizontal) {
+            HStack(alignment: .center, spacing: 8) {
+              numberToFollow(display, at: next)
+              distance
+            }
+            VStack(alignment: .leading, spacing: 2) {
+              HStack(alignment: .center, spacing: 8) { numberToFollow(display, at: next) }
+              distance
+            }
           }
-          if let nextKnotDistance {
-            Text(nextKnotDistance).font(.title3).foregroundStyle(.secondary).lineLimit(1)
-          }
-        }
-        .minimumScaleFactor(0.8)
+          .minimumScaleFactor(0.8)
         }
       } else {
         Text("Waiting for your position…").font(.headline)
       }
       Spacer()
       ProminentAction(title: "Stop", systemImage: "stop.fill", color: .actionRed, action: onStop)
+    }
+  }
+
+  @ViewBuilder private func numberToFollow(_ display: NavigationDisplay, at next: Int) -> some View {
+    if let follow = display.follow {
+      Text("At").font(.title2)
+      badge(display.next, at: next, scale: 1.3)
+      Text("follow").font(.title2)
+      badge(follow, at: next + 1, scale: 1.8)
+    } else {
+      badge(display.next, at: next, scale: 1.3)
+      Text("is the end").font(.title2)
+    }
+  }
+
+  @ViewBuilder private var distance: some View {
+    if let nextKnotDistance {
+      Text(nextKnotDistance).font(.title3).foregroundStyle(.secondary).lineLimit(1)
     }
   }
 
