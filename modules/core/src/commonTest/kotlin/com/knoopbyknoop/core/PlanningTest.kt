@@ -9,7 +9,6 @@ import com.knoopbyknoop.core.TestNetwork.knot99
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertSame
@@ -210,11 +209,26 @@ class PlanningTest {
   }
 
   @Test
-  fun `two waypoints can only be cleared`() {
+  fun `removing one of two waypoints`() {
     val planned = session.tapAll(knot12, knot45)
 
-    assertFalse(planned.canRemoveWaypoints)
-    assertFailsWith<IllegalArgumentException> { planned.removeWaypoint(1) }
+    val removed = planned.removeWaypoint(1)
+
+    assertTrue(planned.canRemoveWaypoints)
+    assertEquals(listOf(knot12), removed.waypoints)
+    assertNull(removed.route)
+    assertEquals(RouteDescription.StartOnly("12"), MapFeatures.describe(removed))
+    assertEquals(listOf(knot12, knot30), removed.tap(knot30).waypoints, "the next tap sets the end")
+  }
+
+  @Test
+  fun `removing the start of two waypoints`() {
+    assertEquals(listOf(knot45), session.tapAll(knot12, knot45).removeWaypoint(0).waypoints)
+  }
+
+  @Test
+  fun `removing the only waypoint`() {
+    assertEquals(listOf(), session.tapAll(knot12).removeWaypoint(0).waypoints)
   }
 
   @Test

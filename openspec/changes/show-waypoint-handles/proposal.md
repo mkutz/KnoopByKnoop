@@ -7,7 +7,7 @@ An Android tester did not find out that the waypoints can be reordered: "Hatte k
 ## What Changes
 
 - Every waypoint row shows a drag handle (≡) at its end. Dragging the handle moves the waypoint right away; a long press anywhere on the row keeps working.
-- Every row shows a remove button (×) while waypoints may be removed (more than two); swiping keeps working.
+- Every row shows a remove button (×), also with only two waypoints: removing one of them leaves the other as the start (until now, two waypoints could only be cleared together). Swiping keeps working.
 - Screen readers get "Move up", "Move down" and "Remove" as actions on each row, as dragging is not possible with them.
 
 Out of scope:
@@ -26,4 +26,4 @@ Out of scope:
 
 - `apps/android` `PlannerScreen.kt` (`WaypointList`), new drawables for the handle and the remove icon
 - `apps/ios` `PlannerView.swift` (`WaypointSheet`)
-- No change to the core: moving and removing exist already
+- `modules/core` `PlanningSession`: removing one of two waypoints

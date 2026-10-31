@@ -13,6 +13,10 @@
 
 - [x] 3.1 `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; CHANGELOG entry under "Unreleased"
 
+## 4. Removing one of two waypoints
+
+- [x] 4.1 `PlanningSession` removes one of two waypoints, leaving the other as the start; the remove buttons and controls show with two waypoints; verified by `PlanningTest` "Removing one of two waypoints", "Removing the start of two waypoints", "Removing the only waypoint", on the emulator ("Removing one of two waypoints"), and iOS builds
+
 ## Workflow follow-up
 
 - The maintainer checks iOS on the iPhone before `/opsx:archive show-waypoint-handles`.

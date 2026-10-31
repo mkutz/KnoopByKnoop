@@ -16,12 +16,15 @@ See `proposal.md` for why. Android `WaypointList` (`PlannerScreen.kt`) moves a r
 ## Decisions
 
 ### Android: handle and × in the row
-The row gets, at its end, a remove `IconButton` (Material Symbols "close", only when `canRemove`) and a drag handle (Material Symbols "drag_indicator") in a 48 dp touch target. The handle gets `detectDragGestures` without the long press, sharing the existing drag state and the same swap logic; the long-press drag on the whole row stays. TalkBack: the row gets `customActions` "Move up" / "Move down" (where possible) and "Remove" (where allowed), and the handle and the × are labeled "Move 30" and "Remove 30".
+The row gets, at its end, a remove `IconButton` (Material Symbols "close") and a drag handle (Material Symbols "drag_indicator") in a 48 dp touch target. The handle gets `detectDragGestures` without the long press, sharing the existing drag state and the same swap logic; the long-press drag on the whole row stays. TalkBack: the row gets `customActions` "Move up" / "Move down" (where possible) and "Remove" (where allowed), and the handle and the × are labeled "Move 30" and "Remove 30".
 *Alternative:* a library for reorderable lists. A dependency for what the existing drag code already does.
 
 ### iOS: the list's own edit mode
-The waypoint `List` is always in edit mode while planning (`.environment(\.editMode, .constant(.active))`), which shows the system's reorder grip on every row and the red remove control where `onDelete` is allowed (`deleteDisabled` with two waypoints). That is how iOS shows these affordances everywhere, and VoiceOver offers moving and deleting on such rows by itself. Rows stay at 44 pt; the badge and role move right by the remove control's width.
+The waypoint `List` is always in edit mode while planning (`.environment(\.editMode, .constant(.active))`), which shows the system's reorder grip on every row and the red remove control where `onDelete` is allowed. That is how iOS shows these affordances everywhere, and VoiceOver offers moving and deleting on such rows by itself. Rows stay at 44 pt; the badge and role move right by the remove control's width.
 *Alternative:* a custom handle and × as on Android. It would fight the `List`'s own gestures.
+
+### Removing one of two waypoints
+Found in the iPhone check: with only start and end, the remove controls were hidden, as `PlanningSession` only allowed clearing two waypoints. Removing one of them now leaves the other as the start (no route), as after the first tap; the planner then asks for the end. `canRemoveWaypoints` is true whenever there is a waypoint.
 
 ## Risks / Trade-offs
 

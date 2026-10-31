@@ -16,9 +16,12 @@ private constructor(
 
   val network: NetworkType = requireNotNull(graph.network) { "Cannot plan on an empty network" }
 
-  /** Waypoints can be removed unless exactly two are left; then the route can only be cleared. */
+  /**
+   * Any waypoint can be removed; removing one of the last two leaves the other as the start, see
+   * `map-planning` "Edit the waypoint list".
+   */
   val canRemoveWaypoints: Boolean
-    get() = waypoints.size != 2
+    get() = waypoints.isNotEmpty()
 
   /** Whether [returnToStart] can turn the route into a round trip. */
   val canReturnToStart: Boolean
@@ -47,8 +50,9 @@ private constructor(
     if (route == null) this else withRoute(route.moveWaypoint(from, to))
 
   fun removeWaypoint(position: Int): PlanningSession {
-    require(canRemoveWaypoints) { "A route keeps two waypoints; clear it instead" }
-    return if (route == null) copy(listOf(), route = null)
+    require(position in waypoints.indices) { "No waypoint at $position" }
+    val remaining = waypoints.filterIndexed { index, _ -> index != position }
+    return if (route == null || remaining.size < 2) copy(remaining, route = null)
     else withRoute(route.removeWaypoint(position))
   }
 
