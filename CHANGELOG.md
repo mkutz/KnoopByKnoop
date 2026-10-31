@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- When navigation starts, the panel takes the height of the number to follow and the strip, so distances and arrivals are always readable
+- iOS: in landscape, the map no longer zooms out to the whole region to show the next knot off route or the planned route
+
 ## 0.4.0
 
 - Export the route as a GPX file, with the knots as waypoints, from the new ⋯ menu; Back to start moved there too

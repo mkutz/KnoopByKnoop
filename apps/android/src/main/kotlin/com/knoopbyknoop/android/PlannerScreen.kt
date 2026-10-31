@@ -18,10 +18,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -32,6 +34,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -45,6 +48,7 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -52,6 +56,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -60,6 +65,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -79,6 +85,7 @@ import com.knoopbyknoop.core.KnotRole
 import com.knoopbyknoop.core.ProgressView
 import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteSummary
+import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 private val WAYPOINT_ROW_HEIGHT = 48.dp
@@ -142,10 +149,30 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
       SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
     }
   } else {
+    // While navigating, the sheet is fixed at the height of the number to follow and the whole
+    // strip, and starting or ending navigation brings it down to its smallest height, see
+    // `knot-navigation` "Panel height while navigating".
+    val scaffoldState = rememberBottomSheetScaffoldState()
+    var navigationHeight by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
+    val peekHeight =
+      if (state.navigating && navigationHeight > 0)
+        ceil(navigationHeight / density.density).dp +
+          8.dp +
+          WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+      else 150.dp
+    // Also when the height changes while navigating, e.g. off route or with another font size: the
+    // sheet does not follow a changed peek height by itself.
+    LaunchedEffect(state.navigating, peekHeight) { scaffoldState.bottomSheetState.partialExpand() }
     BottomSheetScaffold(
-      sheetPeekHeight = 150.dp,
+      scaffoldState = scaffoldState,
+      sheetPeekHeight = peekHeight,
+      sheetDragHandle = if (state.navigating) null else ({ BottomSheetDefaults.DragHandle() }),
+      sheetSwipeEnabled = !state.navigating,
       snackbarHost = { SnackbarHost(snackbarHostState) },
-      sheetContent = { WaypointSheet(state, viewModel) },
+      sheetContent = {
+        WaypointSheet(state, viewModel, onNavigationHeight = { navigationHeight = it })
+      },
     ) { padding ->
       mapArea(state, Modifier.fillMaxSize().padding(padding))
     }
@@ -315,7 +342,11 @@ private fun MapArea(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
+private fun WaypointSheet(
+  state: AppState,
+  viewModel: AppViewModel,
+  onNavigationHeight: (Int) -> Unit = {},
+) {
   val session = state.session ?: return
   Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
     val navigation = state.navigation
@@ -324,13 +355,25 @@ private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
     val progress =
       navigation?.position?.let { position -> navigation.navigation?.progress(position) }
     if (navigation != null)
-      NavigationHeader(
-        navigation,
-        complete?.knots?.map { it.role },
-        progress,
-        onStop = viewModel::stopNavigation,
-      )
-    else
+      // Measured for the sheet's smallest height while navigating, see `PlannerScreen`.
+      Column(
+        modifier =
+          Modifier.onSizeChanged { onNavigationHeight(it.height) }
+            // In place of the drag handle, which is not shown while navigating.
+            .padding(top = 16.dp)
+      ) {
+        NavigationHeader(
+          navigation,
+          complete?.knots?.map { it.role },
+          progress,
+          onStop = viewModel::stopNavigation,
+        )
+        val current = navigation.navigation
+        if (progress != null && current != null)
+          ProgressPanel(progress, complete?.ferries.orEmpty(), current)
+        else complete?.let { RouteKnots(it) }
+      }
+    else {
       Row(verticalAlignment = Alignment.CenterVertically) {
         Column(modifier = Modifier.weight(1f)) {
           when (val description = state.description) {
@@ -391,10 +434,8 @@ private fun WaypointSheet(state: AppState, viewModel: AppViewModel) {
           if (state.canNavigate) NavigateButton(viewModel)
         }
       }
-    val current = navigation?.navigation
-    if (progress != null && current != null)
-      ProgressPanel(progress, complete?.ferries.orEmpty(), current)
-    else complete?.let { RouteKnots(it) }
+      complete?.let { RouteKnots(it) }
+    }
     // Below the fixed header, the ferries and the waypoints scroll together, see `map-planning`
     // "Long routes in the panel". No waypoints while navigating: the route is fixed then and the
     // knot sequence shows it, see "Waypoint list with badges".

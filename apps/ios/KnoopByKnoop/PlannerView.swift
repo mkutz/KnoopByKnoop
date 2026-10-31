@@ -14,11 +14,22 @@ struct PlannerView: View {
   @State private var detent: PresentationDetent = smallestDetent
   /// How far the sheet reaches up from the bottom of the screen, see `searchOverlay`.
   @State private var sheetHeight: CGFloat = 0
+  /// The height of the number to follow and the progress strip while navigating, see
+  /// `navigationDetent`.
+  @State private var navigationHeight: CGFloat = 0
   /// The attribution's height above the search, see `searchOverlay`.
   @State private var attributionHeight: CGFloat = 0
   @FocusState private var searchFocused: Bool
 
   private static let smallestDetent = PresentationDetent.height(170)
+
+  /// While navigating, the sheet's only height: the number to follow and the whole strip, see
+  /// `knot-navigation` "Panel height while navigating". Rounded up, so a relayout does not move the
+  /// sheet by fractions of a point.
+  private var navigationDetent: PresentationDetent? {
+    guard navigator.state != nil, navigationHeight > 0 else { return nil }
+    return .height(navigationHeight.rounded(.up))
+  }
 
   /// Whether an on-screen keyboard covers the bottom of the screen. Its safe area counts as the
   /// bottom inset, which is at most the home indicator's 34 points without one. A hardware keyboard
@@ -55,8 +66,14 @@ struct PlannerView: View {
           .onGeometryChange(for: CGFloat.self) { $0.size.height + $0.safeAreaInsets.bottom } action: {
             sheetHeight = $0
           }
-          .presentationDetents([Self.smallestDetent, .medium, .large], selection: $detent)
-          .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+          .presentationDetents(
+            navigationDetent.map { [$0] } ?? [Self.smallestDetent, .medium, .large], selection: $detent
+          )
+          // Fixed while navigating, so nothing suggests dragging it.
+          .presentationDragIndicator(navigationDetent == nil ? .automatic : .hidden)
+          // The map stays usable and undimmed below the sheet; while navigating, `.medium` is not one
+          // of the sheet's detents, and the map was dimmed and ignored touches.
+          .presentationBackgroundInteraction(.enabled(upThrough: navigationDetent ?? .medium))
           .interactiveDismissDisabled()
           // A sheet keeps the system's appearance unless told otherwise.
           .appAppearance()
@@ -64,6 +81,11 @@ struct PlannerView: View {
       // The keyboard covers the smallest sheet, but not a higher one, which would hide the field.
       .onChange(of: keyboardShown) { _, shown in
         if shown && !landscape { detent = Self.smallestDetent }
+      }
+      // Starting navigation brings the sheet to the navigation height whatever its height was, and
+      // ending it brings it back to the smallest planning height.
+      .onChange(of: navigationDetent) { _, navigation in
+        detent = navigation ?? Self.smallestDetent
       }
     }
     // The display stays on while navigating with the app open, see `knot-navigation` "Display on
@@ -81,7 +103,7 @@ struct PlannerView: View {
       if showInfo {
         InfoSheet(model: model, onDone: { showInfo = false })
       } else if let session = model.session, model.layers != nil, !model.loading {
-        WaypointSheet(model: model, session: session)
+        WaypointSheet(model: model, session: session) { navigationHeight = $0 }
       } else {
         ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
       }
@@ -249,6 +271,8 @@ private struct WaypointSheet: View {
   @State private var rows: [WaypointRow] = []
   /// The exported GPX file while the share sheet shows it.
   @State private var exportedGpx: ExportedGpx?
+  /// The height of the number to follow and the progress strip while navigating, 0 otherwise.
+  let onNavigationHeight: (CGFloat) -> Void
 
   var body: some View {
     let complete = model.routeDescription as? RouteDescriptionComplete
@@ -319,6 +343,9 @@ private struct WaypointSheet: View {
       }
       .padding([.horizontal, .top])
       .padding(.bottom, 8)
+      .onGeometryChange(for: CGFloat.self) { navigator.state == nil ? 0 : $0.size.height } action: {
+        onNavigationHeight($0)
+      }
       List {
         // While navigating, the ferries are on the progress strip, see `knot-navigation` "Ferries on
         // the strip".

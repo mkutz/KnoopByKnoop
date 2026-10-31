@@ -356,7 +356,7 @@ struct NetworkMapView: UIViewRepresentable {
           MLNCoordinateBounds(
             sw: CLLocationCoordinate2D(latitude: min(rider.latitude, knot.latitude), longitude: min(rider.longitude, knot.longitude)),
             ne: CLLocationCoordinate2D(latitude: max(rider.latitude, knot.latitude), longitude: max(rider.longitude, knot.longitude))),
-          edgePadding: UIEdgeInsets(top: 120, left: 60, bottom: 260, right: 60), animated: true, completionHandler: nil)
+          edgePadding: edgePadding(in: mapView), animated: true, completionHandler: nil)
       } else if begins {
         mapView.setCenter(
           CLLocationCoordinate2D(latitude: newPosition.latitude, longitude: newPosition.longitude),
@@ -594,6 +594,16 @@ struct NetworkMapView: UIViewRepresentable {
       }
     }
 
+    /// The room around knots fitted into view. In portrait, clear of the network switch at the top
+    /// and of the search and the sheet at the bottom; in landscape, the panel is beside the map and
+    /// the search at its bottom, and the map is too low for the portrait room, which zoomed out to
+    /// the whole region.
+    private func edgePadding(in mapView: MLNMapView) -> UIEdgeInsets {
+      mapView.bounds.width > mapView.bounds.height
+        ? UIEdgeInsets(top: 72, left: 40, bottom: 96, right: 80)
+        : UIEdgeInsets(top: 140, left: 40, bottom: 260, right: 60)
+    }
+
     private func fit(to knots: [Knot], animated: Bool) {
       guard knots.count >= 2, let mapView else { return }
       let coordinates = knots.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
@@ -603,7 +613,7 @@ struct NetworkMapView: UIViewRepresentable {
         ne: CLLocationCoordinate2D(
           latitude: coordinates.map(\.latitude).max()!, longitude: coordinates.map(\.longitude).max()!))
       mapView.setVisibleCoordinateBounds(
-        bounds, edgePadding: UIEdgeInsets(top: 140, left: 40, bottom: 220, right: 60), animated: animated,
+        bounds, edgePadding: edgePadding(in: mapView), animated: animated,
         completionHandler: nil)
     }
 
