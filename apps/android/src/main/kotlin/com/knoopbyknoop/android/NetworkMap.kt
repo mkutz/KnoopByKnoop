@@ -5,6 +5,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
@@ -85,6 +87,9 @@ private const val SEARCH_HIT_ZOOM = 14.0
 /** The zoom when navigation begins: close enough to see the next knot and the way to it. */
 private const val NAVIGATION_ZOOM = 15.0
 
+/** The zoom the map goes to at least for the position on request, with the knots shown. */
+private const val MY_POSITION_ZOOM = 14.0
+
 private const val MARKER_RED = "#D93025"
 
 /** The rider's position, in the blue maps commonly use for it. */
@@ -133,6 +138,12 @@ fun NetworkMap(
   /** The next knot while navigating, highlighted. */
   nextKnot: Knot? = null,
   offRoute: Boolean = false,
+  /** The position found on request while planning, see `map-planning` "Show my position". */
+  myPosition: Fix? = null,
+  /** Whether the position is being found. */
+  locating: Boolean = false,
+  /** Asks for the position; `null` while navigating, which hides the button. */
+  onLocate: (() -> Unit)? = null,
 ) {
   val context = LocalContext.current
   val touchTargetPixels = with(LocalDensity.current) { TOUCH_TARGET_DP * density }
@@ -211,6 +222,7 @@ fun NetworkMap(
   holder.show(graph, layers, focus)
   // A chosen search hit: the map moves there, close enough to tap knots, see `place-search`.
   LaunchedEffect(marker) { holder.showMarker(marker) }
+  LaunchedEffect(myPosition) { holder.showMyPosition(myPosition) }
   LaunchedEffect(position, nextKnot, offRoute) {
     holder.showNavigation(position, nextKnot, offRoute, direction)
   }
@@ -255,6 +267,19 @@ fun NetworkMap(
           modifier = Modifier.padding(vertical = 4.dp),
         ) {
           Text(label, fontSize = 22.sp)
+        }
+      }
+      // While planning: the rider's position once per tap, see `map-planning` "Show my position".
+      if (onLocate != null) {
+        SmallFloatingActionButton(
+          onClick = onLocate,
+          containerColor = mapOverlayColor,
+          contentColor = Green,
+          modifier = Modifier.padding(top = 12.dp),
+        ) {
+          if (locating)
+            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+          else Icon(painterResource(R.drawable.ic_my_position), contentDescription = "My position")
         }
       }
       // Only while navigating and after the user moved the map away from the rider.
@@ -441,6 +466,32 @@ private class MapHolder {
     }
   }
 
+  private var myPosition: Fix? = null
+
+  /** Marks [newPosition], found on request, and centers the map on it with the knots shown. */
+  fun showMyPosition(newPosition: Fix?) {
+    myPosition = newPosition
+    style?.let { updateMyPosition(it) }
+    val fix = newPosition ?: return
+    val map = map ?: return
+    map.animateCamera(
+      CameraUpdateFactory.newLatLngZoom(
+        LatLng(fix.latitude, fix.longitude),
+        maxOf(map.cameraPosition.zoom, MY_POSITION_ZOOM),
+      )
+    )
+  }
+
+  private fun updateMyPosition(style: Style) {
+    val fix = myPosition
+    style
+      .getSourceAs<GeoJsonSource>("my-position")
+      ?.setGeoJson(
+        if (fix == null) """{"type": "FeatureCollection", "features": []}"""
+        else """{"type": "Point", "coordinates": [${fix.longitude}, ${fix.latitude}]}"""
+      )
+  }
+
   /** Back to the rider at the navigation zoom, following them again. */
   fun recenter() {
     val rider = position ?: return
@@ -598,6 +649,7 @@ private class MapHolder {
         "next-knot",
         "route-knots",
         "knots",
+        "my-position",
         "position",
       )
       .forEach {
@@ -687,6 +739,16 @@ private class MapHolder {
           PropertyFactory.lineWidth(4f),
           PropertyFactory.lineDasharray(arrayOf(2f, 2f)),
           PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+        )
+    )
+    // The position found on request while planning: a dot that does not follow the rider.
+    style.addLayer(
+      CircleLayer("my-position", "my-position")
+        .withProperties(
+          PropertyFactory.circleRadius(8f),
+          PropertyFactory.circleColor(POSITION_BLUE),
+          PropertyFactory.circleStrokeColor("#FFFFFF"),
+          PropertyFactory.circleStrokeWidth(3f),
         )
     )
     // The next knot while navigating: a ring under its badge.

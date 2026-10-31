@@ -1,13 +1,17 @@
 package com.knoopbyknoop.android
 
+import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -39,7 +43,20 @@ class MainActivity : ComponentActivity() {
         val snackbarHostState = remember { SnackbarHostState() }
         LaunchedEffect(state.message) {
           state.message?.let {
-            snackbarHostState.showSnackbar(it)
+            val opensSettings = state.messageOpensSettings
+            val result =
+              snackbarHostState.showSnackbar(
+                it,
+                actionLabel = if (opensSettings) "Settings" else null,
+              )
+            if (opensSettings && result == SnackbarResult.ActionPerformed) {
+              startActivity(
+                Intent(
+                  Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                  Uri.fromParts("package", packageName, null),
+                )
+              )
+            }
             viewModel.dismissMessage()
           }
         }

@@ -1,6 +1,7 @@
 package com.knoopbyknoop.android
 
 import android.Manifest
+import android.app.Activity
 import android.content.res.Configuration
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -48,6 +49,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.mutableFloatStateOf
@@ -60,6 +62,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -187,6 +190,39 @@ private fun MapArea(
   val session = state.session
   val layers = state.layers
   Box(modifier = modifier) {
+    // The position once per tap, asking for location access first, see `map-planning` "Show my
+    // position"; on the first start, asked right away.
+    val activity = LocalContext.current as? Activity
+    val locationLauncher =
+      rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        granted ->
+        if (
+          granted[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+            granted[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        )
+          viewModel.locate()
+        else
+          viewModel.positionDenied(
+            permanently =
+              activity?.shouldShowRequestPermissionRationale(
+                Manifest.permission.ACCESS_FINE_LOCATION
+              ) == false
+          )
+      }
+    val locate = {
+      locationLauncher.launch(
+        arrayOf(
+          Manifest.permission.ACCESS_FINE_LOCATION,
+          Manifest.permission.ACCESS_COARSE_LOCATION,
+        )
+      )
+    }
+    LaunchedEffect(state.askLocationOnStart) {
+      if (state.askLocationOnStart) {
+        viewModel.askedLocationOnStart()
+        locate()
+      }
+    }
     NetworkMap(
       graph = session?.graph,
       layers = layers,
@@ -206,6 +242,9 @@ private fun MapArea(
       direction = state.navigation?.direction,
       nextKnot = state.navigation?.navigation?.nextKnot,
       offRoute = state.navigation?.navigation?.offRoute == true,
+      myPosition = state.myPosition.takeUnless { state.navigating },
+      locating = state.locating,
+      onLocate = locate.takeUnless { state.navigating },
     )
     // Below the status bar and clear of the cutout, where touches go to the system, see
     // `map-planning` "Clear of the system bars".

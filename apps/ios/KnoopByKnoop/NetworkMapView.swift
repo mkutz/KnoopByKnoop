@@ -75,6 +75,12 @@ struct NetworkMapView: UIViewRepresentable {
   var track: RiddenTrack? = nil
   /// The riding direction, see `knot-navigation` "Riding direction on the map".
   var direction: Double? = nil
+  /// The position found on request while planning, see `map-planning` "Show my position".
+  var myPosition: Fix? = nil
+  /// Whether the position is being found.
+  var locating = false
+  /// Asks for the position; `nil` while navigating, which hides the button.
+  var onLocate: (() -> Void)? = nil
 
   func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -153,6 +159,26 @@ struct NetworkMapView: UIViewRepresentable {
     recenter.addTarget(coordinator, action: #selector(Coordinator.recenter), for: .touchUpInside)
     mapView.addSubview(recenter)
     coordinator.recenterButton = recenter
+    // While planning, in the recenter button's place: the position once per tap, see `map-planning`
+    // "Show my position".
+    let locate = UIButton(type: .system)
+    locate.setImage(UIImage(systemName: "location"), for: .normal)
+    locate.tintColor = UIColor(Color.knoopGreen)
+    locate.backgroundColor = UIColor { $0.userInterfaceStyle == .dark ? UIColor(white: 0.17, alpha: 1) : .white }
+    locate.layer.cornerRadius = 20
+    locate.layer.shadowOpacity = 0.2
+    locate.layer.shadowRadius = 2
+    locate.layer.shadowOffset = CGSize(width: 0, height: 1)
+    locate.accessibilityLabel = "My position"
+    locate.translatesAutoresizingMaskIntoConstraints = false
+    locate.addTarget(coordinator, action: #selector(Coordinator.locate), for: .touchUpInside)
+    let spinner = UIActivityIndicatorView(style: .medium)
+    spinner.translatesAutoresizingMaskIntoConstraints = false
+    spinner.isUserInteractionEnabled = false
+    locate.addSubview(spinner)
+    mapView.addSubview(locate)
+    coordinator.locateButton = locate
+    coordinator.locateSpinner = spinner
     NSLayoutConstraint.activate([
       stack.trailingAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.trailingAnchor, constant: -12),
       stack.centerYAnchor.constraint(equalTo: mapView.centerYAnchor),
@@ -160,6 +186,12 @@ struct NetworkMapView: UIViewRepresentable {
       recenter.heightAnchor.constraint(equalToConstant: 40),
       recenter.trailingAnchor.constraint(equalTo: stack.trailingAnchor),
       recenter.topAnchor.constraint(equalTo: stack.bottomAnchor, constant: 20),
+      locate.widthAnchor.constraint(equalToConstant: 40),
+      locate.heightAnchor.constraint(equalToConstant: 40),
+      locate.trailingAnchor.constraint(equalTo: stack.trailingAnchor),
+      locate.topAnchor.constraint(equalTo: stack.bottomAnchor, constant: 20),
+      spinner.centerXAnchor.constraint(equalTo: locate.centerXAnchor),
+      spinner.centerYAnchor.constraint(equalTo: locate.centerYAnchor),
     ])
   }
 
@@ -171,6 +203,9 @@ struct NetworkMapView: UIViewRepresentable {
     context.coordinator.showNavigation(
       position: position, nextKnot: nextKnot, offRoute: offRoute, direction: direction, on: mapView)
     context.coordinator.showTrack(track)
+    context.coordinator.onLocate = onLocate
+    context.coordinator.showLocating(locating, available: onLocate != nil)
+    context.coordinator.showMyPosition(myPosition, on: mapView)
     context.coordinator.dark = context.environment.colorScheme == .dark
     context.coordinator.online = online
     if online && context.coordinator.usesOfflineStyle {
@@ -187,7 +222,39 @@ struct NetworkMapView: UIViewRepresentable {
     var onTap: (Double, Double, Double) -> Void = { _, _, _ in }
     var onLeave: (CameraPlace) -> Void = { _ in }
     var onMove: (CameraPlace) -> Void = { _ in }
+    var onLocate: (() -> Void)?
+    weak var locateButton: UIButton?
+    weak var locateSpinner: UIActivityIndicatorView?
+    private var myPosition: Fix?
     private var marker: PlaceHit?
+
+    @objc func locate() { onLocate?() }
+
+    func showLocating(_ locating: Bool, available: Bool) {
+      locateButton?.isHidden = !available
+      locateButton?.imageView?.alpha = locating ? 0 : 1
+      if locating { locateSpinner?.startAnimating() } else { locateSpinner?.stopAnimating() }
+    }
+
+    /// Marks `newPosition`, found on request, and centers the map on it with the knots shown.
+    func showMyPosition(_ newPosition: Fix?, on mapView: MLNMapView) {
+      guard newPosition !== myPosition else { return }
+      myPosition = newPosition
+      updateMyPosition()
+      guard let newPosition else { return }
+      mapView.setCenter(
+        CLLocationCoordinate2D(latitude: newPosition.latitude, longitude: newPosition.longitude),
+        zoomLevel: max(mapView.zoomLevel, 14), animated: true)
+    }
+
+    private func updateMyPosition() {
+      let point = myPosition.map { fix -> MLNPointFeature in
+        let feature = MLNPointFeature()
+        feature.coordinate = CLLocationCoordinate2D(latitude: fix.latitude, longitude: fix.longitude)
+        return feature
+      }
+      (style?.source(withIdentifier: "my-position") as? MLNShapeSource)?.shape = point
+    }
 
     func showMarker(_ newMarker: PlaceHit?, on mapView: MLNMapView) {
       guard newMarker != marker else { return }
@@ -631,6 +698,15 @@ struct NetworkMapView: UIViewRepresentable {
       style.addLayer(routeKnots)
 
       // The rider's position while navigating, above everything else, in the blue maps use for it.
+      // The position found on request while planning: a dot that does not follow the rider.
+      let myPositionSource = MLNShapeSource(identifier: "my-position", shape: nil)
+      style.addSource(myPositionSource)
+      let myPositionLayer = MLNCircleStyleLayer(identifier: "my-position", source: myPositionSource)
+      myPositionLayer.circleRadius = NSExpression(forConstantValue: 7)
+      myPositionLayer.circleColor = NSExpression(forConstantValue: UIColor(red: 0x1A / 255, green: 0x73 / 255, blue: 0xE8 / 255, alpha: 1))
+      myPositionLayer.circleStrokeColor = NSExpression(forConstantValue: UIColor.white)
+      myPositionLayer.circleStrokeWidth = NSExpression(forConstantValue: 3)
+      style.addLayer(myPositionLayer)
       let positionSource = MLNShapeSource(identifier: "position", shape: nil)
       style.addSource(positionSource)
       let positionLayer = MLNCircleStyleLayer(identifier: "position", source: positionSource)
@@ -650,6 +726,7 @@ struct NetworkMapView: UIViewRepresentable {
       arrowLayer.iconIgnoresPlacement = NSExpression(forConstantValue: true)
       style.addLayer(arrowLayer)
       updateNavigation()
+      updateMyPosition()
     }
 
   }

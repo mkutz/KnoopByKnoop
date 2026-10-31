@@ -43,7 +43,7 @@ targets:
         CURRENT_PROJECT_VERSION: 1
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Knoop by Knoop
-        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Navigation follows your position to tell you the number to follow at the next knot.
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Knoop by Knoop uses your position to show where you are on the map and, while navigating, to tell you the number to follow at the next knot.
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         # The Kotlin core framework, built by the pre-build script below.
         FRAMEWORK_SEARCH_PATHS: $(SRCROOT)/../../modules/core/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)

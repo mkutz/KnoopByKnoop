@@ -112,7 +112,10 @@ struct PlannerView: View {
         nextKnot: navigator.state?.navigation?.nextKnot,
         offRoute: navigator.state?.navigation?.offRoute ?? false,
         track: navigator.state?.track,
-        direction: navigator.state?.direction
+        direction: navigator.state?.direction,
+        myPosition: navigator.state == nil ? model.myPosition : nil,
+        locating: model.locating,
+        onLocate: locateAction
       )
       .ignoresSafeArea()
       // While typing in landscape, the hits need the room up to the top, see `place-search`.
@@ -138,6 +141,12 @@ struct PlannerView: View {
 
   /// Just below the network switch.
   private let notesTop: CGFloat = 64
+
+  /// The position on request, only while planning, see `map-planning` "Show my position".
+  private var locateAction: (() -> Void)? {
+    guard navigator.state == nil else { return nil }
+    return { [model] in model.locate() }
+  }
 
   /// The network picker and the info button, at the top of the map.
   private var networkSwitch: some View {

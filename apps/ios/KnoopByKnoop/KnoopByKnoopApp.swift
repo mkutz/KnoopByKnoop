@@ -20,7 +20,17 @@ struct KnoopByKnoopApp: App {
       .alert(
         model.message ?? "", isPresented: Binding(get: { model.message != nil }, set: { if !$0 { model.message = nil } })
       ) {
-        Button("OK") { model.message = nil }
+        if model.messageOpensSettings {
+          Button("Settings") {
+            model.message = nil
+            model.messageOpensSettings = false
+            if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+          }
+        }
+        Button("OK") {
+          model.message = nil
+          model.messageOpensSettings = false
+        }
       }
       // While the app is visible, the navigation samples live, see `knot-navigation`.
       .onChange(of: scenePhase) { _, phase in Navigator.shared.visible = phase == .active }

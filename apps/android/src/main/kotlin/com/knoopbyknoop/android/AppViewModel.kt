@@ -1,6 +1,8 @@
 package com.knoopbyknoop.android
 
+import android.annotation.SuppressLint
 import android.app.Application
+import android.location.Location
 import android.net.ConnectivityManager
 import android.net.Network
 import androidx.compose.runtime.getValue
@@ -9,6 +11,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
+import com.knoopbyknoop.core.Fix
 import com.knoopbyknoop.core.GeoBounds
 import com.knoopbyknoop.core.GraphFile
 import com.knoopbyknoop.core.IndexedNetworkType
@@ -25,6 +31,7 @@ import com.knoopbyknoop.core.RouteKnot
 import com.knoopbyknoop.core.RouteSnapshot
 import com.knoopbyknoop.core.RouteSummary
 import java.util.Locale
+import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -32,7 +39,9 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 /** The map layers of the planner as GeoJSON, see [MapFeatures]. */
 data class MapLayers(
@@ -67,7 +76,18 @@ data class AppState(
   /** The chosen search hit, shown with a marker on the map. */
   val marker: PlaceHit? = null,
   val message: String? = null,
+  /** Whether the [message] offers to open the app's settings, e.g. to allow location access. */
+  val messageOpensSettings: Boolean = false,
   val loading: Boolean = false,
+  /**
+   * The rider's position as found on request, marked on the map without following them, see
+   * `map-planning` "Show my position".
+   */
+  val myPosition: Fix? = null,
+  /** Whether the position is being found. */
+  val locating: Boolean = false,
+  /** Whether to ask for location access on start: the first start, with nothing else to show. */
+  val askLocationOnStart: Boolean = false,
   /** The navigation, or `null` when not navigating, see `knot-navigation`. */
   val navigation: NavigationState? = null,
 ) {
@@ -122,7 +142,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private set
 
   init {
-    state = state.copy(initialPlace = storage.camera())
+    val camera = storage.camera()
+    state =
+      state.copy(
+        initialPlace = camera,
+        askLocationOnStart = camera == null && storage.route()?.waypoints.isNullOrEmpty(),
+      )
     viewModelScope.launch {
       withContext(Dispatchers.IO) { sync.installBundled() }
       refreshCatalog()
@@ -171,8 +196,66 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     state = state.copy(message = "Knoop by Knoop needs location access to navigate.")
   }
 
+  /** The app is left: keeps the map's place and forgets the position found on request. */
   fun saveCamera(place: CameraPlace) {
     storage.saveCamera(place)
+    state = state.copy(myPosition = null)
+  }
+
+  /** The start's question for location access was asked, see "Show my position". */
+  fun askedLocationOnStart() {
+    state = state.copy(askLocationOnStart = false)
+  }
+
+  /**
+   * Finds the rider's position once, see `map-planning` "Show my position": a single fix, given up
+   * after [LOCATE_TIMEOUT_MILLIS]; location access must be granted.
+   */
+  fun locate() {
+    if (state.locating) return
+    state = state.copy(locating = true)
+    viewModelScope.launch {
+      val location = withTimeoutOrNull(LOCATE_TIMEOUT_MILLIS) { currentLocation() }
+      state =
+        if (location == null)
+          state.copy(locating = false, message = "Your position could not be found.")
+        else
+          state.copy(
+            locating = false,
+            myPosition =
+              Fix(
+                location.latitude,
+                location.longitude,
+                location.accuracy.toDouble(),
+                location.time,
+              ),
+          )
+    }
+  }
+
+  /**
+   * The user did not grant location access for their position; [permanently] if not asked again.
+   */
+  fun positionDenied(permanently: Boolean) {
+    state =
+      state.copy(
+        message = "Knoop by Knoop needs location access to show your position.",
+        messageOpensSettings = permanently,
+      )
+  }
+
+  @SuppressLint("MissingPermission") // Granted before locate() is called.
+  private suspend fun currentLocation(): Location? = suspendCancellableCoroutine { continuation ->
+    val cancellation = CancellationTokenSource()
+    try {
+      LocationServices.getFusedLocationProviderClient(getApplication<Application>())
+        .getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cancellation.token)
+        .addOnSuccessListener { continuation.resume(it) }
+        .addOnFailureListener { continuation.resume(null) }
+    } catch (exception: SecurityException) {
+      continuation.resume(null)
+    }
+    continuation.invokeOnCancellation { cancellation.cancel() }
   }
 
   private var searchJob: Job? = null
@@ -238,7 +321,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   }
 
   fun dismissMessage() {
-    state = state.copy(message = null)
+    state = state.copy(message = null, messageOpensSettings = false)
   }
 
   /** Retries a failed download right away instead of waiting for the next attempt. */
@@ -452,3 +535,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     const val SEARCH_DELAY_MILLIS = 300L
   }
 }
+
+/** How long finding the position on request may take, see "Show my position". */
+private const val LOCATE_TIMEOUT_MILLIS = 15_000L

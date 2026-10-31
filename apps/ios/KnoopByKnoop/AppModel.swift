@@ -56,6 +56,14 @@ final class AppModel: ObservableObject {
   @Published private(set) var routeDescription: RouteDescription = RouteDescriptionEmpty.shared
   @Published private(set) var loading = false
   @Published var message: String?
+  /// Whether the `message` offers to open the app's settings, e.g. to allow location access.
+  @Published var messageOpensSettings = false
+  /// The rider's position as found on request, marked on the map without following them, see
+  /// `map-planning` "Show my position".
+  @Published private(set) var myPosition: Fix?
+  /// Whether the position is being found.
+  @Published private(set) var locating = false
+  private let positionFinder = PositionFinder()
   @Published private(set) var searchQuery = ""
   @Published private(set) var searchResult: SearchResult = .none
   /// The chosen search hit, shown with a marker on the map.
@@ -85,8 +93,11 @@ final class AppModel: ObservableObject {
     Task {
       await installBundled()
       refreshCatalog()
+      // The first start, with nothing else to show: ask for the position right away.
+      let firstStart = storage.camera() == nil && (storage.route()?.waypoints.isEmpty ?? true)
       await restoreRoute()
       restored = true
+      if firstStart { locate() }
       await reloadIfChanged()
       if isSyncDue() { await sync() }
     }
@@ -284,7 +295,27 @@ final class AppModel: ObservableObject {
   /// Where the map opens: where it was when the app was left last.
   lazy var initialPlace: CameraPlace? = storage.camera()
 
+  /// Finds the rider's position once, asking for access first if needed, see `map-planning` "Show
+  /// my position".
+  func locate() {
+    guard !locating else { return }
+    locating = true
+    positionFinder.find { [weak self] result in
+      guard let self else { return }
+      locating = false
+      switch result {
+      case .found(let fix): myPosition = fix
+      case .notFound: message = "Your position could not be found."
+      case .denied:
+        message = "Knoop by Knoop needs location access to show your position. You can allow it in Settings."
+        messageOpensSettings = true
+      }
+    }
+  }
+
   func saveCamera(_ place: CameraPlace) {
+    // The app is left: the position found on request is forgotten.
+    myPosition = nil
     storage.saveCamera(place)
   }
 
