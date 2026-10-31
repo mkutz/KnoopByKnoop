@@ -6,6 +6,7 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +35,7 @@ import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -61,8 +63,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.knoopbyknoop.core.Guidance
@@ -467,8 +472,9 @@ private fun RouteKnots(description: RouteDescription.Complete) {
 }
 
 /**
- * Waypoints in order: long-press and drag to move one, swipe to remove one. While dragging, the
- * list already shows the new order, so the other waypoints make room for the dragged one.
+ * Waypoints in order: drag the handle, or long-press and drag the row, to move one; tap ×, or
+ * swipe, to remove one, see `map-planning` "Edit the waypoint list". While dragging, the list
+ * already shows the new order, so the other waypoints make room for the dragged one.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -485,6 +491,36 @@ private fun WaypointList(
   var order by remember(waypoints) { mutableStateOf(waypoints.indices.toList()) }
   var dragged by remember(waypoints) { mutableStateOf<Int?>(null) }
   var dragOffset by remember(waypoints) { mutableFloatStateOf(0f) }
+
+  fun startDrag(index: Int) {
+    dragged = index
+    dragOffset = 0f
+  }
+
+  fun drag(index: Int, amount: Float) {
+    dragOffset += amount
+    // Move the dragged waypoint in the shown order as soon as it covers a neighbor.
+    val current = order.indexOf(index)
+    val target =
+      (current + (dragOffset / rowHeightPixels).roundToInt()).coerceIn(0, order.lastIndex)
+    if (target != current) {
+      order = order.toMutableList().apply { add(target, removeAt(current)) }
+      dragOffset -= (target - current) * rowHeightPixels
+    }
+  }
+
+  fun endDrag(index: Int) {
+    val target = order.indexOf(index)
+    dragged = null
+    dragOffset = 0f
+    if (target != index) viewModel.moveWaypoint(index, target)
+  }
+
+  fun cancelDrag() {
+    order = waypoints.indices.toList()
+    dragged = null
+    dragOffset = 0f
+  }
 
   LazyColumn(modifier = modifier) {
     // Not animated, so it does not jump when the route changes; the drag offsets only count the
@@ -517,63 +553,99 @@ private fun WaypointList(
             shadowElevation = if (isDragged) 8f else 0f
           },
       ) {
+        // Read here, so the role follows the shown order while dragging.
+        val role =
+          when (order.indexOf(index)) {
+            0 -> KnotRole.START
+            order.lastIndex -> KnotRole.END
+            else -> KnotRole.STOP
+          }
+        val roleName = role.name.lowercase().replaceFirstChar { it.uppercase() }
         Row(
           verticalAlignment = Alignment.CenterVertically,
           modifier =
             Modifier.fillMaxWidth()
               .height(WAYPOINT_ROW_HEIGHT)
               .background(MaterialTheme.colorScheme.surface)
+              // Screen readers cannot drag: moving and removing as actions on the row.
+              .semantics(mergeDescendants = true) {
+                if (editable)
+                  customActions =
+                    listOfNotNull(
+                      CustomAccessibilityAction("Move up") {
+                          viewModel.moveWaypoint(index, index - 1)
+                          true
+                        }
+                        .takeIf { index > 0 },
+                      CustomAccessibilityAction("Move down") {
+                          viewModel.moveWaypoint(index, index + 1)
+                          true
+                        }
+                        .takeIf { index < waypoints.lastIndex },
+                      CustomAccessibilityAction("Remove") {
+                          viewModel.removeWaypoint(index)
+                          true
+                        }
+                        .takeIf { canRemove },
+                    )
+              }
               .pointerInput(index, waypoints, editable) {
                 if (!editable) return@pointerInput
                 detectDragGesturesAfterLongPress(
-                  onDragStart = {
-                    dragged = index
-                    dragOffset = 0f
-                  },
+                  onDragStart = { startDrag(index) },
                   onDrag = { change, amount ->
                     change.consume()
-                    dragOffset += amount.y
-                    // Move the dragged waypoint in the shown order as soon as it covers a neighbor.
-                    val current = order.indexOf(index)
-                    val target =
-                      (current + (dragOffset / rowHeightPixels).roundToInt()).coerceIn(
-                        0,
-                        order.lastIndex,
-                      )
-                    if (target != current) {
-                      order = order.toMutableList().apply { add(target, removeAt(current)) }
-                      dragOffset -= (target - current) * rowHeightPixels
-                    }
+                    drag(index, amount.y)
                   },
-                  onDragEnd = {
-                    val target = order.indexOf(index)
-                    dragged = null
-                    dragOffset = 0f
-                    if (target != index) viewModel.moveWaypoint(index, target)
-                  },
-                  onDragCancel = {
-                    order = waypoints.indices.toList()
-                    dragged = null
-                    dragOffset = 0f
-                  },
+                  onDragEnd = { endDrag(index) },
+                  onDragCancel = { cancelDrag() },
                 )
               },
         ) {
-          // Read here, so the role follows the shown order while dragging.
-          val role =
-            when (order.indexOf(index)) {
-              0 -> KnotRole.START
-              order.lastIndex -> KnotRole.END
-              else -> KnotRole.STOP
-            }
           Box(modifier = Modifier.width(44.dp), contentAlignment = Alignment.Center) {
             KnotBadge(knot.ref, role)
           }
           Text(
-            role.name.lowercase().replaceFirstChar { it.uppercase() },
+            roleName,
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(start = 12.dp),
+            modifier = Modifier.padding(start = 12.dp).weight(1f),
           )
+          if (editable && canRemove) {
+            IconButton(onClick = { viewModel.removeWaypoint(index) }) {
+              Icon(
+                painterResource(R.drawable.ic_remove),
+                contentDescription = "Remove ${knot.ref}",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp),
+              )
+            }
+          }
+          if (editable) {
+            // Drags right away, without the long press the row needs.
+            Box(
+              contentAlignment = Alignment.Center,
+              modifier =
+                Modifier.size(48.dp)
+                  .semantics { contentDescription = "Move ${knot.ref}" }
+                  .pointerInput(index, waypoints) {
+                    detectDragGestures(
+                      onDragStart = { startDrag(index) },
+                      onDrag = { change, amount ->
+                        change.consume()
+                        drag(index, amount.y)
+                      },
+                      onDragEnd = { endDrag(index) },
+                      onDragCancel = { cancelDrag() },
+                    )
+                  },
+            ) {
+              Icon(
+                painterResource(R.drawable.ic_drag_handle),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+              )
+            }
+          }
         }
       }
     }

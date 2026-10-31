@@ -319,6 +319,9 @@ private struct WaypointSheet: View {
       .listStyle(.plain)
       // One compact line per waypoint, as high as a touch target.
       .environment(\.defaultMinListRowHeight, 44)
+      // Always editing while planning, so every waypoint shows the system's reorder grip and, where
+      // allowed, its remove control, see `map-planning` "Edit the waypoint list".
+      .environment(\.editMode, .constant(navigator.state == nil ? .active : .inactive))
       // So the sheet's own background shows, Liquid Glass on iOS 26 and later.
       .scrollContentBackground(.hidden)
     }
