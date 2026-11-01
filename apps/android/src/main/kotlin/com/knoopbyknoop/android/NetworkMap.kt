@@ -31,11 +31,13 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.knoopbyknoop.core.Fix
+import com.knoopbyknoop.core.GeoPoint
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.NetworkGraph
 import com.knoopbyknoop.core.PlaceHit
 import com.knoopbyknoop.core.RiddenTrack
 import org.maplibre.android.MapLibre
+import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.geometry.LatLngBounds
@@ -151,7 +153,11 @@ fun NetworkMap(
   direction: Double? = null,
   /** The next knot while navigating, highlighted. */
   nextKnot: Knot? = null,
-  offRoute: Boolean = false,
+  /**
+   * Off route, where the line back to the route ends, see `knot-navigation` "Way to the route on
+   * the map"; `null` on the route.
+   */
+  wayToRoute: GeoPoint? = null,
   /** The position found on request while planning, see `map-planning` "Show my position". */
   myPosition: Fix? = null,
   /** Whether the position is being found. */
@@ -247,8 +253,8 @@ fun NetworkMap(
   // A chosen search hit: the map moves there, close enough to tap knots, see `place-search`.
   LaunchedEffect(marker) { holder.showMarker(marker) }
   LaunchedEffect(myPosition) { holder.showMyPosition(myPosition) }
-  LaunchedEffect(position, nextKnot, offRoute) {
-    holder.showNavigation(position, nextKnot, offRoute, direction)
+  LaunchedEffect(position, nextKnot, wayToRoute) {
+    holder.showNavigation(position, nextKnot, wayToRoute, direction)
   }
   LaunchedEffect(track) { holder.showTrack(track) }
   LaunchedEffect(topControlsBottom, topControlsStart) {
@@ -467,7 +473,7 @@ private class MapHolder {
 
   private var position: Fix? = null
   private var nextKnot: Knot? = null
-  private var offRoute = false
+  private var wayToRoute: GeoPoint? = null
 
   /** Whether the map moves to the rider with the next position, e.g. after the app was opened. */
   var findRider = false
@@ -487,7 +493,7 @@ private class MapHolder {
   fun showNavigation(
     newPosition: Fix?,
     newNextKnot: Knot?,
-    offRoute: Boolean = false,
+    newWayToRoute: GeoPoint? = null,
     newDirection: Double? = null,
   ) {
     val begins = newPosition != null && (position == null || findRider)
@@ -498,20 +504,28 @@ private class MapHolder {
     if (newPosition == null) following = false
     position = newPosition
     nextKnot = newNextKnot
-    this.offRoute = offRoute
+    wayToRoute = newWayToRoute
     direction = newDirection
     style?.let { updateNavigation(it) }
     if (newPosition == null || !following) return
     val map = map ?: return
     val rider = LatLng(newPosition.latitude, newPosition.longitude)
-    if (offRoute && newNextKnot != null) {
-      // Off route, the rider and the next knot, so they see where the route is.
+    if (newWayToRoute != null) {
+      // Off route, the rider and the end of the way back, so they see where the route is.
       val bounds =
         LatLngBounds.Builder()
           .include(rider)
-          .include(LatLng(newNextKnot.latitude, newNextKnot.longitude))
+          .include(LatLng(newWayToRoute.latitude, newWayToRoute.longitude))
           .build()
-      map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 160))
+      // Below the controls at the top, and no closer than following, as the way back can be short.
+      val camera = map.getCameraForLatLngBounds(bounds, intArrayOf(160, compassTop + 160, 160, 160))
+      if (camera != null) {
+        map.animateCamera(
+          CameraUpdateFactory.newCameraPosition(
+            CameraPosition.Builder(camera).zoom(minOf(camera.zoom, NAVIGATION_ZOOM)).build()
+          )
+        )
+      }
     } else if (begins) {
       map.animateCamera(
         CameraUpdateFactory.newLatLngZoom(rider, maxOf(map.cameraPosition.zoom, NAVIGATION_ZOOM))
@@ -605,15 +619,15 @@ private class MapHolder {
     style
       .getSourceAs<GeoJsonSource>("next-knot")
       ?.setGeoJson(nextKnot?.let { point(it.latitude, it.longitude) } ?: empty)
-    // Off route, the straight way to the next knot, see `knot-navigation` "Way to the route on the
-    // map".
+    // Off route, the straight way back to the route, see `knot-navigation` "Way to the route on
+    // the map".
     val fix = position
-    val knot = nextKnot
+    val end = wayToRoute
     style
       .getSourceAs<GeoJsonSource>("way-to-route")
       ?.setGeoJson(
-        if (offRoute && fix != null && knot != null)
-          """{"type": "LineString", "coordinates": [[${fix.longitude}, ${fix.latitude}], [${knot.longitude}, ${knot.latitude}]]}"""
+        if (fix != null && end != null)
+          """{"type": "LineString", "coordinates": [[${fix.longitude}, ${fix.latitude}], [${end.longitude}, ${end.latitude}]]}"""
         else empty
       )
   }

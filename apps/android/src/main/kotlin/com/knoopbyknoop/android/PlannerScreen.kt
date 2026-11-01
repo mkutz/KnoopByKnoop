@@ -315,7 +315,10 @@ private fun MapArea(
       track = state.navigation?.track,
       direction = state.navigation?.direction,
       nextKnot = state.navigation?.navigation?.nextKnot,
-      offRoute = state.navigation?.navigation?.offRoute == true,
+      wayToRoute =
+        state.navigation?.let { navigating ->
+          navigating.position?.let { navigating.navigation?.wayToRoute(it) }
+        },
       myPosition = state.myPosition.takeUnless { state.navigating },
       locating = state.locating,
       onLocate = locate.takeUnless { state.navigating },

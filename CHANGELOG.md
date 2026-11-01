@@ -10,6 +10,8 @@
 - iOS: off route in German, the text is no longer cut off, and at the largest text sizes Stop and the distance are complete
 - Android: off route is red, not pink, in dark mode
 - The ridden track is drawn on top of the route, and your arrow on the map is bigger
+- Off route, the dashed line leads back to the nearest point of the route instead of to the next knot
+- Back on route only once you are on the route, not on a path beside it
 
 ## 0.6.0
 

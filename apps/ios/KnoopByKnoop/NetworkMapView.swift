@@ -74,7 +74,9 @@ struct NetworkMapView: UIViewRepresentable {
   var position: Fix? = nil
   /// The next knot while navigating, highlighted.
   var nextKnot: Knot? = nil
-  var offRoute = false
+  /// Off route, where the line back to the route ends, see `knot-navigation` "Way to the route on
+  /// the map"; `nil` on the route.
+  var wayToRoute: GeoPoint? = nil
   /// The track ridden while navigating, see `knot-navigation` "Ridden track".
   var track: RiddenTrack? = nil
   /// The riding direction, see `knot-navigation` "Riding direction on the map".
@@ -220,7 +222,7 @@ struct NetworkMapView: UIViewRepresentable {
     context.coordinator.onMove = onMove
     context.coordinator.showMarker(marker, on: mapView)
     context.coordinator.showNavigation(
-      position: position, nextKnot: nextKnot, offRoute: offRoute, direction: direction, on: mapView)
+      position: position, nextKnot: nextKnot, wayToRoute: wayToRoute, direction: direction, on: mapView)
     context.coordinator.showTrack(track)
     context.coordinator.showKnot(shownKnot, on: mapView)
     context.coordinator.onLocate = onLocate
@@ -289,7 +291,7 @@ struct NetworkMapView: UIViewRepresentable {
 
     private var position: Fix?
     private var nextKnot: Knot?
-    private var offRoute = false
+    private var wayToRoute: GeoPoint?
 
     /// Whether the map moves to the rider with the next position, e.g. after the app was opened.
     var findRider = false
@@ -358,30 +360,35 @@ struct NetworkMapView: UIViewRepresentable {
     /// Shows the rider and the next knot; when navigation begins or the app is opened while
     /// navigating, the map moves to the rider, see `knot-navigation` "Looking at the map".
     func showNavigation(
-      position newPosition: Fix?, nextKnot newNextKnot: Knot?, offRoute: Bool, direction newDirection: Double?,
+      position newPosition: Fix?, nextKnot newNextKnot: Knot?, wayToRoute newWayToRoute: GeoPoint?, direction newDirection: Double?,
       on mapView: MLNMapView
     ) {
-      guard newPosition !== position || newNextKnot !== nextKnot || offRoute != self.offRoute else { return }
+      guard newPosition !== position || newNextKnot !== nextKnot || newWayToRoute != wayToRoute else { return }
       let begins = newPosition != nil && (position == nil || findRider)
       if begins { findRider = false }
       position = newPosition
       nextKnot = newNextKnot
-      self.offRoute = offRoute
+      wayToRoute = newWayToRoute
       direction = newDirection
       if begins { following = true }
       if newPosition == nil { following = false }
       updateRecenterButton()
       updateNavigation()
       guard following, let newPosition else { return }
-      if offRoute, let newNextKnot {
-        // Off route, the rider and the next knot, so they see where the route is.
+      if let newWayToRoute {
+        // Off route, the rider and the end of the way back, so they see where the route is, no
+        // closer than following, as the way back can be short.
         let rider = CLLocationCoordinate2D(latitude: newPosition.latitude, longitude: newPosition.longitude)
-        let knot = CLLocationCoordinate2D(latitude: newNextKnot.latitude, longitude: newNextKnot.longitude)
-        mapView.setVisibleCoordinateBounds(
+        let end = CLLocationCoordinate2D(latitude: newWayToRoute.latitude, longitude: newWayToRoute.longitude)
+        let camera = mapView.cameraThatFitsCoordinateBounds(
           MLNCoordinateBounds(
-            sw: CLLocationCoordinate2D(latitude: min(rider.latitude, knot.latitude), longitude: min(rider.longitude, knot.longitude)),
-            ne: CLLocationCoordinate2D(latitude: max(rider.latitude, knot.latitude), longitude: max(rider.longitude, knot.longitude))),
-          edgePadding: edgePadding(in: mapView), animated: true, completionHandler: nil)
+            sw: CLLocationCoordinate2D(latitude: min(rider.latitude, end.latitude), longitude: min(rider.longitude, end.longitude)),
+            ne: CLLocationCoordinate2D(latitude: max(rider.latitude, end.latitude), longitude: max(rider.longitude, end.longitude))),
+          edgePadding: edgePadding(in: mapView))
+        camera.altitude = max(
+          camera.altitude,
+          MLNAltitudeForZoomLevel(navigationZoom, camera.pitch, camera.centerCoordinate.latitude, mapView.frame.size))
+        mapView.setCamera(camera, animated: true)
       } else if begins {
         mapView.setCenter(
           CLLocationCoordinate2D(latitude: newPosition.latitude, longitude: newPosition.longitude),
@@ -408,13 +415,13 @@ struct NetworkMapView: UIViewRepresentable {
         }
       (style?.source(withIdentifier: "next-knot") as? MLNShapeSource)?.shape =
         nextKnot.map { point($0.latitude, $0.longitude) }
-      // Off route, the straight way to the next knot, see `knot-navigation` "Way to the route on
+      // Off route, the straight way back to the route, see `knot-navigation` "Way to the route on
       // the map".
       var way: MLNShape? = nil
-      if offRoute, let position, let nextKnot {
+      if let position, let wayToRoute {
         var coordinates = [
           CLLocationCoordinate2D(latitude: position.latitude, longitude: position.longitude),
-          CLLocationCoordinate2D(latitude: nextKnot.latitude, longitude: nextKnot.longitude),
+          CLLocationCoordinate2D(latitude: wayToRoute.latitude, longitude: wayToRoute.longitude),
         ]
         way = MLNPolylineFeature(coordinates: &coordinates, count: 2)
       }

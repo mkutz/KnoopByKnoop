@@ -2,6 +2,7 @@ package com.knoopbyknoop.core
 
 import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -128,6 +129,20 @@ private constructor(
       return offsets[leg] + fraction * legLength(leg)
     }
     return offsets[nextIndex] - min(straightTo(fix, nextIndex), legLength(leg))
+  }
+
+  /**
+   * The point of the leg's course before the knot at [nextIndex] nearest to [fix], not before
+   * [place], see `knot-navigation` "Way to the route on the map"; `null` before the first knot or
+   * without the leg's course.
+   */
+  fun nearestAhead(fix: Fix, nextIndex: Int, place: Double): GeoPoint? {
+    if (nextIndex == 0) return null
+    val leg = nextIndex - 1
+    val course = courses?.getOrNull(leg)?.takeIf { it.size >= 2 } ?: return null
+    val fromFraction =
+      if (legLength(leg) > 0) ((place - offsets[leg]) / legLength(leg)).coerceIn(0.0, 1.0) else 0.0
+    return nearestAfter(fix.latitude, fix.longitude, course, fromFraction)
   }
 
   /** The straight distance from [fix] to the knot at [index]. */
@@ -434,6 +449,53 @@ private constructor(
         total += segment
       }
       return if (total > 0) bestAlong / total else 0.0
+    }
+
+    /**
+     * The point of [points] nearest to the position, not before [fromFraction] of their length, in
+     * a local flat projection as [fractionAlong].
+     */
+    private fun nearestAfter(
+      latitude: Double,
+      longitude: Double,
+      points: List<GeoPoint>,
+      fromFraction: Double,
+    ): GeoPoint {
+      val metersPerDegreeLongitude = METERS_PER_DEGREE_LATITUDE * cos(latitude * PI / 180)
+      fun x(point: GeoPoint) = (point.longitude - longitude) * metersPerDegreeLongitude
+      fun y(point: GeoPoint) = (point.latitude - latitude) * METERS_PER_DEGREE_LATITUDE
+      val segments = points.zipWithNext()
+      val lengths = segments.map { (from, to) -> hypot(x(to) - x(from), y(to) - y(from)) }
+      val fromAlong = fromFraction * lengths.sum()
+      var start = 0.0
+      var best = Double.MAX_VALUE
+      var bestPoint = points.last()
+      for ((index, segment) in segments.withIndex()) {
+        val (from, to) = segment
+        val length = lengths[index]
+        val end = start + length
+        if (end >= fromAlong) {
+          val deltaX = x(to) - x(from)
+          val deltaY = y(to) - y(from)
+          val lowest = if (length > 0) ((fromAlong - start) / length).coerceIn(0.0, 1.0) else 0.0
+          val along =
+            if (length == 0.0) lowest
+            else (-(x(from) * deltaX + y(from) * deltaY) / (length * length)).coerceIn(lowest, 1.0)
+          val nearestX = x(from) + along * deltaX
+          val nearestY = y(from) + along * deltaY
+          val distance = nearestX * nearestX + nearestY * nearestY
+          if (distance < best) {
+            best = distance
+            bestPoint =
+              GeoPoint(
+                from.latitude + along * (to.latitude - from.latitude),
+                from.longitude + along * (to.longitude - from.longitude),
+              )
+          }
+        }
+        start = end
+      }
+      return bestPoint
     }
   }
 }

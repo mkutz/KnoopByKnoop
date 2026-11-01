@@ -169,6 +169,17 @@ private constructor(
   }
 
   /**
+   * Where the line back to the route ends from [fix] while off route, else `null`: the nearest
+   * point of the course ahead of the last place on the route, or the next knot without a course,
+   * see `knot-navigation` "Way to the route on the map".
+   */
+  fun wayToRoute(fix: Fix): GeoPoint? {
+    if (!offRoute || arrived) return null
+    return route.nearestAhead(fix, nextIndex, place)
+      ?: GeoPoint(nextKnot.latitude, nextKnot.longitude)
+  }
+
+  /**
    * The rider's pace: the route covered since [startOffset] at [startMillis], renewed when a knot
    * is passed, see `knot-navigation` "Ferry arrival estimate".
    */
@@ -280,6 +291,7 @@ private constructor(
           navigation = navigation.copy(offRoute = true)
         }
         distanceToCourse != null &&
+          distanceToCourse <= ON_COURSE_METERS &&
           offRoute &&
           (this.offRouteKnot == null ||
             distanceToNearestNode(fix, this.offRouteKnot) > OFF_COURSE_METERS) -> {
@@ -530,6 +542,12 @@ private constructor(
 
     /** Off route farther from the course, see `knot-navigation` "Off route". */
     const val OFF_COURSE_METERS = 100.0
+
+    /**
+     * Off route, back on route only this close to the course, so a path beside it is not the route,
+     * see `knot-navigation` "Off route".
+     */
+    const val ON_COURSE_METERS = 30.0
 
     /** Fixes less accurate than this are coarse: they only choose the precision. */
     const val PRECISE_ACCURACY_METERS = 50.0

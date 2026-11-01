@@ -190,7 +190,7 @@ class GuidanceTest {
   fun `back on route outside the app`() {
     val (navigation, _) = offRoute()
 
-    val (back, notices) = navigation.ride(fix(900.0, north = 40.0))
+    val (back, notices) = navigation.ride(fix(900.0, north = 20.0))
 
     assertFalse(back.offRoute)
     assertTrue("Back on route, next 45" in notices.map { it.text }, notices.toString())

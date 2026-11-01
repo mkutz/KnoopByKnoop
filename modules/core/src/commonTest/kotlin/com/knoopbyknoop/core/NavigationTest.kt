@@ -317,7 +317,8 @@ class NavigationTest {
     val started = start(east = -500.0, north = 300.0)
     assertTrue(started.navigation.offRoute)
 
-    val (navigation, notices) = started.navigation.ride(fix(-80.0))
+    // Back within 30 m of the first leg's course, 80 m straight from 24 behind the rider.
+    val (navigation, notices) = started.navigation.ride(fix(77.5, north = 20.0))
 
     assertEquals(knot24, navigation.nextKnot)
     assertFalse(navigation.offRoute)
@@ -416,10 +417,21 @@ class NavigationTest {
   fun `back on route`() {
     val (offRoute, _) = start(east = 0.0).navigation.ride(fix(300.0), fix(400.0, north = 150.0))
 
-    val (navigation, notices) = offRoute.ride(fix(500.0, north = 40.0))
+    val (navigation, notices) = offRoute.ride(fix(500.0, north = 20.0))
 
     assertFalse(navigation.offRoute)
     assertEquals(listOf("Back on route, next 45"), notices.map { it.text })
+  }
+
+  @Test
+  fun `parallel path`() {
+    val (offRoute, _) = start(east = 0.0).navigation.ride(fix(300.0), fix(400.0, north = 150.0))
+
+    val (navigation, notices) =
+      offRoute.ride(fix(500.0, north = 60.0), fix(600.0, north = 60.0), fix(700.0, north = 60.0))
+
+    assertTrue(navigation.offRoute)
+    assertTrue(notices.none { it.text.startsWith("Back on route") }, notices.toString())
   }
 
   @Test
@@ -470,6 +482,57 @@ class NavigationTest {
     assertFalse(update.navigation.offRoute)
     assertTrue(update.notices.isEmpty())
     assertEquals(Precision.FINE, update.precision)
+  }
+
+  // Requirement: Way to the route on the map
+
+  @Test
+  fun `line to the route`() {
+    val (offRoute, _) = start(east = 0.0).navigation.ride(fix(300.0), fix(400.0, north = 150.0))
+
+    val (navigation, _) = offRoute.ride(fix(600.0, north = 150.0))
+
+    assertNear(east = 600.0, north = 0.0, assertNotNull(navigation.wayToRoute(navigation.lastFix)))
+  }
+
+  @Test
+  fun `route behind the rider`() {
+    val (offRoute, _) = start(east = 0.0).navigation.ride(fix(300.0), fix(400.0, north = 150.0))
+
+    val (navigation, _) = offRoute.ride(fix(100.0, north = 150.0))
+
+    // The last place on the route, not back along the part already ridden.
+    assertNear(east = 300.0, north = 0.0, assertNotNull(navigation.wayToRoute(navigation.lastFix)))
+  }
+
+  @Test
+  fun `line to the knot`() {
+    val (withoutCourses, _) =
+      start(east = 0.0, geometry = null)
+        .navigation
+        .ride(fix(300.0, north = 200.0), fix(500.0, north = 290.0))
+    assertTrue(withoutCourses.offRoute)
+    assertNear(
+      east = 1000.0,
+      north = 0.0,
+      assertNotNull(withoutCourses.wayToRoute(fix(500.0, 290.0))),
+    )
+
+    val beforeFirst = start(east = -500.0, north = 300.0).navigation
+    assertTrue(beforeFirst.offRoute)
+    assertNear(east = 0.0, north = 0.0, assertNotNull(beforeFirst.wayToRoute(fix(-500.0, 300.0))))
+  }
+
+  @Test
+  fun `no line on the route`() {
+    val (navigation, _) = start(east = 0.0).navigation.ride(fix(300.0))
+
+    assertNull(navigation.wayToRoute(navigation.lastFix))
+  }
+
+  private fun assertNear(east: Double, north: Double, point: GeoPoint) {
+    assertEquals(latitude(north), point.latitude, 1.0 / METERS_PER_DEGREE, "latitude")
+    assertEquals(longitude(east), point.longitude, 2.0 / METERS_PER_DEGREE, "longitude")
   }
 
   // Requirement: Arriving and stopping
