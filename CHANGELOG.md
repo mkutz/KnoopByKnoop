@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Navigation no longer gets stuck at two knots a few metres apart, and shows the distance to the first knot instead of 0 m
+- A knot signposted in two places, like 02 in Siegburg, counts as passed at either of them
 
 ## 0.6.0
 

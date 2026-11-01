@@ -2,6 +2,7 @@ package com.knoopbyknoop.pipeline
 
 import com.knoopbyknoop.core.Connection
 import com.knoopbyknoop.core.Ferry
+import com.knoopbyknoop.core.GeoPoint
 import com.knoopbyknoop.core.NetworkType
 import kotlin.math.roundToInt
 import kotlin.test.Test
@@ -140,6 +141,27 @@ class NetworkExtractionTest {
     val graph = result.graphs.getValue(NetworkType.CYCLING)
     assertEquals(listOf("12", "30", "45"), graph.knots.values.map { it.ref }.sorted())
     assertEquals(setOf(1L to 2L, 2L to 4L), graph.connections.map { it.fromId to it.toId }.toSet())
+  }
+
+  @Test
+  fun `positions of a merged knot`() {
+    // As 02 in Siegburg: tagged on two nodes about 195 m apart, the knot at the lower node ID.
+    val result =
+      extract(
+        relations = listOf(route(10, "rcn", 100), route(11, "rcn", 101)),
+        ways = listOf(OsmWay(100, listOf(1, 2)), OsmWay(101, listOf(3, 4))),
+        nodes =
+          listOf(
+            cyclingKnot(1, 0, "12"),
+            knot30(2, 52.001),
+            knot30(3, 52.00275),
+            cyclingKnot(4, 5, "45"),
+          ),
+      )
+
+    val knot30 = result.graphs.getValue(NetworkType.CYCLING).knots.getValue(2)
+    assertEquals(52.001, knot30.latitude)
+    assertEquals(listOf(GeoPoint(52.00275, 5.0)), knot30.otherNodes)
   }
 
   @Test

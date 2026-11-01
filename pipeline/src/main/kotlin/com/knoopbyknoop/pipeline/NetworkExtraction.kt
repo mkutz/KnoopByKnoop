@@ -138,7 +138,8 @@ class NetworkExtraction {
    * carriageway or around a roundabout. Nodes with the same ref close to each other are one knot,
    * unless they are in [separateNodeIds].
    *
-   * @return the merged knot for each node ID, represented by the node with the lowest ID
+   * @return the merged knot for each node ID, represented by the node with the lowest ID, with the
+   *   positions of the other nodes
    */
   private fun mergeSameKnots(
     nodeKnots: Collection<Knot>,
@@ -158,7 +159,13 @@ class NetworkExtraction {
           ) <= SAME_KNOT_DISTANCE_METERS && members.none { (it.id to knot.id) in separateNodeIds }
         }
         if (nearby != null) nearby.add(knot) else merged.add(mutableListOf(knot))
-        knotsByNodeId[knot.id] = (nearby ?: merged.last()).first()
+      }
+      for (members in merged) {
+        val representative =
+          members
+            .first()
+            .copy(otherNodes = members.drop(1).map { GeoPoint(it.latitude, it.longitude) })
+        members.forEach { knotsByNodeId[it.id] = representative }
       }
     }
     return knotsByNodeId

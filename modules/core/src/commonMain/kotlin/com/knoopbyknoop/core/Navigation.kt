@@ -281,7 +281,8 @@ private constructor(
         }
         distanceToCourse != null &&
           offRoute &&
-          (this.offRouteKnot == null || distanceTo(fix, this.offRouteKnot) > OFF_COURSE_METERS) -> {
+          (this.offRouteKnot == null ||
+            distanceToNearestNode(fix, this.offRouteKnot) > OFF_COURSE_METERS) -> {
           notices += backOnRouteNotice(nextIndex)
           navigation = navigation.copy(offRoute = false, offRouteKnot = null, guided = null)
         }
@@ -339,27 +340,30 @@ private constructor(
   }
 
   private fun enteredOffRouteKnot(fix: Fix): Knot? =
-    locator.nearest(fix.latitude, fix.longitude, PASS_RADIUS_METERS)?.takeIf {
+    locator.nearestAtAnyNode(fix.latitude, fix.longitude, PASS_RADIUS_METERS)?.takeIf {
       it.id !in routeKnotIds && entered(fix, it)
     }
 
   /**
-   * Whether the rider entered the circle around [knot] with [fix]: checked on the line from the
-   * previous precise fix, as fixes can be farther apart than the circle is wide. Being inside the
-   * circle already does not count.
+   * Whether the rider entered the circle around [knot], around any of the nodes it is tagged on,
+   * with [fix]: checked on the line from the previous precise fix, as fixes can be farther apart
+   * than the circle is wide. Being inside a circle already does not count.
    */
   private fun entered(fix: Fix, knot: Knot): Boolean {
     val previous = lastPreciseFix
-    if (previous != null && distanceTo(previous, knot) <= PASS_RADIUS_METERS) return false
+    if (previous != null && distanceToNearestNode(previous, knot) <= PASS_RADIUS_METERS)
+      return false
     val line =
       previous?.takeIf { fix.timeMillis - it.timeMillis <= LINE_MAX_MILLIS }
-        ?: return distanceTo(fix, knot) <= PASS_RADIUS_METERS
-    return distanceToLine(
-      knot.latitude,
-      knot.longitude,
-      GeoPoint(line.latitude, line.longitude),
-      GeoPoint(fix.latitude, fix.longitude),
-    ) <= PASS_RADIUS_METERS
+        ?: return distanceToNearestNode(fix, knot) <= PASS_RADIUS_METERS
+    return knot.positions.any { position ->
+      distanceToLine(
+        position.latitude,
+        position.longitude,
+        GeoPoint(line.latitude, line.longitude),
+        GeoPoint(fix.latitude, fix.longitude),
+      ) <= PASS_RADIUS_METERS
+    }
   }
 
   /**
@@ -579,7 +583,7 @@ private constructor(
       val startIndex =
         knots
           .dropLast(1)
-          .indexOfFirst { distanceTo(fix, it) <= PASS_RADIUS_METERS }
+          .indexOfFirst { distanceToNearestNode(fix, it) <= PASS_RADIUS_METERS }
           .let { if (it >= 0) lastWithin(knots, it, knots.lastIndex - 1, fix) else it }
       val legIndex =
         courses
@@ -673,7 +677,9 @@ private constructor(
  */
 private fun lastWithin(knots: List<Knot>, from: Int, until: Int, fix: Fix): Int {
   var index = from
-  while (index < until && distanceTo(fix, knots[index + 1]) <= Navigation.PASS_RADIUS_METERS) {
+  while (
+    index < until && distanceToNearestNode(fix, knots[index + 1]) <= Navigation.PASS_RADIUS_METERS
+  ) {
     index++
   }
   return index
@@ -681,6 +687,10 @@ private fun lastWithin(knots: List<Knot>, from: Int, until: Int, fix: Fix): Int 
 
 private fun distanceTo(fix: Fix, knot: Knot): Double =
   distanceMeters(fix.latitude, fix.longitude, knot.latitude, knot.longitude)
+
+/** The distance from [fix] to the nearest of the nodes [knot] is tagged on. */
+private fun distanceToNearestNode(fix: Fix, knot: Knot): Double =
+  knot.positions.minOf { distanceMeters(fix.latitude, fix.longitude, it.latitude, it.longitude) }
 
 private const val METERS_PER_DEGREE_LATITUDE = 6_371_008.8 * PI / 180
 

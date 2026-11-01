@@ -238,6 +238,78 @@ class NavigationTest {
     assertEquals(listOf("Next 12"), started.notices.map { it.text })
   }
 
+  /** The test network with [knot] also tagged on a node at [east], [north]. */
+  private fun mergedGraph(knot: Knot, east: Double, north: Double): Pair<NetworkGraph, Knot> {
+    val merged = knot.copy(otherNodes = listOf(GeoPoint(latitude(north), longitude(east))))
+    return NetworkGraph(
+      graph.knots.values.map { if (it.id == knot.id) merged else it },
+      graph.connections,
+    ) to merged
+  }
+
+  @Test
+  fun `passing a merged knot at its other node`() {
+    // 45 is also tagged 195 m north of its position; the course from 24 passes that node, and runs
+    // on to 45's position, as the pipeline draws it.
+    val (mergedGraph, merged45) = mergedGraph(knot45, east = 1000.0, north = 195.0)
+    val mergedRoute = listOf(knot24, merged45, knot12, knot31)
+    val courses =
+      mergedGraph.connections.map { connection ->
+        if (connection.fromId == 24L && connection.toId == 45L)
+          listOf(
+            GeoPoint(latitude(0.0), longitude(0.0)),
+            GeoPoint(latitude(195.0), longitude(1000.0)),
+            GeoPoint(latitude(0.0), longitude(1000.0)),
+          )
+        else
+          listOf(connection.fromId, connection.toId).map {
+            val knot = mergedGraph.knots.getValue(it)
+            GeoPoint(knot.latitude, knot.longitude)
+          }
+      }
+    val started =
+      assertNotNull(
+        Navigation.start(mergedRoute, mergedGraph, NetworkGeometry(mergedGraph, courses), fix(0.0))
+      )
+
+    val (navigation, notices) =
+      started.navigation.ride(
+        *(1..25).map { fix(east = it * 40.0, north = it * 40.0 * 0.195) }.toTypedArray()
+      )
+
+    assertEquals(knot12, navigation.nextKnot)
+    assertFalse(navigation.offRoute)
+    assertEquals(
+      listOf("Next 12, then 31"),
+      notices.filter { it.kind == NoticeKind.NEXT }.map { it.text },
+    )
+  }
+
+  @Test
+  fun `passing a merged knot that is not on the route`() {
+    // 77 is also tagged 40 m north of the road, where the rider passes 20 m from it.
+    val (mergedGraph, _) = mergedGraph(knot77, east = 500.0, north = 40.0)
+    val started = assertNotNull(Navigation.start(route, mergedGraph, geometry, fix(0.0)))
+
+    val (_, notices) = ride(started.navigation, from = 40.0, to = 600.0, north = 20.0)
+
+    val offRoute = notices.filter { it.kind == NoticeKind.OFF_ROUTE }.map { it.text }
+    assertEquals(1, offRoute.size)
+    assertTrue(offRoute.single().startsWith("Off route, next 45, "), offRoute.single())
+  }
+
+  @Test
+  fun `start at another node of a merged knot`() {
+    val (mergedGraph, merged24) = mergedGraph(knot24, east = 0.0, north = 195.0)
+    val mergedRoute = listOf(merged24, knot45, knot12, knot31)
+
+    val started =
+      assertNotNull(Navigation.start(mergedRoute, mergedGraph, geometry, fix(0.0, north = 195.0)))
+
+    assertEquals(knot45, started.navigation.nextKnot)
+    assertFalse(started.navigation.offRoute)
+  }
+
   // Requirement: Number to follow
 
   @Test

@@ -15,10 +15,31 @@ import kotlin.math.sqrt
  */
 class KnotLocator(knots: Collection<Knot>) {
 
-  private val cells: Map<Long, List<Knot>> = knots.groupBy { cellOf(it.latitude, it.longitude) }
+  /** Every knot in the cell of each of its [Knot.positions]. */
+  private val cells: Map<Long, List<Knot>> =
+    knots
+      .flatMap { knot ->
+        knot.positions.map { cellOf(it.latitude, it.longitude) }.distinct().map { it to knot }
+      }
+      .groupBy({ it.first }, { it.second })
 
   /** The knot nearest to the position, or `null` if no knot is within [radiusMeters]. */
-  fun nearest(latitude: Double, longitude: Double, radiusMeters: Double): Knot? {
+  fun nearest(latitude: Double, longitude: Double, radiusMeters: Double): Knot? =
+    nearest(latitude, longitude, radiusMeters) { listOf(GeoPoint(it.latitude, it.longitude)) }
+
+  /**
+   * The knot with the node nearest to the position, any of the nodes it is tagged on, or `null` if
+   * none is within [radiusMeters], see `knot-navigation` "Passing a knot".
+   */
+  fun nearestAtAnyNode(latitude: Double, longitude: Double, radiusMeters: Double): Knot? =
+    nearest(latitude, longitude, radiusMeters) { it.positions }
+
+  private fun nearest(
+    latitude: Double,
+    longitude: Double,
+    radiusMeters: Double,
+    positionsOf: (Knot) -> List<GeoPoint>,
+  ): Knot? {
     val latitudeRadius = radiusMeters / METERS_PER_DEGREE
     val longitudeRadius = latitudeRadius / cos(latitude * PI / 180).coerceAtLeast(0.01)
     val (minimumColumn, minimumRow) =
@@ -30,7 +51,10 @@ class KnotLocator(knots: Collection<Knot>) {
     for (column in minimumColumn..maximumColumn) {
       for (row in minimumRow..maximumRow) {
         for (knot in cells[key(column, row)].orEmpty()) {
-          val distance = distanceMeters(latitude, longitude, knot.latitude, knot.longitude)
+          val distance =
+            positionsOf(knot).minOf {
+              distanceMeters(latitude, longitude, it.latitude, it.longitude)
+            }
           if (distance <= nearestDistance) {
             nearest = knot
             nearestDistance = distance

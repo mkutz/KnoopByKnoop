@@ -72,6 +72,20 @@ class GraphFile(
       writer.varint(connectionIndex.getValue(connection).toLong())
       ferryDetails(ferry).forEach { writer.string(it.orEmpty()) }
     }
+
+    // Then the other nodes of merged knots, by knot index, as offsets from the knot's position.
+    // Readers from before stop after the ferries, so the version stays 2; later additions to
+    // version 2 go after this section.
+    val merged = knots.withIndex().filter { it.value.otherNodes.isNotEmpty() }
+    writer.varint(merged.size.toLong())
+    for ((index, knot) in merged) {
+      writer.varint(index.toLong())
+      writer.varint(knot.otherNodes.size.toLong())
+      for (node in knot.otherNodes) {
+        writer.varint(zigzag(toMicrodegrees(node.latitude) - toMicrodegrees(knot.latitude)))
+        writer.varint(zigzag(toMicrodegrees(node.longitude) - toMicrodegrees(knot.longitude)))
+      }
+    }
     return writer.toByteArray()
   }
 
@@ -163,12 +177,37 @@ class GraphFile(
             }
             .toMap()
         }
+      val otherNodes =
+        if (formatVersion < 2 || !reader.hasMore()) {
+          mapOf()
+        } else {
+          List(reader.count()) {
+              val index = reader.count()
+              val knot = knots.getOrNull(index) ?: throw GraphFormatException("Bad knot index")
+              val latitude = toMicrodegrees(knot.latitude)
+              val longitude = toMicrodegrees(knot.longitude)
+              index to
+                List(reader.count()) {
+                  GeoPoint(
+                    fromMicrodegrees(latitude + unzigzag(reader.varint())),
+                    fromMicrodegrees(longitude + unzigzag(reader.varint())),
+                  )
+                }
+            }
+            .toMap()
+        }
       return GraphFile(
         network,
         area,
         dataDate,
         attribution,
-        NetworkGraph(knots, connections, ferries),
+        NetworkGraph(
+          knots.mapIndexed { index, knot ->
+            otherNodes[index]?.let { knot.copy(otherNodes = it) } ?: knot
+          },
+          connections,
+          ferries,
+        ),
       )
     }
 
@@ -253,6 +292,9 @@ internal class ByteReader(private val bytes: ByteArray) {
   }
 
   fun string(): String = bytes(count()).decodeToString()
+
+  /** Whether bytes are left, for a section files written before it do not have. */
+  fun hasMore(): Boolean = position < bytes.size
 }
 
 internal fun toMicrodegrees(degrees: Double): Long = (degrees * 1_000_000).roundToLong()

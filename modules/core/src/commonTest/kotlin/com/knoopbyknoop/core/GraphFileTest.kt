@@ -57,15 +57,51 @@ class GraphFileTest {
 
   @Test
   fun `older graph files`() {
-    // A version 1 file is a version 2 file without ferries, without the ferry count at the end.
+    // A version 1 file is a version 2 file without the ferry count and the count of merged knots
+    // at the end.
     val written = graphFile.toBytes()
-    val version1 = written.copyOf(written.size - 1).also { it[4] = 1 }
+    val version1 = written.copyOf(written.size - 2).also { it[4] = 1 }
 
     val read = GraphFile.read(version1)
 
     assertEquals(graphFile.graph.knots, read.graph.knots)
     assertEquals(graphFile.graph.connections.toSet(), read.graph.connections.toSet())
     assertEquals(mapOf(), read.graph.ferries)
+  }
+
+  @Test
+  fun `positions of a merged knot`() {
+    val knot = TestNetwork.graph.knots.values.first()
+    val otherNode = GeoPoint(knot.latitude + 0.0012, knot.longitude - 0.0019)
+    val merged = knot.copy(otherNodes = listOf(otherNode))
+    val withMergedKnot =
+      GraphFile(
+        NetworkType.CYCLING,
+        "utrecht",
+        "2026-10-25",
+        "",
+        NetworkGraph(
+          TestNetwork.graph.knots.values.map { if (it.id == knot.id) merged else it },
+          TestNetwork.graph.connections,
+        ),
+      )
+
+    val read = GraphFile.read(withMergedKnot.toBytes())
+
+    assertEquals(listOf(otherNode), read.graph.knots.getValue(knot.id).otherNodes)
+    assertEquals(withMergedKnot.graph.knots, read.graph.knots)
+  }
+
+  @Test
+  fun `graph files without the positions of merged knots`() {
+    // Written before the section: a version 2 file ending after the ferries.
+    val written = graphFile.toBytes()
+    val beforeMergedKnots = written.copyOf(written.size - 1)
+
+    val read = GraphFile.read(beforeMergedKnots)
+
+    assertEquals(graphFile.graph.knots, read.graph.knots)
+    assertEquals(graphFile.graph.connections.toSet(), read.graph.connections.toSet())
   }
 
   @Test
