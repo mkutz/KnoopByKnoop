@@ -564,8 +564,31 @@ private struct NavigationHeader: View {
   let roles: [KnotRole]
   let nextKnotDistance: String?
   let onStop: () -> Void
+  @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
   var body: some View {
+    if let navigation = state.navigation, navigation.display.offRoute, dynamicTypeSize.isAccessibilitySize {
+      // At accessibility sizes, Stop next to the off-route header leaves it no room: Stop goes above
+      // it, see `knot-navigation` "Number to follow at large text sizes".
+      VStack(alignment: .leading, spacing: 8) {
+        HStack {
+          Spacer()
+          stop
+        }
+        offRouteHeader(
+          navigation.display.next, at: Int(navigation.nextIndex),
+          guidance: state.position.flatMap { navigation.guidance(fix: $0) })
+      }
+    } else {
+      header
+    }
+  }
+
+  private var stop: some View {
+    ProminentAction(title: "Stop", systemImage: "stop.fill", color: .actionRed, action: onStop)
+  }
+
+  private var header: some View {
     HStack(alignment: .center) {
       if let navigation = state.navigation {
         let display = navigation.display
@@ -591,7 +614,7 @@ private struct NavigationHeader: View {
         Text("Waiting for your position…").font(.headline)
       }
       Spacer()
-      ProminentAction(title: "Stop", systemImage: "stop.fill", color: .actionRed, action: onStop)
+      stop
     }
   }
 
@@ -618,23 +641,47 @@ private struct NavigationHeader: View {
   /// `knot-navigation` "Direction to the route".
   private func offRouteHeader(_ next: String, at index: Int, guidance: Guidance?) -> some View {
     VStack(alignment: .leading, spacing: 2) {
-      HStack(alignment: .center, spacing: 8) {
-        Text("Off route, next").font(.title2.bold()).foregroundStyle(.red)
-        badge(next, at: index, scale: 1.3)
+      // The badge goes below the text where both do not fit in one line, as the German text, see
+      // `knot-navigation` "Number to follow at large text sizes".
+      ViewThatFits(in: .horizontal) {
+        HStack(alignment: .center, spacing: 8) {
+          offRouteNext
+          badge(next, at: index, scale: 1.3)
+        }
+        VStack(alignment: .leading, spacing: 2) {
+          offRouteNext.fixedSize(horizontal: false, vertical: true)
+          badge(next, at: index, scale: 1.3)
+        }
       }
       if let guidance {
-        HStack(spacing: 6) {
-          Text(guidance.distance).font(.title3)
-          Image(systemName: "location.north.fill")
-            .foregroundStyle(.red)
-            .rotationEffect(.degrees(guidance.bearing - (state.direction ?? 0)))
-          Text(guidance.direction).font(.title3).foregroundStyle(.secondary)
+        // The direction goes below the distance where both do not fit in one line.
+        ViewThatFits(in: .horizontal) {
+          HStack(spacing: 6) {
+            wayToNext(guidance)
+            Text(guidance.direction).font(.title3).foregroundStyle(.secondary)
+          }
+          VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 6) { wayToNext(guidance) }
+            Text(guidance.direction).font(.title3).foregroundStyle(.secondary)
+          }
         }
       }
     }
     .minimumScaleFactor(0.8)
     .accessibilityElement(children: .ignore)
     .accessibilityLabel([String(localized: "Off route, next \(next)", bundle: AppLanguage.bundle), guidance?.text].compactMap { $0 }.joined(separator: ", "))
+  }
+
+  /// The distance to the next knot and an arrow towards it.
+  @ViewBuilder private func wayToNext(_ guidance: Guidance) -> some View {
+    Text(guidance.distance).font(.title3)
+    Image(systemName: "location.north.fill")
+      .foregroundStyle(.red)
+      .rotationEffect(.degrees(guidance.bearing - (state.direction ?? 0)))
+  }
+
+  private var offRouteNext: some View {
+    Text("Off route, next").font(.title2.bold()).foregroundStyle(.red)
   }
 
   private func badge(_ ref: String, at index: Int, scale: CGFloat) -> some View {

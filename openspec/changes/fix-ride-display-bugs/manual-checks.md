@@ -17,11 +17,17 @@ The maintainer checked all four fixes on the Pixel 7 with the debug build on 202
 
 ### iOS
 
-Not checked yet. In the simulator (iPhone 18 Pro, iOS 27), with the route 93 → 94, German set with `defaults write com.knoopbyknoop language de` and navigation started by a temporary launch flag (removed again), navigation started ("94 ist das Ende 573 m"), but moving the simulated location 590 m away, by a jump or along a path with `simctl location start`, never made it off route: the panel kept counting from 93 while the map showed the arrow 590 m north. Off route works on the iPhone (`show-route-progress`), so the simulator's fixes are likely not precise enough for navigation; this was not pursued further. The simulator's route, camera, language and location were restored.
+Checked 2026-11-01 in the simulator (iPhone 18 Pro, iOS 27, dark appearance), German set with `defaults write com.knoopbyknoop language de`, navigation 93 → 94 started by a temporary launch flag 30 s after the route showed (removed again), the location moved off the route along a path with `simctl location start`. The first attempts, starting navigation before the courses had loaded, could not detect off route, as specified for navigation without courses; that was the simulator problem noted before.
+
+- Found: the badge was there, but the text was cut to "Abseits der Route, n…" ([screenshot](screenshots/ios-off-route-german-truncated.png)). Fixed like Android: text and badge in one line where they fit, else the text wrapping and the badge below it.
+- Found at the largest accessibility size: Stop cut to "B…", and the distance and direction to "98…" and "S…". Giving Stop priority left the header a letter wide ([screenshot](screenshots/ios-off-route-german-stop-squeezed.png)). Fixed: at accessibility sizes, off route, Stop goes in its own line above the header, which takes the full width; the direction goes below the distance where both do not fit. The number to follow is unchanged.
+- Now: complete at the default size, the largest regular size and the largest accessibility size ([three sizes](screenshots/ios-off-route-german-sizes.png), [top at the largest](screenshots/ios-off-route-german-accessibility.png)); the off-route red is the system red, clear in dark mode, in the header, the arrow and the dot on the strip.
+
+The simulator's route, camera, language, text size and location were restored.
 
 ### Steps for the maintainer
 
 1. Pixel, on a ride: while the map follows you, street names and POI icons stay steady instead of flickering.
 2. Pixel: rotate the map with two fingers: the compass shows at the top left below the search field, the battery icon is free.
-3. iPhone: choose Deutsch in Info, start a route away from its start: the header shows "Abseits der Route, nächster" and the knot's badge (next to it or in the next line), also at a large text size (Settings → Display & Brightness → Text Size).
+3. iPhone: choose Deutsch in Info, start a route away from its start: the header shows "Abseits der Route, nächster" over two lines and the knot's badge below it, with Beenden; at the largest accessibility size Beenden is above the header, and everything is complete.
 4. iPhone and Pixel in dark mode, off route: "Off route, next", the arrow and the dot on the strip are red, not pink.

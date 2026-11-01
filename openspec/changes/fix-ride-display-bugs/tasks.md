@@ -13,7 +13,7 @@
 
 ## 3. iOS and wrap-up
 
-- [ ] 3.1 iOS in the simulator: the off-route header in German at the default and the largest text size shows the badge, and off route in dark mode is red; fix the header if the badge is missing. Steps for the maintainer's iPhone in `manual-checks.md`
+- [x] 3.1 iOS in the simulator: the off-route header in German at the default and the largest text size shows the badge, and off route in dark mode is red; fix the header if the badge is missing. Steps for the maintainer's iPhone in `manual-checks.md`
 - [x] 3.2 `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; CHANGELOG entries under Unreleased for the four fixes
 
 ## Workflow follow-up

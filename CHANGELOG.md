@@ -7,6 +7,7 @@
 - Android: the map's labels and icons no longer flicker while it follows you
 - Android: the compass stays clear of the status bar
 - Android: off route in German and Dutch, the next knot's badge is no longer missing
+- iOS: off route in German, the text is no longer cut off, and at the largest text sizes Stop and the distance are complete
 - Android: off route is red, not pink, in dark mode
 - The ridden track is drawn on top of the route, and your arrow on the map is bigger
 

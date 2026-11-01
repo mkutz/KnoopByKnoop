@@ -38,3 +38,5 @@
 
 - [The jitter has a cause outside both hypotheses, e.g. the panel's height changing the map's padding] → The recordings in task 1.1 tell; a third cause pauses the task with the evidence.
 - [The new red changes the ferry warning in dark mode] → Intended; checked in the same pass.
+- [iOS, found in the simulator check: the German text was cut off rather than the badge, and at accessibility sizes Stop and the distance were too] → `offRouteHeader` uses `ViewThatFits` (badge below the wrapping text), the distance row moves the direction below where needed, and at accessibility sizes Stop goes above the off-route header. The number-to-follow header is unchanged.
+
