@@ -70,7 +70,10 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.boundsInParent
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -292,6 +295,8 @@ private fun MapArea(
         locate()
       }
     }
+    var topControlsBottom by remember { mutableIntStateOf(0) }
+    var topControlsStart by remember { mutableIntStateOf(0) }
     NetworkMap(
       graph = session?.graph,
       layers = layers,
@@ -315,11 +320,18 @@ private fun MapArea(
       locating = state.locating,
       onLocate = locate.takeUnless { state.navigating },
       shownKnot = state.shownKnot,
+      topControlsBottom = topControlsBottom,
+      topControlsStart = topControlsStart,
     )
     // Below the status bar and clear of the cutout, where touches go to the system, see
     // `map-planning` "Clear of the system bars".
     Column(
-      modifier = Modifier.align(Alignment.TopStart).windowInsetsPadding(topInsets).padding(12.dp)
+      modifier =
+        Modifier.align(Alignment.TopStart)
+          .onGloballyPositioned { topControlsBottom = it.boundsInParent().bottom.roundToInt() }
+          .windowInsetsPadding(topInsets)
+          .padding(12.dp)
+          .onGloballyPositioned { topControlsStart = it.positionInParent().x.roundToInt() }
     ) {
       PlaceSearchField(state, viewModel)
       // Not while navigating: the route is fixed then, see `knot-navigation` "Switching the network
@@ -886,8 +898,10 @@ private fun OffRouteHeader(
         contentDescription = listOfNotNull("$offRouteNext $next", guidance?.text).joinToString(", ")
       }
   ) {
-    Row(
-      verticalAlignment = Alignment.CenterVertically,
+    // The badge follows the text in the next line where both do not fit in one, as the German
+    // text, see `knot-navigation` "Number to follow at large text sizes".
+    FlowRow(
+      itemVerticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
       Text(

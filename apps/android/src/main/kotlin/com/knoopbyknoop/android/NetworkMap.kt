@@ -1,6 +1,7 @@
 package com.knoopbyknoop.android
 
 import android.graphics.RectF
+import android.view.Gravity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -91,6 +92,9 @@ private const val SEARCH_HIT_ZOOM = 14.0
 /** The zoom when navigation begins: close enough to see the next knot and the way to it. */
 private const val NAVIGATION_ZOOM = 15.0
 
+/** How long the map takes to move to the rider's next position: the live fix interval. */
+private const val FOLLOW_MOVE_MILLIS = 1_000
+
 /** The zoom the map goes to at least for the position on request, with the knots shown. */
 private const val MY_POSITION_ZOOM = 14.0
 
@@ -150,6 +154,12 @@ fun NetworkMap(
   onLocate: (() -> Unit)? = null,
   /** A coming knot to show while navigating, see `knot-navigation` "Showing a coming knot". */
   shownKnot: ShownKnot? = null,
+  /**
+   * Where the controls at the top of the map end, in pixels from its top, and where they start,
+   * from its start, so the compass shows below them, see `map-planning` "Clear of the system bars".
+   */
+  topControlsBottom: Int = 0,
+  topControlsStart: Int = 0,
 ) {
   val context = LocalContext.current
   val touchTargetPixels = with(LocalDensity.current) { TOUCH_TARGET_DP * density }
@@ -168,6 +178,7 @@ fun NetworkMap(
       addOnDidFinishRenderingFrameListener { _, _, _ -> holder.markVisibleLayers(width, height) }
       getMapAsync { map ->
         holder.map = map
+        holder.placeCompass()
         map.addOnCameraIdleListener { holder.place()?.let { holder.onMove(it) } }
         // Moving or zooming the map by hand stops following the rider; the app's own camera moves
         // don't.
@@ -233,6 +244,11 @@ fun NetworkMap(
     holder.showNavigation(position, nextKnot, offRoute, direction)
   }
   LaunchedEffect(track) { holder.showTrack(track) }
+  LaunchedEffect(topControlsBottom, topControlsStart) {
+    holder.compassTop = topControlsBottom
+    holder.compassStart = topControlsStart
+    holder.placeCompass()
+  }
   LaunchedEffect(shownKnot) { shownKnot?.let { holder.showKnot(it.knot) } }
   // The offline style has no base map; it is loaded as soon as network access is back.
   LaunchedEffect(online) { if (online && holder.usesOfflineStyle) holder.loadBaseMap() }
@@ -314,6 +330,21 @@ fun NetworkMap(
 /** Keeps the map, its style and what is shown, so updates only touch what changed. */
 private class MapHolder {
   var map: MapLibreMap? = null
+
+  /** The compass's margins from the map's top and start, in pixels. */
+  var compassTop = 0
+  var compassStart = 0
+
+  /**
+   * Below the controls at the top, at the start, so it covers neither them, the status bar nor the
+   * zoom buttons at the end, which reach up to it in landscape.
+   */
+  fun placeCompass() {
+    val settings = map?.uiSettings ?: return
+    settings.compassGravity = Gravity.TOP or Gravity.START
+    settings.setCompassMargins(compassStart, compassTop, 0, 0)
+  }
+
   var onTap: (Double, Double, Double) -> Unit = { _, _, _ -> }
   private var style: Style? = null
 
@@ -476,7 +507,10 @@ private class MapHolder {
         CameraUpdateFactory.newLatLngZoom(rider, maxOf(map.cameraPosition.zoom, NAVIGATION_ZOOM))
       )
     } else {
-      map.animateCamera(CameraUpdateFactory.newLatLng(rider))
+      // One even move per fix, as long as the time to the next one: an animation restarted with
+      // every fix makes the base map place its labels anew all the time, so they flicker, see
+      // `knot-navigation` "Following the rider".
+      map.easeCamera(CameraUpdateFactory.newLatLng(rider), FOLLOW_MOVE_MILLIS, false)
     }
   }
 

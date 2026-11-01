@@ -4,6 +4,10 @@
 
 - Navigation no longer gets stuck at two knots a few metres apart, and shows the distance to the first knot instead of 0 m
 - A knot signposted in two places, like 02 in Siegburg, counts as passed at either of them
+- Android: the map's labels and icons no longer flicker while it follows you
+- Android: the compass stays clear of the status bar
+- Android: off route in German and Dutch, the next knot's badge is no longer missing
+- Android: off route is red, not pink, in dark mode
 
 ## 0.6.0
 

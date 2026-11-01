@@ -28,6 +28,10 @@ private val darkColors =
     secondaryContainer = Color(0xFF1E3B2B),
     onSecondaryContainer = Color(0xFFD7F0E0),
     surfaceVariant = Color(0xFF2B2F2A),
+    // A clear red, not Material's pale pink: at least 4.5:1 on the dark surfaces, see
+    // `map-planning`
+    // "Light and dark appearance".
+    error = Color(0xFFFF5449),
   )
 
 /** The appearance chosen in the info sheet, see `map-planning` "Light and dark appearance". */
