@@ -19,6 +19,9 @@ struct PlannerView: View {
   /// The height of the number to follow and the progress strip while navigating, see
   /// `navigationDetent`.
   @State private var navigationHeight: CGFloat = 0
+  /// The text size `navigationHeight` was measured at: another one gives the navigation part
+  /// another height, also a lower one, so it is measured anew.
+  @State private var navigationHeightTypeSize: DynamicTypeSize?
   /// The attribution's height above the search, see `searchOverlay`.
   @State private var attributionHeight: CGFloat = 0
   @FocusState private var searchFocused: Bool
@@ -105,6 +108,7 @@ struct PlannerView: View {
     // while navigating in the app"; iOS applies it only while the app is active.
     .onChange(of: navigator.state != nil, initial: true) { _, navigating in
       UIApplication.shared.isIdleTimerDisabled = navigating
+      if !navigating { navigationHeight = 0 }
     }
   }
 
@@ -117,7 +121,15 @@ struct PlannerView: View {
         InfoSheet(model: model, onDone: { showInfo = false })
       } else if let session = model.session, model.layers != nil, !model.loading {
         WaypointSheet(
-          model: model, session: session, onNavigationHeight: { navigationHeight = $0 },
+          // The highest the navigation part was while navigating, so the sheet does not jump when
+          // the header switches to the number to follow near a knot, see `knot-navigation` "Number
+          // to follow"; 0 again when navigation ends.
+          model: model, session: session,
+          onNavigationHeight: { height, typeSize in
+            navigationHeight =
+              navigationHeightTypeSize == typeSize ? max(navigationHeight, height) : height
+            navigationHeightTypeSize = typeSize
+          },
           onSummaryHeight: { summaryHeight = $0 },
           // The sheet comes down, so the knot is not hidden by it, see `knot-navigation` "Showing a
           // coming knot on the map".
@@ -295,8 +307,10 @@ private struct WaypointSheet: View {
   @State private var rows: [WaypointRow] = []
   /// The exported GPX file while the share sheet shows it.
   @State private var exportedGpx: ExportedGpx?
-  /// The height of the number to follow and the progress strip while navigating, 0 otherwise.
-  let onNavigationHeight: (CGFloat) -> Void
+  /// The height of the number to follow and the progress strip while navigating, 0 otherwise, and
+  /// the text size it was measured at.
+  let onNavigationHeight: (CGFloat, DynamicTypeSize) -> Void
+  @Environment(\.dynamicTypeSize) private var dynamicTypeSize
   /// The height of the summary and the actions while planning.
   let onSummaryHeight: (CGFloat) -> Void
   /// Shows a coming knot on the map.
@@ -362,7 +376,7 @@ private struct WaypointSheet: View {
       .padding([.horizontal, .top])
       .padding(.bottom, 8)
       .onGeometryChange(for: CGFloat.self) { $0.size.height } action: {
-        onNavigationHeight(navigator.state == nil ? 0 : $0)
+        onNavigationHeight(navigator.state == nil ? 0 : $0, dynamicTypeSize)
       }
       List {
         // While navigating, the ferries are on the progress strip, see `knot-navigation` "Ferries on
@@ -569,17 +583,24 @@ private struct NavigationHeader: View {
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
   var body: some View {
-    if let navigation = state.navigation, navigation.display.offRoute, dynamicTypeSize.isAccessibilitySize {
-      // At accessibility sizes, Stop next to the off-route header leaves it no room: Stop goes above
-      // it, see `knot-navigation` "Number to follow at large text sizes".
+    if let navigation = state.navigation, dynamicTypeSize.isAccessibilitySize,
+      navigation.display.offRoute || (navigation.display.follow != nil && !navigation.display.close)
+    {
+      // At accessibility sizes, Stop next to the off-route header or the next knot leaves them no
+      // room: Stop goes above them, see `knot-navigation` "Number to follow at large text sizes".
       VStack(alignment: .leading, spacing: 8) {
         HStack {
           Spacer()
           stop
         }
-        offRouteHeader(
-          navigation.display.next, at: Int(navigation.nextIndex),
-          guidance: state.position.flatMap { navigation.guidance(fix: $0) })
+        let display = navigation.display
+        let next = Int(navigation.nextIndex)
+        if let follow = display.follow, !display.offRoute {
+          nextKnotHeader(display.next, at: next, follow: follow)
+        } else {
+          offRouteHeader(
+            display.next, at: next, guidance: state.position.flatMap { navigation.guidance(fix: $0) })
+        }
       }
     } else {
       header
@@ -597,6 +618,8 @@ private struct NavigationHeader: View {
         let next = Int(navigation.nextIndex)
         if display.offRoute {
           offRouteHeader(display.next, at: next, guidance: state.position.flatMap { navigation.guidance(fix: $0) })
+        } else if let follow = display.follow, !display.close {
+          nextKnotHeader(display.next, at: next, follow: follow)
         } else {
           // The distance moves below the number to follow where it does not fit next to it, see
           // `knot-navigation` "Number to follow at large text sizes".
@@ -629,6 +652,48 @@ private struct NavigationHeader: View {
     } else {
       badge(display.next, at: next, scale: 1.3)
       Text("is the end").font(.title2)
+    }
+  }
+
+  /// Far from the next knot: the next knot and the distance to it as the most prominent
+  /// information, and the number to follow there smaller below, see `knot-navigation` "Number to
+  /// follow".
+  private func nextKnotHeader(_ next: String, at index: Int, follow: String) -> some View {
+    VStack(alignment: .leading, spacing: 2) {
+      // The distance moves below the next knot where it does not fit next to it, see
+      // `knot-navigation` "Number to follow at large text sizes".
+      ViewThatFits(in: .horizontal) {
+        HStack(alignment: .center, spacing: 8) {
+          Text("Next").font(.title2)
+          badge(next, at: index, scale: 1.8)
+          nextDistance
+        }
+        VStack(alignment: .leading, spacing: 2) {
+          HStack(alignment: .center, spacing: 8) {
+            Text("Next").font(.title2)
+            badge(next, at: index, scale: 1.8)
+          }
+          nextDistance
+        }
+      }
+      HStack(alignment: .center, spacing: 6) {
+        Text("then").font(.body).foregroundStyle(.secondary)
+        badge(follow, at: index + 1, scale: 1.0)
+      }
+    }
+    .minimumScaleFactor(0.8)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(
+      [
+        String(localized: "Next \(next)", bundle: AppLanguage.bundle), nextKnotDistance,
+        String(localized: "then \(follow)", bundle: AppLanguage.bundle),
+      ].compactMap { $0 }.joined(separator: ", "))
+  }
+
+  /// The distance to the next knot, as prominent as the knot while far from it.
+  @ViewBuilder private var nextDistance: some View {
+    if let nextKnotDistance {
+      Text(nextKnotDistance).font(.title2).lineLimit(1)
     }
   }
 

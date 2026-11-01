@@ -80,12 +80,15 @@ data class Notice(val kind: NoticeKind, val text: String, val speech: String)
  *
  * @property next the next knot's number
  * @property follow the number to follow at the next knot, or `null` if it is the end of the route
+ * @property close whether the rider is close to the next knot, from its reminder on: only then is
+ *   the number to follow the most prominent, see `knot-navigation` "Number to follow"
  */
 data class NavigationDisplay(
   val next: String,
   val follow: String?,
   val offRoute: Boolean,
   val language: Language = Language.EN,
+  val close: Boolean = true,
 ) {
 
   /** E.g. `At 45 follow 12`, or `31 is the end`. */
@@ -225,7 +228,14 @@ private constructor(
     get() = knots[nextIndex]
 
   val display: NavigationDisplay
-    get() = NavigationDisplay(nextKnot.ref, knots.getOrNull(nextIndex + 1)?.ref, offRoute, language)
+    get() =
+      NavigationDisplay(
+        nextKnot.ref,
+        knots.getOrNull(nextIndex + 1)?.ref,
+        offRoute,
+        language,
+        close = remindedIndex == nextIndex,
+      )
 
   /**
    * When the rider gets to the ferry on the leg from the knot at [fromPosition] of [knots], as

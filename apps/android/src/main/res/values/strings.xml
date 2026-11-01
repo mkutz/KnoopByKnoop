@@ -25,6 +25,8 @@
   <string name="at">At</string>
   <string name="follow">follow</string>
   <string name="is_the_end">is the end</string>
+  <string name="next">Next</string>
+  <string name="then">then</string>
   <string name="off_route_next">Off route, next</string>
   <string name="move_up">Move up</string>
   <string name="move_down">Move down</string>

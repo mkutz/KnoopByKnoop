@@ -24,6 +24,8 @@
   <string name="at">Bei</string>
   <string name="follow">folge</string>
   <string name="is_the_end">ist das Ende</string>
+  <string name="next">Nächster</string>
+  <string name="then">dann</string>
   <string name="off_route_next">Abseits der Route, nächster</string>
   <string name="move_up">Nach oben</string>
   <string name="move_down">Nach unten</string>

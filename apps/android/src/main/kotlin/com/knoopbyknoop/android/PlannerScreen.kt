@@ -178,7 +178,10 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
       else if (!state.navigating)
         maxOf(150.dp, (dragHandleHeight + summaryHeight).toDp() + 8.dp + navigationBar)
       else 150.dp
-    LaunchedEffect(state.navigating) { scaffoldState.bottomSheetState.partialExpand() }
+    LaunchedEffect(state.navigating) {
+      if (!state.navigating) navigationHeight = 0
+      scaffoldState.bottomSheetState.partialExpand()
+    }
     // Also when the height changes, e.g. off route or with another font size: the sheet does not
     // follow a changed peek height by itself. Only at its smallest, so a sheet the user pulled up
     // stays up.
@@ -200,7 +203,9 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
         WaypointSheet(
           state,
           viewModel,
-          onNavigationHeight = { navigationHeight = it },
+          // The highest the navigation part was, so the sheet does not jump when the header
+          // switches to the number to follow near a knot, see `knot-navigation` "Number to follow".
+          onNavigationHeight = { navigationHeight = maxOf(navigationHeight, it) },
           onSummaryHeight = { summaryHeight = it },
           // The sheet comes down, so the knot is not hidden by it, see `knot-navigation` "Showing
           // a coming knot on the map".
@@ -652,6 +657,16 @@ private fun NavigationHeader(
           OffRouteHeader(display.next, nextRole, guidance, navigation.direction)
           return@FlowRow
         }
+        follow != null && !display.close -> {
+          NextKnotHeader(
+            display.next,
+            nextRole,
+            follow,
+            roleAt(current.nextIndex + 1),
+            progress?.nextKnotDistance,
+          )
+          return@FlowRow
+        }
         follow != null -> {
           Text(stringResource(R.string.at), style = title)
           KnotBadge(display.next, nextRole, scale = 1.3f)
@@ -879,6 +894,52 @@ private fun WaypointList(
       }
     }
     item(key = "end") { Spacer(modifier = Modifier.height(16.dp)) }
+  }
+}
+
+/**
+ * Far from the next knot: the next knot and the distance to it as the most prominent information,
+ * and the number to follow there smaller below, see `knot-navigation` "Number to follow".
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun NextKnotHeader(
+  next: String,
+  role: KnotRole?,
+  follow: String,
+  followRole: KnotRole?,
+  distance: String?,
+) {
+  val nextText = stringResource(R.string.next)
+  val thenText = stringResource(R.string.then)
+  Column(
+    modifier =
+      Modifier.clearAndSetSemantics {
+        contentDescription =
+          listOfNotNull("$nextText $next", distance, "$thenText $follow").joinToString(", ")
+      }
+  ) {
+    // The distance moves below the next knot where it does not fit next to it, see
+    // `knot-navigation` "Number to follow at large text sizes".
+    FlowRow(
+      itemVerticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+      Text(nextText, style = MaterialTheme.typography.titleLarge)
+      KnotBadge(next, role, scale = 1.8f)
+      distance?.let { Text(it, style = MaterialTheme.typography.titleLarge, maxLines = 1) }
+    }
+    Row(
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+      Text(
+        thenText,
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+      KnotBadge(follow, followRole)
+    }
   }
 }
 

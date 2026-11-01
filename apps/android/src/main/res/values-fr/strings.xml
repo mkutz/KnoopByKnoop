@@ -24,6 +24,8 @@
   <string name="at">Au</string>
   <string name="follow">suivre</string>
   <string name="is_the_end">est l\'arrivée</string>
+  <string name="next">Prochain</string>
+  <string name="then">puis</string>
   <string name="off_route_next">Hors itinéraire, suivant</string>
   <string name="move_up">Monter</string>
   <string name="move_down">Descendre</string>

@@ -620,6 +620,50 @@
         }
       }
     },
+    "Next": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächster"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volgende"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prochain"
+          }
+        }
+      }
+    },
+    "Next %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächster %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volgende %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prochain %@"
+          }
+        }
+      }
+    },
     "No route for %@": {
       "localizations": {
         "de": {
@@ -1452,6 +1496,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "le dernier téléchargement a échoué"
+          }
+        }
+      }
+    },
+    "then": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dann"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dan"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "puis"
+          }
+        }
+      }
+    },
+    "then %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dann %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dan %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "puis %@"
           }
         }
       }

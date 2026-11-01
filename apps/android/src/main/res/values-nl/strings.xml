@@ -24,6 +24,8 @@
   <string name="at">Bij</string>
   <string name="follow">volg</string>
   <string name="is_the_end">is het einde</string>
+  <string name="next">Volgende</string>
+  <string name="then">dan</string>
   <string name="off_route_next">Van de route af, volgende</string>
   <string name="move_up">Omhoog</string>
   <string name="move_down">Omlaag</string>

@@ -323,8 +323,58 @@ class NavigationTest {
     assertEquals(knot24, navigation.nextKnot)
     assertFalse(navigation.offRoute)
     assertEquals("Back on route, next 24", notices.first().text)
+    assertTrue(navigation.display.close)
     assertEquals("80 m", navigation.progress(navigation.lastFix).nextKnotDistance)
     assertEquals("80 m to 24", navigation.progressLine)
+  }
+
+  @Test
+  fun `far from the next knot`() {
+    val navigation = start(east = 0.0).navigation
+
+    assertFalse(navigation.display.close)
+    assertEquals("45", navigation.display.next)
+    assertEquals("12", navigation.display.follow)
+  }
+
+  @Test
+  fun `coming close`() {
+    val started = start(east = 0.0).navigation
+    val (far, _) = started.ride(fix(700.0))
+    assertFalse(far.display.close)
+
+    val update = far.update(fix(820.0))
+
+    assertTrue(update.notices.any { it.kind == NoticeKind.REMINDER })
+    assertTrue(update.navigation.display.close)
+  }
+
+  @Test
+  fun `knot right after the last one`() {
+    val knot50 = knot(50, "50", east = 1150.0)
+    val closeGraph =
+      NetworkGraph(
+        knots = listOf(knot24, knot45, knot50, knot12),
+        connections =
+          listOf(Connection(24, 45, 1000), Connection(45, 50, 150), Connection(50, 12, 850)),
+      )
+    val started =
+      assertNotNull(
+        Navigation.start(listOf(knot24, knot45, knot50, knot12), closeGraph, null, fix(0.0))
+      )
+
+    val (navigation, _) = ride(started.navigation, from = 600.0, to = 1000.0)
+
+    assertEquals(knot50, navigation.nextKnot)
+    assertTrue(navigation.display.close)
+  }
+
+  @Test
+  fun `next knot in the middle of the route is close within 200 m`() {
+    val navigation = start(east = 850.0).navigation
+
+    assertEquals("45", navigation.display.next)
+    assertTrue(navigation.display.close)
   }
 
   // Requirement: Reminder before a knot
