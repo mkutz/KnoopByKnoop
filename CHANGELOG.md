@@ -8,6 +8,7 @@
 - Android: the compass stays clear of the status bar
 - Android: off route in German and Dutch, the next knot's badge is no longer missing
 - Android: off route is red, not pink, in dark mode
+- The ridden track is drawn on top of the route, and your arrow on the map is bigger
 
 ## 0.6.0
 

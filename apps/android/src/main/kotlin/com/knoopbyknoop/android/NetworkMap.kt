@@ -106,6 +106,12 @@ private const val POSITION_BLUE = "#1A73E8"
 /** The ridden track, a blue next to the position's, distinct from the orange route. */
 private const val TRACK_BLUE = "#1E6FD9"
 
+/** The rider's arrow's length, see `knot-navigation` "Riding direction on the map". */
+private const val RIDER_ARROW_DP = 44f
+
+/** The length of the arrow in [riderArrowBitmap], from its tip at 6 to its base at 56. */
+private const val RIDER_ARROW_PIXELS = 50f
+
 /** Knots are drawn and can be tapped from this zoom level on; below it the route is a line only. */
 private const val KNOT_MIN_ZOOM = 10.0
 
@@ -164,6 +170,7 @@ fun NetworkMap(
   val context = LocalContext.current
   val touchTargetPixels = with(LocalDensity.current) { TOUCH_TARGET_DP * density }
   val holder = remember { MapHolder() }
+  holder.density = LocalDensity.current.density
   val dark = isAppInDarkTheme()
   holder.dark = dark
   holder.online = online
@@ -330,6 +337,9 @@ fun NetworkMap(
 /** Keeps the map, its style and what is shown, so updates only touch what changed. */
 private class MapHolder {
   var map: MapLibreMap? = null
+
+  /** The display density, to size the rider's arrow in dp. */
+  var density = 1f
 
   /** The compass's margins from the map's top and start, in pixels. */
   var compassTop = 0
@@ -734,17 +744,6 @@ private class MapHolder {
           PropertyFactory.lineOpacity(0.7f),
         )
     )
-    // Below the route: where both overlap the route stays visible, detours show in blue.
-    style.addLayer(
-      LineLayer("ridden-track", "ridden-track")
-        .withProperties(
-          PropertyFactory.lineColor(TRACK_BLUE),
-          PropertyFactory.lineWidth(4f),
-          PropertyFactory.lineOpacity(0.8f),
-          PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
-          PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
-        )
-    )
     style.addLayer(
       LineLayer("route", "route")
         .withFilter(Expression.eq(Expression.get("reachable"), true))
@@ -775,6 +774,17 @@ private class MapHolder {
           PropertyFactory.iconSize(0.7f),
           PropertyFactory.iconAllowOverlap(true),
           PropertyFactory.iconIgnorePlacement(true),
+        )
+    )
+    // On top of the route and its arrows, half as wide: the ridden part shows blue with the route's
+    // orange at its edges, see `knot-navigation` "Ridden track".
+    style.addLayer(
+      LineLayer("ridden-track", "ridden-track")
+        .withProperties(
+          PropertyFactory.lineColor(TRACK_BLUE),
+          PropertyFactory.lineWidth(4f),
+          PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+          PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
         )
     )
     style.addLayer(
@@ -840,7 +850,8 @@ private class MapHolder {
       CircleLayer("position", "position")
         .withFilter(Expression.not(Expression.has("direction")))
         .withProperties(
-          PropertyFactory.circleRadius(9f),
+          // 30 dp across with the outline, see `knot-navigation` "Riding direction on the map".
+          PropertyFactory.circleRadius(12f),
           PropertyFactory.circleColor(POSITION_BLUE),
           PropertyFactory.circleStrokeColor("#FFFFFF"),
           PropertyFactory.circleStrokeWidth(3f),
@@ -853,7 +864,8 @@ private class MapHolder {
           PropertyFactory.iconImage("rider-arrow"),
           PropertyFactory.iconRotate(Expression.get("direction")),
           PropertyFactory.iconRotationAlignment(Property.ICON_ROTATION_ALIGNMENT_MAP),
-          PropertyFactory.iconSize(0.9f),
+          // The bitmap is drawn at the display's density: scaled to an arrow RIDER_ARROW_DP long.
+          PropertyFactory.iconSize(RIDER_ARROW_DP * density / RIDER_ARROW_PIXELS),
           PropertyFactory.iconAllowOverlap(true),
           PropertyFactory.iconIgnorePlacement(true),
         )

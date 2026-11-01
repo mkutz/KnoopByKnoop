@@ -71,9 +71,12 @@ enum KnotBadges {
 extension KnotBadges {
 
   /// The rider's position with a riding direction: a navigation arrow pointing north, rotated by the
-  /// map, see `knot-navigation` "Riding direction on the map".
+  /// map, 44 pt from its tip to its base, see `knot-navigation` "Riding direction on the map".
   static func riderArrow() -> UIImage {
-    UIGraphicsImageRenderer(size: CGSize(width: 30, height: 30)).image { _ in
+    // The path below is 23 long, from its tip at 3 to its base at 26.
+    let scale: CGFloat = 44 / 23
+    return UIGraphicsImageRenderer(size: CGSize(width: 30 * scale, height: 30 * scale)).image { context in
+      context.cgContext.scaleBy(x: scale, y: scale)
       let path = UIBezierPath()
       path.move(to: CGPoint(x: 15, y: 3))
       path.addLine(to: CGPoint(x: 25.5, y: 26))

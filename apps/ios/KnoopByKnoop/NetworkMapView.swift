@@ -670,18 +670,6 @@ struct NetworkMapView: UIViewRepresentable {
       connections.lineOpacity = NSExpression(forConstantValue: 0.7)
       style.addLayer(connections)
 
-      // Below the route: where both overlap the route stays visible, detours show in blue.
-      let trackSource = MLNShapeSource(identifier: "ridden-track", shape: nil)
-      style.addSource(trackSource)
-      let trackLayer = MLNLineStyleLayer(identifier: "ridden-track", source: trackSource)
-      trackLayer.lineColor = NSExpression(forConstantValue: UIColor(red: 0x1E / 255, green: 0x6F / 255, blue: 0xD9 / 255, alpha: 1))
-      trackLayer.lineWidth = NSExpression(forConstantValue: 4)
-      trackLayer.lineOpacity = NSExpression(forConstantValue: 0.8)
-      trackLayer.lineCap = NSExpression(forConstantValue: "round")
-      trackLayer.lineJoin = NSExpression(forConstantValue: "round")
-      style.addLayer(trackLayer)
-      updateTrack()
-
       let route = MLNLineStyleLayer(identifier: "route", source: sources[1])
       route.predicate = NSPredicate(format: "reachable == YES")
       route.lineColor = NSExpression(forConstantValue: UIColor(Color.knoopOrange))
@@ -706,6 +694,18 @@ struct NetworkMapView: UIViewRepresentable {
       direction.iconAllowsOverlap = NSExpression(forConstantValue: true)
       direction.iconIgnoresPlacement = NSExpression(forConstantValue: true)
       style.addLayer(direction)
+
+      // On top of the route and its arrows, half as wide: the ridden part shows blue with the route's
+      // orange at its edges, see `knot-navigation` "Ridden track".
+      let trackSource = MLNShapeSource(identifier: "ridden-track", shape: nil)
+      style.addSource(trackSource)
+      let trackLayer = MLNLineStyleLayer(identifier: "ridden-track", source: trackSource)
+      trackLayer.lineColor = NSExpression(forConstantValue: UIColor(red: 0x1E / 255, green: 0x6F / 255, blue: 0xD9 / 255, alpha: 1))
+      trackLayer.lineWidth = NSExpression(forConstantValue: 4)
+      trackLayer.lineCap = NSExpression(forConstantValue: "round")
+      trackLayer.lineJoin = NSExpression(forConstantValue: "round")
+      style.addLayer(trackLayer)
+      updateTrack()
 
       let knots = MLNSymbolStyleLayer(identifier: "knots", source: sources[3])
       knots.iconImageName = NSExpression(format: "mgl_join({'knot-', ref})")
@@ -754,7 +754,8 @@ struct NetworkMapView: UIViewRepresentable {
       style.addSource(positionSource)
       let positionLayer = MLNCircleStyleLayer(identifier: "position", source: positionSource)
       positionLayer.predicate = NSPredicate(format: "direction == nil")
-      positionLayer.circleRadius = NSExpression(forConstantValue: 8)
+      // 30 pt across with the outline, see `knot-navigation` "Riding direction on the map".
+      positionLayer.circleRadius = NSExpression(forConstantValue: 12)
       positionLayer.circleColor = NSExpression(forConstantValue: UIColor.systemBlue)
       positionLayer.circleStrokeColor = NSExpression(forConstantValue: UIColor.white)
       positionLayer.circleStrokeWidth = NSExpression(forConstantValue: 3)
