@@ -192,14 +192,16 @@ private constructor(
    * `knot-navigation` "Progress strip" and "Distances and times ahead".
    */
   fun progress(fix: Fix): ProgressView {
-    val offRouteDistance = if (offRoute && !arrived) route.straightTo(fix, nextIndex) else null
+    val straightDistance =
+      if (offRoute && !arrived) route.straightTo(fix, nextIndex) else straightToFirst(fix)
     val place =
       if (offRoute || arrived || fix.accuracyMeters > PRECISE_ACCURACY_METERS) this.place
       else route.placeOf(fix, nextIndex)
     return route.view(
       place,
       nextIndex,
-      offRouteDistance,
+      straightDistance,
+      offRoute && !arrived,
       pace.metersPerSecond,
       fix.timeMillis,
       localTime,
@@ -322,15 +324,18 @@ private constructor(
   }
 
   /**
-   * The position of the first route knot from the next one on that [fix] entered, or `null`. The
-   * end of a round trip only counts once it is the next knot, so returning to the start is not
-   * taken for arriving.
+   * The position of the last route knot passed with [fix], or `null`: the first one from the next
+   * one that [fix] entered, and the knots right after it that [fix] is within the circle of, as at
+   * a double knot. The end of a round trip only counts once the knots before it are passed, so
+   * returning to the start is not taken for arriving.
    */
   private fun passedRouteIndex(fix: Fix): Int? {
     val roundTrip = knots.size > 2 && knots.first().id == knots.last().id
-    return (nextIndex..knots.lastIndex).firstOrNull { index ->
-      !(roundTrip && index == knots.lastIndex && index != nextIndex) && entered(fix, knots[index])
-    }
+    val entered =
+      (nextIndex..knots.lastIndex).firstOrNull { index ->
+        !(roundTrip && index == knots.lastIndex && index != nextIndex) && entered(fix, knots[index])
+      } ?: return null
+    return lastWithin(knots, entered, knots.lastIndex, fix)
   }
 
   private fun enteredOffRouteKnot(fix: Fix): Knot? =
@@ -409,7 +414,22 @@ private constructor(
   }
 
   private fun routeLine(fix: Fix): String =
-    route.line(place, nextIndex, pace.metersPerSecond, fix.timeMillis, localTime, language)
+    route.line(
+      place,
+      nextIndex,
+      pace.metersPerSecond,
+      fix.timeMillis,
+      localTime,
+      language,
+      straightToFirst(fix),
+    )
+
+  /**
+   * The straight distance to the first knot while it is the next one, as there is no route before
+   * it, see `knot-navigation` "Number to follow"; else `null`.
+   */
+  private fun straightToFirst(fix: Fix): Double? =
+    if (nextIndex == 0) route.straightTo(fix, 0) else null
 
   /**
    * While off route: the guidance notice when the rider got [GUIDANCE_METERS] closer or the
@@ -556,7 +576,11 @@ private constructor(
       val courses = geometry?.let { network ->
         knots.zipWithNext { from, to -> network.courseOf(from, to) ?: return@let null }
       }
-      val startIndex = knots.dropLast(1).indexOfFirst { distanceTo(fix, it) <= PASS_RADIUS_METERS }
+      val startIndex =
+        knots
+          .dropLast(1)
+          .indexOfFirst { distanceTo(fix, it) <= PASS_RADIUS_METERS }
+          .let { if (it >= 0) lastWithin(knots, it, knots.lastIndex - 1, fix) else it }
       val legIndex =
         courses
           ?.withIndex()
@@ -618,6 +642,7 @@ private constructor(
                 fix.timeMillis,
                 localTime,
                 language,
+                if (nextIndex == 0) route.straightTo(fix, 0) else null,
               ),
             guided = null,
             language = language,
@@ -640,6 +665,18 @@ private constructor(
     fun spoken(ref: String): String =
       if (ref.isNotEmpty() && ref.all { it.isDigit() }) ref.trimStart('0').ifEmpty { "0" } else ref
   }
+}
+
+/**
+ * The position of the last knot in [knots] from [from] up to [until] that [fix] is within the pass
+ * circle of without a gap, see `knot-navigation` "Passing a double knot".
+ */
+private fun lastWithin(knots: List<Knot>, from: Int, until: Int, fix: Fix): Int {
+  var index = from
+  while (index < until && distanceTo(fix, knots[index + 1]) <= Navigation.PASS_RADIUS_METERS) {
+    index++
+  }
+  return index
 }
 
 private fun distanceTo(fix: Fix, knot: Knot): Double =

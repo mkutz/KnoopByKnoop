@@ -138,8 +138,13 @@ private constructor(
 
   /**
    * The panel's progress with the rider at [place] along the route, before the knot at [nextIndex];
-   * off route, the distances count from the next knot plus [offRouteDistance].
+   * off route or before the first knot, the distances count from the next knot plus
+   * [straightDistance].
    *
+   * @param straightDistance the straight distance to the next knot, off route or before the first
+   *   knot, else `null`
+   * @param offRoute whether the rider is off route, see `knot-navigation` "Off route on the strip
+   *   ahead"
    * @param now the instant of the position, in epoch milliseconds
    * @param localTime the networks' local time, for the arrivals; without it, there are none
    * @param ferryState whether the ferry after the knot at a route position runs at the arrival
@@ -147,7 +152,8 @@ private constructor(
   fun view(
     place: Double,
     nextIndex: Int,
-    offRouteDistance: Double?,
+    straightDistance: Double?,
+    offRoute: Boolean,
     metersPerSecond: Double,
     now: Long,
     localTime: ((Long) -> LocalMoment)?,
@@ -158,7 +164,7 @@ private constructor(
     fun distanceTo(offset: Double) =
       max(
         0.0,
-        if (offRouteDistance != null) offset - offsets[nextIndex] + offRouteDistance
+        if (straightDistance != null) offset - offsets[nextIndex] + straightDistance
         else offset - place,
       )
     val ahead = setOf(ProgressMarkKind.STOP, ProgressMarkKind.FERRY, ProgressMarkKind.END)
@@ -166,7 +172,7 @@ private constructor(
       marks().map { mark ->
         val offset = mark.fraction * length
         // Half a meter of slack, as the offset comes back from the fraction.
-        if (mark.kind !in ahead || offset <= aheadFrom(place, nextIndex, offRouteDistance) + 0.5)
+        if (mark.kind !in ahead || offset <= aheadFrom(place, nextIndex, straightDistance) + 0.5)
           mark
         else {
           val meters = distanceTo(offset)
@@ -180,7 +186,7 @@ private constructor(
     fun arrival(meters: Double) = localTime?.let { arrivalText(now, meters / metersPerSecond, it) }
     // The knots from the next one, and the ferries ahead between them, see `knot-navigation`
     // "Coming knots".
-    val from = aheadFrom(place, nextIndex, offRouteDistance)
+    val from = aheadFrom(place, nextIndex, straightDistance)
     val comingKnots =
       (nextIndex..knots.lastIndex).map { index ->
         val kind =
@@ -201,13 +207,13 @@ private constructor(
           comingFerry(position, distanceTo(offset), ::arrival, ferryState(position), language)
     }
     val coming = (comingKnots + comingFerries).sortedBy { it.first }.map { it.second }
-    val toNext = offRouteDistance ?: max(0.0, offsets[nextIndex] - place)
+    val toNext = straightDistance ?: max(0.0, offsets[nextIndex] - place)
     val rider = if (length > 0) (place / length).coerceIn(0.0, 1.0) else 0.0
     return ProgressView(
       ProgressStrip(
         marks,
         rider,
-        offRoute = offRouteDistance != null,
+        offRoute,
         texts.ridden(ridden(place, texts), knots[nextIndex].ref),
       ),
       MapFeatures.formatDistance(toNext.roundToInt(), language),
@@ -265,15 +271,18 @@ private constructor(
   }
 
   /**
-   * Where the marks ahead begin: the rider's place, or while off route the knot before the next
-   * one, so the next knot and what follows still count as ahead.
+   * Where the marks ahead begin: the rider's place, or with a [straightDistance] the knot before
+   * the next one, so the next knot and what follows still count as ahead.
    */
-  private fun aheadFrom(place: Double, nextIndex: Int, offRouteDistance: Double?): Double =
-    if (offRouteDistance != null) offsets[maxOf(0, nextIndex - 1)] else place
+  private fun aheadFrom(place: Double, nextIndex: Int, straightDistance: Double?): Double =
+    if (straightDistance != null) offsets[maxOf(0, nextIndex - 1)] else place
 
   /**
    * The line outside the app, e.g. `0.8 km to 45 · end around 19:05`, with the rider at [place]
    * before the knot at [nextIndex], see `knot-navigation` "Navigation with the screen off".
+   *
+   * @param straightDistance the straight distance to the next knot before the first knot, else
+   *   `null`
    */
   fun line(
     place: Double,
@@ -282,13 +291,13 @@ private constructor(
     now: Long,
     localTime: ((Long) -> LocalMoment)?,
     language: Language = Language.EN,
+    straightDistance: Double? = null,
   ): String {
     val texts = language.texts
-    val toNext =
-      MapFeatures.formatDistance(max(0.0, offsets[nextIndex] - place).roundToInt(), language)
-    val arrival = localTime?.let {
-      arrivalText(now, max(0.0, length - place) / metersPerSecond, it)
-    }
+    val toNextMeters = straightDistance ?: max(0.0, offsets[nextIndex] - place)
+    val toNext = MapFeatures.formatDistance(toNextMeters.roundToInt(), language)
+    val toEnd = length - offsets[nextIndex] + toNextMeters
+    val arrival = localTime?.let { arrivalText(now, max(0.0, toEnd) / metersPerSecond, it) }
     return if (nextIndex == knots.lastIndex) texts.toTheEnd(toNext, arrival)
     else texts.toKnot(toNext, knots[nextIndex].ref, arrival)
   }

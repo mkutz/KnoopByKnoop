@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Navigation no longer gets stuck at two knots a few metres apart, and shows the distance to the first knot instead of 0 m
+
 ## 0.6.0
 
 - The apps speak German, Dutch and French: texts, spoken notices, distances and dates follow the phone's language, or the one chosen in Info
