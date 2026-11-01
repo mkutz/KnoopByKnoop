@@ -1,17 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.7.0
 
-- Navigation no longer gets stuck at two knots a few metres apart, and shows the distance to the first knot instead of 0 m
-- A knot signposted in two places, like 02 in Siegburg, counts as passed at either of them
-- Android: the map's labels and icons no longer flicker while it follows you
-- Android: the compass stays clear of the status bar
-- Android: off route in German and Dutch, the next knot's badge is no longer missing
-- iOS: off route in German, the text is no longer cut off, and at the largest text sizes Stop and the distance are complete
-- Android: off route is red, not pink, in dark mode
-- The ridden track is drawn on top of the route, and your arrow on the map is bigger
-- Off route, the dashed line leads back to the nearest point of the route instead of to the next knot
-- Back on route only once you are on the route, not on a path beside it
+- Off route, the dashed line leads back to the nearest point of the route, and you are back on route only on it, not on a path beside it
+- Knots a few metres apart, and knots signposted twice like 02 in Siegburg, are passed reliably; the first knot's distance no longer shows 0 m
+- The ridden track is on top of the route, and your arrow is bigger
+- The map no longer flickers, the compass clears the status bar, and the off-route header is complete in every language and red in dark mode
 
 ## 0.6.0
 
