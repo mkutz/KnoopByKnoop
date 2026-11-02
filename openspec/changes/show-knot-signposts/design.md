@@ -45,6 +45,12 @@
 - If there is no path, or it is longer than 3 times the straight distance (a detour, not the junction), the straight point stays.
 - Alternative: end the course at the node it reaches. The route line would then have a gap between legs at a merged knot, and the progress place and off-route distance assume courses meet at the knot.
 
+**Routes start and end at the signpost they use.** All courses end at the knot's main position, so a route leaving at another signpost began with the path between the two badges, and a route leaving at the main position did not (found by the maintainer at Siegburg 02, routes to 28 and to 01). The route's length never counted that path.
+- `NetworkGeometry` trims the first and last course of a route: if the course passes another position of the knot within 10 m, it starts or ends there. 10 m allows for the 5 m simplification, which can drop the signpost's own point.
+- It only looks as far as 3 times the straight distance between the positions, the pipeline's limit for that path, so a course that returns past the signpost much later is not cut.
+- Used for the route on the map and the GPX export. Navigation keeps the whole courses, so a rider starting at either badge is on the course.
+- The path stays in the middle of a route, where the line has to join two signposts. Its length is still not counted there, which is left as it is.
+
 ## Risks / Trade-offs
 
 - **Two badges with the same number close together** may look like two knots. That is what the signposts say, and fietsknoop shows it the same way. The highlights make clear they are one.

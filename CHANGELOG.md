@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- A knot signposted in two places, like 02 in Siegburg, now has its badge at both, and they act as one knot
+- A knot signposted in two places, like 02 in Siegburg, now has its badge at both, and they act as one knot; a route starting or ending there uses the signpost on its way
 - New network data arrives at the next start of the app, not only once a day
 - While navigating, the next knot and its distance are biggest until you are close to it; the number to follow there takes over with the reminder, 200 m before
 

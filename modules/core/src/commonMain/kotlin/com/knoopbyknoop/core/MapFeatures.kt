@@ -188,13 +188,21 @@ object MapFeatures {
    * One line per leg of the route along its course, with the property `reachable`. Unreachable legs
    * are straight lines between their waypoints.
    */
-  fun route(session: PlanningSession, geometry: NetworkGeometry): String =
-    featureCollection(session.route?.legs.orEmpty()) { leg ->
-      lineString(
-        leg.path?.let { courseOf(it, geometry) } ?: listOf(leg.from, leg.to).map(::pointOf)
-      )
+  fun route(session: PlanningSession, geometry: NetworkGeometry): String {
+    val legs = session.route?.legs.orEmpty()
+    return featureCollection(legs.withIndex().toList()) { (index, leg) ->
+      val course =
+        leg.path?.let { path ->
+          geometry.atSignposts(
+            courseOf(path, geometry),
+            path.start.takeIf { index == 0 },
+            path.end.takeIf { index == legs.lastIndex },
+          )
+        }
+      lineString(course ?: listOf(leg.from, leg.to).map(::pointOf))
       properties { property("reachable", leg.isReachable.toString()) }
     }
+  }
 
   /** Points with the properties `position` and `role` (`start`, `stop` or `end`). */
   fun waypoints(session: PlanningSession): String =

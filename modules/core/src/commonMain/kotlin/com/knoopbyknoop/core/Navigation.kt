@@ -723,7 +723,7 @@ private fun distanceToNearestNode(fix: Fix, knot: Knot): Double =
 private const val METERS_PER_DEGREE_LATITUDE = 6_371_008.8 * PI / 180
 
 /** The distance from a position to the line between [from] and [to], in a local flat projection. */
-private fun distanceToLine(
+internal fun distanceToLine(
   latitude: Double,
   longitude: Double,
   from: GeoPoint,

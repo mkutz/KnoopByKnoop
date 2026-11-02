@@ -11,6 +11,9 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
 
 /** Covers the geometry scenarios of `openspec/changes/add-connection-geometry`. */
 class NetworkGeometryTest {
@@ -114,5 +117,86 @@ class NetworkGeometryTest {
   @Test
   fun `knots without a direct connection have no course between them`() {
     assertNull(geometry.courseOf(knot12, TestNetwork.knot99))
+  }
+
+  // Requirement: Knots signposted at several places
+
+  private val river = GeoPoint(52.1000, 5.1000)
+  private val path = GeoPoint(52.1006, 5.0995)
+  private val signpost = GeoPoint(52.1012, 5.0985)
+  private val west = GeoPoint(52.1020, 5.0900)
+  private val east = GeoPoint(52.0990, 5.1100)
+  private val knot02 =
+    Knot(2, "02", NetworkType.CYCLING, river.latitude, river.longitude, listOf(signpost))
+  private val knot28 = Knot(28, "28", NetworkType.CYCLING, west.latitude, west.longitude)
+  private val knot01 = Knot(1, "01", NetworkType.CYCLING, east.latitude, east.longitude)
+  private val signposts =
+    NetworkGraph(
+      listOf(knot02, knot28, knot01),
+      listOf(Connection(2, 28, 700), Connection(2, 1, 800)),
+    )
+  private val signpostGeometry =
+    NetworkGeometry(signposts, listOf(listOf(river, path, signpost, west), listOf(river, east)))
+
+  private fun routeThrough(vararg knots: Knot) =
+    Route.plan(knots.toList(), ShortestPathRouter(signposts))
+
+  @Test
+  fun `route starting at the other signpost`() {
+    assertEquals(
+      listOf(signpost, west),
+      signpostGeometry.courseOf(routeThrough(knot02, knot28)),
+    )
+  }
+
+  @Test
+  fun `route ending at the other signpost`() {
+    assertEquals(
+      listOf(west, signpost),
+      signpostGeometry.courseOf(routeThrough(knot28, knot02)),
+    )
+  }
+
+  @Test
+  fun `route leaving at the main position`() {
+    assertEquals(listOf(river, east), signpostGeometry.courseOf(routeThrough(knot02, knot01)))
+  }
+
+  @Test
+  fun `route through a knot between its signposts`() {
+    assertEquals(
+      listOf(west, signpost, path, river, east),
+      signpostGeometry.courseOf(routeThrough(knot28, knot02, knot01)),
+    )
+  }
+
+  @Test
+  fun `a course passing the signpost much later is not cut`() {
+    val farAway = GeoPoint(52.1100, 5.1300)
+    val graph = NetworkGraph(listOf(knot02, knot28), listOf(Connection(2, 28, 5000)))
+    val geometry = NetworkGeometry(graph, listOf(listOf(river, farAway, signpost, west)))
+
+    val route = Route.plan(listOf(knot02, knot28), ShortestPathRouter(graph))
+
+    assertEquals(listOf(river, farAway, signpost, west), geometry.courseOf(route))
+  }
+
+  @Test
+  fun `the route on the map starts at the signpost it uses`() {
+    val session = PlanningSession.start(signposts).tap(knot02).tap(knot28)
+
+    val coordinates =
+      Json.parseToJsonElement(MapFeatures.route(session, signpostGeometry))
+        .jsonObject
+        .getValue("features")
+        .jsonArray
+        .single()
+        .jsonObject
+        .getValue("geometry")
+        .jsonObject
+        .getValue("coordinates")
+        .jsonArray
+
+    assertEquals(2, coordinates.size)
   }
 }

@@ -46,7 +46,42 @@ class NetworkGeometry(val graph: NetworkGraph, val courses: List<List<GeoPoint>>
       val leg = courseOf(from, to) ?: return null
       course.addAll(if (course.isEmpty()) leg else leg.drop(1))
     }
-    return course
+    return atSignposts(course, knots.first(), knots.last())
+  }
+
+  /**
+   * [course] from and to the signposts it uses at [start] and [end], where given, see
+   * `map-planning` "Knots signposted at several places": courses run to a knot's main position,
+   * also when they reach it at another of its nodes.
+   */
+  fun atSignposts(course: List<GeoPoint>, start: Knot?, end: Knot?): List<GeoPoint> {
+    val fromStart = start?.let { fromSignpost(course, it) } ?: course
+    return end?.let { fromSignpost(fromStart.asReversed(), it).asReversed() } ?: fromStart
+  }
+
+  private fun fromSignpost(course: List<GeoPoint>, knot: Knot): List<GeoPoint> =
+    knot.otherNodes
+      .mapNotNull { signpost -> fromSignpost(course, knot, signpost) }
+      .minByOrNull { it.size } ?: course
+
+  private fun fromSignpost(
+    course: List<GeoPoint>,
+    knot: Knot,
+    signpost: GeoPoint,
+  ): List<GeoPoint>? {
+    val limit =
+      distanceMeters(knot.latitude, knot.longitude, signpost.latitude, signpost.longitude) *
+        MAX_DETOUR_TO_SIGNPOST
+    var covered = 0.0
+    for ((index, segment) in course.zipWithNext().withIndex()) {
+      val (from, to) = segment
+      if (distanceToLine(signpost.latitude, signpost.longitude, from, to) <= ON_SIGNPOST_METERS) {
+        return listOf(signpost) + course.drop(index + 1).dropWhile { it == signpost }
+      }
+      covered += distanceMeters(from.latitude, from.longitude, to.latitude, to.longitude)
+      if (covered > limit) return null
+    }
+    return null
   }
 
   /** The geometry file for the graph file whose SHA-256 is [graphSha256]. */
@@ -74,6 +109,12 @@ class NetworkGeometry(val graph: NetworkGraph, val courses: List<List<GeoPoint>>
   }
 
   companion object {
+
+    /** A course passes a signpost this close: published courses are simplified to within 5 m. */
+    private const val ON_SIGNPOST_METERS = 10.0
+
+    /** How far along a course a signpost is looked for, in straight distances to it. */
+    private const val MAX_DETOUR_TO_SIGNPOST = 3.0
 
     const val FORMAT_VERSION = 1
 

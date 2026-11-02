@@ -28,9 +28,13 @@
 
 - [x] 4.1 The same in `AppModel` and `NetworkMapView`. The project builds, and simulator screenshots show both badges at Siegburg 02, tapping the L 16 badge, and both rings while navigating.
 
-## 5. Wrap-up
+## 5. Routes at the signpost they use
 
-- [x] 5.1 `manual-checks.md` with the scenarios and the maintainer's steps; `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; a CHANGELOG entry under Unreleased.
+- [x] 5.1 `NetworkGeometry`: trim the first and last course of a route to the signpost it uses, for the map and the GPX export. Tests in `NetworkGeometryTest`: "Route starting at the other signpost" (both directions), "Route ending at the other signpost", "Route through a knot between its signposts", a route leaving at the main position unchanged, and a course passing the signpost beyond the limit not cut. On the emulator with the published data: 02 → 28 starts at the L 16 badge, 02 → 01 at the river badge, and 28 → 02 → 01 joins them. iOS: the project builds, and the same in the simulator.
+
+## 6. Wrap-up
+
+- [x] 6.1 `manual-checks.md` with the scenarios and the maintainer's steps; `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; a CHANGELOG entry under Unreleased.
 
 ## Workflow follow-up
 

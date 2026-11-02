@@ -3,7 +3,7 @@
 ## ADDED Requirements
 
 ### Requirement: Knots signposted at several places
-A knot signposted at several places of one junction (see `network-data` "One knot per signposted junction") SHALL have its badge on the map at every one of them. The badges SHALL act as that one knot for tapping and highlighting; everywhere else the knot SHALL appear once.
+A knot signposted at several places of one junction (see `network-data` "One knot per signposted junction") SHALL have its badge on the map at every one of them. The badges SHALL act as that one knot for tapping and highlighting; everywhere else the knot SHALL appear once. A route starting or ending at such a knot SHALL be drawn and exported from or to the signpost it uses.
 
 #### Scenario: Badges at both signposts
 - **WHEN** knot 02 is signposted at two places 195 m apart and the map shows them
@@ -16,6 +16,18 @@ A knot signposted at several places of one junction (see `network-data` "One kno
 #### Scenario: Route through a knot with two signposts
 - **WHEN** the route passes 02
 - **THEN** both badges 02 are highlighted as part of the route
+
+#### Scenario: Route starting at the other signpost
+- **WHEN** the route starts at 02 and leaves it at the signpost near the L 16, 195 m from the knot's main position
+- **THEN** its line starts at that signpost, without the path between the two badges, as a route leaving at the main position starts there
+
+#### Scenario: Route ending at the other signpost
+- **WHEN** the route ends at 02 and arrives at the signpost near the L 16
+- **THEN** its line ends at that signpost
+
+#### Scenario: Route through a knot between its signposts
+- **WHEN** the route passes 02, arriving at one signpost and leaving at the other
+- **THEN** its line includes the path between the two badges
 
 #### Scenario: Next knot with two signposts
 - **WHEN** the rider is navigating with 02 as the next knot
