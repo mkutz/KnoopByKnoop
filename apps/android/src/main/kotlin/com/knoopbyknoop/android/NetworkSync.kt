@@ -20,7 +20,6 @@ import com.knoopbyknoop.core.NetworkIndex
 import com.knoopbyknoop.core.NetworkIndexEntry
 import com.knoopbyknoop.core.NetworkInstaller
 import com.knoopbyknoop.core.RejectionReason
-import com.knoopbyknoop.core.UpdateCheck
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -49,14 +48,6 @@ class NetworkSync(private val context: Context) {
   /** Whether a downloaded file needs a newer app version to be read. */
   val needsAppUpdate: Boolean
     get() = preferences.getBoolean(KEY_NEEDS_APP_UPDATE, false)
-
-  /** Whether the sync should run: files are missing, or the daily update check is due. */
-  fun isDue(): Boolean {
-    val lastCheck = preferences.getLong(KEY_LAST_CHECK, 0).takeIf { it > 0 }
-    val catalog = NetworkCatalog(index = null, storage.installed())
-    return UpdateCheck.isDue(lastCheck, System.currentTimeMillis()) ||
-      catalog.networks.any { !it.hasGeometry }
-  }
 
   /**
    * Installs the bundled graphs of networks that have no installed graph, only an older one, or the
@@ -115,7 +106,6 @@ class NetworkSync(private val context: Context) {
    */
   suspend fun run(onInstalled: suspend (NetworkIndexEntry) -> Unit): Boolean {
     val index = NetworkIndex.parse(fetch("index.json").decodeToString())
-    preferences.edit { putLong(KEY_LAST_CHECK, System.currentTimeMillis()) }
     val toFetch = NetworkCatalog(index, storage.installed()).filesToFetch
     var retry = false
     setNetworks(KEY_DOWNLOADING, toFetch.map { it.network }.toSet())
@@ -192,7 +182,6 @@ class NetworkSync(private val context: Context) {
 
   companion object {
     private const val BUNDLED_DIRECTORY = "bundled-networks"
-    private const val KEY_LAST_CHECK = "last-check"
     private const val KEY_FAILED = "failed"
     private const val KEY_DOWNLOADING = "downloading"
     private const val KEY_NEEDS_APP_UPDATE = "needs-app-update"

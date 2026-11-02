@@ -249,15 +249,6 @@ class NetworkSyncTest {
     assertTrue(catalog.networks.all { it.state == NetworkState.INSTALLED && it.hasGeometry })
   }
 
-  @Test
-  fun `the update check is due once a day`() {
-    val now = 1_793_000_000_000L
-
-    assertTrue(UpdateCheck.isDue(lastCheckEpochMillis = null, nowEpochMillis = now))
-    assertFalse(UpdateCheck.isDue(now - UpdateCheck.INTERVAL_MILLIS + 1, now))
-    assertTrue(UpdateCheck.isDue(now - UpdateCheck.INTERVAL_MILLIS, now))
-  }
-
   // Requirement: Info sheet
 
   @Test

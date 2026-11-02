@@ -108,7 +108,8 @@ final class AppModel: ObservableObject {
       restored = true
       if firstStart { locate() }
       await reloadIfChanged()
-      if isSyncDue() { await sync() }
+      // At every start, see `network-sync` "Keep the networks current".
+      await sync()
     }
   }
 
@@ -438,15 +439,6 @@ final class AppModel: ObservableObject {
 
   // MARK: Network sync, see `network-sync`
 
-  private static let lastCheckKey = "network-sync-last-check"
-
-  private func isSyncDue() -> Bool {
-    let lastCheck = UserDefaults.standard.object(forKey: Self.lastCheckKey) as? Int64
-    let now = Int64(Date().timeIntervalSince1970 * 1000)
-    return UpdateCheck.shared.isDue(lastCheckEpochMillis: lastCheck.map { KotlinLong(value: $0) }, nowEpochMillis: now)
-      || catalog.networks.contains { !$0.hasGeometry }
-  }
-
   /// Installs the bundled graphs of networks that have no installed graph, only an older one, or the
   /// same data in an older format, and removes stale data, e.g. networks installed per region by
   /// earlier app versions.
@@ -489,7 +481,6 @@ final class AppModel: ObservableObject {
       return
     }
     syncPending = false
-    UserDefaults.standard.set(Int64(Date().timeIntervalSince1970 * 1000), forKey: Self.lastCheckKey)
     let toFetch = NetworkCatalog(index: index, installed: storage.installed(), downloading: Set(), failed: Set())
       .filesToFetch
     downloads.start(toFetch)

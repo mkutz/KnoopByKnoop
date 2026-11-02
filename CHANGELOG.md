@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- New network data arrives at the next start of the app, not only once a day
 - While navigating, the next knot and its distance are biggest until you are close to it; the number to follow there takes over with the reminder, 200 m before
 
 ## 0.7.0

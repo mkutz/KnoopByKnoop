@@ -179,7 +179,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
       withContext(Dispatchers.IO) { sync.installBundled() }
       refreshCatalog()
       restoreRoute()
-      if (sync.isDue()) NetworkSyncWorker.enqueue(application)
+      // At every start, see `network-sync` "Keep the networks current".
+      NetworkSyncWorker.enqueue(application)
       // Only after the route is restored, so a reload cannot replace it with an empty one.
       watchSync()
     }

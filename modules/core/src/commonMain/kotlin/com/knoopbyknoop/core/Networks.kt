@@ -124,19 +124,6 @@ class NetworkCatalog(
   }
 }
 
-/**
- * When the apps check the published index for newer data, see `network-sync` "Keep the networks
- * current": on start, at most once a day.
- */
-object UpdateCheck {
-
-  const val INTERVAL_MILLIS: Long = 24 * 60 * 60 * 1000
-
-  /** @param lastCheckEpochMillis when the index was last fetched, or `null` if never */
-  fun isDue(lastCheckEpochMillis: Long?, nowEpochMillis: Long): Boolean =
-    lastCheckEpochMillis == null || nowEpochMillis - lastCheckEpochMillis >= INTERVAL_MILLIS
-}
-
 /** Why downloaded bytes must not be installed. */
 enum class RejectionReason {
   /** Size or checksum differ from the index: the download is corrupted or incomplete. */
