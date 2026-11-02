@@ -1,6 +1,7 @@
 package com.knoopbyknoop.core
 
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.min
@@ -92,10 +93,14 @@ data class NavigationDisplay(
   val close: Boolean = true,
 ) {
 
-  /** E.g. `At 45 follow 12`, or `31 is the end`. */
+  /** E.g. `At 45 follow 12` when [close], `Next 45, then 12` before, or `31 is the end`. */
   val text: String
     get() =
-      if (follow != null) language.texts.follow(next, follow) else language.texts.isTheEnd(next)
+      when {
+        follow == null -> language.texts.isTheEnd(next)
+        close -> language.texts.follow(next, follow)
+        else -> language.texts.next(next, follow)
+      }
 
   /** E.g. `Off route, next 45`, shown instead of [text] while off route. */
   val offRouteText: String
@@ -140,10 +145,12 @@ private constructor(
   private val pace: Pace,
   private val place: Double,
   /**
-   * The line outside the app, e.g. `0.8 km to 45 · end around 19:05`, as of the start or the last
-   * knot passed, see `knot-navigation` "Navigation with the screen off".
+   * The line outside the app, e.g. `0.8 km to 45 · end around 19:05`, renewed about every
+   * [LINE_METERS] of the route, see `knot-navigation` "Navigation with the screen off".
    */
   val progressLine: String,
+  /** Where on the route [progressLine] was last renewed. */
+  private val linePlace: Double,
   private val guided: Guided?,
   /** The language of the texts, see `app-languages`. */
   val language: Language,
@@ -321,6 +328,7 @@ private constructor(
             place = place,
             progressLine =
               route.line(place, newNext, pace.metersPerSecond, fix.timeMillis, localTime, language),
+            linePlace = place,
             guided = null,
           )
       }
@@ -371,8 +379,11 @@ private constructor(
               pace.metersPerSecond,
             ),
         )
-      // Back on route: the route's progress line again, see "Direction outside the app".
-      if (offRoute) navigation = navigation.copy(progressLine = navigation.routeLine(fix))
+      // Also back on route: the route's progress line again, see "Direction outside the app".
+      // Before the first knot, the place stands still while the distance to it changes.
+      if (offRoute || navigation.nextIndex == 0 || abs(place - linePlace) >= LINE_METERS) {
+        navigation = navigation.copy(progressLine = navigation.routeLine(fix), linePlace = place)
+      }
     }
     if (navigation.offRoute) {
       val (guided, guidance) = navigation.guide(fix, startedNow = !offRoute)
@@ -535,7 +546,7 @@ private constructor(
         )
       else null
     val told = startedNow || last == null || notice != null
-    val renewLine = last == null || kotlin.math.abs(meters - last.lineMeters) >= LINE_METERS
+    val renewLine = last == null || abs(meters - last.lineMeters) >= LINE_METERS
     val guided =
       Guided(
         noticeMeters = if (told) meters else last.noticeMeters,
@@ -571,6 +582,7 @@ private constructor(
     pace: Pace = this.pace,
     place: Double = this.place,
     progressLine: String = this.progressLine,
+    linePlace: Double = this.linePlace,
     guided: Guided? = this.guided,
   ) =
     Navigation(
@@ -593,6 +605,7 @@ private constructor(
       pace,
       place,
       progressLine,
+      linePlace,
       guided,
       language,
       speechLanguage,
@@ -627,7 +640,7 @@ private constructor(
     /** Off route, a guidance notice when the direction turned by more than this. */
     private const val GUIDANCE_DEGREES = 45.0
 
-    /** Off route, the line outside the app is renewed when the distance changed by this much. */
+    /** The line outside the app is renewed when the distance changed by this much. */
     private const val LINE_METERS = 100.0
 
     /** The assumed pace applies until the rider covered this much of the route. */
@@ -748,6 +761,7 @@ private constructor(
                 language,
                 if (nextIndex == 0) route.straightTo(fix, 0) else null,
               ),
+            linePlace = place,
             guided = null,
             language = language,
             speechLanguage = speechLanguage,
@@ -841,7 +855,7 @@ private fun bearing(fix: Fix, knot: Knot): Double {
 
 /** The smaller angle between two bearings. */
 private fun angleBetween(first: Double, second: Double): Double {
-  val difference = kotlin.math.abs(first - second) % 360
+  val difference = abs(first - second) % 360
   return if (difference > 180) 360 - difference else difference
 }
 

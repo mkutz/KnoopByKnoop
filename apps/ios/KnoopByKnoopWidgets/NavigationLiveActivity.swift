@@ -24,8 +24,11 @@ struct NavigationLiveActivity: Widget {
           StopButton()
         }
         DynamicIslandExpandedRegion(.bottom) {
-          if let progress = context.state.progress {
-            Text(progress).font(.caption).foregroundStyle(.white.opacity(0.8))
+          VStack(alignment: .leading, spacing: 6) {
+            if let progress = context.state.progress {
+              Text(progress).font(.caption).foregroundStyle(Color(white: 0.8))
+            }
+            RouteBar(state: context.state, track: Color(white: 0.35))
           }
         }
       } compactLeading: {
@@ -59,32 +62,80 @@ struct NavigationLiveActivity: Widget {
 }
 
 /// The card on the lock screen, light or dark like the system, see `map-planning` "Lock screen in
-/// dark mode". Its own background, as the text on the system's card was hard to read.
+/// dark mode". It draws its own background and only opaque colors, chosen together by the system's
+/// mode as the app reports it: on the lock screen, `colorScheme` is dark also when the system is
+/// light, and iOS showed a light card for `activityBackgroundTint` with content for dark.
 private struct LockScreenCard: View {
 
   let state: NavigationActivityAttributes.ContentState
-  @Environment(\.colorScheme) private var colorScheme
 
   var body: some View {
-    let dark = colorScheme == .dark
+    let dark = state.dark
     HStack(alignment: .center, spacing: 16) {
       VStack(alignment: .leading, spacing: 6) {
         NextKnot(state: state, prominent: 1.8, textColor: dark ? .white : .knoopDark)
         if let progress = state.progress {
-          Text(progress).font(.caption).foregroundStyle(dark ? Color.white.opacity(0.8) : Color.secondary)
+          Text(progress).font(.caption).foregroundStyle(Color(white: dark ? 0.8 : 0.35))
         }
+        RouteBar(state: state, track: Color(white: dark ? 0.35 : 0.8))
       }
       Spacer()
       StopButton()
     }
     .padding()
-    .activityBackgroundTint(dark ? Color(white: 0.11).opacity(0.92) : Color.white.opacity(0.92))
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .background(dark ? Color(white: 0.11) : Color.white)
+    .activityBackgroundTint(dark ? Color(white: 0.11) : Color.white)
     .activitySystemActionForegroundColor(.knoopGreen)
   }
 }
 
-/// "At 45 follow 12" with the knots as badges like on the map, 12 the largest; off route, at the
-/// end of the route and while starting, the text with the next knot's badge.
+/// The route as a bar, the part ridden green, with the rider, the stops and ferries ahead, see
+/// `knot-navigation` "Navigation with the screen off". Nothing until the rider's place is known.
+private struct RouteBar: View {
+
+  let state: NavigationActivityAttributes.ContentState
+  /// The part of the route still ahead.
+  let track: Color
+
+  var body: some View {
+    if let rider = state.riderFraction {
+      GeometryReader { geometry in
+        let width = geometry.size.width
+        ZStack(alignment: .leading) {
+          Capsule().fill(track).frame(height: 4)
+          Capsule().fill(Color.knoopGreen).frame(width: max(4, width * rider), height: 4)
+          ForEach(state.marks, id: \.self) { mark in
+            Circle().fill(color(of: mark)).frame(width: 8, height: 8)
+              .offset(x: width * mark.fraction - 4)
+          }
+          Circle().fill(Color.knoopDark).overlay(Circle().stroke(.white, lineWidth: 1))
+            .frame(width: 10, height: 10)
+            .offset(x: width - 10)
+          Circle().fill(state.offRoute ? Color.red : Color.blue)
+            .overlay(Circle().stroke(.white, lineWidth: 2))
+            .frame(width: 12, height: 12)
+            .offset(x: max(0, min(width - 12, width * rider - 6)))
+        }
+        .frame(maxHeight: .infinity)
+      }
+      .frame(height: 12)
+      .accessibilityHidden(true)
+    }
+  }
+
+  private func color(of mark: NavigationActivityAttributes.BarMark) -> Color {
+    switch mark.kind {
+    case .stop: .knoopOrange
+    case .ferry: .blue
+    case .closedFerry: .red
+    }
+  }
+}
+
+/// "At 45 follow 12" with the knots as badges like on the map, 12 the largest, and far from the
+/// knot "Next 45" and "then 12", 45 the largest, see `knot-navigation` "Number to follow"; off
+/// route, at the end of the route and while starting, the text with the next knot's badge.
 private struct NextKnot: View {
 
   let state: NavigationActivityAttributes.ContentState
@@ -105,6 +156,17 @@ private struct NextKnot: View {
         Text("Off route, next").font(.title3.bold()).foregroundStyle(.red)
         Badge(ref: state.next, role: state.nextRole, scale: 1.3)
       }
+    } else if let follow = state.follow, !state.close {
+      VStack(alignment: .leading, spacing: 4) {
+        HStack(spacing: 8) {
+          Text("Next").font(.title3)
+          Badge(ref: state.next, role: state.nextRole, scale: prominent)
+        }
+        HStack(spacing: 6) {
+          Text("then").font(.subheadline)
+          Badge(ref: follow, role: state.followRole, scale: 1)
+        }
+      }
     } else if let follow = state.follow {
       HStack(spacing: 8) {
         Text("At").font(.title3)
@@ -121,9 +183,17 @@ private struct NextKnot: View {
   }
 }
 
+/// Red with white text as the app's Stop, opaque, so it reads the same on every background.
 private struct StopButton: View {
   var body: some View {
-    Button(intent: StopNavigationIntent()) { Text("Stop") }
-      .tint(.knoopGreen)
+    Button(intent: StopNavigationIntent()) {
+      Label("Stop", systemImage: "stop.fill")
+        .font(.subheadline.bold())
+        .foregroundStyle(.white)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Color.actionRed, in: Capsule())
+    }
+    .buttonStyle(.plain)
   }
 }

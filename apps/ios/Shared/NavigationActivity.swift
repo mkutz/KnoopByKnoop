@@ -17,9 +17,25 @@ struct NavigationActivityAttributes: ActivityAttributes {
     var followRole: BadgeRole?
     /// What to show in full, e.g. `At 45 follow 12`, `31 is the end` or `Off route, next 45`.
     var text: String
-    /// The progress as of the last knot passed, e.g. `800 m to 45 · end around 19:05`, see
+    /// The progress about every 100 m, e.g. `800 m to 45 · end around 19:05`, see
     /// `knot-navigation` "Navigation with the screen off".
     var progress: String? = nil
+    /// Whether the rider is close to the next knot, so the number to follow is the most prominent.
+    var close = true
+    /// The rider's place on the route, from 0 to 1, for the bar; `nil` until it is known.
+    var riderFraction: Double? = nil
+    /// The stops and ferries ahead on the bar, the most important first.
+    var marks: [BarMark] = []
+    /// Whether the system is in dark mode. From the app, as the Live Activity's own `colorScheme`
+    /// is dark on the lock screen also when the system is light.
+    var dark = false
+  }
+
+  /// A stop or ferry on the bar along the route.
+  struct BarMark: Codable, Hashable {
+    enum Kind: String, Codable { case stop, ferry, closedFerry }
+    var fraction: Double
+    var kind: Kind
   }
 }
 

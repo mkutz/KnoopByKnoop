@@ -657,9 +657,17 @@ class NavigationTest {
 
   @Test
   fun `next knot in the middle of the route`() {
-    val display = start(east = 0.0).navigation.display
+    val display = start(east = 850.0).navigation.display
 
     assertEquals("At 45 follow 12", display.text)
+    assertEquals("12", display.follow)
+  }
+
+  @Test
+  fun `far from the next knot outside the app`() {
+    val display = start(east = 0.0).navigation.display
+
+    assertEquals("Next 45, then 12", display.text)
     assertEquals("12", display.follow)
   }
 

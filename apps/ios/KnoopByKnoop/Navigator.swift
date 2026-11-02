@@ -2,6 +2,7 @@ import ActivityKit
 import AVFoundation
 import CoreLocation
 import KnoopByKnoopCore
+import UIKit
 import os
 
 /// What the navigation shows: the navigation, `nil` while waiting for the first fix, and the
@@ -201,7 +202,9 @@ final class Navigator: NSObject, ObservableObject {
       if !speech.isSpeaking { stop() }
       return
     }
-    updateActivity(navigation.display, nextIndex: Int(navigation.nextIndex), progress: navigation.progressLine)
+    updateActivity(
+      navigation.display, nextIndex: Int(navigation.nextIndex), progress: navigation.progressLine,
+      strip: navigation.progress(fix: fix).strip)
     request(update.precision)
   }
 
@@ -290,19 +293,29 @@ final class Navigator: NSObject, ObservableObject {
     guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
     let content = ActivityContent(
       state: NavigationActivityAttributes.ContentState(
-        next: "", follow: nil, offRoute: false, nextRole: nil, followRole: nil, text: String(localized: "Starting navigation…", bundle: AppLanguage.bundle)),
+        next: "", follow: nil, offRoute: false, nextRole: nil, followRole: nil, text: String(localized: "Starting navigation…", bundle: AppLanguage.bundle),
+        dark: Self.systemIsDark),
       staleDate: nil)
     activity = try? Activity.request(attributes: NavigationActivityAttributes(), content: content)
   }
 
-  private func updateActivity(_ display: NavigationDisplay, nextIndex: Int, progress: String? = nil) {
+  private func updateActivity(
+    _ display: NavigationDisplay, nextIndex: Int, progress: String? = nil, strip: ProgressStrip
+  ) {
     let roles = route?.roles ?? []
+    // The bar moves with the line, about every 100 m, not with every fix.
+    let current = activity?.content.state
+    let renewBar = current?.progress != progress || current?.offRoute != display.offRoute
     let state = NavigationActivityAttributes.ContentState(
       next: display.next, follow: display.follow, offRoute: display.offRoute,
       nextRole: roles.indices.contains(nextIndex) ? roles[nextIndex] : nil,
       followRole: roles.indices.contains(nextIndex + 1) ? roles[nextIndex + 1] : nil,
       text: display.offRoute ? display.offRouteText : display.text,
-      progress: progress)
+      progress: progress,
+      close: display.close,
+      riderFraction: renewBar ? strip.rider : current?.riderFraction,
+      marks: renewBar ? Self.barMarks(of: strip) : current?.marks ?? [],
+      dark: Self.systemIsDark)
     guard let activity else {
       // Live Activities end after about 8 hours; opening the app starts a new one.
       if visible { startActivity() }
@@ -310,6 +323,31 @@ final class Navigator: NSObject, ObservableObject {
     }
     guard activity.content.state != state else { return }
     Task { await activity.update(ActivityContent(state: state, staleDate: nil)) }
+  }
+}
+
+extension Navigator {
+
+  /// Whether the system is in dark mode, from the screen, as the app's windows follow the appearance
+  /// chosen in Info, see `map-planning` "Light and dark appearance".
+  fileprivate static var systemIsDark: Bool {
+    let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+    return scene?.screen.traitCollection.userInterfaceStyle == .dark
+  }
+
+  /// The most marks on the bar in the Live Activity, whose state has to stay small.
+  private static let maximumBarMarks = 8
+
+  /// The stops and ferries ahead on `strip`, the most important first, as on the strip's labels.
+  fileprivate static func barMarks(of strip: ProgressStrip) -> [NavigationActivityAttributes.BarMark] {
+    let ahead = strip.marks.filter { $0.fraction > strip.rider }
+    let closed = ahead.filter { $0.kind == .ferry && $0.state == .warning }
+      .map { NavigationActivityAttributes.BarMark(fraction: $0.fraction, kind: .closedFerry) }
+    let stops = ahead.filter { $0.kind == .stop }
+      .map { NavigationActivityAttributes.BarMark(fraction: $0.fraction, kind: .stop) }
+    let ferries = ahead.filter { $0.kind == .ferry && $0.state != .warning }
+      .map { NavigationActivityAttributes.BarMark(fraction: $0.fraction, kind: .ferry) }
+    return Array((closed + stops + ferries).prefix(maximumBarMarks))
   }
 }
 

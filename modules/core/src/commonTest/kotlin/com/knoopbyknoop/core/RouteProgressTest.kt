@@ -384,7 +384,8 @@ class RouteProgressTest {
     val fix = withStop.fix(0.0, "18:20")
     val navigation = start(withStop, fix, Language.DE)
 
-    assertEquals("Bei 12 folge 30", navigation.display.text)
+    assertEquals("Bei 12 folge 30", navigation.display.copy(close = true).text)
+    assertEquals("Nächster Knotenpunkt 12, dann 30", navigation.display.text)
     assertEquals("800 m", navigation.progress(fix).nextKnotDistance)
   }
 
@@ -444,7 +445,7 @@ class RouteProgressTest {
 
     assertEquals("Prochain point-nœud 12, puis 30", update.notices.first().text)
     assertEquals("Next 12, then 30", update.notices.first().speech)
-    assertEquals("Au 12 suivre 30", update.navigation.display.text)
+    assertEquals("Au 12 suivre 30", update.navigation.display.copy(close = true).text)
   }
 
   @Test
@@ -472,7 +473,7 @@ class RouteProgressTest {
     val fix = withStop.fix(0.0, "18:20")
     val navigation = start(withStop, fix, Language.EN)
 
-    assertEquals("At 12 follow 30", navigation.display.text)
+    assertEquals("At 12 follow 30", navigation.display.copy(close = true).text)
     assertEquals("800 m to 12 · end around 19:05", navigation.progressLine)
   }
 
@@ -652,12 +653,14 @@ class RouteProgressTest {
   }
 
   @Test
-  fun `the progress line does not change between knots`() {
+  fun `distance on the way`() {
     val started = start(withStop, withStop.fix(0.0, "18:20"))
 
-    val moved = started.update(withStop.fix(400.0, "18:22")).navigation
+    val soon = started.update(withStop.fix(50.0, "18:20")).navigation
+    assertEquals(started.progressLine, soon.progressLine, "not yet 100 m")
 
-    assertEquals(started.progressLine, moved.progressLine)
+    val moved = soon.update(withStop.fix(400.0, "18:22")).navigation
+    assertEquals("400 m to 12 · end around 19:05", moved.progressLine)
   }
 
   @Test

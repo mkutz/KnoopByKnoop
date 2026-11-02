@@ -9,10 +9,17 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.drawable.Icon
 import android.location.Location
+import android.os.Build
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
+import androidx.annotation.RequiresApi
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.ServiceCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -20,13 +27,17 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.knoopbyknoop.core.FerryArrivalState
 import com.knoopbyknoop.core.Fix
+import com.knoopbyknoop.core.KnotRole
 import com.knoopbyknoop.core.Language
 import com.knoopbyknoop.core.Navigation
 import com.knoopbyknoop.core.NavigationUpdate
 import com.knoopbyknoop.core.Precision
+import com.knoopbyknoop.core.ProgressMarkKind
 import com.knoopbyknoop.core.RiddenTrack
 import java.time.Instant
+import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -40,6 +51,86 @@ import kotlinx.coroutines.launch
  * app, so location access "while in use" is enough. It feeds the fixes to the core's [Navigation],
  * speaks the notices and shows the number to follow in an ongoing notification.
  */
+/**
+ * What the notification shows, compared to notify only on a change.
+ *
+ * @property knot the knot to look for: the next one, close to it the number to follow there
+ * @property knotPosition its position on the route
+ * @property place the rider's place on the bar, from 0 to [PROGRESS_SCALE], in steps of 1%
+ * @property marks the stops and ferries ahead on the bar, each its place and color
+ * @property end the number of the route's end
+ */
+private data class NotificationContent(
+  val title: String,
+  val text: String,
+  val knot: String,
+  val knotPosition: Int,
+  val place: Int,
+  val offRoute: Boolean,
+  val marks: List<Pair<Int, Int>>,
+  val end: String,
+) {
+
+  fun knotRole(route: NavigationRoute?): KnotRole? {
+    val knots = route?.knots ?: return null
+    return when {
+      knotPosition == knots.lastIndex -> KnotRole.END
+      knotPosition in route.stops -> KnotRole.STOP
+      else -> KnotRole.PASSED
+    }
+  }
+
+  companion object {
+
+    fun of(navigation: Navigation, fix: Fix): NotificationContent {
+      val display = navigation.display
+      val strip = navigation.progress(fix).strip
+      val toFollow = display.close && !display.offRoute && display.follow != null
+      fun onBar(fraction: Double) = (fraction * PROGRESS_SCALE).roundToInt()
+      val ranked =
+        strip.marks.mapNotNull { mark ->
+          when {
+            mark.fraction <= strip.rider -> null
+            mark.kind == ProgressMarkKind.FERRY && mark.state == FerryArrivalState.WARNING ->
+              Triple(0, onBar(mark.fraction), android.graphics.Color.RED)
+            mark.kind == ProgressMarkKind.STOP -> Triple(1, onBar(mark.fraction), Orange.toArgb())
+            mark.kind == ProgressMarkKind.FERRY ->
+              Triple(2, onBar(mark.fraction), android.graphics.Color.BLUE)
+            else -> null
+          }
+        }
+      return NotificationContent(
+        title = if (display.offRoute) display.offRouteText else display.text,
+        text = navigation.progressLine,
+        knot = if (toFollow) display.follow.orEmpty() else display.next,
+        knotPosition = navigation.nextIndex + if (toFollow) 1 else 0,
+        place = onBar(strip.rider) / (PROGRESS_SCALE / 100) * (PROGRESS_SCALE / 100),
+        offRoute = display.offRoute,
+        marks = ranked.sortedBy { it.first }.take(MAX_MARKS).map { it.second to it.third },
+        end = navigation.knots.last().ref,
+      )
+    }
+  }
+}
+
+/** The notification's bar counts in steps of this, see "Navigation with the screen off". */
+private const val PROGRESS_SCALE = 1000
+
+/** The most marks on the bar, the most important first: API 37 draws no more. */
+private const val MAX_MARKS = 4
+
+/** A dot for the rider on the notification's bar, red off route as on the strip. */
+private fun riderBitmap(offRoute: Boolean): Bitmap {
+  val bitmap = Bitmap.createBitmap(48, 48, Bitmap.Config.ARGB_8888)
+  val canvas = Canvas(bitmap)
+  val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+  paint.color = android.graphics.Color.WHITE
+  canvas.drawCircle(24f, 24f, 22f, paint)
+  paint.color = if (offRoute) android.graphics.Color.RED else 0xFF1E88E5.toInt()
+  canvas.drawCircle(24f, 24f, 16f, paint)
+  return bitmap
+}
+
 class NavigationService : Service() {
 
   private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -47,6 +138,9 @@ class NavigationService : Service() {
   private lateinit var speaker: Speaker
   private var route: NavigationRoute? = null
   private var navigation: Navigation? = null
+
+  /** What the notification shows now. */
+  private var notified: NotificationContent? = null
   /** Kept here, not in the map, so it includes the stretches ridden with the screen off. */
   private var track = RiddenTrack()
   private var precision: Precision? = null
@@ -163,15 +257,13 @@ class NavigationService : Service() {
       speaker.whenSilent { scope.launch { stop() } }
       return
     }
-    val display = newNavigation.display
-    getSystemService(NotificationManager::class.java)
-      .notify(
-        NOTIFICATION_ID,
-        notification(
-          if (display.offRoute) display.offRouteText else display.text,
-          newNavigation.progressLine,
-        ),
-      )
+    val content = NotificationContent.of(newNavigation, fix)
+    // Only on a change: the position comes every second while the app is visible.
+    if (content != notified) {
+      notified = content
+      getSystemService(NotificationManager::class.java)
+        .notify(NOTIFICATION_ID, notification(content.title, content.text, content))
+    }
     request(update.precision)
   }
 
@@ -207,7 +299,11 @@ class NavigationService : Service() {
   }
 
   /** [text] is the progress line, see `knot-navigation` "Navigation with the screen off". */
-  private fun notification(title: String, text: String? = null): Notification {
+  private fun notification(
+    title: String,
+    text: String? = null,
+    content: NotificationContent? = null,
+  ): Notification {
     val open =
       PendingIntent.getActivity(
         this,
@@ -223,6 +319,12 @@ class NavigationService : Service() {
         PendingIntent.FLAG_IMMUTABLE,
       )
     return Notification.Builder(this, CHANNEL)
+      .also { builder ->
+        content?.let {
+          builder.setLargeIcon(Icon.createWithBitmap(badgeBitmap(it.knotRole(route), it.knot)))
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) liveUpdate(builder, it)
+        }
+      }
       .setSmallIcon(R.drawable.ic_navigation)
       .setContentTitle(title)
       .setContentText(text)
@@ -233,6 +335,30 @@ class NavigationService : Service() {
       .setVisibility(Notification.VISIBILITY_PUBLIC)
       .addAction(Notification.Action.Builder(null, getString(R.string.stop), stop).build())
       .build()
+  }
+
+  /** The route's progress, and the chip over other apps, see "Navigation with the screen off". */
+  @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+  private fun liveUpdate(builder: Notification.Builder, content: NotificationContent) {
+    // Promotion and the chip came with Android 16 QPR2, after the progress style.
+    if (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1) {
+      builder.setRequestPromotedOngoing(true).setShortCriticalText(content.knot)
+    }
+    builder.setStyle(
+      Notification.ProgressStyle()
+        .setStyledByProgress(true)
+        .setProgressSegments(
+          listOf(Notification.ProgressStyle.Segment(PROGRESS_SCALE).setColor(Green.toArgb()))
+        )
+        .setProgressPoints(
+          content.marks.map { (place, color) ->
+            Notification.ProgressStyle.Point(place).setColor(color)
+          }
+        )
+        .setProgress(content.place)
+        .setProgressTrackerIcon(Icon.createWithBitmap(riderBitmap(content.offRoute)))
+        .setProgressEndIcon(Icon.createWithBitmap(badgeBitmap(KnotRole.END, content.end)))
+    )
   }
 
   companion object {
