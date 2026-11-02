@@ -34,7 +34,9 @@ jobs:
       - name: Download extracts
         run: |
           for extract in europe/netherlands europe/belgium europe/germany/nordrhein-westfalen; do
+            # A stalled download fails instead of blocking the queue; it hung for over an hour once.
             curl --fail --silent --show-error --location --retry 3 \
+              --connect-timeout 30 --speed-limit 102400 --speed-time 120 \
               --output "$RUNNER_TEMP/$(basename "$extract").osm.pbf" \
               "https://download.geofabrik.de/$extract-latest.osm.pbf"
           done
