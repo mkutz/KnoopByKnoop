@@ -130,6 +130,97 @@ class RouteProgressTest {
     assertEquals(mapOf("12" to "10 km 18:50"), labels(navigation, atKnot))
   }
 
+  /** Rides [from] meters [to] meters in steps of 1 km, each taking [minutesPerKilometer]. */
+  private fun Navigation.rideAlong(
+    ride: Ride,
+    from: Int,
+    to: Int,
+    startMinute: Int,
+    minutesPerKilometer: Int,
+  ): Navigation =
+    (1..(to - from) / 1000).fold(this) { navigation, kilometer ->
+      navigation
+        .update(
+          ride.fix(
+            from + kilometer * 1000.0,
+            clock(startMinute + kilometer * minutesPerKilometer),
+          )
+        )
+        .navigation
+    }
+
+  private fun clock(minute: Int) = "${minute / 60}:${(minute % 60).toString().padStart(2, '0')}"
+
+  @Test
+  fun `slowing down between two knots`() {
+    val ride = ride(listOf("10", "11"), listOf(35_000))
+    val started = start(ride, ride.fix(0.0, "16:35"))
+
+    val fast =
+      started.rideAlong(ride, 0, 20_000, startMinute = 16 * 60 + 35, minutesPerKilometer = 3)
+    val slow =
+      fast.rideAlong(ride, 20_000, 25_000, startMinute = 17 * 60 + 35, minutesPerKilometer = 5)
+
+    // 12 km/h over the last 5 km, not the 18 km/h of the whole ride.
+    assertEquals(mapOf("11" to "10 km 18:50"), labels(slow, ride.fix(25_000.0, "18:00")))
+  }
+
+  @Test
+  fun `a break`() {
+    val ride = ride(listOf("10", "11"), listOf(20_000))
+    val started = start(ride, ride.fix(0.0, "17:00"))
+    val atCafe = started.rideAlong(ride, 0, 10_000, startMinute = 17 * 60, minutesPerKilometer = 3)
+    assertEquals(mapOf("11" to "10 km 18:00"), labels(atCafe, ride.fix(10_000.0, "17:30")))
+
+    val standing = atCafe.update(ride.fix(10_000.0, "18:00")).navigation
+    assertEquals(
+      mapOf("11" to "10 km 18:30"),
+      labels(standing, ride.fix(10_000.0, "18:00")),
+      "later while standing",
+    )
+
+    val leaving = standing.update(ride.fix(10_100.0, "18:01")).navigation
+    assertEquals(
+      mapOf("11" to "9.9 km 18:30"),
+      labels(leaving, ride.fix(10_100.0, "18:01")),
+      "the break hardly counts: 19 km/h, down from 20",
+    )
+    val ridingOn =
+      leaving.rideAlong(ride, 10_100, 15_100, startMinute = 18 * 60 + 1, minutesPerKilometer = 3)
+
+    assertEquals(
+      mapOf("11" to "4.9 km 18:30"),
+      labels(ridingOn, ride.fix(15_100.0, "18:16")),
+      "at 20 km/h again",
+    )
+  }
+
+  @Test
+  fun `a detour`() {
+    val ride = ride(listOf("10", "11"), listOf(20_000))
+    val started = start(ride, ride.fix(0.0, "17:00"))
+    val riding = started.rideAlong(ride, 0, 10_000, startMinute = 17 * 60, minutesPerKilometer = 3)
+
+    val away = riding.update(ride.fix(10_500.0, "17:33", north = 200.0)).navigation
+    assertTrue(away.offRoute)
+    val stillAway = away.update(ride.fix(10_500.0, "17:43", north = 200.0)).navigation
+    val back = stillAway.update(ride.fix(11_000.0, "17:45")).navigation
+
+    assertEquals(false, back.offRoute)
+    assertEquals(mapOf("11" to "9.0 km 18:10"), labels(back, ride.fix(11_000.0, "17:45")))
+  }
+
+  @Test
+  fun `a jump of the place on the route does not count`() {
+    val ride = ride(listOf("10", "11"), listOf(20_000))
+    val started = start(ride, ride.fix(0.0, "17:00"))
+    val riding = started.rideAlong(ride, 0, 5_000, startMinute = 17 * 60, minutesPerKilometer = 3)
+
+    val jumped = riding.update(ride.fix(10_000.0, "17:15")).navigation
+
+    assertEquals(mapOf("11" to "10 km 17:45"), labels(jumped, ride.fix(10_000.0, "17:15")))
+  }
+
   @Test
   fun `long time`() {
     val ride = ride(listOf("10", "11"), listOf(40_000))

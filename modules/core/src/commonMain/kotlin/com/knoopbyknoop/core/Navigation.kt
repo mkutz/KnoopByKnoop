@@ -3,6 +3,7 @@ package com.knoopbyknoop.core
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -183,22 +184,56 @@ private constructor(
   }
 
   /**
-   * The rider's pace: the route covered since [startOffset] at [startMillis], renewed when a knot
-   * is passed, see `knot-navigation` "Ferry arrival estimate".
+   * The rider's pace over the last [PACE_WINDOW_METERS] of the route, without standing still, see
+   * `knot-navigation` "Ferry arrival estimate".
+   *
+   * @property lastOffset where the rider was when the last stretch ended
+   * @property lastMillis when the rider was there
+   * @property stretches the newest stretches ridden, oldest first
+   * @property coveredMeters the route covered in all
    */
   internal data class Pace(
-    val startOffset: Double,
-    val startMillis: Long,
+    val lastOffset: Double,
+    val lastMillis: Long,
     val metersPerSecond: Double,
+    val stretches: List<Stretch> = listOf(),
+    val coveredMeters: Double = 0.0,
   ) {
+
+    /** A stretch of the route ridden in [seconds], leaving out standing still, see [at]. */
+    data class Stretch(val meters: Double, val seconds: Double)
+
+    /** The pace with the rider at [offset] at [timeMillis]; short steps wait for more. */
     fun at(offset: Double, timeMillis: Long, assumed: Double): Pace {
-      val covered = offset - startOffset
-      val elapsedMillis = timeMillis - startMillis
-      val metersPerSecond =
-        if (covered >= OWN_PACE_AFTER_METERS && elapsedMillis > 0) covered * 1000 / elapsedMillis
-        else assumed
-      return copy(metersPerSecond = metersPerSecond)
+      val meters = offset - lastOffset
+      if (meters < PACE_STRETCH_METERS) return this
+      val seconds = (timeMillis - lastMillis) / 1000.0
+      // Much faster than anyone rides, the place on the route jumped, e.g. on a leg there and back.
+      if (seconds * MAX_PLAUSIBLE_PACE < meters) return restartedAt(offset, timeMillis)
+      // Slower than a third of the assumed pace counts as standing still.
+      val stretch = Stretch(meters, min(seconds, meters * STANDING_STILL_RATIO / assumed))
+      var windowMeters = 0.0
+      val window =
+        (stretches + stretch).asReversed().takeWhile { newer ->
+          (windowMeters < PACE_WINDOW_METERS).also { windowMeters += newer.meters }
+        }
+      val covered = coveredMeters + meters
+      val windowSeconds = window.sumOf { it.seconds }
+      return copy(
+        lastOffset = offset,
+        lastMillis = timeMillis,
+        metersPerSecond =
+          if (covered >= OWN_PACE_AFTER_METERS && windowSeconds > 0)
+            window.sumOf { it.meters } / windowSeconds
+          else assumed,
+        stretches = window.asReversed(),
+        coveredMeters = covered,
+      )
     }
+
+    /** Measures anew from [offset] at [timeMillis]: the way there does not count. */
+    fun restartedAt(offset: Double, timeMillis: Long): Pace =
+      copy(lastOffset = offset, lastMillis = timeMillis)
   }
 
   /**
@@ -271,7 +306,7 @@ private constructor(
         val newNext = passedIndex + 1
         notices += if (offRoute) backOnRouteNotice(newNext) else nextNotice(newNext)
         val place = route.offsets[passedIndex]
-        val pace = pace.at(place, fix.timeMillis, route.assumedMetersPerSecond)
+        val pace = paceAt(place, fix)
         val ferries = ferryWatch?.atKnot(passedIndex, fix.timeMillis, pace.metersPerSecond)
         ferries?.let { notices += it.second }
         navigation =
@@ -321,7 +356,20 @@ private constructor(
     }
 
     if (passedIndex == null && !navigation.offRoute) {
-      navigation = navigation.copy(place = route.placeOf(fix, navigation.nextIndex))
+      val place = route.placeOf(fix, navigation.nextIndex)
+      val pace = paceAt(place, fix)
+      navigation =
+        navigation.copy(
+          place = place,
+          pace = pace,
+          ferryWatch =
+            navigation.ferryWatch?.renewed(
+              place,
+              fix.timeMillis,
+              navigation.nextIndex,
+              pace.metersPerSecond,
+            ),
+        )
       // Back on route: the route's progress line again, see "Direction outside the app".
       if (offRoute) navigation = navigation.copy(progressLine = navigation.routeLine(fix))
     }
@@ -333,6 +381,11 @@ private constructor(
     navigation = navigation.copy(lastPreciseFix = fix, lastFix = fix, confirming = false)
     return NavigationUpdate(navigation, notices, navigation.precision(visible))
   }
+
+  /** The pace with the rider at [place] at [fix]; time off route does not count. */
+  private fun paceAt(place: Double, fix: Fix): Pace =
+    if (offRoute) pace.restartedAt(place, fix.timeMillis)
+    else pace.at(place, fix.timeMillis, route.assumedMetersPerSecond)
 
   private fun updateCoarse(fix: Fix, visible: Boolean): NavigationUpdate {
     // Coarse fixes never count a knot as passed or the rider as off route; one far from the
@@ -576,6 +629,18 @@ private constructor(
 
     /** The assumed pace applies until the rider covered this much of the route. */
     private const val OWN_PACE_AFTER_METERS = 2000.0
+
+    /** The rider's pace is measured over this much of the route, see "Ferry arrival estimate". */
+    private const val PACE_WINDOW_METERS = 5000.0
+
+    /** The pace is measured in stretches at least this long, so GPS noise does not count. */
+    private const val PACE_STRETCH_METERS = 100.0
+
+    /** The assumed pace is this many times the pace below which the rider stands still. */
+    private const val STANDING_STILL_RATIO = 3.0
+
+    /** Above this many meters per second, 72 km/h, the place on the route jumped. */
+    private const val MAX_PLAUSIBLE_PACE = 20.0
 
     /** Passing is checked on the line between fixes at most this far apart in time. */
     private const val LINE_MAX_MILLIS = 30_000L

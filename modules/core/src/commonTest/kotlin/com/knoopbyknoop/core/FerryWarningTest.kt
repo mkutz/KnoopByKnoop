@@ -200,6 +200,33 @@ class FerryWarningTest {
   }
 
   @Test
+  fun `closed at the renewed estimate`() {
+    val ride = ride(10_000, 10_000, 200, 1000, ferryLegs = mapOf(2 to broekhuizen))
+    val started = ride.start("17:00").navigation
+    val atKnot = started.update(ride.fixAt(1, "17:30")).navigation
+    assertEquals(FerryArrivalState.OPEN, atKnot.ferryArrival(2)?.state)
+
+    // 500 m before the knot before the ferry, without courses 9.5 km further along the route.
+    val knot = ride.knots[2]
+    val between =
+      atKnot.update(
+        Fix(
+          knot.latitude,
+          knot.longitude - 500.0 / metersPerDegreeLongitude,
+          5.0,
+          ride.fixAt(2, "18:50").timeMillis,
+        )
+      )
+
+    assertEquals(FerryArrivalState.WARNING, between.navigation.ferryArrival(2)?.state)
+    assertEquals(listOf(), between.ferryNotices(), "the spoken warning waits for the knot")
+
+    val atNextKnot = between.navigation.update(ride.fixAt(2, "18:52"))
+
+    assertEquals(1, atNextKnot.ferryNotices().size)
+  }
+
+  @Test
   fun `warned once`() {
     val ride = ride(10_000, 9_900, 200, 1000, ferryLegs = mapOf(2 to broekhuizen))
     val started = ride.start("18:00")

@@ -72,6 +72,17 @@ private constructor(
     renew(offsets[index], timeMillis, nextIndex = index + 1, metersPerSecond)
 
   /**
+   * Renews the estimates with the rider [offset] meters along the route between knots; warnings
+   * wait for the next knot, so a short slowdown does not set one off.
+   */
+  fun renewed(
+    offset: Double,
+    timeMillis: Long,
+    nextIndex: Int,
+    metersPerSecond: Double,
+  ): FerryWatch = renew(offset, timeMillis, nextIndex, metersPerSecond, warn = false).first
+
+  /**
    * Renews the estimates with the rider [offset] meters along the route at [timeMillis], before the
    * knot at [nextIndex], at [metersPerSecond]; returns the warnings due, the nearer ferry first.
    */
@@ -80,6 +91,7 @@ private constructor(
     timeMillis: Long,
     nextIndex: Int,
     metersPerSecond: Double,
+    warn: Boolean = true,
   ): Pair<FerryWatch, List<Notice>> {
     val now = localTime(timeMillis)
     val arrivals = mutableMapOf<Int, FerryArrival>()
@@ -108,7 +120,7 @@ private constructor(
               else -> FerryArrivalState.OPEN
             },
           )
-      if (warning != null && warned.add(position)) {
+      if (warn && warning != null && warned.add(position)) {
         notices +=
           Notice(
             NoticeKind.FERRY,
