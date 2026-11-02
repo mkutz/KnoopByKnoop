@@ -534,6 +534,61 @@ class NavigationTest {
     assertEquals(Precision.FINE, update.precision)
   }
 
+  // Requirement: Riding the line through a signpost
+
+  private val branchPoint = GeoPoint(latitude(-300.0), longitude(500.0))
+
+  /** The connection 24-45 also has a course bending 300 m south, further than off route is. */
+  private val branchGeometry =
+    NetworkGeometry(
+      graph,
+      geometry.courses,
+      mapOf(
+        graph.connections.indexOfFirst {
+          24L in listOf(it.fromId, it.toId) && 45L in listOf(it.fromId, it.toId)
+        } to
+          listOf(
+            SignpostCourse(
+              0,
+              0,
+              listOf(
+                GeoPoint(knot24.latitude, knot24.longitude),
+                branchPoint,
+                GeoPoint(knot45.latitude, knot45.longitude),
+              ),
+            )
+          )
+      ),
+    )
+
+  @Test
+  fun `following the line shown`() {
+    val (navigation, notices) =
+      start(east = 0.0, geometry = branchGeometry)
+        .navigation
+        .ride(fix(250.0, north = -150.0), fix(500.0, north = -300.0), fix(750.0, north = -150.0))
+
+    assertFalse(navigation.offRoute)
+    assertTrue(notices.none { it.text.startsWith("Off route") }, notices.toString())
+  }
+
+  @Test
+  fun `the other branch`() {
+    val (navigation, _) = start(east = 0.0, geometry = branchGeometry).navigation.ride(fix(500.0))
+
+    assertFalse(navigation.offRoute)
+  }
+
+  @Test
+  fun `away from all courses`() {
+    val (navigation, _) =
+      start(east = 0.0, geometry = branchGeometry)
+        .navigation
+        .ride(fix(500.0, north = -300.0), fix(500.0, north = -500.0))
+
+    assertTrue(navigation.offRoute)
+  }
+
   // Requirement: Way to the route on the map
 
   @Test

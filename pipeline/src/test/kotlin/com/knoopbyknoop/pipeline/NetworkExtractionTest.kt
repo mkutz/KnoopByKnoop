@@ -218,6 +218,56 @@ class NetworkExtractionTest {
     assertEquals(listOf(position30, otherNode30, position45), course)
   }
 
+  // Requirement: Courses to each signpost
+
+  private fun signpostCoursesOf(
+    ways: List<OsmWay>,
+    extraNodes: List<OsmNode> = listOf(),
+  ): List<com.knoopbyknoop.core.SignpostCourse> {
+    // Knot 30 on nodes 2 and 3 and knot 45 on node 4; relation 10 holds all the ways.
+    val result =
+      extract(
+        relations = listOf(route(10, "rcn", *ways.map { it.id }.toLongArray())),
+        ways = ways,
+        nodes =
+          listOf(knot30(2, 52.001), knot30(3, 52.00275), cyclingKnot(4, 5, "45")) + extraNodes,
+      )
+    return result.signpostCourses.getValue(NetworkType.CYCLING).values.singleOrNull().orEmpty()
+  }
+
+  @Test
+  fun `two branches of a route`() {
+    // From 45 to node 5, where the route splits to the two nodes of 30.
+    val fork = OsmNode(5, 52.0035, 5.001, mapOf())
+    val pairs =
+      signpostCoursesOf(
+        ways =
+          listOf(OsmWay(100, listOf(4, 5)), OsmWay(101, listOf(5, 2)), OsmWay(102, listOf(5, 3))),
+        extraNodes = listOf(fork),
+      )
+
+    // The connection runs from 45, the first knot on the route's ways, to 30.
+    assertEquals(setOf(0, 1), pairs.map { it.toPosition }.toSet())
+    assertEquals(
+      listOf(GeoPoint(52.005, 5.0), GeoPoint(52.0035, 5.001), GeoPoint(52.00275, 5.0)),
+      pairs.single { it.toPosition == 1 }.course,
+    )
+  }
+
+  @Test
+  fun `only through another node`() {
+    // The route reaches node 2 of 30 only past node 3.
+    assertEquals(
+      listOf(),
+      signpostCoursesOf(ways = listOf(OsmWay(100, listOf(4, 3)), OsmWay(101, listOf(3, 2)))),
+    )
+  }
+
+  @Test
+  fun `one node`() {
+    assertEquals(listOf(), signpostCoursesOf(ways = listOf(OsmWay(100, listOf(4, 3)))))
+  }
+
   @Test
   fun `connector inside a junction`() {
     // A short route of its own (relation 11) links the two nodes tagged 30, without a ferry.

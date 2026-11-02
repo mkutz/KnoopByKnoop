@@ -190,18 +190,42 @@ object MapFeatures {
    */
   fun route(session: PlanningSession, geometry: NetworkGeometry): String {
     val legs = session.route?.legs.orEmpty()
+    val courses = legCourses(legs.map { it.path }, geometry)
     return featureCollection(legs.withIndex().toList()) { (index, leg) ->
-      val course =
-        leg.path?.let { path ->
-          geometry.atSignposts(
-            courseOf(path, geometry),
-            path.start.takeIf { index == 0 },
-            path.end.takeIf { index == legs.lastIndex },
-          )
-        }
-      lineString(course ?: listOf(leg.from, leg.to).map(::pointOf))
+      lineString(courses[index] ?: listOf(leg.from, leg.to).map(::pointOf))
       properties { property("reachable", leg.isReachable.toString()) }
     }
+  }
+
+  /**
+   * The line of each path along [geometry], chosen over the paths that follow each other, so a stop
+   * at a knot is drawn like a knot passed; `null` for a missing path.
+   */
+  private fun legCourses(paths: List<Path?>, geometry: NetworkGeometry): List<List<GeoPoint>?> {
+    val lines = arrayOfNulls<List<GeoPoint>>(paths.size)
+    var index = 0
+    while (index < paths.size) {
+      if (paths[index] == null) {
+        index++
+        continue
+      }
+      val first = index
+      while (index < paths.size && paths[index] != null) index++
+      val run = paths.subList(first, index).filterNotNull()
+      val knots = run.flatMapIndexed { position, path ->
+        if (position == 0) path.knots else path.knots.drop(1)
+      }
+      val courses = geometry.courses(knots).iterator()
+      run.forEachIndexed { position, path ->
+        val line =
+          (1 until path.knots.size).fold(listOf<GeoPoint>()) { line, _ ->
+            val leg = courses.next()
+            if (line.isEmpty()) leg else line + leg.drop(1)
+          }
+        lines[first + position] = line.ifEmpty { listOf(pointOf(path.start)) }
+      }
+    }
+    return lines.toList()
   }
 
   /** Points with the properties `position` and `role` (`start`, `stop` or `end`). */
@@ -322,16 +346,6 @@ object MapFeatures {
     if (tenthsOfKilometers >= 100) return "${(meters / 1000.0).roundToInt()} km"
     val separator = language.texts.decimalSeparator
     return "${tenthsOfKilometers / 10}$separator${tenthsOfKilometers % 10} km"
-  }
-
-  private fun courseOf(path: Path, geometry: NetworkGeometry): List<GeoPoint> {
-    if (path.knots.size == 1) return listOf(pointOf(path.start))
-    val course = mutableListOf<GeoPoint>()
-    for ((from, to) in path.knots.zipWithNext()) {
-      val leg = geometry.courseOf(from, to) ?: listOf(pointOf(from), pointOf(to))
-      course.addAll(if (course.isEmpty()) leg else leg.drop(1))
-    }
-    return course
   }
 
   private fun pointOf(knot: Knot) = GeoPoint(knot.latitude, knot.longitude)

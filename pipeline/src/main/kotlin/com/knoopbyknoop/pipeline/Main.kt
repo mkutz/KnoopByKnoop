@@ -71,7 +71,19 @@ fun build(area: String, outputDirectory: Path, extracts: List<Path>) {
     val courses =
       graph.connections.map { simplify(networkCourses.getValue(it), COURSE_TOLERANCE_METERS) }
     val geometryFile = outputDirectory.resolve(geometryFileName(IndexedNetworkType.of(network)))
-    geometryFile.writeBytes(NetworkGeometry(graph, courses).toBytes(sha256Hex(graphBytes)))
+    val networkSignpostCourses = result.signpostCourses[network].orEmpty()
+    val signpostCourses =
+      graph.connections
+        .withIndex()
+        .mapNotNull { (index, connection) ->
+          networkSignpostCourses[connection]?.let { pairs ->
+            index to pairs.map { it.copy(course = simplify(it.course, COURSE_TOLERANCE_METERS)) }
+          }
+        }
+        .toMap()
+    geometryFile.writeBytes(
+      NetworkGeometry(graph, courses, signpostCourses).toBytes(sha256Hex(graphBytes))
+    )
     val lengths = graph.connections.map { it.lengthMeters }.sorted()
     val connectedKnotIds = graph.connections.flatMap { listOf(it.fromId, it.toId) }.toSet()
     println(
@@ -84,6 +96,11 @@ fun build(area: String, outputDirectory: Path, extracts: List<Path>) {
       "${geometryFile.name}: ${courses.sumOf { it.size }} points " +
         "(${networkCourses.values.sumOf { it.size }} before simplification), " +
         "${geometryFile.toFile().length()} bytes"
+    )
+    println(
+      "${geometryFile.name}: ${signpostCourses.size} of ${graph.connections.size} connections " +
+        "with courses to several signposts, " +
+        "${signpostCourses.values.sumOf { pairs -> pairs.sumOf { it.course.size } }} points"
     )
     // How much OpenStreetMap knows about the ferries, see `show-ferry-schedules`.
     val ferries = graph.ferries.values

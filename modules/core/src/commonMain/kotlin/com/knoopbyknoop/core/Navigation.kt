@@ -123,6 +123,7 @@ class Navigation
 private constructor(
   val knots: List<Knot>,
   private val courses: List<List<GeoPoint>>?,
+  private val signpostCourses: List<List<List<GeoPoint>>>,
   private val locator: KnotLocator,
   private val routeKnotIds: Set<Long>,
   val nextIndex: Int,
@@ -450,7 +451,8 @@ private constructor(
     val current = nextIndex - 1
     return (current - 1..current + 1)
       .filter { it in courses.indices }
-      .minOfOrNull { distanceToPolyline(fix.latitude, fix.longitude, courses[it]) }
+      .flatMap { listOf(courses[it]) + signpostCourses.getOrElse(it) { listOf() } }
+      .minOfOrNull { distanceToPolyline(fix.latitude, fix.longitude, it) }
   }
 
   /** Whether the knot at [index] is so close to the one before it that the notice named it. */
@@ -574,6 +576,7 @@ private constructor(
     Navigation(
       knots,
       courses,
+      signpostCourses,
       locator,
       routeKnotIds,
       nextIndex,
@@ -716,6 +719,10 @@ private constructor(
         Navigation(
             knots = knots,
             courses = courses,
+            signpostCourses =
+              geometry?.let { network ->
+                knots.zipWithNext { from, to -> network.signpostCoursesOf(from, to) }
+              } ?: listOf(),
             locator = KnotLocator(graph.knots.values),
             routeKnotIds = knots.map { it.id }.toSet(),
             nextIndex = nextIndex,

@@ -143,18 +143,12 @@ class NetworkGeometryTest {
 
   @Test
   fun `route starting at the other signpost`() {
-    assertEquals(
-      listOf(signpost, west),
-      signpostGeometry.courseOf(routeThrough(knot02, knot28)),
-    )
+    assertEquals(listOf(signpost, west), signpostGeometry.courseOf(routeThrough(knot02, knot28)))
   }
 
   @Test
   fun `route ending at the other signpost`() {
-    assertEquals(
-      listOf(west, signpost),
-      signpostGeometry.courseOf(routeThrough(knot28, knot02)),
-    )
+    assertEquals(listOf(west, signpost), signpostGeometry.courseOf(routeThrough(knot28, knot02)))
   }
 
   @Test
@@ -163,11 +157,123 @@ class NetworkGeometryTest {
   }
 
   @Test
-  fun `route through a knot between its signposts`() {
+  fun `no shared signpost`() {
     assertEquals(
       listOf(west, signpost, path, river, east),
       signpostGeometry.courseOf(routeThrough(knot28, knot02, knot01)),
     )
+  }
+
+  // Requirement: Routes through a knot with several signposts
+
+  private val fork = GeoPoint(52.1020, 5.1010)
+  private val knot06 = Knot(6, "06", NetworkType.CYCLING, 52.1100, 5.1100)
+  private val six = GeoPoint(knot06.latitude, knot06.longitude)
+  private val branches =
+    NetworkGraph(
+      listOf(knot02, knot28, knot01, knot06),
+      listOf(Connection(2, 28, 700), Connection(2, 1, 800), Connection(6, 2, 1400)),
+    )
+  private val branchGeometry =
+    NetworkGeometry(
+      branches,
+      listOf(listOf(river, path, signpost, west), listOf(river, east), listOf(six, fork, river)),
+      mapOf(
+        2 to
+          listOf(
+            SignpostCourse(0, 0, listOf(six, fork, river)),
+            SignpostCourse(0, 1, listOf(six, fork, signpost)),
+          )
+      ),
+    )
+
+  private fun branchRoute(vararg knots: Knot) =
+    Route.plan(knots.toList(), ShortestPathRouter(branches))
+
+  @Test
+  fun `through the signpost of the next leg`() {
+    assertEquals(
+      listOf(six, fork, signpost, west),
+      branchGeometry.courseOf(branchRoute(knot06, knot02, knot28)),
+    )
+  }
+
+  @Test
+  fun `the other direction out of the knot`() {
+    assertEquals(
+      listOf(six, fork, river, east),
+      branchGeometry.courseOf(branchRoute(knot06, knot02, knot01)),
+    )
+  }
+
+  @Test
+  fun `a stop at the knot`() {
+    val session = PlanningSession.start(branches).tap(knot06).tap(knot28).tap(knot02)
+    assertEquals(listOf(knot06, knot02, knot28), session.waypoints)
+
+    val legs =
+      Json.parseToJsonElement(MapFeatures.route(session, branchGeometry))
+        .jsonObject
+        .getValue("features")
+        .jsonArray
+        .map {
+          it.jsonObject.getValue("geometry").jsonObject.getValue("coordinates").jsonArray.size
+        }
+
+    assertEquals(listOf(3, 2), legs, "06, fork, signpost; signpost, 28")
+  }
+
+  @Test
+  fun `back the same way`() {
+    assertEquals(
+      listOf(west, signpost, west),
+      signpostGeometry.courseOf(routeThrough(knot28, knot02, knot28)),
+    )
+  }
+
+  @Test
+  fun `same distance`() {
+    assertEquals(
+      RouteSummary.Complete(listOf(knot06, knot02, knot28), 2100),
+      branchRoute(knot06, knot02, knot28).summary,
+    )
+  }
+
+  // Requirement: Courses to each signpost
+
+  @Test
+  fun `the courses to each signpost survive the file`() {
+    val graphBytes = GraphFile(NetworkType.CYCLING, "test", "2026-10-25", "", branches).toBytes()
+    val sha = sha256Hex(graphBytes)
+
+    val read = NetworkGeometry.read(branchGeometry.toBytes(sha), branches, sha)
+
+    assertEquals(setOf(2), read.signpostCourses.keys)
+    assertEquals(
+      listOf(0 to 0, 0 to 1),
+      read.signpostCourses.getValue(2).map { it.fromPosition to it.toPosition },
+    )
+    assertSamePoints(
+      listOf(six, fork, signpost),
+      read.signpostCourses.getValue(2)[1].course,
+    )
+    assertEquals(
+      listOf(listOf(six, fork, river), listOf(six, fork, signpost)).map { it.size },
+      read.signpostCoursesOf(knot06, knot02).map { it.size },
+    )
+  }
+
+  @Test
+  fun `a file without the courses to each signpost`() {
+    val graphBytes = GraphFile(NetworkType.CYCLING, "test", "2026-10-25", "", branches).toBytes()
+    val sha = sha256Hex(graphBytes)
+    val bytes = NetworkGeometry(branches, branchGeometry.courses).toBytes(sha)
+
+    // A file of an earlier version ends right after the courses, before the section's count.
+    val read = NetworkGeometry.read(bytes.copyOf(bytes.size - 1), branches, sha)
+
+    assertEquals(branches.connections.size, read.courses.size)
+    assertEquals(mapOf(), read.signpostCourses)
   }
 
   @Test

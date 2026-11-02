@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A route through a knot signposted in two places goes through the signpost that fits, without a detour to the other one
 - Arrival times follow your pace over the last 5 km as you ride, not only at each knot, and a break no longer drags them down afterwards
 - A knot signposted in two places, like 02 in Siegburg, now has its badge at both, and they act as one knot; a route starting or ending there uses the signpost on its way
 - New network data arrives at the next start of the app, not only once a day

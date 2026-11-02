@@ -6,6 +6,7 @@ import com.knoopbyknoop.core.GeoPoint
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.NetworkGraph
 import com.knoopbyknoop.core.NetworkType
+import com.knoopbyknoop.core.SignpostCourse
 import java.util.PriorityQueue
 import kotlin.math.asin
 import kotlin.math.cos
@@ -125,7 +126,14 @@ class NetworkExtraction {
     val courses = networks.associateWith {
       connections.getValue(it).values.associate { kept -> kept.connection to kept.course }
     }
-    return ExtractionResult(graphs, courses, skippedRoutes)
+    val signpostCourses = networks.associateWith {
+      connections
+        .getValue(it)
+        .values
+        .filter { kept -> kept.signpostCourses.isNotEmpty() }
+        .associate { kept -> kept.connection to kept.signpostCourses }
+    }
+    return ExtractionResult(graphs, courses, skippedRoutes, signpostCourses)
   }
 
   /**
@@ -223,7 +231,36 @@ class NetworkExtraction {
       Connection(start.id, end.id, length.roundToInt()),
       course.filterIndexed { index, point -> index == 0 || point != course[index - 1] },
       if (route.includesFerry) ferryOf(route) else null,
+      signpostCourses(neighbors, start, startNodeIds, end, endNodeIds),
     )
+  }
+
+  /**
+   * The courses between each node of [start] and each node of [end] that the route reaches without
+   * passing another of them; none if there is just one, see `network-data` "Courses to each
+   * signpost".
+   */
+  private fun signpostCourses(
+    neighbors: Map<Long, List<Pair<Long, Double>>>,
+    start: Knot,
+    startNodeIds: Collection<Long>,
+    end: Knot,
+    endNodeIds: Set<Long>,
+  ): List<SignpostCourse> {
+    if (startNodeIds.size == 1 && endNodeIds.size == 1) return listOf()
+    val knotNodeIds = startNodeIds + endNodeIds
+    val courses = startNodeIds.flatMap { from ->
+      endNodeIds.mapNotNull { to ->
+        val (_, nodeIds) =
+          shortestPath(neighbors, listOf(from), setOf(to), avoid = knotNodeIds.toSet() - from - to)
+            ?: return@mapNotNull null
+        val fromPosition = start.positions.indexOf(coordinates.pointOf(from))
+        val toPosition = end.positions.indexOf(coordinates.pointOf(to))
+        if (fromPosition < 0 || toPosition < 0) return@mapNotNull null
+        SignpostCourse(fromPosition, toPosition, nodeIds.mapNotNull { coordinates.pointOf(it) })
+      }
+    }
+    return if (courses.size >= 2) courses else listOf()
   }
 
   /**
@@ -289,6 +326,7 @@ class NetworkExtraction {
     startNodeIds: Collection<Long>,
     endNodeIds: Set<Long>,
     maximumDistance: Double = Double.MAX_VALUE,
+    avoid: Set<Long> = setOf(),
   ): Pair<Double, List<Long>>? {
     val distances = startNodeIds.associateWithTo(HashMap()) { 0.0 }
     val predecessors = HashMap<Long, Long>()
@@ -302,7 +340,7 @@ class NetworkExtraction {
       if (distance > distances.getValue(nodeId)) continue
       for ((neighborId, length) in neighbors[nodeId].orEmpty()) {
         val neighborDistance = distance + length
-        if (neighborDistance > maximumDistance) continue
+        if (neighborDistance > maximumDistance || neighborId in avoid) continue
         if (neighborDistance < (distances[neighborId] ?: Double.MAX_VALUE)) {
           distances[neighborId] = neighborDistance
           predecessors[neighborId] = nodeId
@@ -319,6 +357,7 @@ class NetworkExtraction {
       val connection: Connection,
       val course: List<GeoPoint>,
       val ferry: Ferry?,
+      val signpostCourses: List<SignpostCourse>,
     ) : RouteOutcome
 
     data class Skipped(val reason: SkipReason) : RouteOutcome
@@ -364,6 +403,7 @@ data class ExtractionResult(
   val graphs: Map<NetworkType, NetworkGraph>,
   val courses: Map<NetworkType, Map<Connection, List<GeoPoint>>>,
   val skippedRoutes: Map<SkipReason, Int>,
+  val signpostCourses: Map<NetworkType, Map<Connection, List<SignpostCourse>>> = mapOf(),
 )
 
 /** Why a node network route could not become a connection. */

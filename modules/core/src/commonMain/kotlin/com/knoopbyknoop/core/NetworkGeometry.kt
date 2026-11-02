@@ -4,6 +4,16 @@ package com.knoopbyknoop.core
 data class GeoPoint(val latitude: Double, val longitude: Double)
 
 /**
+ * A course of a connection between two of the nodes its knots are tagged on, see `network-data`
+ * "Courses to each signpost".
+ *
+ * @property fromPosition the position in [Knot.positions] of the connection's `from` knot
+ * @property toPosition the position in [Knot.positions] of the connection's `to` knot
+ * @property course from that node of the `from` knot to that node of the `to` knot
+ */
+data class SignpostCourse(val fromPosition: Int, val toPosition: Int, val course: List<GeoPoint>)
+
+/**
  * The course of every connection of a [NetworkGraph], as published in geometry files.
  *
  * A geometry file belongs to exactly one graph file, identified by the graph file's SHA-256, and
@@ -11,8 +21,14 @@ data class GeoPoint(val latitude: Double, val longitude: Double)
  *
  * @property courses one course per connection of [graph], in the same order, each running from the
  *   connection's `from` knot to its `to` knot
+ * @property signpostCourses per index into [courses], the courses to each signpost, for connections
+ *   reaching their knots at several of them
  */
-class NetworkGeometry(val graph: NetworkGraph, val courses: List<List<GeoPoint>>) {
+class NetworkGeometry(
+  val graph: NetworkGraph,
+  val courses: List<List<GeoPoint>>,
+  val signpostCourses: Map<Int, List<SignpostCourse>> = mapOf(),
+) {
 
   init {
     require(courses.size == graph.connections.size) {
@@ -41,28 +57,83 @@ class NetworkGeometry(val graph: NetworkGraph, val courses: List<List<GeoPoint>>
   fun courseOf(route: Route): List<GeoPoint>? {
     val knots = (route.summary as? RouteSummary.Complete)?.knots ?: return null
     if (knots.size == 1) return listOf(GeoPoint(knots.single().latitude, knots.single().longitude))
-    val course = mutableListOf<GeoPoint>()
-    for ((from, to) in knots.zipWithNext()) {
-      val leg = courseOf(from, to) ?: return null
-      course.addAll(if (course.isEmpty()) leg else leg.drop(1))
+    if (knots.zipWithNext().any { (from, to) -> courseOf(from, to) == null }) return null
+    return courses(knots).fold(listOf()) { course, leg ->
+      if (course.isEmpty()) leg else course + leg.drop(1)
     }
-    return atSignposts(course, knots.first(), knots.last())
   }
 
   /**
-   * [course] from and to the signposts it uses at [start] and [end], where given, see
-   * `map-planning` "Knots signposted at several places": courses run to a knot's main position,
-   * also when they reach it at another of its nodes.
+   * The courses to draw between the neighbors in [knots], in riding direction, through the
+   * signposts that fit the legs on both sides and make the line shortest, see `map-planning`
+   * "Routes through a knot with several signposts". Without a course, a straight line.
    */
-  fun atSignposts(course: List<GeoPoint>, start: Knot?, end: Knot?): List<GeoPoint> {
-    val fromStart = start?.let { fromSignpost(course, it) } ?: course
-    return end?.let { fromSignpost(fromStart.asReversed(), it).asReversed() } ?: fromStart
+  fun courses(knots: List<Knot>): List<List<GeoPoint>> {
+    // The shortest way so far to each position of the current knot, with the courses of that way.
+    var ways = mapOf<Int, Pair<Double, List<List<GeoPoint>>>>()
+    for ((from, to) in knots.zipWithNext()) {
+      val next = mutableMapOf<Int, Pair<Double, List<List<GeoPoint>>>>()
+      for (option in optionsOf(from, to)) {
+        val before = if (ways.isEmpty()) 0.0 to listOf() else ways[option.fromPosition] ?: continue
+        val meters = before.first + lengthOf(option.course)
+        val best = next[option.toPosition]
+        if (best == null || meters < best.first) {
+          next[option.toPosition] = meters to before.second + listOf(option.course)
+        }
+      }
+      ways = next
+    }
+    return ways.values.minByOrNull { it.first }?.second.orEmpty()
   }
 
-  private fun fromSignpost(course: List<GeoPoint>, knot: Knot): List<GeoPoint> =
-    knot.otherNodes
-      .mapNotNull { signpost -> fromSignpost(course, knot, signpost) }
-      .minByOrNull { it.size } ?: course
+  /**
+   * The other courses of the connection between [from] and [to], see "Courses to each signpost".
+   */
+  fun signpostCoursesOf(from: Knot, to: Knot): List<List<GeoPoint>> =
+    courseIndexByKnotIds[from.id to to.id]?.let { index ->
+      signpostCourses[index].orEmpty().map { it.course }
+    }
+      ?: courseIndexByKnotIds[to.id to from.id]?.let { index ->
+        signpostCourses[index].orEmpty().map { it.course.asReversed() }
+      }
+      ?: listOf()
+
+  /** A way from a position of one knot to a position of the next. */
+  private class LegOption(val fromPosition: Int, val toPosition: Int, val course: List<GeoPoint>)
+
+  private fun optionsOf(from: Knot, to: Knot): List<LegOption> {
+    val main = courseOf(from, to) ?: listOf(pointOf(from), pointOf(to))
+    val fromMain =
+      startsOf(main, from).flatMap { (fromPosition, start) ->
+        startsOf(start.asReversed(), to).map { (toPosition, course) ->
+          LegOption(fromPosition, toPosition, course.asReversed())
+        }
+      }
+    val forward =
+      courseIndexByKnotIds[from.id to to.id]?.let { index ->
+        signpostCourses[index].orEmpty().map {
+          LegOption(it.fromPosition, it.toPosition, it.course)
+        }
+      }
+    val backward =
+      courseIndexByKnotIds[to.id to from.id]?.let { index ->
+        signpostCourses[index].orEmpty().map {
+          LegOption(it.toPosition, it.fromPosition, it.course.asReversed())
+        }
+      }
+    return fromMain + (forward ?: backward).orEmpty()
+  }
+
+  /**
+   * [course] from its start at the main position of [knot], and from each other signpost of the
+   * knot that it passes: courses run to a knot's main position, also when they reach it at another
+   * of its nodes.
+   */
+  private fun startsOf(course: List<GeoPoint>, knot: Knot): List<Pair<Int, List<GeoPoint>>> =
+    listOf(0 to course) +
+      knot.otherNodes.mapIndexedNotNull { index, signpost ->
+        fromSignpost(course, knot, signpost)?.let { index + 1 to it }
+      }
 
   private fun fromSignpost(
     course: List<GeoPoint>,
@@ -84,6 +155,13 @@ class NetworkGeometry(val graph: NetworkGraph, val courses: List<List<GeoPoint>>
     return null
   }
 
+  private fun lengthOf(course: List<GeoPoint>): Double =
+    course.zipWithNext().sumOf { (from, to) ->
+      distanceMeters(from.latitude, from.longitude, to.latitude, to.longitude)
+    }
+
+  private fun pointOf(knot: Knot) = GeoPoint(knot.latitude, knot.longitude)
+
   /** The geometry file for the graph file whose SHA-256 is [graphSha256]. */
   fun toBytes(graphSha256: String): ByteArray {
     val writer = ByteWriter()
@@ -103,6 +181,28 @@ class NetworkGeometry(val graph: NetworkGraph, val courses: List<List<GeoPoint>>
         writer.varint(zigzag(longitude - previousLongitude))
         previousLatitude = latitude
         previousLongitude = longitude
+      }
+    }
+    // After the courses, so apps not knowing this section read the file as before.
+    writer.varint(signpostCourses.size.toLong())
+    for ((index, pairs) in signpostCourses.entries.sortedBy { it.key }) {
+      val from = graph.knots.getValue(graph.connections[index].fromId)
+      writer.varint(index.toLong())
+      writer.varint(pairs.size.toLong())
+      for (pair in pairs) {
+        writer.varint(pair.fromPosition.toLong())
+        writer.varint(pair.toPosition.toLong())
+        var previousLatitude = toMicrodegrees(from.latitude)
+        var previousLongitude = toMicrodegrees(from.longitude)
+        writer.varint(pair.course.size.toLong())
+        for (point in pair.course) {
+          val latitude = toMicrodegrees(point.latitude)
+          val longitude = toMicrodegrees(point.longitude)
+          writer.varint(zigzag(latitude - previousLatitude))
+          writer.varint(zigzag(longitude - previousLongitude))
+          previousLatitude = latitude
+          previousLongitude = longitude
+        }
       }
     }
     return writer.toByteArray()
@@ -159,7 +259,36 @@ class NetworkGeometry(val graph: NetworkGraph, val courses: List<List<GeoPoint>>
             GeoPoint(fromMicrodegrees(latitude), fromMicrodegrees(longitude))
           }
         }
-      return NetworkGeometry(graph, courses)
+      return NetworkGeometry(graph, courses, readSignpostCourses(reader, graph))
+    }
+
+    /** The optional section after the courses, missing in older files. */
+    private fun readSignpostCourses(
+      reader: ByteReader,
+      graph: NetworkGraph,
+    ): Map<Int, List<SignpostCourse>> {
+      if (!reader.hasMore()) return mapOf()
+      return List(reader.count()) {
+          val index = reader.count()
+          val from = graph.knots.getValue(graph.connections[index].fromId)
+          index to
+            List(reader.count()) {
+              val fromPosition = reader.count()
+              val toPosition = reader.count()
+              var latitude = toMicrodegrees(from.latitude)
+              var longitude = toMicrodegrees(from.longitude)
+              SignpostCourse(
+                fromPosition,
+                toPosition,
+                List(reader.count()) {
+                  latitude += unzigzag(reader.varint())
+                  longitude += unzigzag(reader.varint())
+                  GeoPoint(fromMicrodegrees(latitude), fromMicrodegrees(longitude))
+                },
+              )
+            }
+        }
+        .toMap()
     }
 
     /** Straight lines between the knots, for a graph without matching geometry. */
