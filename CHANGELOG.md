@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Android: when the app's language changes during navigation, navigation's texts and spoken notices follow at once
 - A stretch used both ways shows as two lines side by side, and while navigating, the leg to the next knot stands out, so a fork on a round trip is clear
 - Starting navigation on a stretch used both ways begins with its first use, not on the way back
 - The lock screen shows what the app shows, with a bar along the route and a distance that stays current; on Android 16 and newer as a Live Update with a chip in the status bar

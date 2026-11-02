@@ -669,6 +669,72 @@ class NavigationTest {
     assertEquals(listOf(point(knot24), point(knot45)), navigation.courseAhead)
   }
 
+  // app-languages, Requirement: Language change while navigating
+
+  @Test
+  fun `words and line outside the app`() {
+    val (close, _) = start(east = 850.0).navigation.ride(fix(850.0))
+    assertEquals("150 m to 45", close.progressLine.substringBefore(" ·"))
+
+    val german = close.inLanguage(Language.DE, Language.DE, close.lastFix)
+
+    assertEquals("Bei 45 folge 12", german.display.text)
+    assertEquals("150 m bis 45", german.progressLine.substringBefore(" ·"))
+  }
+
+  @Test
+  fun `off route in the new language`() {
+    val (offRoute, _) = start(east = 0.0).navigation.ride(fix(300.0), fix(400.0, north = 150.0))
+
+    val german = offRoute.inLanguage(Language.DE, Language.DE, offRoute.lastFix)
+
+    assertTrue(german.offRoute)
+    assertEquals("Abseits der Route, nächster 45", german.display.offRouteText)
+    assertTrue(
+      german.progressLine.contains("bis 45") || german.progressLine.contains("nach 45"),
+      german.progressLine,
+    )
+    assertEquals(Language.DE, german.language)
+  }
+
+  @Test
+  fun `later notices in the new language`() {
+    val started = start(east = 0.0).navigation
+    val german = started.inLanguage(Language.DE, Language.DE, started.lastFix)
+
+    val (_, notices) = german.ride(fix(1000.0))
+
+    assertEquals("Nächster Knotenpunkt 12, dann 31", notices.last().text)
+    assertTrue(notices.last().speech.startsWith("Nächster Knotenpunkt"), notices.last().speech)
+  }
+
+  @Test
+  fun `no voice for the new language`() {
+    val started = start(east = 0.0).navigation
+    val french = started.inLanguage(Language.FR, Language.EN, started.lastFix)
+
+    val (_, notices) = french.ride(fix(1000.0))
+
+    assertTrue(notices.last().text.startsWith("Prochain"), notices.last().text)
+    assertTrue(notices.last().speech.startsWith("Next"), notices.last().speech)
+  }
+
+  @Test
+  fun `nothing else changes with the language`() {
+    val (riding, _) = start(east = 0.0).navigation.ride(fix(300.0))
+
+    val german = riding.inLanguage(Language.DE, Language.DE, riding.lastFix)
+    val (afterwards, notices) = german.ride(fix(320.0))
+
+    assertEquals(riding.nextIndex, german.nextIndex)
+    assertEquals(
+      riding.progress(riding.lastFix).strip.rider,
+      german.progress(german.lastFix).strip.rider,
+    )
+    assertFalse(afterwards.offRoute)
+    assertEquals(listOf(), notices)
+  }
+
   // Requirement: Way to the route on the map
 
   @Test

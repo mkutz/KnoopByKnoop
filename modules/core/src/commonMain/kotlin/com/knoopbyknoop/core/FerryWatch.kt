@@ -82,6 +82,18 @@ private constructor(
     metersPerSecond: Double,
   ): FerryWatch = renew(offset, timeMillis, nextIndex, metersPerSecond, warn = false).first
 
+  /** This watch in other languages, with the same warnings given, see "Language change". */
+  fun inLanguage(
+    newLanguage: Language,
+    newSpeechLanguage: Language,
+    offset: Double,
+    timeMillis: Long,
+    nextIndex: Int,
+    metersPerSecond: Double,
+  ): FerryWatch =
+    FerryWatch(ferries, offsets, localTime, arrivals, warned, newLanguage, newSpeechLanguage)
+      .renewed(offset, timeMillis, nextIndex, metersPerSecond)
+
   /**
    * Renews the estimates with the rider [offset] meters along the route at [timeMillis], before the
    * knot at [nextIndex], at [metersPerSecond]; returns the warnings due, the nearer ferry first.

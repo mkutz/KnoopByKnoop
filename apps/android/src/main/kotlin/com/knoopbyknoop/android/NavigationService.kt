@@ -9,6 +9,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -241,6 +242,22 @@ class NavigationService : Service() {
     apply(update, fix)
   }
 
+  /** Navigation follows the language at once, see `app-languages`. */
+  override fun onConfigurationChanged(newConfig: Configuration) {
+    super.onConfigurationChanged(newConfig)
+    val current = navigation ?: return
+    val locale = newConfig.locales[0]
+    val language = Language.of(locale.language)
+    if (language == current.language) return
+    speaker.useLocale(locale)
+    val fix = current.lastFix
+    val newNavigation = current.inLanguage(language, speaker.language, fix)
+    Log.i(LOG_TAG, "language: $language, spoken in ${speaker.language}")
+    navigation = newNavigation
+    Navigating.update(NavigationState(newNavigation, fix, track, track.directionAt(fix)))
+    if (!newNavigation.arrived) notifyOfChange(newNavigation, fix)
+  }
+
   private fun apply(update: NavigationUpdate, fix: Fix) {
     val newNavigation = update.navigation
     navigation = newNavigation
@@ -257,6 +274,11 @@ class NavigationService : Service() {
       speaker.whenSilent { scope.launch { stop() } }
       return
     }
+    notifyOfChange(newNavigation, fix)
+    request(update.precision)
+  }
+
+  private fun notifyOfChange(newNavigation: Navigation, fix: Fix) {
     val content = NotificationContent.of(newNavigation, fix)
     // Only on a change: the position comes every second while the app is visible.
     if (content != notified) {
@@ -264,7 +286,6 @@ class NavigationService : Service() {
       getSystemService(NotificationManager::class.java)
         .notify(NOTIFICATION_ID, notification(content.title, content.text, content))
     }
-    request(update.precision)
   }
 
   /** Samples with [newPrecision], mapped as in the design's precision table. */

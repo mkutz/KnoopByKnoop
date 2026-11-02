@@ -295,6 +295,35 @@ private constructor(
    */
   fun ferryArrival(fromPosition: Int): FerryArrival? = ferryWatch?.arrivalAt(fromPosition)
 
+  /**
+   * This navigation in other languages with the rider at [fix], everything else as it was, see
+   * `app-languages` "Language change while navigating".
+   */
+  fun inLanguage(newLanguage: Language, newSpeechLanguage: Language, fix: Fix): Navigation {
+    val navigation =
+      copy(
+        language = newLanguage,
+        speechLanguage = newSpeechLanguage,
+        ferryWatch =
+          ferryWatch?.inLanguage(
+            newLanguage,
+            newSpeechLanguage,
+            place,
+            fix.timeMillis,
+            nextIndex,
+            pace.metersPerSecond,
+          ),
+      )
+    val line =
+      if (offRoute && !arrived) {
+        val way = wayTo(fix, nextKnot, newLanguage)
+        newLanguage.texts.wayTo(way.distance, way.direction, nextKnot.ref)
+      } else {
+        navigation.routeLine(fix)
+      }
+    return navigation.copy(progressLine = line)
+  }
+
   /** How precisely to sample next; [visible] is whether the app is on screen. */
   fun precision(visible: Boolean): Precision =
     when {
@@ -592,6 +621,8 @@ private constructor(
     progressLine: String = this.progressLine,
     linePlace: Double = this.linePlace,
     guided: Guided? = this.guided,
+    language: Language = this.language,
+    speechLanguage: Language = this.speechLanguage,
   ) =
     Navigation(
       knots,

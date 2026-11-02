@@ -15,7 +15,7 @@ import java.util.Locale
  */
 class Speaker(context: Context) {
 
-  private val locale = context.resources.configuration.locales[0]
+  private var locale = context.resources.configuration.locales[0]
 
   /**
    * The language the notices are spoken in: the app's where the phone has a voice for it, else
@@ -44,14 +44,25 @@ class Speaker(context: Context) {
   private val speech: TextToSpeech =
     TextToSpeech(context) { status ->
       if (status != TextToSpeech.SUCCESS) return@TextToSpeech
-      if (language != Language.EN && speech.setLanguage(locale) < TextToSpeech.LANG_AVAILABLE)
-        language = Language.EN
-      if (language == Language.EN && speech.setLanguage(Locale.UK) < TextToSpeech.LANG_AVAILABLE)
-        speech.setLanguage(Locale.ENGLISH)
+      chooseVoice()
       ready = true
       waiting.forEach(::speakNow)
       waiting.clear()
     }
+
+  /** Speaks in [newLocale] from now on, see `app-languages` "Language change while navigating". */
+  fun useLocale(newLocale: Locale) {
+    locale = newLocale
+    language = Language.of(newLocale.language)
+    if (ready) chooseVoice()
+  }
+
+  private fun chooseVoice() {
+    if (language != Language.EN && speech.setLanguage(locale) < TextToSpeech.LANG_AVAILABLE)
+      language = Language.EN
+    if (language == Language.EN && speech.setLanguage(Locale.UK) < TextToSpeech.LANG_AVAILABLE)
+      speech.setLanguage(Locale.ENGLISH)
+  }
 
   init {
     speech.setAudioAttributes(attributes)

@@ -227,6 +227,20 @@ class FerryWarningTest {
   }
 
   @Test
+  fun `a ferry ahead in the new language`() {
+    val ride = ride(10_000, 9_900, 200, 1000, ferryLegs = mapOf(2 to broekhuizen))
+    val started = ride.start("17:10").navigation
+    val warned = started.update(ride.fixAt(1, "18:00"))
+    assertEquals(1, warned.ferryNotices().size)
+
+    val german = warned.navigation.inLanguage(Language.DE, Language.DE, ride.fixAt(1, "18:00"))
+
+    assertEquals(warned.navigation.ferryArrival(2)?.state, german.ferryArrival(2)?.state)
+    assertEquals(true, german.ferryArrival(2)?.text?.startsWith("Um"))
+    assertEquals(listOf(), german.update(ride.fixAt(2, "18:30")).ferryNotices(), "warned once")
+  }
+
+  @Test
   fun `warned once`() {
     val ride = ride(10_000, 9_900, 200, 1000, ferryLegs = mapOf(2 to broekhuizen))
     val started = ride.start("18:00")
