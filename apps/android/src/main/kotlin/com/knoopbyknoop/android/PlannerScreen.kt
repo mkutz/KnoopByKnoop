@@ -320,6 +320,8 @@ private fun MapArea(
       track = state.navigation?.track,
       direction = state.navigation?.direction,
       nextKnot = state.navigation?.navigation?.nextKnot,
+      navigating = state.navigation?.navigation != null,
+      courseAhead = state.navigation?.navigation?.courseAhead,
       wayToRoute =
         state.navigation?.let { navigating ->
           navigating.position?.let { navigating.navigation?.wayToRoute(it) }

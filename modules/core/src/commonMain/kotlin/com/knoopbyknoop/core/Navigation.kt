@@ -129,6 +129,7 @@ private constructor(
   val knots: List<Knot>,
   private val courses: List<List<GeoPoint>>?,
   private val signpostCourses: List<List<List<GeoPoint>>>,
+  private val drawnCourses: List<List<GeoPoint>>,
   private val locator: KnotLocator,
   private val routeKnotIds: Set<Long>,
   val nextIndex: Int,
@@ -269,6 +270,13 @@ private constructor(
 
   val nextKnot: Knot
     get() = knots[nextIndex]
+
+  /**
+   * The course to the next knot as the map draws it, or `null` before the first knot, see
+   * `knot-navigation` "Leg ahead on the map".
+   */
+  val courseAhead: List<GeoPoint>?
+    get() = drawnCourses.getOrNull(nextIndex - 1).takeUnless { arrived }
 
   val display: NavigationDisplay
     get() =
@@ -589,6 +597,7 @@ private constructor(
       knots,
       courses,
       signpostCourses,
+      drawnCourses,
       locator,
       routeKnotIds,
       nextIndex,
@@ -646,6 +655,9 @@ private constructor(
     /** The assumed pace applies until the rider covered this much of the route. */
     private const val OWN_PACE_AFTER_METERS = 2000.0
 
+    /** At the start, legs this much further than the nearest count as just as near. */
+    private const val SAME_LEG_METERS = 10.0
+
     /** The rider's pace is measured over this much of the route, see "Ferry arrival estimate". */
     private const val PACE_WINDOW_METERS = 5000.0
 
@@ -694,15 +706,19 @@ private constructor(
           .dropLast(1)
           .indexOfFirst { distanceToNearestNode(fix, it) <= PASS_RADIUS_METERS }
           .let { if (it >= 0) lastWithin(knots, it, knots.lastIndex - 1, fix) else it }
-      val legIndex =
+      val legDistances =
         courses
           ?.withIndex()
           ?.map { (index, course) ->
             index to distanceToPolyline(fix.latitude, fix.longitude, course)
           }
           ?.filter { (_, distance) -> distance <= OFF_COURSE_METERS }
-          ?.minByOrNull { (_, distance) -> distance }
-          ?.first
+      // The earliest of the legs about as near: on a stretch used both ways, a rounding difference
+      // must not start the rider on the way back, see `knot-navigation` "Leg ahead on the map".
+      val nearest = legDistances?.minOfOrNull { (_, distance) -> distance }
+      val legIndex = nearest?.let {
+        legDistances.first { (_, distance) -> distance <= nearest + SAME_LEG_METERS }.first
+      }
       val (nextIndex, offRoute) =
         when {
           startIndex >= 0 -> startIndex + 1 to false
@@ -732,6 +748,14 @@ private constructor(
         Navigation(
             knots = knots,
             courses = courses,
+            drawnCourses =
+              geometry?.courses(knots)
+                ?: knots.zipWithNext { from, to ->
+                  listOf(
+                    GeoPoint(from.latitude, from.longitude),
+                    GeoPoint(to.latitude, to.longitude),
+                  )
+                },
             signpostCourses =
               geometry?.let { network ->
                 knots.zipWithNext { from, to -> network.signpostCoursesOf(from, to) }

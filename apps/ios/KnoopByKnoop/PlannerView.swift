@@ -167,6 +167,8 @@ struct PlannerView: View {
         onMove: model.mapMoved,
         position: navigator.state?.position,
         nextKnot: navigator.state?.navigation?.nextKnot,
+        navigating: navigator.state?.navigation != nil,
+        courseAhead: navigator.state?.navigation?.courseAhead,
         wayToRoute: navigator.state.flatMap { state in
           state.position.flatMap { state.navigation?.wayToRoute(fix: $0) }
         },

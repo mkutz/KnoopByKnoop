@@ -589,6 +589,86 @@ class NavigationTest {
     assertTrue(navigation.offRoute)
   }
 
+  // Requirement: Leg ahead on the map
+
+  private fun point(knot: Knot) = GeoPoint(knot.latitude, knot.longitude)
+
+  @Test
+  fun `which way at a fork`() {
+    // Out to 45 and back: the course is the one in riding direction, also on the way back.
+    val there = listOf(knot24, knot45, knot24)
+    val started = assertNotNull(Navigation.start(there, graph, geometry, fix(0.0)))
+    assertEquals(listOf(point(knot24), point(knot45)), started.navigation.courseAhead)
+
+    val (back, _) = started.navigation.ride(fix(1000.0))
+
+    assertEquals(knot24, back.nextKnot)
+    assertEquals(listOf(point(knot45), point(knot24)), back.courseAhead)
+  }
+
+  @Test
+  fun `starting on a stretch used twice`() {
+    // Two connections between the knots, so the way back can run 5 m nearer to the rider.
+    val knot46 = knot(46, "46", east = 1000.0)
+    val graph =
+      NetworkGraph(
+        listOf(knot24, knot45, knot46),
+        listOf(Connection(24, 45, 1000), Connection(45, 46, 10), Connection(46, 24, 1000)),
+      )
+    val geometry =
+      NetworkGeometry(
+        graph,
+        listOf(
+          listOf(point(knot24), GeoPoint(latitude(10.0), longitude(500.0)), point(knot45)),
+          listOf(point(knot45), point(knot46)),
+          listOf(point(knot46), GeoPoint(latitude(5.0), longitude(500.0)), point(knot24)),
+        ),
+      )
+
+    val started =
+      assertNotNull(
+        Navigation.start(
+          listOf(knot24, knot45, knot46, knot24),
+          graph,
+          geometry,
+          fix(500.0, north = 5.0),
+        )
+      )
+
+    assertEquals(1, started.navigation.nextIndex)
+  }
+
+  @Test
+  fun `passing a knot moves the leg ahead`() {
+    val (navigation, _) = start(east = 0.0).navigation.ride(fix(1000.0))
+
+    assertEquals(knot12, navigation.nextKnot)
+    assertEquals(listOf(point(knot45), point(knot12)), navigation.courseAhead)
+  }
+
+  @Test
+  fun `before the first knot no leg is ahead`() {
+    val navigation = start(east = -500.0, north = 300.0).navigation
+
+    assertEquals(knot24, navigation.nextKnot)
+    assertNull(navigation.courseAhead)
+  }
+
+  @Test
+  fun `off route the leg ahead stays`() {
+    val (navigation, _) = start(east = 0.0).navigation.ride(fix(300.0), fix(400.0, north = 150.0))
+
+    assertTrue(navigation.offRoute)
+    assertEquals(listOf(point(knot24), point(knot45)), navigation.courseAhead)
+  }
+
+  @Test
+  fun `without courses the leg ahead is a straight line`() {
+    val navigation = start(east = 0.0, geometry = null).navigation
+
+    assertEquals(listOf(point(knot24), point(knot45)), navigation.courseAhead)
+  }
+
   // Requirement: Way to the route on the map
 
   @Test

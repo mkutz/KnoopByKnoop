@@ -33,6 +33,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.knoopbyknoop.core.Fix
 import com.knoopbyknoop.core.GeoPoint
 import com.knoopbyknoop.core.Knot
+import com.knoopbyknoop.core.MapFeatures
 import com.knoopbyknoop.core.NetworkGraph
 import com.knoopbyknoop.core.PlaceHit
 import com.knoopbyknoop.core.RiddenTrack
@@ -93,6 +94,15 @@ private const val SEARCH_HIT_ZOOM = 14.0
 
 /** The zoom when navigation begins: close enough to see the next knot and the way to it. */
 private const val NAVIGATION_ZOOM = 15.0
+private const val ROUTE_WIDTH = 5f
+private const val ROUTE_WIDTH_CALM = 3f
+private const val ROUTE_WIDTH_AHEAD = 7f
+private const val TRACK_WIDTH = 3f
+private const val ROUTE_OFFSET = 4f
+private const val ARROW_SIZE = 0.7f
+
+/** [ROUTE_OFFSET] on the arrows: icon offsets are multiplied by the icon's size. */
+private val ARROW_OFFSET = arrayOf(0f, ROUTE_OFFSET / ARROW_SIZE)
 
 /** How long the map takes to move to the rider's next position: the live fix interval. */
 private const val FOLLOW_MOVE_MILLIS = 1_000
@@ -153,6 +163,10 @@ fun NetworkMap(
   direction: Double? = null,
   /** The next knot while navigating, highlighted. */
   nextKnot: Knot? = null,
+  /** Whether navigation has begun, so the route is calm, see `knot-navigation` "Leg ahead". */
+  navigating: Boolean = false,
+  /** The course to the next knot, see `knot-navigation` "Leg ahead on the map". */
+  courseAhead: List<GeoPoint>? = null,
   /**
    * Off route, where the line back to the route ends, see `knot-navigation` "Way to the route on
    * the map"; `null` on the route.
@@ -257,6 +271,7 @@ fun NetworkMap(
     holder.showNavigation(position, nextKnot, wayToRoute, direction)
   }
   LaunchedEffect(track) { holder.showTrack(track) }
+  LaunchedEffect(navigating, courseAhead) { holder.showLegAhead(navigating, courseAhead) }
   LaunchedEffect(topControlsBottom, topControlsStart) {
     holder.compassTop = topControlsBottom
     holder.compassStart = topControlsStart
@@ -452,6 +467,7 @@ private class MapHolder {
     updateMarker(loaded)
     updateNavigation(loaded)
     updateTrack(loaded)
+    updateLegAhead(loaded)
     update()
   }
 
@@ -586,6 +602,28 @@ private class MapHolder {
   fun showTrack(newTrack: RiddenTrack?) {
     track = newTrack
     style?.let { updateTrack(it) }
+  }
+
+  private var navigating = false
+  private var courseAhead: List<GeoPoint>? = null
+
+  fun showLegAhead(newNavigating: Boolean, newCourseAhead: List<GeoPoint>?) {
+    navigating = newNavigating
+    courseAhead = newCourseAhead
+    style?.let { updateLegAhead(it) }
+  }
+
+  /** While navigating, the leg ahead stands out and the rest of the route is calm. */
+  private fun updateLegAhead(style: Style) {
+    style.getSourceAs<GeoJsonSource>("route-ahead")?.setGeoJson(MapFeatures.legAhead(courseAhead))
+    style
+      .getLayer("route")
+      ?.setProperties(PropertyFactory.lineWidth(if (navigating) ROUTE_WIDTH_CALM else ROUTE_WIDTH))
+    style
+      .getLayer("route-direction")
+      ?.setProperties(
+        PropertyFactory.visibility(if (navigating) Property.NONE else Property.VISIBLE)
+      )
   }
 
   private fun updateTrack(style: Style) {
@@ -731,6 +769,7 @@ private class MapHolder {
         "marker",
         "ridden-track",
         "route",
+        "route-ahead",
         "way-to-route",
         "next-knot",
         "route-knots",
@@ -769,7 +808,10 @@ private class MapHolder {
         .withFilter(Expression.eq(Expression.get("reachable"), true))
         .withProperties(
           PropertyFactory.lineColor(ORANGE),
-          PropertyFactory.lineWidth(8f),
+          PropertyFactory.lineWidth(ROUTE_WIDTH),
+          // To the right of the riding direction, so a stretch used both ways shows as two lines,
+          // see `map-planning` "Route used in both directions".
+          PropertyFactory.lineOffset(ROUTE_OFFSET),
           PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
           PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
         )
@@ -791,7 +833,31 @@ private class MapHolder {
           PropertyFactory.symbolPlacement(Property.SYMBOL_PLACEMENT_LINE),
           PropertyFactory.symbolSpacing(48f),
           PropertyFactory.iconImage("route-arrow"),
-          PropertyFactory.iconSize(0.7f),
+          PropertyFactory.iconSize(ARROW_SIZE),
+          PropertyFactory.iconOffset(ARROW_OFFSET),
+          PropertyFactory.iconAllowOverlap(true),
+          PropertyFactory.iconIgnorePlacement(true),
+        )
+    )
+    // While navigating, the course to the next knot, see `knot-navigation` "Leg ahead on the map".
+    style.addLayer(
+      LineLayer("route-ahead", "route-ahead")
+        .withProperties(
+          PropertyFactory.lineColor(ORANGE),
+          PropertyFactory.lineWidth(ROUTE_WIDTH_AHEAD),
+          PropertyFactory.lineOffset(ROUTE_OFFSET),
+          PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+          PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+        )
+    )
+    style.addLayer(
+      SymbolLayer("route-ahead-direction", "route-ahead")
+        .withProperties(
+          PropertyFactory.symbolPlacement(Property.SYMBOL_PLACEMENT_LINE),
+          PropertyFactory.symbolSpacing(48f),
+          PropertyFactory.iconImage("route-arrow"),
+          PropertyFactory.iconSize(ARROW_SIZE),
+          PropertyFactory.iconOffset(ARROW_OFFSET),
           PropertyFactory.iconAllowOverlap(true),
           PropertyFactory.iconIgnorePlacement(true),
         )
@@ -802,7 +868,8 @@ private class MapHolder {
       LineLayer("ridden-track", "ridden-track")
         .withProperties(
           PropertyFactory.lineColor(TRACK_BLUE),
-          PropertyFactory.lineWidth(4f),
+          PropertyFactory.lineWidth(TRACK_WIDTH),
+          PropertyFactory.lineOffset(ROUTE_OFFSET),
           PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
           PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
         )

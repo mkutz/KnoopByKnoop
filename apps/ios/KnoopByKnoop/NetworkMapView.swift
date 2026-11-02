@@ -34,6 +34,11 @@ private let searchHitZoom = 14.0
 
 /// The zoom when navigation begins: close enough to see the next knot and the way to it.
 private let navigationZoom = 15.0
+private let routeWidth: CGFloat = 5
+private let routeWidthCalm: CGFloat = 3
+private let routeWidthAhead: CGFloat = 7
+private let trackWidth: CGFloat = 3
+private let routeOffset: CGFloat = 4
 
 /// Knots are drawn and can be tapped from this zoom level on.
 private let knotMinimumZoom = 10.0
@@ -74,6 +79,11 @@ struct NetworkMapView: UIViewRepresentable {
   var position: Fix? = nil
   /// The next knot while navigating, highlighted.
   var nextKnot: Knot? = nil
+  /// Whether navigation has begun, so the route is calm, see `knot-navigation` "Leg ahead on the
+  /// map".
+  var navigating = false
+  /// The course to the next knot, see `knot-navigation` "Leg ahead on the map".
+  var courseAhead: [GeoPoint]? = nil
   /// Off route, where the line back to the route ends, see `knot-navigation` "Way to the route on
   /// the map"; `nil` on the route.
   var wayToRoute: GeoPoint? = nil
@@ -224,6 +234,7 @@ struct NetworkMapView: UIViewRepresentable {
     context.coordinator.showNavigation(
       position: position, nextKnot: nextKnot, wayToRoute: wayToRoute, direction: direction, on: mapView)
     context.coordinator.showTrack(track)
+    context.coordinator.showLegAhead(navigating: navigating, courseAhead: courseAhead)
     context.coordinator.showKnot(shownKnot, on: mapView)
     context.coordinator.onLocate = onLocate
     context.coordinator.showLocating(locating, available: onLocate != nil)
@@ -347,6 +358,26 @@ struct NetworkMapView: UIViewRepresentable {
       guard newTrack !== track else { return }
       track = newTrack
       updateTrack()
+    }
+
+    private var navigating = false
+    private var courseAhead: [GeoPoint]?
+
+    func showLegAhead(navigating newNavigating: Bool, courseAhead newCourseAhead: [GeoPoint]?) {
+      guard newNavigating != navigating || newCourseAhead != courseAhead else { return }
+      navigating = newNavigating
+      courseAhead = newCourseAhead
+      updateLegAhead()
+    }
+
+    /// While navigating, the leg ahead stands out and the rest of the route is calm.
+    private func updateLegAhead() {
+      guard let style else { return }
+      (style.source(withIdentifier: "route-ahead") as? MLNShapeSource)?.shape =
+        shape(MapFeatures.shared.legAhead(course: courseAhead))
+      (style.layer(withIdentifier: "route") as? MLNLineStyleLayer)?.lineWidth =
+        NSExpression(forConstantValue: navigating ? routeWidthCalm : routeWidth)
+      style.layer(withIdentifier: "route-direction")?.isVisible = !navigating
     }
 
     private func updateTrack() {
@@ -683,7 +714,10 @@ struct NetworkMapView: UIViewRepresentable {
       let route = MLNLineStyleLayer(identifier: "route", source: sources[1])
       route.predicate = NSPredicate(format: "reachable == YES")
       route.lineColor = NSExpression(forConstantValue: UIColor(Color.knoopOrange))
-      route.lineWidth = NSExpression(forConstantValue: 8)
+      route.lineWidth = NSExpression(forConstantValue: routeWidth)
+      // To the right of the riding direction, so a stretch used both ways shows as two lines, see
+      // `map-planning` "Route used in both directions".
+      route.lineOffset = NSExpression(forConstantValue: routeOffset)
       route.lineCap = NSExpression(forConstantValue: "round")
       route.lineJoin = NSExpression(forConstantValue: "round")
       style.addLayer(route)
@@ -701,9 +735,29 @@ struct NetworkMapView: UIViewRepresentable {
       direction.symbolPlacement = NSExpression(forConstantValue: "line")
       direction.symbolSpacing = NSExpression(forConstantValue: 48)
       direction.iconImageName = NSExpression(forConstantValue: "route-arrow")
+      direction.iconOffset = NSExpression(forConstantValue: NSValue(cgVector: CGVector(dx: 0, dy: routeOffset)))
       direction.iconAllowsOverlap = NSExpression(forConstantValue: true)
       direction.iconIgnoresPlacement = NSExpression(forConstantValue: true)
       style.addLayer(direction)
+
+      // While navigating, the course to the next knot, see `knot-navigation` "Leg ahead on the map".
+      let aheadSource = MLNShapeSource(identifier: "route-ahead", shape: nil)
+      style.addSource(aheadSource)
+      let ahead = MLNLineStyleLayer(identifier: "route-ahead", source: aheadSource)
+      ahead.lineColor = NSExpression(forConstantValue: UIColor(Color.knoopOrange))
+      ahead.lineWidth = NSExpression(forConstantValue: routeWidthAhead)
+      ahead.lineOffset = NSExpression(forConstantValue: routeOffset)
+      ahead.lineCap = NSExpression(forConstantValue: "round")
+      ahead.lineJoin = NSExpression(forConstantValue: "round")
+      style.addLayer(ahead)
+      let aheadDirection = MLNSymbolStyleLayer(identifier: "route-ahead-direction", source: aheadSource)
+      aheadDirection.symbolPlacement = NSExpression(forConstantValue: "line")
+      aheadDirection.symbolSpacing = NSExpression(forConstantValue: 48)
+      aheadDirection.iconImageName = NSExpression(forConstantValue: "route-arrow")
+      aheadDirection.iconOffset = NSExpression(forConstantValue: NSValue(cgVector: CGVector(dx: 0, dy: routeOffset)))
+      aheadDirection.iconAllowsOverlap = NSExpression(forConstantValue: true)
+      aheadDirection.iconIgnoresPlacement = NSExpression(forConstantValue: true)
+      style.addLayer(aheadDirection)
 
       // On top of the route and its arrows, half as wide: the ridden part shows blue with the route's
       // orange at its edges, see `knot-navigation` "Ridden track".
@@ -711,11 +765,13 @@ struct NetworkMapView: UIViewRepresentable {
       style.addSource(trackSource)
       let trackLayer = MLNLineStyleLayer(identifier: "ridden-track", source: trackSource)
       trackLayer.lineColor = NSExpression(forConstantValue: UIColor(red: 0x1E / 255, green: 0x6F / 255, blue: 0xD9 / 255, alpha: 1))
-      trackLayer.lineWidth = NSExpression(forConstantValue: 4)
+      trackLayer.lineWidth = NSExpression(forConstantValue: trackWidth)
+      trackLayer.lineOffset = NSExpression(forConstantValue: routeOffset)
       trackLayer.lineCap = NSExpression(forConstantValue: "round")
       trackLayer.lineJoin = NSExpression(forConstantValue: "round")
       style.addLayer(trackLayer)
       updateTrack()
+      updateLegAhead()
 
       let knots = MLNSymbolStyleLayer(identifier: "knots", source: sources[3])
       knots.iconImageName = NSExpression(format: "mgl_join({'knot-', ref})")

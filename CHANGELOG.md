@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- A stretch used both ways shows as two lines side by side, and while navigating, the leg to the next knot stands out, so a fork on a round trip is clear
+- Starting navigation on a stretch used both ways begins with its first use, not on the way back
 - The lock screen shows what the app shows, with a bar along the route and a distance that stays current; on Android 16 and newer as a Live Update with a chip in the status bar
 - A route through a knot signposted in two places goes through the signpost that fits, without a detour to the other one
 - Arrival times follow your pace over the last 5 km as you ride, not only at each knot, and a break no longer drags them down afterwards

@@ -228,6 +228,13 @@ object MapFeatures {
     return lines.toList()
   }
 
+  /** The line of [course], the leg ahead while navigating, or none. */
+  fun legAhead(course: List<GeoPoint>?): String =
+    featureCollection(listOfNotNull(course)) { line ->
+      lineString(line)
+      properties {}
+    }
+
   /** Points with the properties `position` and `role` (`start`, `stop` or `end`). */
   fun waypoints(session: PlanningSession): String =
     featureCollection(session.waypoints.withIndex().toList()) { (index, knot) ->
