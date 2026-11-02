@@ -7,7 +7,7 @@ Android checked 2026-11-02 on the emulator (`Medium_Phone_API_37.0`) with the de
 | Scenario | Android | iOS | Notes |
 |---|---|---|---|
 | Badges at both signposts | ✅ | ✅ simulator | 02 by the river and near the L 16 ([Android](screenshots/android-badges-tap-route.png), [iOS](screenshots/ios-badges-and-rings.png)) |
-| Tapping the other signpost | ✅ | ⏳ | Tap on the north-west badge: `route.json` has 02 (node 59469043), "Start at 02" (left). The simulator can't tap here, so iOS is in the steps below; the core lookup is covered by `PlanningTest` "tapping the other signpost" |
+| Tapping the other signpost | ✅ | ✅ | Tap on the north-west badge: `route.json` has 02 (node 59469043), "Start at 02" (left). iOS checked by the maintainer on the iPhone, and again on the Pixel: both badges are highlighted. The core lookup is covered by `PlanningTest` "tapping the other signpost" |
 | Route through a knot with two signposts | ✅ | ✅ simulator | Route 28 → 02: both badges have the end's style, and the panel shows 02 once (middle) |
 | Next knot with two signposts | ✅ | ✅ simulator | Both rings ([Android](screenshots/android-next-knot-rings.png), iOS right) |
 | Knots with equal numbers on both banks | unit test | unit test | `PlanningTest` |
@@ -19,7 +19,7 @@ Startup on the emulator, mark "knots": 6.9 s with the old build, 5.0 s and 4.0 s
 
 ### Steps for the maintainer
 
-1. At Siegburg 02 on the Pixel and the iPhone: a badge 02 by the river and one near the L 16.
-2. iPhone: with no route, tap the badge near the L 16: 02 becomes the start, shown once in the list.
+1. ✅ At Siegburg 02 on the Pixel and the iPhone: a badge 02 by the river and one near the L 16.
+2. ✅ iPhone: with no route, tap the badge near the L 16: 02 becomes the start, shown once in the list. Checked by the maintainer on the iPhone and the Pixel, 2026-11-02.
 3. Navigate a route through 02: both badges are highlighted, and both have the ring while 02 is next.
-4. After the next data publication: the route line between the two badges follows the paths, not a straight line across the L 16.
+4. ✅ After the next data publication: the route line between the two badges follows the paths, not a straight line across the L 16. Checked by the maintainer on the Pixel and the iPhone, 2026-11-02, with the data of 2026-11-01.
