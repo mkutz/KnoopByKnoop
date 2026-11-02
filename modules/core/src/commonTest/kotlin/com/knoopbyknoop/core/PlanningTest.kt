@@ -10,6 +10,7 @@ import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
@@ -421,6 +422,78 @@ class PlanningTest {
       listOf("\"start\"", "\"passed\"", "\"end\""),
       features.map { it.jsonObject.getValue("properties").jsonObject.getValue("role").toString() },
     )
+  }
+
+  // Requirement: Knots signposted at several places
+
+  private val knot02 =
+    Knot(2, "02", NetworkType.CYCLING, 52.1, 5.1, listOf(GeoPoint(52.1012, 5.0985)))
+  private val knot05 = Knot(5, "05", NetworkType.CYCLING, 52.12, 5.1)
+  private val signpostGraph = NetworkGraph(listOf(knot02, knot05), listOf(Connection(2, 5, 2000)))
+
+  private fun coordinatesOf(feature: kotlinx.serialization.json.JsonElement) =
+    feature.jsonObject.getValue("geometry").jsonObject.getValue("coordinates").jsonArray.let {
+      GeoPoint(it[1].toString().toDouble(), it[0].toString().toDouble())
+    }
+
+  @Test
+  fun `badges at both signposts`() {
+    val features = features(MapFeatures.knots(signpostGraph))
+    val badges02 = features.filter {
+      it.jsonObject.getValue("properties").jsonObject.getValue("ref").toString() == "\"02\""
+    }
+
+    assertEquals(3, features.size)
+    assertEquals(knot02.positions, badges02.map(::coordinatesOf))
+    assertEquals(
+      1,
+      badges02
+        .map { it.jsonObject.getValue("properties").jsonObject.getValue("id") }
+        .distinct()
+        .size,
+    )
+  }
+
+  @Test
+  fun `tapping the other signpost`() {
+    val locator = KnotLocator(signpostGraph.knots.values)
+
+    val tapped = assertNotNull(locator.nearestAtAnyNode(52.1012, 5.0985, 20.0))
+    val started = PlanningSession.start(signpostGraph).tap(tapped)
+
+    assertSame(knot02, tapped)
+    assertEquals(listOf(knot02), started.waypoints)
+  }
+
+  @Test
+  fun `route through a knot with two signposts`() {
+    val route = PlanningSession.start(signpostGraph).tapAll(knot02, knot05)
+
+    val features = features(MapFeatures.routeKnotsLayer(route))
+
+    assertEquals(
+      listOf("\"start\"", "\"start\"", "\"end\""),
+      features.map { it.jsonObject.getValue("properties").jsonObject.getValue("role").toString() },
+    )
+    assertEquals(
+      knot02.positions + GeoPoint(knot05.latitude, knot05.longitude),
+      features.map(::coordinatesOf),
+    )
+    assertEquals(
+      listOf(knot02, knot05),
+      MapFeatures.routeKnots(route).map { it.knot },
+      "once in the sheet",
+    )
+  }
+
+  @Test
+  fun `knots with equal numbers on both banks`() {
+    val north = Knot(31, "30", NetworkType.CYCLING, 52.2, 5.1)
+    val south = Knot(32, "30", NetworkType.CYCLING, 52.198, 5.1)
+    val banks = NetworkGraph(listOf(north, south), listOf(Connection(31, 32, 300)))
+
+    assertEquals(2, features(MapFeatures.knots(banks)).size)
+    assertSame(south, KnotLocator(banks.knots.values).nearestAtAnyNode(52.198, 5.1, 20.0))
   }
 
   // improve-planner-map: Waypoint list with badges

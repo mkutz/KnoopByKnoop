@@ -413,8 +413,11 @@ struct NetworkMapView: UIViewRepresentable {
           if let direction { feature.attributes = ["direction": direction] }
           return feature
         }
+      // At each of its signposts, see `map-planning` "Knots signposted at several places".
       (style?.source(withIdentifier: "next-knot") as? MLNShapeSource)?.shape =
-        nextKnot.map { point($0.latitude, $0.longitude) }
+        nextKnot.map { knot in
+          MLNShapeCollection(shapes: knot.positions.map { point($0.latitude, $0.longitude) })
+        }
       // Off route, the straight way back to the route, see `knot-navigation` "Way to the route on
       // the map".
       var way: MLNShape? = nil

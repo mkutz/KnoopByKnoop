@@ -1,0 +1,25 @@
+# Manual checks
+
+## Scenarios
+
+Android checked 2026-11-02 on the emulator (`Medium_Phone_API_37.0`) with the debug build and the published data of that day (extract date 2026-10-31), at Siegburg 02. iOS checked the same way in the simulator (iPhone 18 Pro, iOS 27), with navigation started by a temporary launch flag (removed again). The route, camera and position of both were restored.
+
+| Scenario | Android | iOS | Notes |
+|---|---|---|---|
+| Badges at both signposts | ✅ | ✅ simulator | 02 by the river and near the L 16 ([Android](screenshots/android-badges-tap-route.png), [iOS](screenshots/ios-badges-and-rings.png)) |
+| Tapping the other signpost | ✅ | ⏳ | Tap on the north-west badge: `route.json` has 02 (node 59469043), "Start at 02" (left). The simulator can't tap here, so iOS is in the steps below; the core lookup is covered by `PlanningTest` "tapping the other signpost" |
+| Route through a knot with two signposts | ✅ | ✅ simulator | Route 28 → 02: both badges have the end's style, and the panel shows 02 once (middle) |
+| Next knot with two signposts | ✅ | ✅ simulator | Both rings ([Android](screenshots/android-next-knot-rings.png), iOS right) |
+| Knots with equal numbers on both banks | unit test | unit test | `PlanningTest` |
+| Along the ways to the knot's position | ✅ pipeline | ✅ pipeline | Köln extract, course 02 → 28: before, a straight 195 m from the river badge to the L 16 signpost; now along the ways in steps of 22, 37, 75 and 109 m, passing that signpost within 5 m. `NetworkExtractionTest`. Seen on the emulator with a graph and geometry built from that extract: the route 28 → 02 follows the path near the river, under the L 16, not over the bridge ([screenshot](screenshots/android-course-under-the-bridge.png)). The other screenshots show the published courses, which are still straight |
+| No way between the nodes | unit test | unit test | `NetworkExtractionTest`, also with a way more than 3 times the straight distance |
+| Junction tagged on several nodes | unit test | unit test | The course still ends at the knot's position |
+
+Startup on the emulator, mark "knots": 6.9 s with the old build, 5.0 s and 4.0 s with the new one.
+
+### Steps for the maintainer
+
+1. At Siegburg 02 on the Pixel and the iPhone: a badge 02 by the river and one near the L 16.
+2. iPhone: with no route, tap the badge near the L 16: 02 becomes the start, shown once in the list.
+3. Navigate a route through 02: both badges are highlighted, and both have the ring while 02 is next.
+4. After the next data publication: the route line between the two badges follows the paths, not a straight line across the L 16.

@@ -395,7 +395,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   /** Handles a tap on the map; [radiusMeters] is the touch target at the current zoom level. */
   fun tap(latitude: Double, longitude: Double, radiusMeters: Double) {
     val session = state.session ?: return
-    val knot = loaded?.locator?.nearest(latitude, longitude, radiusMeters) ?: return
+    // Any badge of a knot, see `map-planning` "Knots signposted at several places".
+    val knot = loaded?.locator?.nearestAtAnyNode(latitude, longitude, radiusMeters) ?: return
     update(session.tap(knot))
   }
 
@@ -481,7 +482,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             locator = KnotLocator(graphFile.graph.knots.values),
             knots =
               storage
-                .mapLayer(network, "knots", withGeometry = false) {
+                .mapLayer(network, "knot-badges", withGeometry = false) {
                   MapFeatures.knots(graphFile.graph)
                 }
                 .readText(),

@@ -163,10 +163,14 @@ data class RouteFerry(
  */
 object MapFeatures {
 
-  /** Points with the properties `id` and `ref` (the knot's number). */
+  /**
+   * Points with the properties `id` and `ref` (the knot's number), one at every place a knot is
+   * signposted, see `map-planning` "Knots signposted at several places".
+   */
   fun knots(graph: NetworkGraph): String =
-    featureCollection(graph.knots.values) { knot ->
-      point(knot)
+    featureCollection(graph.knots.values.flatMap { knot -> knot.positions.map { knot to it } }) {
+      (knot, position) ->
+      point(position)
       properties {
         property("id", knot.id.toString())
         property("ref", quoted(knot.ref))
@@ -251,10 +255,17 @@ object MapFeatures {
     return listOf(RouteKnot(start.knot, KnotRole.ROUND_TRIP)) + knots.subList(1, knots.lastIndex)
   }
 
-  /** Points of the route's markers with the properties `ref` and `role` (lowercase). */
+  /**
+   * Points of the route's markers with the properties `ref` and `role` (lowercase), one at every
+   * place a knot is signposted, see `map-planning` "Knots signposted at several places".
+   */
   fun routeKnotsLayer(session: PlanningSession): String =
-    featureCollection(routeKnotMarkers(session)) { routeKnot ->
-      point(routeKnot.knot)
+    featureCollection(
+      routeKnotMarkers(session).flatMap { routeKnot ->
+        routeKnot.knot.positions.map { routeKnot to it }
+      }
+    ) { (routeKnot, position) ->
+      point(position)
       properties {
         property("ref", quoted(routeKnot.knot.ref))
         property("role", quoted(routeKnot.role.name.lowercase()))
@@ -340,9 +351,11 @@ object MapFeatures {
 
     private var hasProperty = false
 
-    fun point(knot: Knot) {
+    fun point(knot: Knot) = point(GeoPoint(knot.latitude, knot.longitude))
+
+    fun point(position: GeoPoint) {
       text.append(""""geometry":{"type":"Point","coordinates":""")
-      coordinates(knot.longitude, knot.latitude)
+      coordinates(position.longitude, position.latitude)
       text.append("},")
     }
 

@@ -94,8 +94,10 @@ final class NetworkStorage: @unchecked Sendable {
     let installedFiles = Set(installed().map(\.file))
     for name in (try? FileManager.default.contentsOfDirectory(atPath: networksDirectory.path)) ?? []
     where ((name.hasSuffix(".graph") || name.hasSuffix(".geometry")) && !installedFiles.contains(name))
-      // Map layer caches from before lines and courses were cached separately.
+      // Map layer caches from before lines and courses were cached separately, and from before a
+      // knot had a badge at each of its signposts.
       || name.contains("-connections-")
+      || name.contains("-knots-")
     {
       try? FileManager.default.removeItem(at: networksDirectory.appendingPathComponent(name))
     }

@@ -618,7 +618,13 @@ private class MapHolder {
       )
     style
       .getSourceAs<GeoJsonSource>("next-knot")
-      ?.setGeoJson(nextKnot?.let { point(it.latitude, it.longitude) } ?: empty)
+      ?.setGeoJson(
+        // At each of its signposts, see `map-planning` "Knots signposted at several places".
+        nextKnot?.let { knot ->
+          val coordinates = knot.positions.joinToString(",") { "[${it.longitude}, ${it.latitude}]" }
+          """{"type": "MultiPoint", "coordinates": [$coordinates]}"""
+        } ?: empty
+      )
     // Off route, the straight way back to the route, see `knot-navigation` "Way to the route on
     // the map".
     val fix = position

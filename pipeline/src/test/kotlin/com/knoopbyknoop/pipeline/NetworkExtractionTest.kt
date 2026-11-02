@@ -164,6 +164,60 @@ class NetworkExtractionTest {
     assertEquals(listOf(GeoPoint(52.00275, 5.0)), knot30.otherNodes)
   }
 
+  private fun merged30Course(vararg connector: OsmNode): Pair<Connection, List<GeoPoint>> {
+    // Knot 30 on nodes 2 and 3; route 30-45 reaches it at node 3, the position is at node 2.
+    val result =
+      extract(
+        relations =
+          listOf(route(10, "rcn", 100), route(11, "rcn", 101)) +
+            if (connector.isEmpty()) listOf() else listOf(route(12, "rcn", 102)),
+        ways =
+          listOf(OsmWay(100, listOf(1, 2)), OsmWay(101, listOf(3, 4))) +
+            if (connector.isEmpty()) listOf()
+            else listOf(OsmWay(102, listOf(2L) + connector.map { it.id } + 3L)),
+        nodes =
+          listOf(
+            cyclingKnot(1, 0, "12"),
+            knot30(2, 52.001),
+            knot30(3, 52.00275),
+            cyclingKnot(4, 5, "45"),
+          ) + connector,
+      )
+    return result.courses
+      .getValue(NetworkType.CYCLING)
+      .entries
+      .single { 4L in listOf(it.key.fromId, it.key.toId) }
+      .toPair()
+  }
+
+  private val position30 = GeoPoint(52.001, 5.0)
+  private val otherNode30 = GeoPoint(52.00275, 5.0)
+  private val position45 = GeoPoint(52.005, 5.0)
+
+  @Test
+  fun `along the ways to the knot's position`() {
+    val (connection, course) = merged30Course(OsmNode(7, 52.0018, 5.001))
+
+    assertEquals(listOf(position30, GeoPoint(52.0018, 5.001), otherNode30, position45), course)
+    assertEquals(
+      haversineMeters(52.00275, 5.0, 52.005, 5.0).roundToInt(),
+      connection.lengthMeters,
+      "measured on the route's own path",
+    )
+  }
+
+  @Test
+  fun `no way between the nodes`() {
+    assertEquals(listOf(position30, otherNode30, position45), merged30Course().second)
+  }
+
+  @Test
+  fun `a detour between the nodes is no way to the position`() {
+    val (_, course) = merged30Course(OsmNode(7, 52.0018, 5.01))
+
+    assertEquals(listOf(position30, otherNode30, position45), course)
+  }
+
   @Test
   fun `connector inside a junction`() {
     // A short route of its own (relation 11) links the two nodes tagged 30, without a ferry.

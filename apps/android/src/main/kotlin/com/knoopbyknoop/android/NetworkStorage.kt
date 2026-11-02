@@ -97,8 +97,10 @@ class NetworkStorage(private val directory: File) {
       .listFiles { file ->
         ((file.name.endsWith(".graph") || file.name.endsWith(".geometry")) &&
           file.name !in installedFiles) ||
-          // Map layer caches from before lines and courses were cached separately.
-          file.name.contains("-connections-")
+          // Map layer caches from before lines and courses were cached separately, and from before
+          // a knot had a badge at each of its signposts.
+          file.name.contains("-connections-") ||
+          file.name.contains("-knots-")
       }
       ?.forEach { it.delete() }
   }

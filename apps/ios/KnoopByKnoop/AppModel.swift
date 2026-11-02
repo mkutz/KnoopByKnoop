@@ -192,7 +192,8 @@ final class AppModel: ObservableObject {
   func tap(latitude: Double, longitude: Double, radiusMeters: Double) {
     guard let locator = loaded?.locator else { return }
     change { session in
-      locator.nearest(latitude: latitude, longitude: longitude, radiusMeters: radiusMeters)
+      // Any badge of a knot, see `map-planning` "Knots signposted at several places".
+      locator.nearestAtAnyNode(latitude: latitude, longitude: longitude, radiusMeters: radiusMeters)
         .map { session.tap(knot: $0) }
     }
   }
@@ -279,7 +280,7 @@ final class AppModel: ObservableObject {
           hasGeometry: false,
           geometry: lines,
           locator: KnotLocator(knots: knots),
-          knots: storage.mapLayer(network: network, name: "knots", withGeometry: false) {
+          knots: storage.mapLayer(network: network, name: "knot-badges", withGeometry: false) {
             MapFeatures.shared.knots(graph: graph)
           },
           connections: storage.mapLayer(network: network, name: "lines", withGeometry: false) {

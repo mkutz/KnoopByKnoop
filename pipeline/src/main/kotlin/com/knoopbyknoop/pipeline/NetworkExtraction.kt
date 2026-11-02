@@ -32,6 +32,18 @@ class NetworkExtraction {
 
   private val wantedWayIds by lazy { routes.values.flatMapTo(HashSet()) { it.wayIds } }
   private val coordinates by lazy { NodeCoordinates(wayNodeIds.values) }
+  /** The nodes next to each other on the ways of each network's routes, without ferries. */
+  private val networkNeighbors by lazy {
+    NetworkType.entries.associateWith { network ->
+      neighborsAlong(
+        routes.values
+          .filter { it.network == network }
+          .flatMapTo(HashSet()) { it.wayIds }
+          .filter { it !in ferryWayTags }
+          .mapNotNull { wayNodeIds[it] }
+      )
+    }
+  }
 
   fun acceptRelation(relation: OsmRelation) {
     if (relation.tags["type"] != "route") return
@@ -191,26 +203,20 @@ class NetworkExtraction {
       else -> return RouteOutcome.Skipped(SkipReason.MORE_THAN_TWO_KNOTS)
     }
 
-    val neighbors = HashMap<Long, MutableList<Pair<Long, Double>>>()
-    for (nodeIds in ways) {
-      for (index in 1 until nodeIds.size) {
-        val from = nodeIds[index - 1]
-        val to = nodeIds[index]
-        val distance = coordinates.distanceMeters(from, to) ?: continue
-        neighbors.getOrPut(from) { mutableListOf() }.add(to to distance)
-        neighbors.getOrPut(to) { mutableListOf() }.add(from to distance)
-      }
-    }
+    val neighbors = neighborsAlong(ways)
     val (start, end) = routeKnots
     val startNodeIds = knotNodeIds.filter { knotsByNodeId[it] == start }
     val endNodeIds = knotNodeIds.filter { knotsByNodeId[it] == end }.toSet()
     val (length, nodeIds) =
       shortestPath(neighbors, startNodeIds, endNodeIds)
         ?: return RouteOutcome.Skipped(SkipReason.KNOTS_NOT_CONNECTED)
-    // A merged junction is drawn at its representative node, so the course is extended to it.
+    // A merged junction has its position at its representative node, so the course is extended to
+    // it, see `network-data` "Course of every connection".
     val course = buildList {
       add(GeoPoint(start.latitude, start.longitude))
+      addAll(wayToPosition(route.network, nodeIds.first(), start).asReversed())
       addAll(nodeIds.mapNotNull { coordinates.pointOf(it) })
+      addAll(wayToPosition(route.network, nodeIds.last(), end))
       add(GeoPoint(end.latitude, end.longitude))
     }
     return RouteOutcome.Connected(
@@ -247,10 +253,42 @@ class NetworkExtraction {
     get() = isFerry || wayIds.any { it in ferryWayTags }
 
   /** The shortest path from any of [startNodeIds] to any of [endNodeIds], with its node IDs. */
+  /**
+   * The points after [nodeId] to the position of [knot], along the ways of the network without
+   * ferries; empty where no such way leads there without a detour, so the course goes straight.
+   */
+  private fun wayToPosition(network: NetworkType, nodeId: Long, knot: Knot): List<GeoPoint> {
+    if (nodeId == knot.id) return listOf()
+    val straight = coordinates.distanceMeters(nodeId, knot.id) ?: return listOf()
+    val (_, path) =
+      shortestPath(
+        networkNeighbors.getValue(network),
+        listOf(nodeId),
+        setOf(knot.id),
+        maximumDistance = straight * MAX_DETOUR_TO_POSITION,
+      ) ?: return listOf()
+    return path.drop(1).mapNotNull { coordinates.pointOf(it) }
+  }
+
+  private fun neighborsAlong(ways: Iterable<LongArray>): Map<Long, List<Pair<Long, Double>>> {
+    val neighbors = HashMap<Long, MutableList<Pair<Long, Double>>>()
+    for (nodeIds in ways) {
+      for (index in 1 until nodeIds.size) {
+        val from = nodeIds[index - 1]
+        val to = nodeIds[index]
+        val distance = coordinates.distanceMeters(from, to) ?: continue
+        neighbors.getOrPut(from) { mutableListOf() }.add(to to distance)
+        neighbors.getOrPut(to) { mutableListOf() }.add(from to distance)
+      }
+    }
+    return neighbors
+  }
+
   private fun shortestPath(
     neighbors: Map<Long, List<Pair<Long, Double>>>,
     startNodeIds: Collection<Long>,
     endNodeIds: Set<Long>,
+    maximumDistance: Double = Double.MAX_VALUE,
   ): Pair<Double, List<Long>>? {
     val distances = startNodeIds.associateWithTo(HashMap()) { 0.0 }
     val predecessors = HashMap<Long, Long>()
@@ -264,6 +302,7 @@ class NetworkExtraction {
       if (distance > distances.getValue(nodeId)) continue
       for ((neighborId, length) in neighbors[nodeId].orEmpty()) {
         val neighborDistance = distance + length
+        if (neighborDistance > maximumDistance) continue
         if (neighborDistance < (distances[neighborId] ?: Double.MAX_VALUE)) {
           distances[neighborId] = neighborDistance
           predecessors[neighborId] = nodeId
@@ -310,6 +349,9 @@ class NetworkExtraction {
      * extract, nodes of one junction are up to about 500 m apart, e.g. at wide junctions.
      */
     const val SAME_KNOT_DISTANCE_METERS = 500.0
+
+    /** Longer than this many times the straight distance, a way is a detour, not the junction. */
+    const val MAX_DETOUR_TO_POSITION = 3.0
   }
 }
 
