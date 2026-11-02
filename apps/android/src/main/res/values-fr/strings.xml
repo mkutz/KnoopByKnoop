@@ -75,6 +75,8 @@
   <string name="search_unavailable">La recherche n\'est pas disponible pour le moment</string>
   <string name="settings">Paramètres</string>
   <string name="my_position">Ma position</string>
+  <string name="no_knots_in_view">Aucun point-nœud en vue</string>
+  <string name="show_nearest_knots">Afficher les points-nœuds les plus proches</string>
   <string name="recenter">Recentrer</string>
   <string name="zoom_in">Zoom avant</string>
   <string name="zoom_out">Zoom arrière</string>

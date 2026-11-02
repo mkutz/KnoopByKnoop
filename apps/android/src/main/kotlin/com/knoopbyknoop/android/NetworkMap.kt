@@ -31,6 +31,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.knoopbyknoop.core.Fix
+import com.knoopbyknoop.core.GeoBounds
 import com.knoopbyknoop.core.GeoPoint
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.MapFeatures
@@ -127,6 +128,9 @@ private const val RIDER_ARROW_PIXELS = 50f
 /** Knots are drawn and can be tapped from this zoom level on; below it the route is a line only. */
 private const val KNOT_MIN_ZOOM = 10.0
 
+/** The room around the rider and the nearest knot, in pixels. */
+private const val NEAREST_PADDING = 160
+
 /** The touch target around a tap within which the nearest knot is picked. */
 private const val TOUCH_TARGET_DP = 24f
 
@@ -135,6 +139,12 @@ private const val ORANGE = "#F28C28"
 
 /** A place on the map, saved when the app goes to the background, see `faster-startup`. */
 data class CameraPlace(val latitude: Double, val longitude: Double, val zoom: Double)
+
+/**
+ * Where the nearest [knot] is and, if known, the [rider], for the map to show, see `map-planning`
+ * "Nearest knots".
+ */
+data class NearestKnots(val knot: GeoPoint, val rider: Fix?)
 
 /**
  * The map with the network and the route, and buttons to zoom. Taps are reported with the touch
@@ -153,7 +163,7 @@ fun NetworkMap(
   initialPlace: CameraPlace?,
   onLeave: (CameraPlace) -> Unit,
   marker: PlaceHit?,
-  onMove: (CameraPlace) -> Unit,
+  onMove: (CameraPlace, GeoBounds?) -> Unit,
   modifier: Modifier = Modifier,
   /** The rider's position while navigating, see `knot-navigation` "Position on the map". */
   position: Fix? = null,
@@ -178,6 +188,13 @@ fun NetworkMap(
   locating: Boolean = false,
   /** Asks for the position; `null` while navigating, which hides the button. */
   onLocate: (() -> Unit)? = null,
+  /** Whether the nearest knots are being found. */
+  findingNearest: Boolean = false,
+  /** Shows the nearest knots; `null` while knots are in view, which hides the button. */
+  onShowNearest: (() -> Unit)? = null,
+  /** Where to move for the nearest knots, until [onNearestShown]. */
+  nearestKnots: NearestKnots? = null,
+  onNearestShown: () -> Unit = {},
   /** A coming knot to show while navigating, see `knot-navigation` "Showing a coming knot". */
   shownKnot: ShownKnot? = null,
   /**
@@ -206,7 +223,7 @@ fun NetworkMap(
       getMapAsync { map ->
         holder.map = map
         holder.placeCompass()
-        map.addOnCameraIdleListener { holder.place()?.let { holder.onMove(it) } }
+        map.addOnCameraIdleListener { holder.place()?.let { holder.onMove(it, holder.knotArea()) } }
         // Moving or zooming the map by hand stops following the rider; the app's own camera moves
         // don't.
         map.addOnCameraMoveStartedListener { reason ->
@@ -266,7 +283,15 @@ fun NetworkMap(
   holder.show(graph, layers, focus)
   // A chosen search hit: the map moves there, close enough to tap knots, see `place-search`.
   LaunchedEffect(marker) { holder.showMarker(marker) }
-  LaunchedEffect(myPosition) { holder.showMyPosition(myPosition) }
+  LaunchedEffect(myPosition) {
+    holder.showMyPosition(myPosition, center = myPosition != nearestKnots?.rider)
+  }
+  LaunchedEffect(nearestKnots) {
+    nearestKnots?.let {
+      holder.showNearestKnots(it)
+      onNearestShown()
+    }
+  }
   LaunchedEffect(position, nextKnot, wayToRoute) {
     holder.showNavigation(position, nextKnot, wayToRoute, direction)
   }
@@ -334,6 +359,23 @@ fun NetworkMap(
             Icon(
               painterResource(R.drawable.ic_my_position),
               contentDescription = stringResource(R.string.my_position),
+            )
+        }
+      }
+      // Only while planning with no knots in view, see `map-planning` "Nearest knots".
+      if (onShowNearest != null) {
+        SmallFloatingActionButton(
+          onClick = onShowNearest,
+          containerColor = mapOverlayColor,
+          contentColor = Green,
+          modifier = Modifier.padding(top = 12.dp),
+        ) {
+          if (findingNearest)
+            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+          else
+            Icon(
+              painterResource(R.drawable.ic_nearest_knots),
+              contentDescription = stringResource(R.string.show_nearest_knots),
             )
         }
       }
@@ -471,7 +513,7 @@ private class MapHolder {
     update()
   }
 
-  var onMove: (CameraPlace) -> Unit = {}
+  var onMove: (CameraPlace, GeoBounds?) -> Unit = { _, _ -> }
   private var marker: PlaceHit? = null
 
   fun showMarker(newMarker: PlaceHit?) {
@@ -557,10 +599,10 @@ private class MapHolder {
   private var myPosition: Fix? = null
 
   /** Marks [newPosition], found on request, and centers the map on it with the knots shown. */
-  fun showMyPosition(newPosition: Fix?) {
+  fun showMyPosition(newPosition: Fix?, center: Boolean) {
     myPosition = newPosition
     style?.let { updateMyPosition(it) }
-    val fix = newPosition ?: return
+    val fix = newPosition?.takeIf { center } ?: return
     val map = map ?: return
     map.animateCamera(
       CameraUpdateFactory.newLatLngZoom(
@@ -578,6 +620,33 @@ private class MapHolder {
         if (fix == null) """{"type": "FeatureCollection", "features": []}"""
         else """{"type": "Point", "coordinates": [${fix.longitude}, ${fix.latitude}]}"""
       )
+  }
+
+  /**
+   * The rider and the nearest knot in view with the knots shown, no closer than the position button
+   * goes; the knot alone where they are too far apart, see `map-planning` "Nearest knots".
+   */
+  fun showNearestKnots(target: NearestKnots) {
+    val map = map ?: return
+    val knot = LatLng(target.knot.latitude, target.knot.longitude)
+    val fitted =
+      target.rider
+        ?.let { LatLng(it.latitude, it.longitude) }
+        ?.takeIf { it != knot }
+        ?.let { rider ->
+          map.getCameraForLatLngBounds(
+            LatLngBounds.Builder().include(knot).include(rider).build(),
+            intArrayOf(NEAREST_PADDING, NEAREST_PADDING, NEAREST_PADDING, NEAREST_PADDING),
+          )
+        }
+        ?.takeIf { it.zoom >= KNOT_MIN_ZOOM }
+    map.animateCamera(
+      if (fitted != null)
+        CameraUpdateFactory.newCameraPosition(
+          CameraPosition.Builder(fitted).zoom(minOf(fitted.zoom, MY_POSITION_ZOOM)).build()
+        )
+      else CameraUpdateFactory.newLatLngZoom(knot, KNOT_MIN_ZOOM)
+    )
   }
 
   /** Shows [knot] at the navigation zoom and stops following the rider, as a move by hand. */
@@ -687,6 +756,15 @@ private class MapHolder {
 
   /** Whether the map already shows a place to keep, e.g. the one saved when the app was left. */
   var hasPlace = false
+
+  /** The map's visible area, or `null` if it is zoomed out too far for knots to show. */
+  fun knotArea(): GeoBounds? =
+    map
+      ?.takeIf { it.cameraPosition.zoom >= KNOT_MIN_ZOOM }
+      ?.projection
+      ?.visibleRegion
+      ?.latLngBounds
+      ?.let { GeoBounds(it.latitudeSouth, it.longitudeWest, it.latitudeNorth, it.longitudeEast) }
 
   fun place(): CameraPlace? =
     map?.cameraPosition?.let { camera ->

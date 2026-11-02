@@ -13,7 +13,7 @@ import kotlin.math.sqrt
  * Knots are kept in a grid of cells of about 1 km, so a lookup only measures the knots of the few
  * cells around the position, even in networks with tens of thousands of knots.
  */
-class KnotLocator(knots: Collection<Knot>) {
+class KnotLocator(private val knots: Collection<Knot>) {
 
   /** Every knot in the cell of each of its [Knot.positions]. */
   private val cells: Map<Long, List<Knot>> =
@@ -33,6 +33,30 @@ class KnotLocator(knots: Collection<Knot>) {
    */
   fun nearestAtAnyNode(latitude: Double, longitude: Double, radiusMeters: Double): Knot? =
     nearest(latitude, longitude, radiusMeters) { it.positions }
+
+  /**
+   * Whether the map shows no knots: none in its [area], or `null` if it is zoomed out too far for
+   * knots to show. Never for a network without knots, as there is nothing to show then, see
+   * `map-planning` "Nearest knots".
+   */
+  fun noKnotsIn(area: GeoBounds?): Boolean =
+    knots.isNotEmpty() &&
+      (area == null ||
+        knots.none { knot ->
+          knot.positions.any {
+            it.latitude in area.minLatitude..area.maxLatitude &&
+              it.longitude in area.minLongitude..area.maxLongitude
+          }
+        })
+
+  /**
+   * The position of a knot nearest to the given one, however far, of any of the places it is
+   * signposted, or `null` for a network without knots, see `map-planning` "Nearest knots".
+   */
+  fun nearestPosition(latitude: Double, longitude: Double): GeoPoint? =
+    knots
+      .flatMap { it.positions }
+      .minByOrNull { distanceMeters(latitude, longitude, it.latitude, it.longitude) }
 
   private fun nearest(
     latitude: Double,

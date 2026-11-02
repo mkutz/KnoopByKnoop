@@ -75,6 +75,8 @@
   <string name="search_unavailable">Zoeken is nu niet beschikbaar</string>
   <string name="settings">Instellingen</string>
   <string name="my_position">Mijn positie</string>
+  <string name="no_knots_in_view">Geen knooppunten in beeld</string>
+  <string name="show_nearest_knots">Dichtstbijzijnde knooppunten tonen</string>
   <string name="recenter">Centreren</string>
   <string name="zoom_in">Inzoomen</string>
   <string name="zoom_out">Uitzoomen</string>

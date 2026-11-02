@@ -42,6 +42,8 @@ private let routeOffset: CGFloat = 4
 
 /// Knots are drawn and can be tapped from this zoom level on.
 private let knotMinimumZoom = 10.0
+/// How close the position button goes.
+private let myPositionZoom = 14.0
 
 /// The touch target around a tap within which the nearest knot is picked.
 private let touchTargetPoints = 24.0
@@ -74,7 +76,7 @@ struct NetworkMapView: UIViewRepresentable {
   /// The chosen search hit, shown with a marker; the map moves there, see `place-search`.
   let marker: PlaceHit?
   /// Called with the map's place whenever it stopped moving.
-  let onMove: (CameraPlace) -> Void
+  let onMove: (CameraPlace, GeoBounds?) -> Void
   /// The rider's position while navigating, see `knot-navigation` "Position on the map".
   var position: Fix? = nil
   /// The next knot while navigating, highlighted.
@@ -97,6 +99,12 @@ struct NetworkMapView: UIViewRepresentable {
   var locating = false
   /// Asks for the position; `nil` while navigating, which hides the button.
   var onLocate: (() -> Void)? = nil
+  /// Whether the nearest knots are being found.
+  var findingNearest = false
+  /// Shows the nearest knots; `nil` while knots are in view, which hides the button.
+  var onShowNearest: (() -> Void)? = nil
+  /// Where the map moved for the nearest knots last.
+  var nearestKnots: NearestKnots? = nil
   /// A coming knot to show while navigating, see `knot-navigation` "Showing a coming knot on the
   /// map".
   var shownKnot: ShownKnot? = nil
@@ -205,7 +213,33 @@ struct NetworkMapView: UIViewRepresentable {
     mapView.addSubview(locate)
     coordinator.locateButton = locate
     coordinator.locateSpinner = spinner
+    // While planning with no knots in view, see `map-planning` "Nearest knots".
+    let nearest = UIButton(type: .system)
+    nearest.setImage(UIImage(systemName: "signpost.right"), for: .normal)
+    nearest.tintColor = UIColor(Color.knoopGreen)
+    nearest.backgroundColor = UIColor { $0.userInterfaceStyle == .dark ? UIColor(white: 0.17, alpha: 1) : .white }
+    nearest.layer.cornerRadius = 20
+    nearest.layer.shadowOpacity = 0.2
+    nearest.layer.shadowRadius = 2
+    nearest.layer.shadowOffset = CGSize(width: 0, height: 1)
+    nearest.accessibilityLabel = String(localized: "Show the nearest knots", bundle: AppLanguage.bundle)
+    nearest.isHidden = true
+    nearest.translatesAutoresizingMaskIntoConstraints = false
+    nearest.addTarget(coordinator, action: #selector(Coordinator.showNearest), for: .touchUpInside)
+    let nearestSpinner = UIActivityIndicatorView(style: .medium)
+    nearestSpinner.translatesAutoresizingMaskIntoConstraints = false
+    nearestSpinner.isUserInteractionEnabled = false
+    nearest.addSubview(nearestSpinner)
+    mapView.addSubview(nearest)
+    coordinator.nearestButton = nearest
+    coordinator.nearestSpinner = nearestSpinner
     NSLayoutConstraint.activate([
+      nearest.widthAnchor.constraint(equalToConstant: 40),
+      nearest.heightAnchor.constraint(equalToConstant: 40),
+      nearest.trailingAnchor.constraint(equalTo: stack.trailingAnchor),
+      nearest.topAnchor.constraint(equalTo: locate.bottomAnchor, constant: 8),
+      nearestSpinner.centerXAnchor.constraint(equalTo: nearest.centerXAnchor),
+      nearestSpinner.centerYAnchor.constraint(equalTo: nearest.centerYAnchor),
       stack.trailingAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.trailingAnchor, constant: -12),
       stack.centerYAnchor.constraint(equalTo: mapView.centerYAnchor),
       recenter.widthAnchor.constraint(equalToConstant: 40),
@@ -238,7 +272,12 @@ struct NetworkMapView: UIViewRepresentable {
     context.coordinator.showKnot(shownKnot, on: mapView)
     context.coordinator.onLocate = onLocate
     context.coordinator.showLocating(locating, available: onLocate != nil)
-    context.coordinator.showMyPosition(myPosition, on: mapView)
+    context.coordinator.nearestButton?.accessibilityLabel =
+      String(localized: "Show the nearest knots", bundle: AppLanguage.bundle)
+    context.coordinator.onShowNearest = onShowNearest
+    context.coordinator.showFindingNearest(findingNearest, available: onShowNearest != nil)
+    context.coordinator.showMyPosition(myPosition, center: myPosition !== nearestKnots?.rider, on: mapView)
+    context.coordinator.showNearestKnots(nearestKnots, on: mapView)
     context.coordinator.dark = context.environment.colorScheme == .dark
     context.coordinator.online = online
     if online && context.coordinator.usesOfflineStyle {
@@ -254,10 +293,14 @@ struct NetworkMapView: UIViewRepresentable {
 
     var onTap: (Double, Double, Double) -> Void = { _, _, _ in }
     var onLeave: (CameraPlace) -> Void = { _ in }
-    var onMove: (CameraPlace) -> Void = { _ in }
+    var onMove: (CameraPlace, GeoBounds?) -> Void = { _, _ in }
     var onLocate: (() -> Void)?
     weak var locateButton: UIButton?
     weak var locateSpinner: UIActivityIndicatorView?
+    var onShowNearest: (() -> Void)?
+    weak var nearestButton: UIButton?
+    weak var nearestSpinner: UIActivityIndicatorView?
+    private var shownNearest: NearestKnots?
     private var myPosition: Fix?
     private var marker: PlaceHit?
 
@@ -269,15 +312,60 @@ struct NetworkMapView: UIViewRepresentable {
       if locating { locateSpinner?.startAnimating() } else { locateSpinner?.stopAnimating() }
     }
 
-    /// Marks `newPosition`, found on request, and centers the map on it with the knots shown.
-    func showMyPosition(_ newPosition: Fix?, on mapView: MLNMapView) {
+    @objc func showNearest() { onShowNearest?() }
+
+    func showFindingNearest(_ finding: Bool, available: Bool) {
+      nearestButton?.isHidden = !available
+      nearestButton?.imageView?.alpha = finding ? 0 : 1
+      if finding { nearestSpinner?.startAnimating() } else { nearestSpinner?.stopAnimating() }
+    }
+
+    /// The rider and the nearest knot in view with the knots shown, no closer than the position
+    /// button goes; the knot alone where they are too far apart, see `map-planning` "Nearest knots".
+    func showNearestKnots(_ target: NearestKnots?, on mapView: MLNMapView) {
+      guard let target, target !== shownNearest else { return }
+      shownNearest = target
+      let knot = CLLocationCoordinate2D(latitude: target.knot.latitude, longitude: target.knot.longitude)
+      if let fix = target.rider, fix.latitude != knot.latitude || fix.longitude != knot.longitude {
+        let camera = mapView.cameraThatFitsCoordinateBounds(
+          MLNCoordinateBounds(
+            sw: CLLocationCoordinate2D(latitude: min(fix.latitude, knot.latitude), longitude: min(fix.longitude, knot.longitude)),
+            ne: CLLocationCoordinate2D(latitude: max(fix.latitude, knot.latitude), longitude: max(fix.longitude, knot.longitude))),
+          edgePadding: edgePadding(in: mapView))
+        let latitude = camera.centerCoordinate.latitude
+        let farthest = MLNAltitudeForZoomLevel(knotMinimumZoom, camera.pitch, latitude, mapView.frame.size)
+        if camera.altitude <= farthest {
+          camera.altitude = max(
+            camera.altitude, MLNAltitudeForZoomLevel(myPositionZoom, camera.pitch, latitude, mapView.frame.size))
+          mapView.setCamera(camera, animated: true)
+          return
+        }
+      }
+      mapView.setCenter(knot, zoomLevel: knotMinimumZoom, animated: true)
+    }
+
+    /// The part of the map above the panel, which the map lies below, or `nil` if it is zoomed out
+    /// too far for knots to show.
+    private func knotArea(of mapView: MLNMapView) -> GeoBounds? {
+      guard mapView.zoomLevel >= knotMinimumZoom else { return nil }
+      var visible = mapView.bounds
+      visible.size.height = max(0, visible.height - edgePadding(in: mapView).bottom)
+      let bounds = mapView.convert(visible, toCoordinateBoundsFrom: mapView)
+      return GeoBounds(
+        minLatitude: bounds.sw.latitude, minLongitude: bounds.sw.longitude,
+        maxLatitude: bounds.ne.latitude, maxLongitude: bounds.ne.longitude)
+    }
+
+    /// Marks `newPosition`, found on request, and centers the map on it with the knots shown, unless
+    /// the map is moved otherwise.
+    func showMyPosition(_ newPosition: Fix?, center: Bool, on mapView: MLNMapView) {
       guard newPosition !== myPosition else { return }
       myPosition = newPosition
       updateMyPosition()
-      guard let newPosition else { return }
+      guard let newPosition, center else { return }
       mapView.setCenter(
         CLLocationCoordinate2D(latitude: newPosition.latitude, longitude: newPosition.longitude),
-        zoomLevel: max(mapView.zoomLevel, 14), animated: true)
+        zoomLevel: max(mapView.zoomLevel, myPositionZoom), animated: true)
     }
 
     private func updateMyPosition() {
@@ -477,7 +565,8 @@ struct NetworkMapView: UIViewRepresentable {
       onMove(
         CameraPlace(
           latitude: mapView.centerCoordinate.latitude, longitude: mapView.centerCoordinate.longitude,
-          zoom: mapView.zoomLevel))
+          zoom: mapView.zoomLevel),
+        knotArea(of: mapView))
     }
     /// Whether the map already shows a place to keep, e.g. the one saved when the app was left.
     var hasPlace = false

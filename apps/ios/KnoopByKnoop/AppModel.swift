@@ -43,6 +43,18 @@ private struct PreparedSession: @unchecked Sendable {
   }
 }
 
+/// Where the nearest `knot` is and, if known, the `rider`, for the map to show, see `map-planning`
+/// "Nearest knots".
+final class NearestKnots {
+  let knot: GeoPoint
+  let rider: Fix?
+
+  init(knot: GeoPoint, rider: Fix?) {
+    self.knot = knot
+    self.rider = rider
+  }
+}
+
 /// A `knot` to show on the map; `request` counts the taps, so the same knot can be shown again.
 struct ShownKnot {
   let knot: Knot
@@ -69,6 +81,12 @@ final class AppModel: ObservableObject {
   @Published private(set) var myPosition: Fix?
   /// Whether the position is being found.
   @Published private(set) var locating = false
+  /// Whether the map shows no knots, see `map-planning` "Nearest knots".
+  @Published private(set) var noKnotsInView = false
+  /// Whether the nearest knots are being found.
+  @Published private(set) var findingNearest = false
+  /// Where the map moved for the nearest knots last.
+  @Published private(set) var nearestKnots: NearestKnots?
   private let positionFinder = PositionFinder()
   @Published private(set) var searchQuery = ""
   @Published private(set) var searchResult: SearchResult = .none
@@ -83,7 +101,9 @@ final class AppModel: ObservableObject {
   let downloads = NetworkDownloads()
   private let storage = NetworkStorage()
   private let pathMonitor = NWPathMonitor()
-  private var loaded: LoadedNetwork?
+  private var loaded: LoadedNetwork? {
+    didSet { updateKnotsInView() }
+  }
   private var installing = false
   /// Networks with a downloaded file that was rejected; it is downloaded again on the next sync.
   private var rejected: Set<IndexedNetworkType> = []
@@ -341,7 +361,7 @@ final class AppModel: ObservableObject {
   /// Finds the rider's position once, asking for access first if needed, see `map-planning` "Show
   /// my position".
   func locate() {
-    guard !locating else { return }
+    guard !locating, !findingNearest else { return }
     locating = true
     positionFinder.find { [weak self] result in
       guard let self else { return }
@@ -357,6 +377,37 @@ final class AppModel: ObservableObject {
     }
   }
 
+  /// Moves the map to the nearest knots, from the rider's position where location access is
+  /// allowed, otherwise from the middle of the map, without asking, see `map-planning` "Nearest
+  /// knots".
+  func showNearestKnots() {
+    guard !locating, !findingNearest else { return }
+    guard positionFinder.hasAccess else {
+      moveToNearestKnots(rider: nil)
+      return
+    }
+    findingNearest = true
+    positionFinder.find { [weak self] result in
+      guard let self else { return }
+      findingNearest = false
+      if case .found(let fix) = result {
+        moveToNearestKnots(rider: fix)
+      } else {
+        moveToNearestKnots(rider: nil)
+      }
+    }
+  }
+
+  private func moveToNearestKnots(rider: Fix?) {
+    guard let center = mapCenter ?? initialPlace else { return }
+    guard
+      let knot = loaded?.locator.nearestPosition(
+        latitude: rider?.latitude ?? center.latitude, longitude: rider?.longitude ?? center.longitude)
+    else { return }
+    if let rider { myPosition = rider }
+    nearestKnots = NearestKnots(knot: knot, rider: rider)
+  }
+
   func saveCamera(_ place: CameraPlace) {
     // The app is left: the position found on request is forgotten.
     myPosition = nil
@@ -367,10 +418,19 @@ final class AppModel: ObservableObject {
 
   private var searchTask: Task<Void, Never>?
   private var mapCenter: CameraPlace?
+  private var mapArea: GeoBounds?
 
   /// The map's current place, to rank search hits near it.
-  func mapMoved(_ place: CameraPlace) {
+  func mapMoved(_ place: CameraPlace, area: GeoBounds?) {
     mapCenter = place
+    mapArea = area
+    // The map can report a move while the view updates, which must not change what it observes.
+    DispatchQueue.main.async { [weak self] in self?.updateKnotsInView() }
+  }
+
+  private func updateKnotsInView() {
+    let none = mapCenter != nil && loaded?.locator.noKnotsIn(area: mapArea) == true
+    if none != noKnotsInView { noKnotsInView = none }
   }
 
   /// Searches `query` once the user stopped typing for a moment; newer queries replace older ones.

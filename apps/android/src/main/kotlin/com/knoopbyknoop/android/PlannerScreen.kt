@@ -329,6 +329,11 @@ private fun MapArea(
       myPosition = state.myPosition.takeUnless { state.navigating },
       locating = state.locating,
       onLocate = locate.takeUnless { state.navigating },
+      findingNearest = state.findingNearest,
+      onShowNearest =
+        viewModel::showNearestKnots.takeIf { state.noKnotsInView && !state.navigating },
+      nearestKnots = state.nearestKnots,
+      onNearestShown = viewModel::nearestKnotsShown,
       shownKnot = state.shownKnot,
       topControlsBottom = topControlsBottom,
       topControlsStart = topControlsStart,
@@ -451,7 +456,9 @@ private fun WaypointSheet(
           when (val description = state.description) {
             RouteDescription.Empty ->
               Text(
-                stringResource(R.string.tap_to_set_start),
+                stringResource(
+                  if (state.noKnotsInView) R.string.no_knots_in_view else R.string.tap_to_set_start
+                ),
                 style = MaterialTheme.typography.titleMedium,
               )
             is RouteDescription.StartOnly ->
@@ -516,6 +523,13 @@ private fun WaypointSheet(
                 viewModel::clear,
               )
             if (state.canNavigate) NavigateButton(viewModel)
+            // In place of asking to tap a knot, see `map-planning` "Nearest knots".
+            if (state.noKnotsInView && session.waypoints.isEmpty())
+              ProminentAction(
+                stringResource(R.string.show_nearest_knots),
+                R.drawable.ic_nearest_knots,
+                viewModel::showNearestKnots,
+              )
           }
         },
       )

@@ -23,6 +23,11 @@ final class PositionFinder: NSObject, CLLocationManagerDelegate {
     manager.desiredAccuracy = kCLLocationAccuracyBest
   }
 
+  /// Whether location access is allowed, without asking.
+  var hasAccess: Bool {
+    manager.authorizationStatus == .authorizedWhenInUse || manager.authorizationStatus == .authorizedAlways
+  }
+
   /// Asks for access "when in use" first if it was never asked for.
   func find(_ completion: @escaping (Result) -> Void) {
     guard self.completion == nil else { return }

@@ -454,6 +454,73 @@ class PlanningTest {
     )
   }
 
+  // Requirement: Nearest knots
+
+  @Test
+  fun `no knots in the area`() {
+    val locator = KnotLocator(graph.knots.values)
+
+    assertTrue(locator.noKnotsIn(GeoBounds(50.0, 7.0, 50.1, 7.1)))
+  }
+
+  @Test
+  fun `zoomed out too far`() {
+    assertTrue(KnotLocator(graph.knots.values).noKnotsIn(null))
+  }
+
+  @Test
+  fun `knots in view`() {
+    val locator = KnotLocator(graph.knots.values)
+    val around =
+      GeoBounds(
+        knot12.latitude - 0.001,
+        knot12.longitude - 0.001,
+        knot12.latitude + 0.001,
+        knot12.longitude + 0.001,
+      )
+
+    assertFalse(locator.noKnotsIn(around))
+  }
+
+  @Test
+  fun `only the other signpost in view counts as knots in view`() {
+    val locator = KnotLocator(signpostGraph.knots.values)
+
+    assertFalse(locator.noKnotsIn(GeoBounds(52.1011, 5.0984, 52.1013, 5.0986)))
+  }
+
+  @Test
+  fun `a network without knots has nothing to show`() {
+    assertFalse(KnotLocator(emptyList()).noKnotsIn(null))
+    assertNull(KnotLocator(emptyList()).nearestPosition(52.0, 5.0))
+  }
+
+  @Test
+  fun `the nearest knot however far`() {
+    val nearest = KnotLocator(graph.knots.values).nearestPosition(40.0, 5.0)
+
+    val positions = graph.knots.values.flatMap { it.positions }
+    val southernmost = positions.minBy { it.latitude }
+    assertEquals(southernmost, nearest)
+  }
+
+  @Test
+  fun `the nearest place a knot is signposted`() {
+    val nearest = KnotLocator(signpostGraph.knots.values).nearestPosition(52.1013, 5.0985)
+
+    assertEquals(GeoPoint(52.1012, 5.0985), nearest)
+  }
+
+  @Test
+  fun `other network`() {
+    val hiking = KnotLocator(listOf(knot05))
+
+    assertEquals(
+      knot05.positions.first(),
+      hiking.nearestPosition(knot02.latitude, knot02.longitude),
+    )
+  }
+
   @Test
   fun `tapping the other signpost`() {
     val locator = KnotLocator(signpostGraph.knots.values)

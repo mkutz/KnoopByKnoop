@@ -1,8 +1,10 @@
 package com.knoopbyknoop.android
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
+import android.content.pm.PackageManager
 import android.location.Location
 import android.net.ConnectivityManager
 import android.net.Network
@@ -10,6 +12,7 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
@@ -95,6 +98,12 @@ data class AppState(
   val myPosition: Fix? = null,
   /** Whether the position is being found. */
   val locating: Boolean = false,
+  /** Whether the map shows no knots, see `map-planning` "Nearest knots". */
+  val noKnotsInView: Boolean = false,
+  /** Whether the nearest knots are being found. */
+  val findingNearest: Boolean = false,
+  /** Where the map is to move for the nearest knots, until it did. */
+  val nearestKnots: NearestKnots? = null,
   /** Whether to ask for location access on start: the first start, with nothing else to show. */
   val askLocationOnStart: Boolean = false,
   /** The appearance chosen in the info sheet, see `map-planning` "Light and dark appearance". */
@@ -160,6 +169,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   private val sync = NetworkSync(application)
   private val connectivity = application.getSystemService(ConnectivityManager::class.java)
   private var loaded: LoadedNetwork? = null
+    set(value) {
+      field = value
+      updateKnotsInView()
+    }
 
   var state by mutableStateOf(AppState())
     private set
@@ -265,7 +278,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
    * after [LOCATE_TIMEOUT_MILLIS]; location access must be granted.
    */
   fun locate() {
-    if (state.locating) return
+    if (state.locating || state.findingNearest) return
     state = state.copy(locating = true)
     viewModelScope.launch {
       val location = withTimeoutOrNull(LOCATE_TIMEOUT_MILLIS) { currentLocation() }
@@ -275,15 +288,56 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         else
           state.copy(
             locating = false,
-            myPosition =
-              Fix(
-                location.latitude,
-                location.longitude,
-                location.accuracy.toDouble(),
-                location.time,
-              ),
+            myPosition = location.toFix(),
           )
     }
+  }
+
+  private fun Location.toFix() = Fix(latitude, longitude, accuracy.toDouble(), time)
+
+  /**
+   * Moves the map to the nearest knots, from the rider's position where location access is allowed,
+   * otherwise from the middle of the map, without asking, see `map-planning` "Nearest knots".
+   */
+  fun showNearestKnots() {
+    if (state.locating || state.findingNearest) return
+    val application = getApplication<Application>()
+    val allowed =
+      listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+        .any {
+          ContextCompat.checkSelfPermission(application, it) == PackageManager.PERMISSION_GRANTED
+        }
+    if (!allowed) {
+      moveToNearestKnots(rider = null)
+      return
+    }
+    state = state.copy(findingNearest = true)
+    viewModelScope.launch {
+      val location = withTimeoutOrNull(LOCATE_TIMEOUT_MILLIS) { currentLocation() }
+      state = state.copy(findingNearest = false)
+      moveToNearestKnots(rider = location?.toFix())
+    }
+  }
+
+  private fun moveToNearestKnots(rider: Fix?) {
+    val from = rider?.let { GeoPoint(it.latitude, it.longitude) }
+    val center = mapCenter ?: state.initialPlace
+    val knot =
+      loaded
+        ?.locator
+        ?.nearestPosition(
+          from?.latitude ?: center?.latitude ?: return,
+          from?.longitude ?: center?.longitude ?: return,
+        ) ?: return
+    state =
+      state.copy(
+        myPosition = rider ?: state.myPosition,
+        nearestKnots = NearestKnots(knot, rider),
+      )
+  }
+
+  fun nearestKnotsShown() {
+    state = state.copy(nearestKnots = null)
   }
 
   /**
@@ -313,10 +367,18 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
   private var searchJob: Job? = null
   private var mapCenter: CameraPlace? = null
+  private var mapArea: GeoBounds? = null
 
   /** The map's current place, to rank search hits near it. */
-  fun mapMoved(place: CameraPlace) {
+  fun mapMoved(place: CameraPlace, area: GeoBounds?) {
     mapCenter = place
+    mapArea = area
+    updateKnotsInView()
+  }
+
+  private fun updateKnotsInView() {
+    val none = mapCenter != null && loaded?.locator?.noKnotsIn(mapArea) == true
+    if (none != state.noKnotsInView) state = state.copy(noKnotsInView = none)
   }
 
   /**

@@ -177,6 +177,9 @@ struct PlannerView: View {
         myPosition: navigator.state == nil ? model.myPosition : nil,
         locating: model.locating,
         onLocate: locateAction,
+        findingNearest: model.findingNearest,
+        onShowNearest: showNearestAction,
+        nearestKnots: model.nearestKnots,
         shownKnot: model.shownKnot
       )
       .ignoresSafeArea()
@@ -208,6 +211,12 @@ struct PlannerView: View {
   private var locateAction: (() -> Void)? {
     guard navigator.state == nil else { return nil }
     return { [model] in model.locate() }
+  }
+
+  /// The nearest knots, while planning with no knots in view, see `map-planning` "Nearest knots".
+  private var showNearestAction: (() -> Void)? {
+    guard navigator.state == nil, model.noKnotsInView else { return nil }
+    return { [model] in model.showNearestKnots() }
   }
 
   /// The network picker and the info button, at the top of the map.
@@ -521,6 +530,12 @@ private struct WaypointSheet: View {
           model.startNavigation()
         }
       }
+      // In place of asking to tap a knot, see `map-planning` "Nearest knots".
+      if model.noKnotsInView && session.waypoints.isEmpty {
+        ProminentAction(title: "Show the nearest knots", systemImage: "signpost.right") {
+          model.showNearestKnots()
+        }
+      }
     }
     // Never squeezed: the summary and the spacer give way, or the actions move below them.
     .fixedSize(horizontal: true, vertical: false)
@@ -539,7 +554,11 @@ private struct WaypointSheet: View {
     case let unreachable as RouteDescriptionUnreachable:
       Text("No route for \(unreachable.legs.joined(separator: ", "))").font(.headline).foregroundStyle(.red)
     default:
-      Text("Tap a knot to set the start").font(.headline)
+      if model.noKnotsInView {
+        Text("No knots in view").font(.headline)
+      } else {
+        Text("Tap a knot to set the start").font(.headline)
+      }
     }
   }
 
