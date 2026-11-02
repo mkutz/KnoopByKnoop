@@ -39,6 +39,9 @@ enum class NoticeKind {
   REMINDER,
   OFF_ROUTE,
   BACK_ON_ROUTE,
+
+  /** Riding along the route the wrong way, see `knot-navigation` "Riding the wrong way". */
+  WRONG_WAY,
   ARRIVED,
 
   /** A ferry ahead is closed when the rider gets there, see `knot-navigation` "Ferry warning". */
@@ -84,6 +87,8 @@ data class Notice(val kind: NoticeKind, val text: String, val speech: String)
  * @property follow the number to follow at the next knot, or `null` if it is the end of the route
  * @property close whether the rider is close to the next knot, from its reminder on: only then is
  *   the number to follow the most prominent, see `knot-navigation` "Number to follow"
+ * @property wrongWay whether the rider rides back along the route, see `knot-navigation` "Riding
+ *   the wrong way"
  */
 data class NavigationDisplay(
   val next: String,
@@ -91,12 +96,17 @@ data class NavigationDisplay(
   val offRoute: Boolean,
   val language: Language = Language.EN,
   val close: Boolean = true,
+  val wrongWay: Boolean = false,
 ) {
 
-  /** E.g. `At 45 follow 12` when [close], `Next 45, then 12` before, or `31 is the end`. */
+  /**
+   * E.g. `At 45 follow 12` when [close], `Next 45, then 12` before, `31 is the end`, or `Wrong
+   * direction, next 45` when [wrongWay].
+   */
   val text: String
     get() =
       when {
+        wrongWay -> language.texts.wrongWayNext(next)
         follow == null -> language.texts.isTheEnd(next)
         close -> language.texts.follow(next, follow)
         else -> language.texts.nextOutside(next, follow)
@@ -153,6 +163,7 @@ private constructor(
   /** Where on the route [progressLine] was last renewed. */
   private val linePlace: Double,
   private val guided: Guided?,
+  private val directionWatch: DirectionWatch?,
   /** The language of the texts, see `app-languages`. */
   val language: Language,
   /**
@@ -174,6 +185,25 @@ private constructor(
     val noticeBearing: Double,
     val lineMeters: Double,
   )
+
+  /**
+   * Which way the rider goes along the current leg, see `knot-navigation` "Riding the wrong way".
+   *
+   * @property furthestPlace the highest place reached on the leg
+   * @property furthestFix where the rider was there
+   * @property wrongWay whether the rider was told they ride the wrong way
+   * @property lowestPlace how far back they got since
+   */
+  private data class DirectionWatch(
+    val furthestPlace: Double,
+    val furthestFix: Fix,
+    val wrongWay: Boolean = false,
+    val lowestPlace: Double = furthestPlace,
+  )
+
+  /** Whether the rider rides back along the route, see `knot-navigation` "Riding the wrong way". */
+  val wrongWay: Boolean
+    get() = directionWatch?.wrongWay == true && !offRoute && !arrived
 
   /** The straight way to the next knot from [fix] while off route, else `null`. */
   fun guidance(fix: Fix): Guidance? {
@@ -259,7 +289,7 @@ private constructor(
       place,
       nextIndex,
       straightDistance,
-      offRoute && !arrived,
+      (offRoute || wrongWay) && !arrived,
       pace.metersPerSecond,
       fix.timeMillis,
       localTime,
@@ -286,6 +316,7 @@ private constructor(
         offRoute,
         language,
         close = remindedIndex == nextIndex,
+        wrongWay = wrongWay,
       )
 
   /**
@@ -329,7 +360,7 @@ private constructor(
     when {
       visible -> Precision.LIVE
       arrived -> Precision.COARSE
-      offRoute || confirming -> Precision.FINE
+      offRoute || wrongWay || confirming -> Precision.FINE
       lastFix.accuracyMeters > FINE_DISTANCE_METERS -> Precision.FINE
       distanceTo(lastFix, nextKnot) <= FINE_DISTANCE_METERS -> Precision.FINE
       else -> Precision.COARSE
@@ -346,7 +377,13 @@ private constructor(
     if (passedIndex != null) {
       if (passedIndex == knots.lastIndex) {
         notices += arrivedNotice()
-        navigation = navigation.copy(nextIndex = passedIndex, arrived = true, offRoute = false)
+        navigation =
+          navigation.copy(
+            nextIndex = passedIndex,
+            arrived = true,
+            offRoute = false,
+            directionWatch = null,
+          )
       } else {
         val newNext = passedIndex + 1
         notices += if (offRoute) backOnRouteNotice(newNext) else nextNotice(newNext)
@@ -367,6 +404,7 @@ private constructor(
               route.line(place, newNext, pace.metersPerSecond, fix.timeMillis, localTime, language),
             linePlace = place,
             guided = null,
+            directionWatch = null,
           )
       }
     } else {
@@ -375,11 +413,12 @@ private constructor(
       when {
         offRouteKnot != null -> {
           if (!offRoute) notices += offRouteNotice(nextIndex, fix)
-          navigation = navigation.copy(offRoute = true, offRouteKnot = offRouteKnot)
+          navigation =
+            navigation.copy(offRoute = true, offRouteKnot = offRouteKnot, directionWatch = null)
         }
         distanceToCourse != null && distanceToCourse > OFF_COURSE_METERS -> {
           if (!offRoute) notices += offRouteNotice(nextIndex, fix)
-          navigation = navigation.copy(offRoute = true)
+          navigation = navigation.copy(offRoute = true, directionWatch = null)
         }
         distanceToCourse != null &&
           distanceToCourse <= ON_COURSE_METERS &&
@@ -403,6 +442,9 @@ private constructor(
 
     if (passedIndex == null && !navigation.offRoute) {
       val place = route.placeOf(fix, navigation.nextIndex)
+      val (watched, directionNotice) = navigation.watchingDirection(place, fix)
+      directionNotice?.let { notices += it }
+      navigation = watched
       val pace = paceAt(place, fix)
       navigation =
         navigation.copy(
@@ -430,6 +472,48 @@ private constructor(
     navigation = navigation.copy(lastPreciseFix = fix, lastFix = fix, confirming = false)
     return NavigationUpdate(navigation, notices, navigation.precision(visible))
   }
+
+  /**
+   * This navigation with the rider at [place] and [fix], and what to tell them, see
+   * `knot-navigation` "Riding the wrong way". [Navigation.place] is still the place before [fix].
+   */
+  private fun watchingDirection(place: Double, fix: Fix): Pair<Navigation, Notice?> {
+    val course = courses?.getOrNull(nextIndex - 1)?.takeIf { it.size >= 2 } ?: return this to null
+    val watch = directionWatch ?: return copy(directionWatch = DirectionWatch(place, fix)) to null
+    // Where a course doubles back past itself, the nearest place can jump: no riding, start anew.
+    val moved = lastPreciseFix?.let { distanceBetween(it, fix) } ?: 0.0
+    if (abs(place - this.place) > moved * PLACE_JUMP_RATIO + PLACE_JUMP_METERS) {
+      return copy(
+        directionWatch = watch.copy(furthestPlace = place, furthestFix = fix, lowestPlace = place)
+      ) to null
+    }
+    if (distanceToPolyline(fix.latitude, fix.longitude, course) > ON_COURSE_METERS)
+      return this to null
+    if (watch.wrongWay) {
+      if (place >= watch.lowestPlace + TURNED_AROUND_METERS) {
+        return copy(directionWatch = DirectionWatch(place, fix)) to backOnRouteNotice(nextIndex)
+      }
+      return copy(directionWatch = watch.copy(lowestPlace = min(watch.lowestPlace, place))) to null
+    }
+    if (place > watch.furthestPlace)
+      return copy(directionWatch = DirectionWatch(place, fix)) to null
+    val wrongWay =
+      place <= watch.furthestPlace - WRONG_WAY_METERS &&
+        distanceBetween(watch.furthestFix, fix) >= WRONG_WAY_MOVED_METERS
+    if (!wrongWay) return this to null
+    return copy(directionWatch = watch.copy(wrongWay = true, lowestPlace = place)) to
+      wrongWayNotice()
+  }
+
+  private fun distanceBetween(from: Fix, to: Fix): Double =
+    distanceMeters(from.latitude, from.longitude, to.latitude, to.longitude)
+
+  private fun wrongWayNotice(): Notice =
+    notice(
+      NoticeKind.WRONG_WAY,
+      texts.wrongWay(nextKnot.ref),
+      speech.wrongWay(spoken(nextKnot.ref)),
+    )
 
   /** The pace with the rider at [place] at [fix]; time off route does not count. */
   private fun paceAt(place: Double, fix: Fix): Pace =
@@ -621,6 +705,7 @@ private constructor(
     progressLine: String = this.progressLine,
     linePlace: Double = this.linePlace,
     guided: Guided? = this.guided,
+    directionWatch: DirectionWatch? = this.directionWatch,
     language: Language = this.language,
     speechLanguage: Language = this.speechLanguage,
   ) =
@@ -647,6 +732,7 @@ private constructor(
       progressLine,
       linePlace,
       guided,
+      directionWatch,
       language,
       speechLanguage,
     )
@@ -673,6 +759,22 @@ private constructor(
 
     /** Within this distance of the next knot, the apps sample with [Precision.FINE]. */
     const val FINE_DISTANCE_METERS = 400.0
+
+    /** Back along the leg from the furthest place, see `knot-navigation` "Riding the wrong way". */
+    private const val WRONG_WAY_METERS = 150.0
+
+    /** In a straight line from the furthest place, so a jump of the place alone does not count. */
+    private const val WRONG_WAY_MOVED_METERS = 100.0
+
+    /** Along the route again after riding the wrong way, so the rider has turned around. */
+    private const val TURNED_AROUND_METERS = 50.0
+
+    /**
+     * A change of the place by more than this times the distance moved, plus the next, is a jump.
+     */
+    private const val PLACE_JUMP_RATIO = 3.0
+
+    private const val PLACE_JUMP_METERS = 50.0
 
     /** Off route, a guidance notice when the rider got this much closer, see "Off route". */
     private const val GUIDANCE_METERS = 500.0
@@ -818,6 +920,7 @@ private constructor(
               ),
             linePlace = place,
             guided = null,
+            directionWatch = null,
             language = language,
             speechLanguage = speechLanguage,
           )

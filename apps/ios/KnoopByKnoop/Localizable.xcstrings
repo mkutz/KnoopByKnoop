@@ -1390,6 +1390,50 @@
         }
       }
     },
+    "Wrong direction, next": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falsche Richtung, nächster"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verkeerde richting, volgende"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mauvaise direction, suivant"
+          }
+        }
+      }
+    },
+    "Wrong direction, next %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falsche Richtung, nächster %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verkeerde richting, volgende %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mauvaise direction, suivant %@"
+          }
+        }
+      }
+    },
     "Your position could not be found.": {
       "localizations": {
         "de": {

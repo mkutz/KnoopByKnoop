@@ -27,6 +27,7 @@
   <string name="next">Prochain</string>
   <string name="then">puis</string>
   <string name="off_route_next">Hors itinéraire, suivant</string>
+  <string name="wrong_direction_next">Mauvaise direction, suivant</string>
   <string name="move_up">Monter</string>
   <string name="move_down">Descendre</string>
   <string name="remove">Supprimer</string>

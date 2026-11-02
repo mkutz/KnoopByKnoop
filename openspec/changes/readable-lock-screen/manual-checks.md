@@ -33,6 +33,7 @@ Stop in the Live Activity is now red with white text, as in the app, after the m
 From the maintainer's videos, without sound:
 - **Pixel:** the card in the shade and on the lock screen, the bar's marks and the large badge. The distance moved on with the screen off, 1.1 km to 441 m. The title was cut in German, now fixed: complete at text size 1.3 ([left](screenshots/android-title-german-large-text.jpg)). Off route at 1.3 the title still cuts to "Abseits der Route, nächst…"; the badge and the line below it name the knot, so it stays (right).
 - **iPhone:** the expanded island with "Next 01", "then 02", the distance, the bar and the red Stop, not seen tapped. The small circle showed "02" with 01 next and the bar's end markers looked clipped, both changed. Screen recording shared the island, so the compact form was not shown.
+- **iPhone, lock screen, screenshot from the maintainer, 2026-11-02:** off route in dark mode, "Off route, next 02", "1.7 km south-west to 02", the red rider, the stop and the end on the bar complete, the red Stop. The far and close forms were not in it, and Stop was not tapped.
 
 ### Steps for the maintainer
 

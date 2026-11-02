@@ -306,6 +306,7 @@ final class Navigator: NSObject, ObservableObject {
     // The bar moves with the line, about every 100 m, not with every fix.
     let current = activity?.content.state
     let renewBar = current?.progress != progress || current?.offRoute != display.offRoute
+      || current?.wrongWay != display.wrongWay
     let state = NavigationActivityAttributes.ContentState(
       next: display.next, follow: display.follow, offRoute: display.offRoute,
       nextRole: roles.indices.contains(nextIndex) ? roles[nextIndex] : nil,
@@ -315,7 +316,8 @@ final class Navigator: NSObject, ObservableObject {
       close: display.close,
       riderFraction: renewBar ? strip.rider : current?.riderFraction,
       marks: renewBar ? Self.barMarks(of: strip) : current?.marks ?? [],
-      dark: Self.systemIsDark)
+      dark: Self.systemIsDark,
+      wrongWay: display.wrongWay)
     guard let activity else {
       // Live Activities end after about 8 hours; opening the app starts a new one.
       if visible { startActivity() }

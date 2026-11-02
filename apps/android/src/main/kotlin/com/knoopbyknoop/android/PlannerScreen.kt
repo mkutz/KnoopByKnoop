@@ -673,6 +673,16 @@ private fun NavigationHeader(
           OffRouteHeader(display.next, nextRole, guidance, navigation.direction)
           return@FlowRow
         }
+        // On the route the wrong way, so the distance along it follows, see `knot-navigation`
+        // "Riding the wrong way".
+        display.wrongWay ->
+          OffRouteHeader(
+            display.next,
+            nextRole,
+            guidance = null,
+            ridingDirection = null,
+            warning = stringResource(R.string.wrong_direction_next),
+          )
         follow != null && !display.close -> {
           NextKnotHeader(
             display.next,
@@ -970,12 +980,12 @@ private fun OffRouteHeader(
   role: KnotRole?,
   guidance: Guidance?,
   ridingDirection: Double?,
+  warning: String = stringResource(R.string.off_route_next),
 ) {
-  val offRouteNext = stringResource(R.string.off_route_next)
   Column(
     modifier =
       Modifier.clearAndSetSemantics {
-        contentDescription = listOfNotNull("$offRouteNext $next", guidance?.text).joinToString(", ")
+        contentDescription = listOfNotNull("$warning $next", guidance?.text).joinToString(", ")
       }
   ) {
     // The badge follows the text in the next line where both do not fit in one, as the German
@@ -985,7 +995,7 @@ private fun OffRouteHeader(
       horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
       Text(
-        offRouteNext,
+        warning,
         style = MaterialTheme.typography.titleLarge,
         color = MaterialTheme.colorScheme.error,
       )

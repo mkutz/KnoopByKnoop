@@ -107,6 +107,12 @@ internal interface Texts {
 
   fun backOnRoute(next: String): String
 
+  /** E.g. `Wrong direction, turn around, next 45`, see `knot-navigation` "Riding the wrong way". */
+  fun wrongWay(next: String): String
+
+  /** The short form of [wrongWay] for the panel and outside the app. */
+  fun wrongWayNext(next: String): String
+
   val arrived: String
 
   /** The eight compass directions from north, clockwise. */
@@ -228,6 +234,10 @@ internal object EnglishTexts : Texts {
 
   override fun backOnRoute(next: String) = "Back on route, next $next"
 
+  override fun wrongWay(next: String) = "Wrong direction, turn around, next $next"
+
+  override fun wrongWayNext(next: String) = "Wrong direction, next $next"
+
   override val arrived = "You've arrived"
   override val compassDirections =
     listOf("north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west")
@@ -338,6 +348,10 @@ internal object GermanTexts : Texts {
   override fun guidance(next: String, way: String) = "Nächster Knotenpunkt $next, $way"
 
   override fun backOnRoute(next: String) = "Zurück auf der Route, nächster Knotenpunkt $next"
+
+  override fun wrongWay(next: String) = "Falsche Richtung, bitte wenden, nächster Knotenpunkt $next"
+
+  override fun wrongWayNext(next: String) = "Falsche Richtung, nächster $next"
 
   override val arrived = "Ziel erreicht"
   override val compassDirections =
@@ -451,6 +465,10 @@ internal object DutchTexts : Texts {
   override fun guidance(next: String, way: String) = "Volgend knooppunt $next, $way"
 
   override fun backOnRoute(next: String) = "Terug op de route, volgend knooppunt $next"
+
+  override fun wrongWay(next: String) = "Verkeerde richting, keer om, volgend knooppunt $next"
+
+  override fun wrongWayNext(next: String) = "Verkeerde richting, volgende $next"
 
   override val arrived = "Je bent aangekomen"
   override val compassDirections =
@@ -573,6 +591,11 @@ internal object FrenchTexts : Texts {
   override fun guidance(next: String, way: String) = "Prochain point-nœud $next, $way"
 
   override fun backOnRoute(next: String) = "De retour sur l'itinéraire, prochain point-nœud $next"
+
+  override fun wrongWay(next: String) =
+    "Mauvaise direction, faites demi-tour, prochain point-nœud $next"
+
+  override fun wrongWayNext(next: String) = "Mauvaise direction, suivant $next"
 
   override val arrived = "Vous êtes arrivé"
   override val compassDirections =

@@ -27,6 +27,7 @@
   <string name="next">Volgende</string>
   <string name="then">dan</string>
   <string name="off_route_next">Van de route af, volgende</string>
+  <string name="wrong_direction_next">Verkeerde richting, volgende</string>
   <string name="move_up">Omhoog</string>
   <string name="move_down">Omlaag</string>
   <string name="remove">Verwijderen</string>

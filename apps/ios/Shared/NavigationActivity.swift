@@ -29,6 +29,8 @@ struct NavigationActivityAttributes: ActivityAttributes {
     /// Whether the system is in dark mode. From the app, as the Live Activity's own `colorScheme`
     /// is dark on the lock screen also when the system is light.
     var dark = false
+    /// Whether the rider rides back along the route, see `knot-navigation` "Riding the wrong way".
+    var wrongWay = false
   }
 
   /// A stop or ferry on the bar along the route.

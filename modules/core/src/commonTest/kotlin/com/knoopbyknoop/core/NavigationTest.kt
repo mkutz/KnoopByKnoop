@@ -735,6 +735,196 @@ class NavigationTest {
     assertEquals(listOf(), notices)
   }
 
+  // Requirement: Riding the wrong way
+
+  private val wrongWayText = "Wrong direction, turn around, next 45"
+
+  private fun ridingBack() = start(east = 0.0).navigation.ride(fix(500.0), fix(340.0))
+
+  @Test
+  fun `riding back along the route`() {
+    val (told, notices) = ridingBack()
+    val (navigation, later) = told.ride(fix(300.0), fix(250.0), fix(200.0))
+
+    assertTrue(navigation.wrongWay)
+    assertFalse(navigation.offRoute)
+    assertEquals(listOf(wrongWayText), notices.map { it.text })
+    assertEquals(listOf(), later)
+    assertEquals(NoticeKind.WRONG_WAY, notices.single().kind)
+  }
+
+  @Test
+  fun `wrong direction in the panel`() {
+    val (navigation, _) = ridingBack()
+    val fix = fix(300.0)
+    val (riding, _) = navigation.ride(fix)
+
+    assertEquals("Wrong direction, next 45", riding.display.text)
+    assertTrue(riding.display.wrongWay)
+    assertEquals("700 m", riding.progress(fix).nextKnotDistance)
+    assertTrue(riding.progress(fix).strip.offRoute)
+    assertNull(riding.wayToRoute(fix))
+    assertNull(riding.guidance(fix))
+    assertEquals(Precision.FINE, riding.precision(visible = false))
+  }
+
+  @Test
+  fun `in the app's language`() {
+    val german = start(east = 0.0).navigation.inLanguage(Language.DE, Language.DE, fix(0.0))
+
+    val (navigation, notices) = german.ride(fix(500.0), fix(340.0))
+
+    assertEquals("Falsche Richtung, nächster 45", navigation.display.text)
+    assertEquals(
+      "Falsche Richtung, bitte wenden, nächster Knotenpunkt 45",
+      notices.single().text,
+    )
+    val riding = NavigationDisplay("45", "12", offRoute = false, wrongWay = true)
+    assertEquals(
+      "Verkeerde richting, volgende 45",
+      riding.copy(language = Language.NL).text,
+    )
+    assertEquals("Mauvaise direction, suivant 45", riding.copy(language = Language.FR).text)
+  }
+
+  @Test
+  fun `turning around`() {
+    val (told, _) = ridingBack()
+
+    val (navigation, notices) = told.ride(fix(300.0), fix(360.0))
+
+    assertFalse(navigation.wrongWay)
+    assertEquals(listOf("Back on route, next 45"), notices.map { it.text })
+    assertEquals("Next 45, then 12", navigation.display.copy(close = false).text)
+  }
+
+  @Test
+  fun `turning back shortly`() {
+    val (navigation, notices) =
+      start(east = 0.0).navigation.ride(fix(500.0), fix(400.0), fix(600.0))
+
+    assertFalse(navigation.wrongWay)
+    assertEquals(listOf(), notices)
+  }
+
+  /** The course 24-45 runs back past itself 20 m further north, and on again 40 m north. */
+  private val doublingBack =
+    NetworkGeometry(
+      graph,
+      geometry.courses.mapIndexed { index, course ->
+        val connection = graph.connections[index]
+        if (connection.fromId == 24L && connection.toId == 45L)
+          listOf(
+              0.0 to 0.0,
+              800.0 to 0.0,
+              800.0 to 20.0,
+              200.0 to 20.0,
+              200.0 to 40.0,
+              1000.0 to 40.0,
+              1000.0 to 0.0,
+            )
+            .map { (east, north) -> GeoPoint(latitude(north), longitude(east)) }
+        else course
+      },
+    )
+
+  @Test
+  fun `a place that jumps`() {
+    val (navigation, notices) =
+      start(east = 0.0, geometry = doublingBack)
+        .navigation
+        .ride(
+          fix(500.0),
+          fix(505.0, north = 14.0),
+          fix(510.0, north = 2.0),
+          fix(600.0),
+          fix(700.0),
+        )
+
+    assertFalse(navigation.wrongWay)
+    assertEquals(listOf(), notices)
+  }
+
+  @Test
+  fun `leaving the course while riding the wrong way`() {
+    val (told, _) = ridingBack()
+
+    val (navigation, notices) = told.ride(fix(300.0, north = 60.0), fix(300.0, north = 150.0))
+
+    assertTrue(navigation.offRoute)
+    assertFalse(navigation.wrongWay)
+    assertEquals("Off route, next 45, 716 m to the east", notices.single().text)
+  }
+
+  @Test
+  fun `passing the next knot while riding the wrong way`() {
+    val (told, _) = ridingBack()
+
+    val (navigation, notices) = told.ride(fix(1000.0))
+
+    assertFalse(navigation.wrongWay)
+    assertEquals(knot12, navigation.nextKnot)
+    assertTrue(notices.any { it.text == "Next 12, then 31" }, notices.toString())
+  }
+
+  @Test
+  fun `riding back again later`() {
+    val (told, first) = ridingBack()
+
+    val (navigation, notices) = told.ride(fix(300.0), fix(360.0), fix(600.0), fix(440.0))
+
+    assertTrue(navigation.wrongWay)
+    assertEquals(listOf(wrongWayText), first.map { it.text })
+    assertEquals(listOf("Back on route, next 45", wrongWayText), notices.map { it.text })
+  }
+
+  @Test
+  fun `on the way back of an out-and-back route`() {
+    val (navigation, notices) =
+      start(east = 0.0, knots = listOf(knot24, knot45, knot24))
+        .navigation
+        .ride(fix(500.0), fix(1000.0), fix(800.0), fix(600.0), fix(400.0))
+
+    assertFalse(navigation.wrongWay)
+    assertTrue(notices.none { it.kind == NoticeKind.WRONG_WAY }, notices.toString())
+  }
+
+  @Test
+  fun `following the branch to another signpost`() {
+    val (navigation, notices) =
+      start(east = 0.0, geometry = branchGeometry)
+        .navigation
+        .ride(
+          fix(250.0, north = -150.0),
+          fix(500.0, north = -300.0),
+          fix(400.0, north = -240.0),
+          fix(750.0, north = -150.0),
+        )
+
+    assertFalse(navigation.wrongWay)
+    assertTrue(notices.none { it.kind == NoticeKind.WRONG_WAY }, notices.toString())
+  }
+
+  @Test
+  fun `riding the wrong way before the first knot`() {
+    val started = start(east = -400.0)
+    assertEquals(0, started.navigation.nextIndex)
+
+    val (navigation, notices) = started.navigation.ride(fix(-200.0), fix(-400.0))
+
+    assertFalse(navigation.wrongWay)
+    assertTrue(notices.none { it.kind == NoticeKind.WRONG_WAY }, notices.toString())
+  }
+
+  @Test
+  fun `riding the wrong way without geometry`() {
+    val (navigation, notices) =
+      start(east = 0.0, geometry = null).navigation.ride(fix(500.0), fix(340.0), fix(100.0))
+
+    assertFalse(navigation.wrongWay)
+    assertTrue(notices.none { it.kind == NoticeKind.WRONG_WAY }, notices.toString())
+  }
+
   // Requirement: Way to the route on the map
 
   @Test

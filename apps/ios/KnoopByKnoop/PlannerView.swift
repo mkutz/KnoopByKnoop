@@ -605,7 +605,8 @@ private struct NavigationHeader: View {
 
   var body: some View {
     if let navigation = state.navigation, dynamicTypeSize.isAccessibilitySize,
-      navigation.display.offRoute || (navigation.display.follow != nil && !navigation.display.close)
+      navigation.display.offRoute || navigation.display.wrongWay
+        || (navigation.display.follow != nil && !navigation.display.close)
     {
       // At accessibility sizes, Stop next to the off-route header or the next knot leaves them no
       // room: Stop goes above them, see `knot-navigation` "Number to follow at large text sizes".
@@ -616,7 +617,9 @@ private struct NavigationHeader: View {
         }
         let display = navigation.display
         let next = Int(navigation.nextIndex)
-        if let follow = display.follow, !display.offRoute {
+        if display.wrongWay {
+          offRouteHeader(display.next, at: next, guidance: nil, wrongWay: true)
+        } else if let follow = display.follow, !display.offRoute {
           nextKnotHeader(display.next, at: next, follow: follow)
         } else {
           offRouteHeader(
@@ -639,6 +642,8 @@ private struct NavigationHeader: View {
         let next = Int(navigation.nextIndex)
         if display.offRoute {
           offRouteHeader(display.next, at: next, guidance: state.position.flatMap { navigation.guidance(fix: $0) })
+        } else if display.wrongWay {
+          offRouteHeader(display.next, at: next, guidance: nil, wrongWay: true)
         } else if let follow = display.follow, !display.close {
           nextKnotHeader(display.next, at: next, follow: follow)
         } else {
@@ -727,17 +732,19 @@ private struct NavigationHeader: View {
   /// Off route: the next knot, and below it the distance, an arrow towards the knot relative to
   /// the riding direction (to north while standing, as the map) and the compass direction, see
   /// `knot-navigation` "Direction to the route".
-  private func offRouteHeader(_ next: String, at index: Int, guidance: Guidance?) -> some View {
+  /// Riding the wrong way, on the route, so the distance along it, see `knot-navigation` "Riding the
+  /// wrong way".
+  private func offRouteHeader(_ next: String, at index: Int, guidance: Guidance?, wrongWay: Bool = false) -> some View {
     VStack(alignment: .leading, spacing: 2) {
       // The badge goes below the text where both do not fit in one line, as the German text, see
       // `knot-navigation` "Number to follow at large text sizes".
       ViewThatFits(in: .horizontal) {
         HStack(alignment: .center, spacing: 8) {
-          offRouteNext
+          warningNext(wrongWay)
           badge(next, at: index, scale: 1.3)
         }
         VStack(alignment: .leading, spacing: 2) {
-          offRouteNext.fixedSize(horizontal: false, vertical: true)
+          warningNext(wrongWay).fixedSize(horizontal: false, vertical: true)
           badge(next, at: index, scale: 1.3)
         }
       }
@@ -753,11 +760,16 @@ private struct NavigationHeader: View {
             Text(guidance.direction).font(.title3).foregroundStyle(.secondary)
           }
         }
+      } else if wrongWay {
+        distance
       }
     }
     .minimumScaleFactor(0.8)
     .accessibilityElement(children: .ignore)
-    .accessibilityLabel([String(localized: "Off route, next \(next)", bundle: AppLanguage.bundle), guidance?.text].compactMap { $0 }.joined(separator: ", "))
+    .accessibilityLabel(
+      wrongWay
+        ? String(localized: "Wrong direction, next \(next)", bundle: AppLanguage.bundle)
+        : [String(localized: "Off route, next \(next)", bundle: AppLanguage.bundle), guidance?.text].compactMap { $0 }.joined(separator: ", "))
   }
 
   /// The distance to the next knot and an arrow towards it.
@@ -768,8 +780,8 @@ private struct NavigationHeader: View {
       .rotationEffect(.degrees(guidance.bearing - (state.direction ?? 0)))
   }
 
-  private var offRouteNext: some View {
-    Text("Off route, next").font(.title2.bold()).foregroundStyle(.red)
+  private func warningNext(_ wrongWay: Bool) -> some View {
+    Text(wrongWay ? "Wrong direction, next" : "Off route, next").font(.title2.bold()).foregroundStyle(.red)
   }
 
   private func badge(_ ref: String, at index: Int, scale: CGFloat) -> some View {

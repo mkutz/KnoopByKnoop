@@ -35,7 +35,7 @@ struct NavigationLiveActivity: Widget {
       } compactLeading: {
         // Room for about three characters: "31 →" and "97" for at 31 follow 97, "97" and a flag at
         // the end, a warning sign and the next knot off route.
-        if context.state.offRoute {
+        if context.state.offRoute || context.state.wrongWay {
           Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
         } else if context.state.follow != nil {
           HStack(spacing: 2) {
@@ -46,7 +46,7 @@ struct NavigationLiveActivity: Widget {
           Text(context.state.next).bold()
         }
       } compactTrailing: {
-        if context.state.offRoute {
+        if context.state.offRoute || context.state.wrongWay {
           Text(context.state.next).bold()
         } else if let follow = context.state.follow {
           Text(follow).bold().foregroundStyle(Color.knoopGreen)
@@ -55,7 +55,7 @@ struct NavigationLiveActivity: Widget {
         }
       } minimal: {
         // The one number left when the island is shared: the knot the app shows largest.
-        Text(context.state.close && !context.state.offRoute ? context.state.follow ?? context.state.next : context.state.next)
+        Text(context.state.close && !context.state.offRoute && !context.state.wrongWay ? context.state.follow ?? context.state.next : context.state.next)
           .bold()
           .foregroundStyle(Color.knoopGreen)
       }
@@ -114,7 +114,7 @@ private struct RouteBar: View {
           Circle().fill(Color.knoopDark).overlay(Circle().strokeBorder(.white, lineWidth: 1))
             .frame(width: 10, height: 10)
             .offset(x: width - 10)
-          Circle().fill(state.offRoute ? Color.red : Color.blue)
+          Circle().fill(state.offRoute || state.wrongWay ? Color.red : Color.blue)
             .overlay(Circle().strokeBorder(.white, lineWidth: 2))
             .frame(width: 12, height: 12)
             .offset(x: max(0, min(width - 12, width * rider - 6)))
@@ -153,9 +153,9 @@ private struct NextKnot: View {
   @ViewBuilder private var content: some View {
     if state.next.isEmpty {
       Text(state.text).font(.title3.bold())
-    } else if state.offRoute {
+    } else if state.offRoute || state.wrongWay {
       HStack(spacing: 8) {
-        Text("Off route, next").font(.title3.bold()).foregroundStyle(.red)
+        Text(state.wrongWay ? "Wrong direction, next" : "Off route, next").font(.title3.bold()).foregroundStyle(.red)
         Badge(ref: state.next, role: state.nextRole, scale: 1.3)
       }
     } else if let follow = state.follow, !state.close {

@@ -86,7 +86,8 @@ private data class NotificationContent(
     fun of(navigation: Navigation, fix: Fix): NotificationContent {
       val display = navigation.display
       val strip = navigation.progress(fix).strip
-      val toFollow = display.close && !display.offRoute && display.follow != null
+      val toFollow =
+        display.close && !display.offRoute && !display.wrongWay && display.follow != null
       fun onBar(fraction: Double) = (fraction * PROGRESS_SCALE).roundToInt()
       val ranked =
         strip.marks.mapNotNull { mark ->
@@ -106,7 +107,7 @@ private data class NotificationContent(
         knot = if (toFollow) display.follow.orEmpty() else display.next,
         knotPosition = navigation.nextIndex + if (toFollow) 1 else 0,
         place = onBar(strip.rider) / (PROGRESS_SCALE / 100) * (PROGRESS_SCALE / 100),
-        offRoute = display.offRoute,
+        offRoute = display.offRoute || display.wrongWay,
         marks = ranked.sortedBy { it.first }.take(MAX_MARKS).map { it.second to it.third },
         end = navigation.knots.last().ref,
       )
