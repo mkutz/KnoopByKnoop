@@ -22,3 +22,7 @@ Flicker near a rounding boundary: none seen on the screenshots, but these are sn
 1. On a ride with the Pixel and the iPhone, change your pace clearly for a few kilometres: within about 15 minutes the arrivals on the strip and in the coming knots follow, also between knots.
 2. Stop for a few minutes: the arrivals move later while you stand, and after riding on they are back near your earlier pace.
 3. Watch whether an arrival keeps flipping between two values five minutes apart.
+
+### Ride of 2026-11-02
+
+Only partly shown: the end's arrival moved from 17:35 to 17:45 while riding back the wrong way. Pace changes and flipping were not shown.

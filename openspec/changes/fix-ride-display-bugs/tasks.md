@@ -5,6 +5,8 @@
 - [x] 1.1 On the emulator, navigate with a mocked position each second along a street with POIs and record the screen: the flicker shows as in the ride video. Record again with (a) no source updates, (b) no camera moves, and note the cause in `manual-checks.md`
 - [x] 1.2 Fix the cause as the design says; a recording of the same ride shows the POIs and street names steady ("Steady base map while following"), and following, looking around and recentering still work
 
+- [x] 1.3 Found on the ride of 2026-11-02: the flicker remained off route and before the first knot, where the camera still restarted its animation with each fix. One even move per fix there too; a recording near Siegburg 02 before and after ("Steady base map off route")
+
 ## 2. Compass, header, dark red
 
 - [x] 2.1 Compass margins below the search field, from the status bar inset; with the map rotated, a screenshot shows the compass below the search field and the battery icon uncovered ("Compass below the status bar"), also in landscape

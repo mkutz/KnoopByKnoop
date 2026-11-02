@@ -16,3 +16,9 @@ Android checked 2026-11-01 on the emulator (`Medium_Phone_API_37.0`) with the de
 
 1. After the next weekly publication (or with a build whose bundled graphs have the section), plan a route starting at Siegburg 02 towards 28.
 2. Ride to 02 by the north-west node (Siegburg, south of the Sieg, where the path from 28 arrives), on the Pixel and the iPhone: "Next 28" right there, the distance to 28 counts down, the dot moves on.
+
+### Ride of 2026-11-02
+
+Step 2 ✅ on the iPhone: on 02 → 28 → … → 02, "Next 28" at the north-west signpost, the distance counts down, the dot moves on. The Pixel on a route 02 → 01, at the same signpost: next 01. Waits for `fix-double-knots` to be archived first.
+
+Seen: on the way there, the distance and the dashed line go to the river badge, and "At 02 follow 28" grows from 77 m to 145 m while nearing the north-west one. Noted for its own change.

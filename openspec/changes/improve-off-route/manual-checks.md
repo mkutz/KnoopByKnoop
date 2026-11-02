@@ -22,3 +22,9 @@ iOS checked the same way in the simulator (iPhone 18 Pro, iOS 27), with navigati
 1. On a ride with the Pixel and the iPhone, leave the route on purpose: the dashed line points to the nearest part of the route ahead, not to the next knot, and the map shows both you and its end.
 2. Ride back on a path beside the route, 30–100 m away: no "Back on route".
 3. Join the route: "Back on route" and the line is gone.
+
+### Ride of 2026-11-02
+
+Steps 1 and 3 ✅ on the iPhone: the line to the nearest part ahead, both in view, "28 is the end" again on the route. Not shown: the Pixel off route between knots, and step 2, the parallel path.
+
+Riding back along the route the wrong way stays "on route": a new change.

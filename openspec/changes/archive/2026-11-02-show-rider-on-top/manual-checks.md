@@ -13,5 +13,7 @@ iOS checked in the simulator (iPhone 18 Pro, iOS 27), navigation started by a te
 
 ### Steps for the maintainer
 
-1. On a ride with the Pixel and the iPhone: the part of the route already ridden shows the blue track on top with orange edges; the part ahead stays orange with arrows.
-2. The rider's arrow is easy to find at a glance; standing still at a traffic light, the dot is too.
+1. ✅ On a ride with the Pixel and the iPhone: the part of the route already ridden shows the blue track on top with orange edges; the part ahead stays orange with arrows.
+2. ✅ The rider's arrow is easy to find at a glance; standing still at a traffic light, the dot is too.
+
+Checked by the maintainer's ride videos of 2026-11-02 on the Pixel and the iPhone: the blue track on orange edges behind, orange with arrows ahead, and the arrow easy to find, in light and dark. The dot shows at the start before moving. The maintainer reported no trouble finding them.

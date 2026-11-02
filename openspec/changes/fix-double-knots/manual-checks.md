@@ -17,3 +17,7 @@ Android checked 2026-11-01 on the emulator (`Medium_Phone_API_37.0`) with the de
 1. Ride through a double knot, two route knots a few metres apart (e.g. 01 and 03 at the Den Helder ferry), on the Pixel and the iPhone.
 2. At the double knot: one "Next …" notice naming the knot after both, then the distance to it counts down and the dot on the strip moves on.
 3. Start a route away from its start: once back near the course before the first knot, the panel and the lock screen show the distance to the first knot, not "0 m".
+
+### Ride of 2026-11-02
+
+Step 3 ✅ on the iPhone and the Pixel: back near the course before the first knot, the panel shows the distance to it, not "0 m". Steps 1 and 2 stay open: no double knot was ridden.

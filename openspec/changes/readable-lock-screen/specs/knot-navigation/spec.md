@@ -5,6 +5,10 @@
 ### Requirement: Navigation with the screen off
 Navigation SHALL keep running with the screen off and while other apps are in use. While navigating, the app SHALL show outside the app what its panel shows: the next knot, far from it with the number to follow after it, close to it the number to follow there, see "Number to follow". With them, it SHALL show the distance to the next knot and the arrival at the end, renewed about every 100 m of the route, with a button to stop: on Android in an ongoing notification, from Android 16 as a Live Update with the route's progress; on iOS in a Live Activity on the lock screen and in the Dynamic Island, also with the route's progress. Showing them SHALL NOT need more location fixes than navigating does.
 
+#### Scenario: Far from the next knot in German
+- **WHEN** the app is in German, the rider is far from 29 with 25 to follow, and the system's text is larger than its default
+- **THEN** the notification's title shows "Nächster 29, dann 25" completely
+
 #### Scenario: Lock screen
 - **WHEN** the rider is navigating, close to 45 with 12 to follow, and looks at the lock screen
 - **THEN** it shows "At 45 follow 12" and, e.g., "150 m to 45 · end around 19:05"
@@ -16,6 +20,10 @@ Navigation SHALL keep running with the screen off and while other apps are in us
 #### Scenario: Dynamic Island
 - **WHEN** the rider is navigating on an iPhone with a Dynamic Island and uses another app
 - **THEN** the Dynamic Island shows the next knot and the number to follow there
+
+#### Scenario: Dynamic Island with room for one number
+- **WHEN** the Dynamic Island is shared, e.g. with a screen recording, so it has room for one number
+- **THEN** it shows the knot the app shows largest: the next knot while far from it or off route, the number to follow when close
 
 #### Scenario: Off route outside the app
 - **WHEN** the rider is off route and looks at the lock screen
@@ -39,7 +47,7 @@ Navigation SHALL keep running with the screen off and while other apps are in us
 
 #### Scenario: Progress bar in the Live Activity
 - **WHEN** the rider is navigating on an iPhone and looks at the lock screen, or at the expanded Dynamic Island
-- **THEN** the Live Activity shows a bar along the route with their place and marks for stops and ferries, and the end, renewed with the distance
+- **THEN** the Live Activity shows a bar along the route with their place and marks for stops and ferries, and the end, renewed with the distance, with the markers at both ends of the bar complete
 
 #### Scenario: Live Activity in light and dark mode
 - **WHEN** the rider navigates on an iPhone and the system is in light or in dark mode

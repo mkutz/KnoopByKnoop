@@ -385,8 +385,18 @@ class RouteProgressTest {
     val navigation = start(withStop, fix, Language.DE)
 
     assertEquals("Bei 12 folge 30", navigation.display.copy(close = true).text)
-    assertEquals("Nächster Knotenpunkt 12, dann 30", navigation.display.text)
+    assertEquals("Nächster 12, dann 30", navigation.display.text)
     assertEquals("800 m", navigation.progress(fix).nextKnotDistance)
+  }
+
+  @Test
+  fun `far from the next knot outside the app in every language`() {
+    val display = NavigationDisplay(next = "12", follow = "30", offRoute = false, close = false)
+
+    assertEquals("Next 12, then 30", display.text)
+    assertEquals("Nächster 12, dann 30", display.copy(language = Language.DE).text)
+    assertEquals("Volgende 12, dan 30", display.copy(language = Language.NL).text)
+    assertEquals("Prochain 12, puis 30", display.copy(language = Language.FR).text)
   }
 
   @Test

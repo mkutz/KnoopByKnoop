@@ -22,3 +22,7 @@ Checked 2026-11-02 with the published data on the round trip 02 → 28 → 27 �
 1. Plan a round trip that uses a stretch both ways: two lines side by side, arrows opposite ways. Zoom far out and tap the line: the map zooms to the route.
 2. On a ride to a fork on such a route: only the leg to the next knot is thick with arrows, and the rest is thin.
 3. Check sharp bends for kinks in the line, and whether the thin rest of the route is still easy enough to see.
+
+### Ride of 2026-11-02
+
+Step 1: two lines side by side in planning ✅ on the iPhone; zooming out and tapping stays open. Step 2 ✅ on the Pixel: at 01, the leg ahead turns thick with arrows the other way. Step 3 not looked at closely. Waits for `routes-through-signposts`.

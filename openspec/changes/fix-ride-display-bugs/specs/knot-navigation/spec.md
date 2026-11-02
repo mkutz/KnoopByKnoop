@@ -3,7 +3,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Following the rider
-While navigating with the app open, the map SHALL follow the rider, keeping their position in view as they ride, until the user moves or zooms the map. Then the map SHALL stay where the user put it and a recenter button SHALL appear, which brings the map back to the rider at the navigation zoom and follows them again. The map SHALL NOT return to the rider on its own. While following, the base map's labels and icons SHALL stay steady.
+While navigating with the app open, the map SHALL follow the rider, keeping their position in view as they ride, until the user moves or zooms the map. Then the map SHALL stay where the user put it and a recenter button SHALL appear, which brings the map back to the rider at the navigation zoom and follows them again. The map SHALL NOT return to the rider on its own. While following, on the route and off it, the base map's labels and icons SHALL stay steady.
 
 #### Scenario: Riding with the map following
 - **WHEN** the rider rides along the route and has not touched the map since navigation started
@@ -28,6 +28,10 @@ While navigating with the app open, the map SHALL follow the rider, keeping thei
 #### Scenario: Steady base map while following
 - **WHEN** the map follows the rider past a supermarket and a parking with their icons on the base map
 - **THEN** the icons and street names stay shown while they are in view, without disappearing and reappearing with every position
+
+#### Scenario: Steady base map off route
+- **WHEN** the map follows a rider who is off route or on the way to the first knot, showing them and the end of the line
+- **THEN** the icons and street names stay shown while they are in view, as while following along the route
 
 ### Requirement: Number to follow at large text sizes
 In every app language and at large system text sizes, the number to follow, the distance to the next knot and Stop SHALL be shown completely, and off route the next knot's badge. Where the distance does not fit in the line with the number to follow, it SHALL be shown in a line below it; where the badge does not fit in the line with the off-route text, it SHALL follow the text in the next line.

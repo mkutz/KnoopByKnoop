@@ -28,7 +28,8 @@ struct NavigationLiveActivity: Widget {
             if let progress = context.state.progress {
               Text(progress).font(.caption).foregroundStyle(Color(white: 0.8))
             }
-            RouteBar(state: context.state, track: Color(white: 0.35))
+            // In from the sides, where the island's rounded corners cut off the bar's ends.
+            RouteBar(state: context.state, track: Color(white: 0.35)).padding(.horizontal, 8)
           }
         }
       } compactLeading: {
@@ -53,7 +54,8 @@ struct NavigationLiveActivity: Widget {
           Image(systemName: "flag.checkered")
         }
       } minimal: {
-        Text(context.state.follow ?? context.state.next)
+        // The one number left when the island is shared: the knot the app shows largest.
+        Text(context.state.close && !context.state.offRoute ? context.state.follow ?? context.state.next : context.state.next)
           .bold()
           .foregroundStyle(Color.knoopGreen)
       }
@@ -109,11 +111,11 @@ private struct RouteBar: View {
             Circle().fill(color(of: mark)).frame(width: 8, height: 8)
               .offset(x: width * mark.fraction - 4)
           }
-          Circle().fill(Color.knoopDark).overlay(Circle().stroke(.white, lineWidth: 1))
+          Circle().fill(Color.knoopDark).overlay(Circle().strokeBorder(.white, lineWidth: 1))
             .frame(width: 10, height: 10)
             .offset(x: width - 10)
           Circle().fill(state.offRoute ? Color.red : Color.blue)
-            .overlay(Circle().stroke(.white, lineWidth: 2))
+            .overlay(Circle().strokeBorder(.white, lineWidth: 2))
             .frame(width: 12, height: 12)
             .offset(x: max(0, min(width - 12, width * rider - 6)))
         }

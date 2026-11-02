@@ -26,3 +26,7 @@ iOS checked the same way in the simulator (iPhone 18 Pro, iOS 27), with navigati
 1. On a ride with the Pixel and the iPhone: far from the next knot, the header shows "Next" with the knot and its distance big, and "then" with the number to follow small.
 2. About 200 m before the knot, with the spoken reminder, it switches to "At … follow …" with the number to follow big. The panel does not jump.
 3. With VoiceOver on the iPhone, the far header reads "Next …, … m, then …".
+
+### Ride of 2026-11-02
+
+Steps 1 and 2 ✅ on the Pixel and the iPhone, by the videos. The strip moves a little between the two forms, as the header's height differs; the maintainer finds this low priority. Step 3, VoiceOver, stays open.

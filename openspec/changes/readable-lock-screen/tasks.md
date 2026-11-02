@@ -16,9 +16,13 @@
   - Live Updates turned off in the system settings ("Live Update turned off");
   - the distance changing without a knot passed ("Distance on the way").
 
+- [x] 2.9 Found on the ride of 2026-11-02: the German title cut to "Nächster Knotenpunkt 01, dan…" on the Pixel. `nextOutside` in all four languages, `RouteProgressTest` "far from the next knot outside the app in every language"; a screenshot at text size 1.3 ("Far from the next knot in German").
+
 ## 3. iOS
 
 - [x] 3.1 `ContentState.close`, `riderFraction` and `marks`, `NextKnot` far and close, and the `ProgressBar` on the lock screen and in the expanded Dynamic Island ("Progress bar in the Live Activity"). The project builds. Simulator screenshots of the lock screen far and close, and of the Dynamic Island. The ride and the update rate go to the maintainer's steps in `manual-checks.md`.
+
+- [x] 3.2 Found on the ride of 2026-11-02: the minimal Dynamic Island showed the number to follow also while far ("Dynamic Island with room for one number"), and the bar's end markers were clipped in the expanded form. Fixed; the project builds, the real island goes to the maintainer's steps.
 
 ## 4. Wrap-up
 

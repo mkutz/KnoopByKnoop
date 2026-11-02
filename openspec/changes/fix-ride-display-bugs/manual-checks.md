@@ -15,6 +15,12 @@ Android checked 2026-11-01 on the emulator (`Medium_Phone_API_37.0`) with the de
 
 The maintainer checked all four fixes on the Pixel 7 with the debug build on 2026-11-01: "All fixes look good on the Pixel".
 
+### Ride of 2026-11-02
+
+The Pixel's video showed labels flickering at 0:38, on the way to 02, and steady at 1:10, following along the route. `NetworkMap` still used `animateCamera` per fix off route. Reproduced on the emulator, a mocked rider about 300 m from 02 at 5.6 m/s, frames a quarter of a second apart: labels such as Zum Janni and Zange drop out ([before](screenshots/android-off-route-labels-before.jpg)). With one even move per fix they all stay ([after](screenshots/android-off-route-labels-after.jpg)). The iPhone looked steady off route in the 2 s checked.
+
+Seen on the ride: on the iPhone in dark mode off route, "Off route, next", the arrow and the dot are red. On the Pixel in German, the off-route header wraps with the badge below it.
+
 ### iOS
 
 Checked 2026-11-01 in the simulator (iPhone 18 Pro, iOS 27, dark appearance), German set with `defaults write com.knoopbyknoop language de`, navigation 93 → 94 started by a temporary launch flag 30 s after the route showed (removed again), the location moved off the route along a path with `simctl location start`. The first attempts, starting navigation before the courses had loaded, could not detect off route, as specified for navigation without courses; that was the simulator problem noted before.
@@ -27,7 +33,7 @@ The simulator's route, camera, language, text size and location were restored.
 
 ### Steps for the maintainer
 
-1. Pixel, on a ride: while the map follows you, street names and POI icons stay steady instead of flickering.
+1. Pixel, on a ride: while the map follows you, on the route and on the way to it, street names and POI icons stay steady instead of flickering.
 2. Pixel: rotate the map with two fingers: the compass shows at the top left below the search field, the battery icon is free.
 3. iPhone: choose Deutsch in Info, start a route away from its start: the header shows "Abseits der Route, nächster" over two lines and the knot's badge below it, with Beenden; at the largest accessibility size Beenden is above the header, and everything is complete.
 4. iPhone and Pixel in dark mode, off route: "Off route, next", the arrow and the dot on the strip are red, not pink.

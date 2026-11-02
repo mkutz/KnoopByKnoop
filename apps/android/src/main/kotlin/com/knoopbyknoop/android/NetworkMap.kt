@@ -578,10 +578,13 @@ private class MapHolder {
       // Below the controls at the top, and no closer than following, as the way back can be short.
       val camera = map.getCameraForLatLngBounds(bounds, intArrayOf(160, compassTop + 160, 160, 160))
       if (camera != null) {
-        map.animateCamera(
+        // One even move per fix too, or the labels flicker as they do while following, see below.
+        map.easeCamera(
           CameraUpdateFactory.newCameraPosition(
             CameraPosition.Builder(camera).zoom(minOf(camera.zoom, NAVIGATION_ZOOM)).build()
-          )
+          ),
+          FOLLOW_MOVE_MILLIS,
+          false,
         )
       }
     } else if (begins) {

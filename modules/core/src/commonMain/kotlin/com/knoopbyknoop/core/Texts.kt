@@ -94,6 +94,9 @@ internal interface Texts {
   /** E.g. `Next 45, then 12`, or `Next 45` before the end. */
   fun next(next: String, after: String?): String
 
+  /** The short form of [next] for the one line outside the app, e.g. `Next 45, then 12`. */
+  fun nextOutside(next: String, after: String): String
+
   /** E.g. `45 ahead, then 12`, or `45 ahead, the end`. */
   fun ahead(next: String, after: String?): String
 
@@ -214,6 +217,8 @@ internal object EnglishTexts : Texts {
   override fun next(next: String, after: String?) =
     if (after != null) "Next $next, then $after" else "Next $next"
 
+  override fun nextOutside(next: String, after: String) = "Next $next, then $after"
+
   override fun ahead(next: String, after: String?) =
     if (after != null) "$next ahead, then $after" else "$next ahead, the end"
 
@@ -321,6 +326,8 @@ internal object GermanTexts : Texts {
 
   override fun next(next: String, after: String?) =
     if (after != null) "Nächster Knotenpunkt $next, dann $after" else "Nächster Knotenpunkt $next"
+
+  override fun nextOutside(next: String, after: String) = "Nächster $next, dann $after"
 
   override fun ahead(next: String, after: String?) =
     if (after != null) "$next voraus, dann $after" else "$next voraus, das Ende"
@@ -432,6 +439,8 @@ internal object DutchTexts : Texts {
 
   override fun next(next: String, after: String?) =
     if (after != null) "Volgend knooppunt $next, dan $after" else "Volgend knooppunt $next"
+
+  override fun nextOutside(next: String, after: String) = "Volgende $next, dan $after"
 
   override fun ahead(next: String, after: String?) =
     if (after != null) "$next komt eraan, dan $after" else "$next komt eraan, het einde"
@@ -552,6 +561,8 @@ internal object FrenchTexts : Texts {
 
   override fun next(next: String, after: String?) =
     if (after != null) "Prochain point-nœud $next, puis $after" else "Prochain point-nœud $next"
+
+  override fun nextOutside(next: String, after: String) = "Prochain $next, puis $after"
 
   override fun ahead(next: String, after: String?) =
     if (after != null) "$next approche, puis $after" else "$next approche, l'arrivée"

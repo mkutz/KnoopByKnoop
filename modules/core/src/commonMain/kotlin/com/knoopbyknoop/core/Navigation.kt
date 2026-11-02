@@ -99,7 +99,7 @@ data class NavigationDisplay(
       when {
         follow == null -> language.texts.isTheEnd(next)
         close -> language.texts.follow(next, follow)
-        else -> language.texts.next(next, follow)
+        else -> language.texts.nextOutside(next, follow)
       }
 
   /** E.g. `Off route, next 45`, shown instead of [text] while off route. */

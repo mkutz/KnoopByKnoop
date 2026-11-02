@@ -21,7 +21,7 @@
 
 ## Decisions
 
-**`NavigationDisplay.text` gives the far wording** when `!close` and `follow != null`: `texts.next(next, follow)`. So `display.text` is the one string for outside the app. The German is the notices' "Nächster Knotenpunkt 29, dann 25", which fits the title on the API 37 emulator.
+**`NavigationDisplay.text` gives the far wording** when `!close` and `follow != null`: `texts.next(next, follow)`. So `display.text` is the one string for outside the app. It has its own short wording, `nextOutside`: the notices' "Nächster Knotenpunkt 29, dann 25" fit the title on the emulator only just, and was cut on the maintainer's Pixel. "Nächster 29, dann 25" is the panel's word.
 
 **`progressLine` per 100 m of the route.** In `update`, on route, the line is renewed when the place moved 100 m from where it was last renewed, as `guide` does off route. It uses the current pace from `arrivals-at-current-speed`. Precise fixes only.
 
@@ -40,7 +40,7 @@
 
 **iOS: the bar.** `ContentState` gets `riderFraction`, `offRoute` as it has, and `marks`: the strip's marks without the start, each a fraction and whether it is a ferry with a warning, a ferry or a stop. A small SwiftUI `ProgressBar` draws them, the ridden part green, the marks as dots and the rider as a dot, red off route. It is sent when the line is renewed, so about every 100 m, and not per fix, to stay within what iOS allows. The marks stay few, by the strip's ranking, as a Live Activity's state must stay under 4 KB.
 
-**iOS: `ContentState.close`.** `NextKnot` draws "Next (29)" and "then (25)" when far, with 29 as the prominent badge, and "At (45) follow (12)" when close, as the app's header. The card's height follows, and the system gives the Live Activity the room it needs. The compact Dynamic Island stays as it is.
+**iOS: `ContentState.close`.** `NextKnot` draws "Next (29)" and "then (25)" when far, with 29 as the prominent badge, and "At (45) follow (12)" when close, as the app's header. The card's height follows, and the system gives the Live Activity the room it needs. The compact Dynamic Island stays as it is. Its minimal form, used when the island is shared, shows the knot the app shows largest; showing the number to follow always was wrong while far ("02" with 01 next on the ride of 2026-11-02). The bar in the expanded island keeps clear of the rounded corners, and the markers' outlines stay inside their frames.
 
 **The app tells the Live Activity the system's mode.** Found by the maintainer on the iPhone: on the lock screen, the Live Activity's `colorScheme` is dark also with the system in light mode, and `activityBackgroundTint` still gave a light card, so the text was unreadable. So the card draws an opaque background and uses only opaque colors, chosen by `ContentState.dark`. The app sets it from the screen's trait collection, not its windows', which follow the appearance chosen in Info. It is compared with each position, so a change shows at the next fix, with the screen off about every 30 s. Rendering the views in the app did not show any of this, so the Live Activity's colors can only be judged on a device.
 

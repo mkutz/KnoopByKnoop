@@ -27,3 +27,7 @@ Startup on the emulator, mark "knots": 6.9 s with the old build, 5.0 s and 4.0 s
 3. Navigate a route through 02: both badges are highlighted, and both have the ring while 02 is next.
 4. Plan 02 → 28 and 02 → 01: each line starts at the badge it leaves from. Plan 01 → 27: the line runs through both badges.
 5. ✅ After the next data publication: the route line between the two badges follows the paths, not a straight line across the L 16. Checked by the maintainer on the Pixel and the iPhone, 2026-11-02, with the data of 2026-11-01.
+
+### Ride of 2026-11-02
+
+Step 3 ✅ on the Pixel and the iPhone: both badges 02 with the ring, highlighted. Step 4: 02 → 28 and 02 → 01 each start at their badge in planning; 01 → 27 stays open. Waits for `pass-merged-knots`.
