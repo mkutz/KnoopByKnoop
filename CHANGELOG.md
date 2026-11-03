@@ -1,19 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.8.0
 
-- At a knot signposted in two places, straight distances and directions go to the signpost your route uses, so the distance no longer grows as you ride towards it
-- With no knots in view, a button and the panel show the way to the nearest knots
-- Riding back along the route, the app tells you it is the wrong direction
-- Android: when the app's language changes during navigation, navigation's texts and spoken notices follow at once
-- A stretch used both ways shows as two lines side by side, and while navigating, the leg to the next knot stands out, so a fork on a round trip is clear
-- Starting navigation on a stretch used both ways begins with its first use, not on the way back
-- The lock screen shows what the app shows, with a bar along the route and a distance that stays current; on Android 16 and newer as a Live Update with a chip in the status bar
-- A route through a knot signposted in two places goes through the signpost that fits, without a detour to the other one
-- Arrival times follow your pace over the last 5 km as you ride, not only at each knot, and a break no longer drags them down afterwards
-- A knot signposted in two places, like 02 in Siegburg, now has its badge at both, and they act as one knot; a route starting or ending there uses the signpost on its way
-- New network data arrives at the next start of the app, not only once a day
-- While navigating, the next knot and its distance are biggest until you are close to it; the number to follow there takes over with the reminder, 200 m before
+- The lock screen shows what the app shows, with a bar along the route and a current distance
+- No knots in view? A button shows the way to the nearest ones
+- The app tells you when you ride back along the route
+- Knots signposted in two places have a badge at both; routes and distances use the right one
+- A stretch used both ways shows as two lines, so forks are clear
+- The next knot is biggest until you are close, then the number to follow
+- Arrival times follow your recent pace
 
 ## 0.7.0
 
