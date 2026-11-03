@@ -102,7 +102,8 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       # The latest finished Build on main must have passed, and later commits may only change
-      # Markdown, which Build skips (e.g. adding the CHANGELOG.md section for this release).
+      # Markdown, which Build skips (e.g. adding the CHANGELOG.md section for this release). Finished
+      # runs are picked here, as GitHub's filter for them leaves out runs that were re-run.
       - name: Check main is green
         env:
           GH_TOKEN: ${{ github.token }}
@@ -112,8 +113,9 @@ jobs:
             exit 1
           fi
           read -r checked_sha conclusion <<EOF
-          $(gh run list --workflow build.yml --branch main --event push --status completed \
-            --limit 1 --json headSha,conclusion --jq '.[0] | "\(.headSha) \(.conclusion)"')
+          $(gh run list --workflow build.yml --branch main --event push --limit 20 \
+            --json headSha,status,conclusion \
+            --jq 'map(select(.status == "completed")) | .[0] | "\(.headSha) \(.conclusion)"')
           EOF
           if [ "$conclusion" != "success" ]; then
             echo "::error::The latest Build on main ($checked_sha) did not pass: $conclusion"
