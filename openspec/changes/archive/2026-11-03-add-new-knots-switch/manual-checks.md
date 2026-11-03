@@ -24,6 +24,8 @@ Checked 2026-11-03 with the route 02, 28 at Siegburg and the installed cycling d
 
 Labels checked: English, German, Dutch and French on Android at 360 dp, and English, German and French on iOS. Found and fixed while checking: on Android, the icon overlapped the word in the button's icon slot, and "Entre deux" was cut off; on iOS, the segmented `Picker` showed no icons.
 
+The maintainer verified the rest on both phones on 2026-11-03, including what is marked as not tried above.
+
 ### Steps for the maintainer
 
 1. On the Pixel and the iPhone: plan 12 to 45 on Between, and tap a knot beside it. It works as before.

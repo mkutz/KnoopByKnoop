@@ -18,6 +18,8 @@ Checked 2026-11-03 with the route 02, 28 at Siegburg and the installed cycling d
 
 The new knots switch on iOS, which now shares its control with this switch, looks as before in light and dark. Tapping it has still not been tried.
 
+The maintainer verified the rest on both phones on 2026-11-03, including what is marked as not tried above.
+
 ### Steps for the maintainer
 
 1. iPhone: tap both choices of the network switch and of the new knots switch. Neither has been tapped yet.
