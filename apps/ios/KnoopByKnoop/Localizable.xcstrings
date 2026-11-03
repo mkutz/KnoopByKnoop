@@ -598,6 +598,28 @@
         }
       }
     },
+    "New knots": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Knotenpunkte"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwe knooppunten"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouveaux points-nœuds"
+          }
+        }
+      }
+    },
     "Newer network data needs a newer version of the app. Please update it.": {
       "localizations": {
         "de": {

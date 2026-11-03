@@ -1,5 +1,14 @@
 package com.knoopbyknoop.core
 
+/** What a tapped knot becomes once a route exists, see `map-planning` "What new knots become". */
+enum class NewKnots {
+  /** A stop in the leg where it adds the least distance. */
+  STOP,
+
+  /** The new end, with the old end a stop. */
+  END,
+}
+
 /**
  * Planning a route on the map, see `map-planning`: tapping knots sets start, end and stops, and the
  * waypoints can be moved and removed. Immutable: every action returns a new session.
@@ -28,15 +37,16 @@ private constructor(
     get() = waypoints.size >= 2 && waypoints.last() != waypoints.first()
 
   /**
-   * The first tapped knot becomes the start, the second the end, every further one a stop in the
-   * leg where it adds the least distance. Tapping a waypoint again changes nothing, so an
-   * accidental double tap does not create a round trip and the start does not turn into a stop.
+   * The first tapped knot becomes the start, the second the end, every further one what [newKnots]
+   * says. Tapping a waypoint again changes nothing, so an accidental double tap does not create a
+   * round trip and the start does not turn into a stop.
    */
-  fun tap(knot: Knot): PlanningSession =
+  fun tap(knot: Knot, newKnots: NewKnots): PlanningSession =
     when {
       knot in waypoints -> this
       waypoints.isEmpty() -> copy(listOf(knot), route = null)
       route == null -> withRoute(Route.plan(waypoints + knot, router))
+      newKnots == NewKnots.END -> withRoute(route.withNewEnd(knot))
       else -> withRoute(route.insertStop(knot))
     }
 

@@ -73,6 +73,12 @@ final class AppModel: ObservableObject {
   @Published private(set) var layers: MapLayers?
   @Published private(set) var routeDescription: RouteDescription = RouteDescriptionEmpty.shared
   @Published private(set) var loading = false
+  /// What tapped knots become, kept across starts of the app, see `map-planning` "What new knots become".
+  @Published var newKnots: NewKnots =
+    UserDefaults.standard.string(forKey: "newKnots") == "end" ? .end : .stop
+  {
+    didSet { UserDefaults.standard.set(newKnots == .end ? "end" : "stop", forKey: "newKnots") }
+  }
   @Published var message: String?
   /// Whether the `message` offers to open the app's settings, e.g. to allow location access.
   @Published var messageOpensSettings = false
@@ -211,10 +217,11 @@ final class AppModel: ObservableObject {
   /// Handles a tap on the map; `radiusMeters` is the touch target at the current zoom level.
   func tap(latitude: Double, longitude: Double, radiusMeters: Double) {
     guard let locator = loaded?.locator else { return }
+    let newKnots = newKnots
     change { session in
       // Any badge of a knot, see `map-planning` "Knots signposted at several places".
       locator.nearestAtAnyNode(latitude: latitude, longitude: longitude, radiusMeters: radiusMeters)
-        .map { session.tap(knot: $0) }
+        .map { session.tap(knot: $0, newKnots: newKnots) }
     }
   }
 

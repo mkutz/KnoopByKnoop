@@ -42,7 +42,10 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -91,6 +94,7 @@ import com.knoopbyknoop.core.Guidance
 import com.knoopbyknoop.core.IndexedNetworkType
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.KnotRole
+import com.knoopbyknoop.core.NewKnots
 import com.knoopbyknoop.core.ProgressView
 import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteSummary
@@ -173,8 +177,8 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
     val peekHeight =
       if (state.navigating && navigationHeight > 0)
         (dragHandleHeight + navigationHeight).toDp() + 8.dp + navigationBar
-      // While planning, at least the summary and the actions, which are below it at large text
-      // sizes, see `map-planning` "Route summary at large text sizes".
+      // While planning, at least the summary with the actions, which are below it at large text
+      // sizes, see `map-planning` "Route summary at large text sizes", the knots and the switch.
       else if (!state.navigating)
         maxOf(150.dp, (dragHandleHeight + summaryHeight).toDp() + 8.dp + navigationBar)
       else 150.dp
@@ -446,94 +450,97 @@ private fun WaypointSheet(
         else complete?.let { RouteKnots(it) }
       }
     else {
-      SummaryWithActions(
-        whole = state.description is RouteDescription.Complete,
-        // Measured for the sheet's smallest height while planning, see `PlannerScreen`.
-        modifier = Modifier.onSizeChanged { onSummaryHeight(it.height) },
-        // The distance and time stay in one line each, with the actions below them where they do
-        // not fit next to them, see `map-planning` "Route summary at large text sizes".
-        summary = {
-          when (val description = state.description) {
-            RouteDescription.Empty ->
-              Text(
-                stringResource(
-                  if (state.noKnotsInView) R.string.no_knots_in_view else R.string.tap_to_set_start
-                ),
-                style = MaterialTheme.typography.titleMedium,
-              )
-            is RouteDescription.StartOnly ->
-              Text(
-                stringResource(R.string.start_at_set_end, description.start),
-                style = MaterialTheme.typography.titleMedium,
-              )
-            is RouteDescription.Complete ->
-              Column {
+      // Measured for the sheet's smallest height while planning, see `PlannerScreen`.
+      Column(modifier = Modifier.onSizeChanged { onSummaryHeight(it.height) }) {
+        SummaryWithActions(
+          whole = state.description is RouteDescription.Complete,
+          // The distance and time stay in one line each, with the actions below them where they do
+          // not fit next to them, see `map-planning` "Route summary at large text sizes".
+          summary = {
+            when (val description = state.description) {
+              RouteDescription.Empty ->
                 Text(
-                  description.distance,
-                  style = MaterialTheme.typography.titleLarge,
-                  softWrap = false,
+                  stringResource(
+                    if (state.noKnotsInView) R.string.no_knots_in_view
+                    else R.string.tap_to_set_start
+                  ),
+                  style = MaterialTheme.typography.titleMedium,
                 )
-                // The time at the assumed pace, below, so it never wraps next to the actions, see
-                // `map-planning` "Show the route".
+              is RouteDescription.StartOnly ->
                 Text(
-                  description.duration,
-                  style = MaterialTheme.typography.bodySmall,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant,
-                  softWrap = false,
+                  stringResource(R.string.start_at_set_end, description.start),
+                  style = MaterialTheme.typography.titleMedium,
                 )
-              }
-            is RouteDescription.Unreachable ->
-              Text(
-                stringResource(R.string.no_route_for, description.legs.joinToString()),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.error,
-              )
-          }
-        },
-        // Side by side, so the header stays one row and the badges fit into the smallest sheet.
-        actions = {
-          Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-          ) {
-            val context = LocalContext.current
-            val moreActions = buildList {
-              if (session.canReturnToStart)
-                add(
-                  MenuAction(
-                    stringResource(R.string.back_to_start),
-                    R.drawable.ic_action_back_to_start,
-                    viewModel::returnToStart,
+              is RouteDescription.Complete ->
+                Column {
+                  Text(
+                    description.distance,
+                    style = MaterialTheme.typography.titleLarge,
+                    softWrap = false,
                   )
-                )
-              if (viewModel.canExportGpx)
-                add(
-                  MenuAction(stringResource(R.string.export_gpx), R.drawable.ic_action_export) {
-                    viewModel.gpx()?.let { (fileName, content) ->
-                      shareGpx(context, fileName, content)
-                    }
-                  }
+                  // The time at the assumed pace, below, so it never wraps next to the actions, see
+                  // `map-planning` "Show the route".
+                  Text(
+                    description.duration,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    softWrap = false,
+                  )
+                }
+              is RouteDescription.Unreachable ->
+                Text(
+                  stringResource(R.string.no_route_for, description.legs.joinToString()),
+                  style = MaterialTheme.typography.titleMedium,
+                  color = MaterialTheme.colorScheme.error,
                 )
             }
-            if (moreActions.isNotEmpty()) MoreActions(moreActions)
-            if (session.waypoints.isNotEmpty())
-              IconAction(
-                stringResource(R.string.clear),
-                R.drawable.ic_action_clear,
-                viewModel::clear,
-              )
-            if (state.canNavigate) NavigateButton(viewModel)
-            // In place of asking to tap a knot, see `map-planning` "Nearest knots".
-            if (state.noKnotsInView && session.waypoints.isEmpty())
-              ProminentAction(
-                stringResource(R.string.show_nearest_knots),
-                R.drawable.ic_nearest_knots,
-                viewModel::showNearestKnots,
-              )
-          }
-        },
-      )
-      complete?.let { RouteKnots(it) }
+          },
+          // Side by side, so the header stays one row and the badges fit into the smallest sheet.
+          actions = {
+            Row(
+              horizontalArrangement = Arrangement.spacedBy(4.dp),
+              verticalAlignment = Alignment.CenterVertically,
+            ) {
+              val context = LocalContext.current
+              val moreActions = buildList {
+                if (session.canReturnToStart)
+                  add(
+                    MenuAction(
+                      stringResource(R.string.back_to_start),
+                      R.drawable.ic_action_back_to_start,
+                      viewModel::returnToStart,
+                    )
+                  )
+                if (viewModel.canExportGpx)
+                  add(
+                    MenuAction(stringResource(R.string.export_gpx), R.drawable.ic_action_export) {
+                      viewModel.gpx()?.let { (fileName, content) ->
+                        shareGpx(context, fileName, content)
+                      }
+                    }
+                  )
+              }
+              if (moreActions.isNotEmpty()) MoreActions(moreActions)
+              if (session.waypoints.isNotEmpty())
+                IconAction(
+                  stringResource(R.string.clear),
+                  R.drawable.ic_action_clear,
+                  viewModel::clear,
+                )
+              if (state.canNavigate) NavigateButton(viewModel)
+              // In place of asking to tap a knot, see `map-planning` "Nearest knots".
+              if (state.noKnotsInView && session.waypoints.isEmpty())
+                ProminentAction(
+                  stringResource(R.string.show_nearest_knots),
+                  R.drawable.ic_nearest_knots,
+                  viewModel::showNearestKnots,
+                )
+            }
+          },
+        )
+        complete?.let { RouteKnots(it) }
+        if (session.route != null) NewKnotsSwitch(state.newKnots, viewModel::chooseNewKnots)
+      }
     }
     // While navigating, the coming knots below the strip in place of the waypoints, as the route is
     // fixed then, see `knot-navigation` "Coming knots" and `map-planning` "Waypoint list with
@@ -560,6 +567,41 @@ private fun WaypointSheet(
           }
         }
       }
+  }
+}
+
+/**
+ * What tapped knots become, with the label above the choices where they do not fit next to it, see
+ * `map-planning` "What new knots become".
+ */
+@Composable
+private fun NewKnotsSwitch(selected: NewKnots, onChoose: (NewKnots) -> Unit) {
+  FlowRow(
+    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+    horizontalArrangement = Arrangement.SpaceBetween,
+    verticalArrangement = Arrangement.spacedBy(4.dp),
+    itemVerticalAlignment = Alignment.CenterVertically,
+  ) {
+    Text(stringResource(R.string.new_knots), style = MaterialTheme.typography.bodyMedium)
+    SingleChoiceSegmentedButtonRow {
+      NewKnots.entries.forEachIndexed { index, newKnots ->
+        SegmentedButton(
+          selected = selected == newKnots,
+          onClick = { onChoose(newKnots) },
+          shape = SegmentedButtonDefaults.itemShape(index, NewKnots.entries.size),
+        ) {
+          Text(
+            stringResource(
+              when (newKnots) {
+                NewKnots.STOP -> R.string.role_stop
+                NewKnots.END -> R.string.role_end
+              }
+            ),
+            softWrap = false,
+          )
+        }
+      }
+    }
   }
 }
 

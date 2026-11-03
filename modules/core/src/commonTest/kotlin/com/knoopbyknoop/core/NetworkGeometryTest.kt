@@ -208,7 +208,11 @@ class NetworkGeometryTest {
 
   @Test
   fun `a stop at the knot`() {
-    val session = PlanningSession.start(branches).tap(knot06).tap(knot28).tap(knot02)
+    val session =
+      PlanningSession.start(branches)
+        .tap(knot06, NewKnots.STOP)
+        .tap(knot28, NewKnots.STOP)
+        .tap(knot02, NewKnots.STOP)
     assertEquals(listOf(knot06, knot02, knot28), session.waypoints)
 
     val legs =
@@ -289,7 +293,8 @@ class NetworkGeometryTest {
 
   @Test
   fun `the route on the map starts at the signpost it uses`() {
-    val session = PlanningSession.start(signposts).tap(knot02).tap(knot28)
+    val session =
+      PlanningSession.start(signposts).tap(knot02, NewKnots.STOP).tap(knot28, NewKnots.STOP)
 
     val coordinates =
       Json.parseToJsonElement(MapFeatures.route(session, signpostGeometry))

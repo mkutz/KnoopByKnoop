@@ -34,6 +34,7 @@
   <string name="remove">Remove</string>
   <string name="remove_knot">Remove %1$s</string>
   <string name="move_knot">Move %1$s</string>
+  <string name="new_knots">New knots</string>
   <string name="role_start">Start</string>
   <string name="role_stop">Stop</string>
   <string name="role_end">End</string>

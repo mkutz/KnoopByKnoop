@@ -68,6 +68,14 @@ private constructor(val waypoints: List<Knot>, val legs: List<Leg>, private val 
     return insertStop(stop, bestPosition)
   }
 
+  /**
+   * Makes [knot] the new end and the old end a stop. A round trip stays one, with [knot] before its
+   * return to the start, see `map-planning` "What new knots become".
+   */
+  fun withNewEnd(knot: Knot): Route =
+    if (waypoints.first() == waypoints.last()) insertStop(knot, waypoints.lastIndex)
+    else withWaypoints(waypoints + knot)
+
   /** Moves the waypoint at [from] to [to]. Start and end can be moved as well. */
   fun moveWaypoint(from: Int, to: Int): Route {
     require(from in waypoints.indices && to in waypoints.indices) {

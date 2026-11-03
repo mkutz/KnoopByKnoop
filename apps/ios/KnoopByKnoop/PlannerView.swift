@@ -12,7 +12,8 @@ struct PlannerView: View {
   @State private var pendingNetwork: IndexedNetworkType?
   @State private var showInfo = false
   @State private var detent: PresentationDetent = smallestDetent
-  /// The height of the summary and the actions while planning, see `planningDetent`.
+  /// The height of the summary and the actions, the knots and the switch while planning, with their
+  /// padding, see `planningDetent`.
   @State private var summaryHeight: CGFloat = 0
   /// How far the sheet reaches up from the bottom of the screen, see `searchOverlay`.
   @State private var sheetHeight: CGFloat = 0
@@ -32,7 +33,8 @@ struct PlannerView: View {
   /// large text sizes, see `map-planning` "Route summary at large text sizes". The 24 points are the
   /// space above the summary.
   private var planningDetent: PresentationDetent {
-    summaryHeight + 24 > 170 ? .height((summaryHeight + 24).rounded(.up)) : Self.smallestDetent
+    // Plus the home indicator's area, which the sheet's content ends above.
+    summaryHeight + 34 > 170 ? .height((summaryHeight + 34).rounded(.up)) : Self.smallestDetent
   }
 
   /// While navigating, the sheet's smallest height: the number to follow and the whole strip, see
@@ -322,7 +324,7 @@ private struct WaypointSheet: View {
   /// the text size it was measured at.
   let onNavigationHeight: (CGFloat, DynamicTypeSize) -> Void
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-  /// The height of the summary and the actions while planning.
+  /// The height of the summary and the actions, the knots and the switch while planning.
   let onSummaryHeight: (CGFloat) -> Void
   /// Shows a coming knot on the map.
   let onShowKnot: (Knot) -> Void
@@ -366,8 +368,6 @@ private struct WaypointSheet: View {
               }
             }
           }
-          // Measured for the sheet's smallest height while planning, see `PlannerView`.
-          .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { onSummaryHeight($0) }
           // Presented from the planner sheet itself: presented from the map behind it, it would
           // dismiss the sheet, see `PlannerView`.
           .sheet(item: $exportedGpx) { exported in
@@ -383,11 +383,16 @@ private struct WaypointSheet: View {
         } else if let complete {
           RouteKnots(description: complete)
         }
+        if navigator.state == nil, session.route != nil {
+          newKnotsSwitch
+        }
       }
       .padding([.horizontal, .top])
       .padding(.bottom, 8)
+      // Measured for the sheet's smallest height, see `PlannerView`.
       .onGeometryChange(for: CGFloat.self) { $0.size.height } action: {
         onNavigationHeight(navigator.state == nil ? 0 : $0, dynamicTypeSize)
+        if navigator.state == nil { onSummaryHeight($0) }
       }
       List {
         // While navigating, the ferries are on the progress strip, see `knot-navigation` "Ferries on
@@ -480,6 +485,29 @@ private struct WaypointSheet: View {
   }
 
   /// The waypoint's role in the list, e.g. `Start`; keys of their own, as Stop also ends navigation.
+  /// What tapped knots become, with the label above the choices where they do not fit next to it,
+  /// see `map-planning` "What new knots become".
+  private var newKnotsSwitch: some View {
+    let label = String(localized: "New knots", bundle: AppLanguage.bundle)
+    let choices = Picker(label, selection: $model.newKnots) {
+      Text(Self.roleName(.stop)).tag(NewKnots.stop)
+      Text(Self.roleName(.end)).tag(NewKnots.end)
+    }
+    .pickerStyle(.segmented)
+    .accessibilityLabel(label)
+    return ViewThatFits(in: .horizontal) {
+      HStack {
+        Text(label).font(.callout).fixedSize()
+        Spacer()
+        choices.fixedSize()
+      }
+      VStack(alignment: .leading, spacing: 4) {
+        Text(label).font(.callout)
+        choices
+      }
+    }
+  }
+
   private static func roleName(_ role: KnotRole) -> String {
     switch role {
     case .start: String(localized: "waypoint.start", defaultValue: "Start", bundle: AppLanguage.bundle)

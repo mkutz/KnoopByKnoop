@@ -119,7 +119,9 @@ class NetworkSyncTest {
         )
         .content
     val planned =
-      PlanningSession.start(graphFile.graph).tap(TestNetwork.knot12).tap(TestNetwork.knot45)
+      PlanningSession.start(graphFile.graph)
+        .tap(TestNetwork.knot12, NewKnots.STOP)
+        .tap(TestNetwork.knot45, NewKnots.STOP)
     assertIs<RouteSummary.Complete>(planned.route?.summary)
     val installedCatalog = NetworkCatalog(index = null, installed = toInstall)
     assertTrue(installedCatalog.networks.all { it.state == NetworkState.INSTALLED })

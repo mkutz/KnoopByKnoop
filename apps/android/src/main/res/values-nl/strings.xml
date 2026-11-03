@@ -33,6 +33,7 @@
   <string name="remove">Verwijderen</string>
   <string name="remove_knot">%1$s verwijderen</string>
   <string name="move_knot">%1$s verplaatsen</string>
+  <string name="new_knots">Nieuwe knooppunten</string>
   <string name="role_start">Start</string>
   <string name="role_stop">Tussenstop</string>
   <string name="role_end">Einde</string>

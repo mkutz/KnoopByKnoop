@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- A switch in the panel decides what a tapped knot becomes: a stop as before, or the new end, to look around and extend your route as you go
+
 ## 0.8.0
 
 - The lock screen shows what the app shows, with a bar along the route and a current distance

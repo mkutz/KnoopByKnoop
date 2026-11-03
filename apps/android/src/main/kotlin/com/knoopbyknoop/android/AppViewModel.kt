@@ -32,6 +32,7 @@ import com.knoopbyknoop.core.MapFeatures
 import com.knoopbyknoop.core.NetworkCatalog
 import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkStatus
+import com.knoopbyknoop.core.NewKnots
 import com.knoopbyknoop.core.PlaceHit
 import com.knoopbyknoop.core.PlaceSearch
 import com.knoopbyknoop.core.PlanningSession
@@ -106,6 +107,8 @@ data class AppState(
   val nearestKnots: NearestKnots? = null,
   /** Whether to ask for location access on start: the first start, with nothing else to show. */
   val askLocationOnStart: Boolean = false,
+  /** What tapped knots become, see `map-planning` "What new knots become". */
+  val newKnots: NewKnots = NewKnots.STOP,
   /** The appearance chosen in the info sheet, see `map-planning` "Light and dark appearance". */
   val appearance: Appearance = Appearance.SYSTEM,
   /** The navigation, or `null` when not navigating, see `knot-navigation`. */
@@ -181,6 +184,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val camera = storage.camera()
     state =
       state.copy(
+        newKnots =
+          settings.getString(KEY_NEW_KNOTS, null)?.let { saved ->
+            NewKnots.entries.firstOrNull { it.name == saved }
+          } ?: NewKnots.STOP,
         appearance =
           settings.getString(KEY_APPEARANCE, null)?.let { saved ->
             Appearance.entries.firstOrNull { it.name == saved }
@@ -260,6 +267,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   fun saveCamera(place: CameraPlace) {
     storage.saveCamera(place)
     state = state.copy(myPosition = null)
+  }
+
+  /** Chooses and keeps what tapped knots become, see `map-planning` "What new knots become". */
+  fun chooseNewKnots(newKnots: NewKnots) {
+    settings.edit().putString(KEY_NEW_KNOTS, newKnots.name).apply()
+    state = state.copy(newKnots = newKnots)
   }
 
   /** Chooses and keeps the [appearance], see `map-planning` "Light and dark appearance". */
@@ -459,7 +472,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val session = state.session ?: return
     // Any badge of a knot, see `map-planning` "Knots signposted at several places".
     val knot = loaded?.locator?.nearestAtAnyNode(latitude, longitude, radiusMeters) ?: return
-    update(session.tap(knot))
+    update(session.tap(knot, state.newKnots))
   }
 
   fun moveWaypoint(from: Int, to: Int) {
@@ -678,3 +691,5 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 private const val LOCATE_TIMEOUT_MILLIS = 15_000L
 
 private const val KEY_APPEARANCE = "appearance"
+
+private const val KEY_NEW_KNOTS = "new_knots"

@@ -39,7 +39,10 @@ class FerryTest {
 
   @Test
   fun `route over a ferry`() {
-    val session = sessionWith(mapOf(ferry12To30 to beusichem)).tap(knot12).tap(knot30)
+    val session =
+      sessionWith(mapOf(ferry12To30 to beusichem))
+        .tap(knot12, NewKnots.STOP)
+        .tap(knot30, NewKnots.STOP)
 
     val description = describe(session)
 
@@ -54,7 +57,10 @@ class FerryTest {
 
   @Test
   fun `the ferry is found in both riding directions`() {
-    val session = sessionWith(mapOf(ferry12To30 to beusichem)).tap(knot30).tap(knot12)
+    val session =
+      sessionWith(mapOf(ferry12To30 to beusichem))
+        .tap(knot30, NewKnots.STOP)
+        .tap(knot12, NewKnots.STOP)
 
     assertEquals(listOf(beusichem), describe(session).ferries.map { it.ferry })
   }
@@ -97,9 +103,9 @@ class FerryTest {
   fun `several ferries`() {
     val session =
       sessionWith(mapOf(ferry12To30 to beusichem, ferry30To45 to culemborg))
-        .tap(knot12)
-        .tap(knot45)
-        .tap(knot30)
+        .tap(knot12, NewKnots.STOP)
+        .tap(knot45, NewKnots.STOP)
+        .tap(knot30, NewKnots.STOP)
 
     val description = describe(session)
 
@@ -112,16 +118,16 @@ class FerryTest {
   fun `where the ferries are on the route`() {
     val session =
       sessionWith(mapOf(ferry12To30 to beusichem, ferry30To45 to culemborg))
-        .tap(knot12)
-        .tap(knot45)
-        .tap(knot30)
+        .tap(knot12, NewKnots.STOP)
+        .tap(knot45, NewKnots.STOP)
+        .tap(knot30, NewKnots.STOP)
 
     assertEquals(listOf("12 → 30", "30 → 45"), describe(session).ferries.map { it.place })
   }
 
   @Test
   fun `route without ferries`() {
-    val session = sessionWith(mapOf()).tap(knot12).tap(knot45)
+    val session = sessionWith(mapOf()).tap(knot12, NewKnots.STOP).tap(knot45, NewKnots.STOP)
 
     assertEquals(listOf(), describe(session).ferries)
   }
