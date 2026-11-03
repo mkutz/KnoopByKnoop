@@ -488,13 +488,8 @@ private struct WaypointSheet: View {
   /// What tapped knots become, with the label above the choices where they do not fit next to it,
   /// see `map-planning` "What new knots become".
   private var newKnotsSwitch: some View {
-    let label = String(localized: "New knots", bundle: AppLanguage.bundle)
-    let choices = Picker(label, selection: $model.newKnots) {
-      Text(Self.roleName(.stop)).tag(NewKnots.stop)
-      Text(Self.roleName(.end)).tag(NewKnots.end)
-    }
-    .pickerStyle(.segmented)
-    .accessibilityLabel(label)
+    let label = String(localized: "Add knots", bundle: AppLanguage.bundle)
+    let choices = NewKnotsChoices(selection: $model.newKnots).accessibilityLabel(label)
     return ViewThatFits(in: .horizontal) {
       HStack {
         Text(label).font(.callout).fixedSize()

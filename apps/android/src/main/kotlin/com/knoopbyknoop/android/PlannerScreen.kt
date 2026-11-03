@@ -589,16 +589,38 @@ private fun NewKnotsSwitch(selected: NewKnots, onChoose: (NewKnots) -> Unit) {
           selected = selected == newKnots,
           onClick = { onChoose(newKnots) },
           shape = SegmentedButtonDefaults.itemShape(index, NewKnots.entries.size),
+          // The slot is too small for this icon, which is wider than it is high, so the icon is
+          // part
+          // of the label. The word is what screen readers announce.
+          icon = {},
         ) {
-          Text(
-            stringResource(
-              when (newKnots) {
-                NewKnots.STOP -> R.string.role_stop
-                NewKnots.END -> R.string.role_end
-              }
-            ),
-            softWrap = false,
-          )
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+          ) {
+            Icon(
+              painterResource(
+                when (newKnots) {
+                  NewKnots.STOP -> R.drawable.ic_new_knots_between
+                  NewKnots.END -> R.drawable.ic_new_knots_end
+                }
+              ),
+              contentDescription = null,
+              modifier = Modifier.size(width = 32.dp, height = 16.dp),
+            )
+            // Without spaces to break at, as the row takes its width from the longest word, which
+            // would cut off a label of several words.
+            Text(
+              stringResource(
+                  when (newKnots) {
+                    NewKnots.STOP -> R.string.new_knots_between
+                    NewKnots.END -> R.string.new_knots_end
+                  }
+                )
+                .replace(' ', '\u00A0'),
+              softWrap = false,
+            )
+          }
         }
       }
     }

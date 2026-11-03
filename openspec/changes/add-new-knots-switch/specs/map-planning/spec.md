@@ -8,7 +8,7 @@ Tapping a knot SHALL make it the start if there is no start yet, the end if ther
 - **THEN** 12 is the start, 45 the end, and the route between them is shown on the map
 
 #### Scenario: Adding a stop
-- **WHEN** a route from 12 to 45 exists, the switch is on Stop and the user taps knot 30
+- **WHEN** a route from 12 to 45 exists, the switch is on Between and the user taps knot 30
 - **THEN** 30 is added as a stop where it adds the least distance, and the route passes through it
 
 #### Scenario: Tapping the last waypoint again
@@ -30,26 +30,26 @@ Tapping a knot SHALL make it the start if there is no start yet, the end if ther
 ## ADDED Requirements
 
 ### Requirement: What new knots become
-Once a route exists, the top of the planner panel SHALL show a switch "New knots: Stop | End", also at the panel's smallest height. On Stop, a tapped knot SHALL become a stop. On End, it SHALL become the new end and the old end a stop; a round trip SHALL stay one. Stop SHALL be the default, and the app SHALL remember the choice. The switch SHALL only affect later taps.
+Once a route exists, the top of the planner panel SHALL show a switch "Add knots: Between | At end", also at the panel's smallest height. Each choice SHALL show its word and an icon in the color of that word, with an arrow pointing to where the knot goes. On Between, a tapped knot SHALL become a stop. On At end, it SHALL become the new end and the old end a stop; a round trip SHALL stay one. Between SHALL be the default, and the app SHALL remember the choice. The switch SHALL only affect later taps.
 
 #### Scenario: Extending the route
-- **WHEN** a route from 12 to 45 exists, the switch is on End and the user taps knot 28
+- **WHEN** a route from 12 to 45 exists, the switch is on At end and the user taps knot 28
 - **THEN** the waypoints are 12, 45 and 28, with 28 as the end and 45 as a stop
 
 #### Scenario: Looking around
-- **WHEN** the switch is on End and the user taps 12, 45, 28 and 7 one after the other
+- **WHEN** the switch is on At end and the user taps 12, 45, 28 and 7 one after the other
 - **THEN** the waypoints are 12, 45, 28 and 7 in that order
 
 #### Scenario: A knot beside the route
-- **WHEN** a route from 12 to 45 passes close to knot 30, the switch is on End and the user taps 30
+- **WHEN** a route from 12 to 45 passes close to knot 30, the switch is on At end and the user taps 30
 - **THEN** the waypoints are 12, 45 and 30, as the switch says, also though the route rides on to 45 first
 
-#### Scenario: Round trip on End
-- **WHEN** the waypoints are 12, 45 and 12, the switch is on End and the user taps knot 28
+#### Scenario: Round trip at the end
+- **WHEN** the waypoints are 12, 45 and 12, the switch is on At end and the user taps knot 28
 - **THEN** the waypoints are 12, 45, 28 and 12
 
 #### Scenario: A knot that cannot be reached
-- **WHEN** a route from 12 to 45 exists, the switch is on End and the user taps a knot that cannot be reached from 45
+- **WHEN** a route from 12 to 45 exists, the switch is on At end and the user taps a knot that cannot be reached from 45
 - **THEN** it becomes the end, and the route reports the leg as unreachable, as for any waypoint
 
 #### Scenario: First two taps
@@ -58,15 +58,19 @@ Once a route exists, the top of the planner panel SHALL show a switch "New knots
 
 #### Scenario: Default
 - **WHEN** the app was never told otherwise
-- **THEN** the switch is on Stop
+- **THEN** the switch is on Between
 
 #### Scenario: Remembered
-- **WHEN** the user chose End, clears the route or restarts the app, and plans a new route
-- **THEN** the switch shows End
+- **WHEN** the user chose At end, clears the route or restarts the app, and plans a new route
+- **THEN** the switch shows At end
 
 #### Scenario: Switching changes nothing yet
 - **WHEN** a route with the stops 30 and 7 exists and the user changes the switch
 - **THEN** the waypoints and the route stay as they are
+
+#### Scenario: The icons
+- **WHEN** the switch is shown
+- **THEN** the arrow of Between points at the line between two knots, the arrow of At end points past the last knot, and neither uses the colors of the knots' roles
 
 #### Scenario: In the smallest panel
 - **WHEN** a route is planned and the panel is at its smallest height, on a phone 360 dp wide
@@ -86,8 +90,8 @@ Once a route exists, the top of the planner panel SHALL show a switch "New knots
 
 #### Scenario: Screen reader
 - **WHEN** a screen reader reaches the switch
-- **THEN** it announces "New knots", the two choices and which one is selected
+- **THEN** it announces "Add knots", the words of the two choices and which one is selected, and not the icons
 
 #### Scenario: Readable in both appearances
 - **WHEN** the switch is measured in light and in dark appearance
-- **THEN** its labels have a contrast of at least 4.5:1 to what they are shown on
+- **THEN** its labels and icons have a contrast of at least 4.5:1 to what they are shown on

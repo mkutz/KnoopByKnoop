@@ -19,6 +19,14 @@
 
 - [x] 4.1 `manual-checks.md` with the scenarios and the maintainer's steps; `./gradlew check`, the iOS core tests and `npx @fission-ai/openspec validate --all` pass; a CHANGELOG entry under Unreleased, a section that has to be created after 0.8.0.
 
+## 5. Clearer words and icons
+
+- [x] 5.1 Spec, proposal and design: "Add knots", "Between" and "At end", with an arrow icon on each choice.
+- [x] 5.2 Android: the two icons as vector drawables in the segmented buttons' icon slot, and the strings in four languages.
+- [x] 5.3 iOS: the two icons and words in a small control of its own, as the segmented `Picker` shows only the words, and the strings in `Localizable.xcstrings`, inserted without reformatting the catalog.
+- [x] 5.4 Check again on the emulator and in the simulator: the words and icons in all languages at 360 dp, "The icons", "Larger text", "In landscape", "Readable in both appearances" with measured contrast; new screenshots; restore everything.
+- [x] 5.5 `manual-checks.md` and the CHANGELOG entry with the new words; `./gradlew check` and `npx @fission-ai/openspec validate --all` pass.
+
 ## Workflow follow-up
 
 - The maintainer tries it on both phones, looking around from a start and planning A to B over C, and judges the remembered choice and the map lost to the row, before `/opsx:archive add-new-knots-switch`.

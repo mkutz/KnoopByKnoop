@@ -33,7 +33,9 @@
   <string name="remove">Supprimer</string>
   <string name="remove_knot">Supprimer %1$s</string>
   <string name="move_knot">Déplacer %1$s</string>
-  <string name="new_knots">Nouveaux points-nœuds</string>
+  <string name="new_knots">Ajouter des points-nœuds</string>
+  <string name="new_knots_between">Entre deux</string>
+  <string name="new_knots_end">À la fin</string>
   <string name="role_start">Départ</string>
   <string name="role_stop">Étape</string>
   <string name="role_end">Arrivée</string>

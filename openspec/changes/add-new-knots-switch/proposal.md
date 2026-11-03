@@ -8,10 +8,10 @@ Planning A to B over C stays right, so both ways are needed. A long press would 
 
 ## What Changes
 
-- **A switch in the planner panel:** "New knots: Stop | End", once a route exists.
-- **Stop:** a tapped knot is added as a stop where it adds the least distance, as today. This is the default, so nothing changes for anyone who leaves it alone.
-- **End:** a tapped knot becomes the new end, and the old end becomes a stop.
-- **Round trips stay closed:** in End mode, a new knot goes before the final return to the start.
+- **A switch in the planner panel:** "Add knots: Between | At end", once a route exists, with an icon on each choice whose arrow points to where the knot goes.
+- **Between:** a tapped knot is added as a stop where it adds the least distance, as today. This is the default, so nothing changes for anyone who leaves it alone.
+- **At end:** a tapped knot becomes the new end, and the old end becomes a stop.
+- **Round trips stay closed:** on At end, a new knot goes before the final return to the start.
 - **The choice is remembered** across routes and starts of the app.
 - **The first two taps stay as they are:** start, then end. The switch is not shown before there is a route.
 
@@ -43,7 +43,7 @@ None.
   - `PlanningSession.tap(knot, newKnots)`.
   - `Route` gets a way to add a new end, also before a round trip's return.
   - Tests are in `PlanningTest`.
-- **Android:** a segmented control in the panel, as in the info sheet; the choice in the `settings` preferences; the sheet's smallest height; strings in four languages.
-- **iOS:** a segmented picker in the panel; the choice in `AppStorage`; the sheet's smallest height; strings in four languages.
+- **Android:** a segmented control with icons in the panel; the choice in the `settings` preferences; the sheet's smallest height; strings in four languages.
+- **iOS:** a segmented control with icons in the panel; the choice in `AppStorage`; the sheet's smallest height; strings in four languages.
 - **Data:** no data run.
 - **The map:** the panel's smallest height grows by one row while a route is planned, so a little less map shows.

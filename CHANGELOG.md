@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- A switch in the panel decides what a tapped knot becomes: a stop as before, or the new end, to look around and extend your route as you go
+- A switch in the panel decides where tapped knots go: between the others as before, or at the end, to look around and extend your route as you go
 
 ## 0.8.0
 

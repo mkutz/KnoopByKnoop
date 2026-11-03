@@ -4,6 +4,28 @@
     " · %@": {
       "shouldTranslate": false
     },
+    "Add knots": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Knotenpunkte hinzufügen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Knooppunten toevoegen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter des points-nœuds"
+          }
+        }
+      }
+    },
     "Appearance": {
       "localizations": {
         "de": {
@@ -48,6 +70,28 @@
         }
       }
     },
+    "At end": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ans Ende"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aan het eind"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À la fin"
+          }
+        }
+      }
+    },
     "Back to start": {
       "localizations": {
         "de": {
@@ -66,6 +110,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Retour au départ"
+          }
+        }
+      }
+    },
+    "Between": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dazwischen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ertussen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entre deux"
           }
         }
       }
@@ -594,28 +660,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Naviguer"
-          }
-        }
-      }
-    },
-    "New knots": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Neue Knotenpunkte"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nieuwe knooppunten"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nouveaux points-nœuds"
           }
         }
       }
