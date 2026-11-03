@@ -33,3 +33,5 @@ The maintainer's screenshot at 08:10, north of Siegburg: after pressing the butt
 
 - **iOS simulator, the same place:** reproduced ([before](screenshots/ios-knot-behind-search-before.jpg)). Fixed: both badges 02 and the rider clear of the search field, "Tap a knot to set the start", no button ([after](screenshots/ios-knot-clear-after.jpg)).
 - **Android emulator:** rider south-west of knot 01, both in view, the button gone ([screenshot](screenshots/android-rider-and-knot.jpg)). 01 lies close to the zoom buttons but is not covered. A knot straight north, where the new top padding matters, was not run.
+
+The maintainer checked the fix on the Pixel and the iPhone on 2026-11-03: "It works now and can be archived". VoiceOver, the button while navigating on the iPhone, and the wording in German and Dutch were not reported on separately.
