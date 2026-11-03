@@ -208,7 +208,7 @@ private constructor(
   /** The straight way to the next knot from [fix] while off route, else `null`. */
   fun guidance(fix: Fix): Guidance? {
     if (!offRoute || arrived) return null
-    return wayTo(fix, nextKnot, language)
+    return wayTo(fix, headedFor(nextIndex), language)
   }
 
   /**
@@ -218,8 +218,7 @@ private constructor(
    */
   fun wayToRoute(fix: Fix): GeoPoint? {
     if (!offRoute || arrived) return null
-    return route.nearestAhead(fix, nextIndex, place)
-      ?: GeoPoint(nextKnot.latitude, nextKnot.longitude)
+    return route.nearestAhead(fix, nextIndex, place) ?: headedFor(nextIndex)
   }
 
   /**
@@ -302,6 +301,12 @@ private constructor(
     get() = knots[nextIndex]
 
   /**
+   * The signpost the route's line uses at the knot at [index], see `knot-navigation` "Straight ways
+   * to a knot with several signposts".
+   */
+  private fun headedFor(index: Int): GeoPoint = route.headedFor[index]
+
+  /**
    * The course to the next knot as the map draws it, or `null` before the first knot, see
    * `knot-navigation` "Leg ahead on the map".
    */
@@ -347,7 +352,7 @@ private constructor(
       )
     val line =
       if (offRoute && !arrived) {
-        val way = wayTo(fix, nextKnot, newLanguage)
+        val way = wayTo(fix, headedFor(nextIndex), newLanguage)
         newLanguage.texts.wayTo(way.distance, way.direction, nextKnot.ref)
       } else {
         navigation.routeLine(fix)
@@ -362,7 +367,7 @@ private constructor(
       arrived -> Precision.COARSE
       offRoute || wrongWay || confirming -> Precision.FINE
       lastFix.accuracyMeters > FINE_DISTANCE_METERS -> Precision.FINE
-      distanceTo(lastFix, nextKnot) <= FINE_DISTANCE_METERS -> Precision.FINE
+      distanceTo(lastFix, headedFor(nextIndex)) <= FINE_DISTANCE_METERS -> Precision.FINE
       else -> Precision.COARSE
     }
 
@@ -434,7 +439,7 @@ private constructor(
     if (
       !navigation.arrived &&
         navigation.remindedIndex != navigation.nextIndex &&
-        distanceTo(fix, navigation.nextKnot) <= REMINDER_METERS
+        distanceTo(fix, headedFor(navigation.nextIndex)) <= REMINDER_METERS
     ) {
       notices += navigation.reminderNotice()
       navigation = navigation.copy(remindedIndex = navigation.nextIndex)
@@ -621,8 +626,8 @@ private constructor(
   private fun offRouteNotice(index: Int, fix: Fix): Notice {
     return notice(
       NoticeKind.OFF_ROUTE,
-      texts.offRoute(knots[index].ref, wayTo(fix, knots[index], language).text),
-      speech.offRoute(spoken(knots[index].ref), wayTo(fix, knots[index], speechLanguage).text),
+      texts.offRoute(knots[index].ref, wayTo(fix, headedFor(index), language).text),
+      speech.offRoute(spoken(knots[index].ref), wayTo(fix, headedFor(index), speechLanguage).text),
     )
   }
 
@@ -650,9 +655,10 @@ private constructor(
    * the app renewed per [LINE_METERS]; [startedNow] when the off-route notice was just given.
    */
   private fun guide(fix: Fix, startedNow: Boolean): Pair<Navigation, Notice?> {
-    val meters = distanceTo(fix, nextKnot)
-    val bearing = bearing(fix, nextKnot)
-    val way = wayTo(fix, nextKnot, language)
+    val target = headedFor(nextIndex)
+    val meters = distanceTo(fix, target)
+    val bearing = bearing(fix, target)
+    val way = wayTo(fix, target, language)
     val last = guided
     val notice =
       if (startedNow || last == null) null
@@ -663,7 +669,7 @@ private constructor(
         notice(
           NoticeKind.GUIDANCE,
           texts.guidance(nextKnot.ref, way.text),
-          speech.guidance(spoken(nextKnot.ref), wayTo(fix, nextKnot, speechLanguage).text),
+          speech.guidance(spoken(nextKnot.ref), wayTo(fix, target, speechLanguage).text),
         )
       else null
     val told = startedNow || last == null || notice != null
@@ -859,9 +865,21 @@ private constructor(
           // Away from the route: to its start, see `knot-navigation` "Start navigation"; without
           // courses, the app cannot tell the rider is away, so the nearest knot.
           courses != null -> 0 to true
-          else -> knots.indices.minBy { distanceTo(fix, knots[it]) } to false
+          else -> knots.indices.minBy { distanceTo(fix, pointOf(knots[it])) } to false
         }
-      val route = RouteProgress.of(knots, graph, courses, stops)
+      val drawnCourses =
+        geometry?.courses(knots)
+          ?: knots.zipWithNext { from, to -> listOf(pointOf(from), pointOf(to)) }
+      val headedFor = knots.mapIndexed { index, knot ->
+        when {
+          geometry == null -> pointOf(knot)
+          index == 0 -> drawnCourses.firstOrNull()?.firstOrNull() ?: pointOf(knot)
+          else ->
+            drawnCourses.getOrNull(index - 1)?.let { geometry.firstReachedOn(it, knot) }
+              ?: pointOf(knot)
+        }
+      }
+      val route = RouteProgress.of(knots, graph, courses, stops, headedFor)
       val place = if (startIndex >= 0) route.offsets[startIndex] else route.placeOf(fix, nextIndex)
       val pace = Pace(place, fix.timeMillis, route.assumedMetersPerSecond)
       val ferries = localTime?.let {
@@ -881,14 +899,7 @@ private constructor(
         Navigation(
             knots = knots,
             courses = courses,
-            drawnCourses =
-              geometry?.courses(knots)
-                ?: knots.zipWithNext { from, to ->
-                  listOf(
-                    GeoPoint(from.latitude, from.longitude),
-                    GeoPoint(to.latitude, to.longitude),
-                  )
-                },
+            drawnCourses = drawnCourses,
             signpostCourses =
               geometry?.let { network ->
                 knots.zipWithNext { from, to -> network.signpostCoursesOf(from, to) }
@@ -930,7 +941,7 @@ private constructor(
         else navigation.nextNotice(nextIndex)
       // The notice on starting names the next knot, so a knot close by needs no reminder.
       val reminded =
-        if (distanceTo(fix, navigation.nextKnot) <= REMINDER_METERS)
+        if (distanceTo(fix, navigation.headedFor(nextIndex)) <= REMINDER_METERS)
           navigation.copy(remindedIndex = nextIndex)
         else navigation
       val notices = listOf(notice) + ferries?.second.orEmpty()
@@ -957,8 +968,10 @@ private fun lastWithin(knots: List<Knot>, from: Int, until: Int, fix: Fix): Int 
   return index
 }
 
-private fun distanceTo(fix: Fix, knot: Knot): Double =
-  distanceMeters(fix.latitude, fix.longitude, knot.latitude, knot.longitude)
+private fun pointOf(knot: Knot) = GeoPoint(knot.latitude, knot.longitude)
+
+private fun distanceTo(fix: Fix, point: GeoPoint): Double =
+  distanceMeters(fix.latitude, fix.longitude, point.latitude, point.longitude)
 
 /** The distance from [fix] to the nearest of the nodes [knot] is tagged on. */
 private fun distanceToNearestNode(fix: Fix, knot: Knot): Double =
@@ -1000,11 +1013,11 @@ private fun distanceToPolyline(
 internal fun compass(bearing: Double, language: Language = Language.EN): String =
   language.texts.compassDirections[(((bearing + 22.5) % 360 + 360) % 360 / 45).toInt() % 8]
 
-/** The initial great-circle bearing from [fix] to [knot], clockwise from north. */
-private fun bearing(fix: Fix, knot: Knot): Double {
+/** The initial great-circle bearing from [fix] to [point], clockwise from north. */
+private fun bearing(fix: Fix, point: GeoPoint): Double {
   val fromLatitude = fix.latitude * PI / 180
-  val toLatitude = knot.latitude * PI / 180
-  val deltaLongitude = (knot.longitude - fix.longitude) * PI / 180
+  val toLatitude = point.latitude * PI / 180
+  val deltaLongitude = (point.longitude - fix.longitude) * PI / 180
   val y = sin(deltaLongitude) * cos(toLatitude)
   val x =
     cos(fromLatitude) * sin(toLatitude) - sin(fromLatitude) * cos(toLatitude) * cos(deltaLongitude)
@@ -1017,9 +1030,9 @@ private fun angleBetween(first: Double, second: Double): Double {
   return if (difference > 180) 360 - difference else difference
 }
 
-private fun wayTo(fix: Fix, knot: Knot, language: Language): Guidance {
-  val bearing = bearing(fix, knot)
-  val distance = MapFeatures.formatDistance(distanceTo(fix, knot).roundToInt(), language)
+private fun wayTo(fix: Fix, point: GeoPoint, language: Language): Guidance {
+  val bearing = bearing(fix, point)
+  val distance = MapFeatures.formatDistance(distanceTo(fix, point).roundToInt(), language)
   val direction = compass(bearing, language)
   return Guidance(distance, bearing, direction, language.texts.way(distance, direction))
 }

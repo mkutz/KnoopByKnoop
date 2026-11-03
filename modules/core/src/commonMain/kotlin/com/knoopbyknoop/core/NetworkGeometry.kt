@@ -87,6 +87,22 @@ class NetworkGeometry(
   }
 
   /**
+   * The position of [knot] that [course], arriving at it, gets to first: it can run through one
+   * signpost on to another, see `knot-navigation` "Straight ways to a knot with several signposts".
+   */
+  internal fun firstReachedOn(course: List<GeoPoint>, knot: Knot): GeoPoint {
+    for ((from, to) in course.zipWithNext()) {
+      knot.positions
+        .filter { distanceToLine(it.latitude, it.longitude, from, to) <= ON_SIGNPOST_METERS }
+        .minByOrNull { distanceMeters(from.latitude, from.longitude, it.latitude, it.longitude) }
+        ?.let {
+          return it
+        }
+    }
+    return course.last()
+  }
+
+  /**
    * The other courses of the connection between [from] and [to], see "Courses to each signpost".
    */
   fun signpostCoursesOf(from: Knot, to: Knot): List<List<GeoPoint>> =

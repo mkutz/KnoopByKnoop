@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- At a knot signposted in two places, straight distances and directions go to the signpost your route uses, so the distance no longer grows as you ride towards it
 - With no knots in view, a button and the panel show the way to the nearest knots
 - Riding back along the route, the app tells you it is the wrong direction
 - Android: when the app's language changes during navigation, navigation's texts and spoken notices follow at once

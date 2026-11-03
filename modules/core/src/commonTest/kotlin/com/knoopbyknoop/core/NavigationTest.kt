@@ -589,6 +589,225 @@ class NavigationTest {
     assertTrue(navigation.offRoute)
   }
 
+  // Requirement: Straight ways to a knot with several signposts
+
+  /** A navigation with [knot] also tagged on a node, and the courses of [legs] as given. */
+  private inner class Signposts(
+    knot: Knot,
+    east: Double,
+    north: Double,
+    knots: (Knot) -> List<Knot>,
+    legs: Map<Pair<Long, Long>, List<GeoPoint>>,
+  ) {
+    val signpost = GeoPoint(latitude(north), longitude(east))
+    val mergedGraph = mergedGraph(knot, east, north).first
+    val merged = mergedGraph.knots.getValue(knot.id)
+    val route = knots(merged)
+    val geometry =
+      NetworkGeometry(
+        mergedGraph,
+        mergedGraph.connections.map { connection ->
+          legs[connection.fromId to connection.toId]
+            ?: listOf(connection.fromId, connection.toId).map {
+              point(mergedGraph.knots.getValue(it))
+            }
+        },
+      )
+
+    fun start(fix: Fix) = assertNotNull(Navigation.start(route, mergedGraph, geometry, fix))
+  }
+
+  private fun at(east: Double, north: Double) = GeoPoint(latitude(north), longitude(east))
+
+  /** The route leaves 24 at a signpost 195 m north of 24's main position. */
+  private fun leavingFirstKnotAtSignpost() =
+    Signposts(
+      knot24,
+      east = 0.0,
+      north = 195.0,
+      { listOf(it, knot45, knot12) },
+      mapOf((24L to 45L) to listOf(at(0.0, 0.0), at(0.0, 195.0), at(1000.0, 0.0))),
+    )
+
+  /** The route 24, 45, 12 reaches 45 at a signpost [north] m north of its main position. */
+  private fun throughSignpostOf45(north: Double = 195.0) =
+    Signposts(
+      knot45,
+      east = 1000.0,
+      north = north,
+      { listOf(knot24, it, knot12) },
+      mapOf(
+        (24L to 45L) to listOf(at(0.0, 0.0), at(1000.0, north), at(1000.0, 0.0)),
+        (45L to 12L) to listOf(at(1000.0, 0.0), at(1000.0, north), at(2000.0, 0.0)),
+      ),
+    )
+
+  @Test
+  fun `approaching the first knot at the signpost the route leaves from`() {
+    val signposts = leavingFirstKnotAtSignpost()
+    val started = signposts.start(fix(-500.0, north = 115.0))
+    assertTrue(started.navigation.offRoute)
+
+    // Back on the course, 80 m from the signpost and 115 m from the main position.
+    val near = fix(0.0, north = 115.0)
+    val back = started.navigation.update(near).navigation
+    assertFalse(back.offRoute)
+    assertEquals(knot24.ref, back.nextKnot.ref)
+    assertEquals("80 m", back.progress(near).nextKnotDistance)
+    assertTrue(back.progressLine.startsWith("80 m to 24"), back.progressLine)
+
+    val nearer = fix(0.0, north = 135.0)
+    assertEquals("60 m", back.update(nearer).navigation.progress(nearer).nextKnotDistance)
+  }
+
+  @Test
+  fun `dashed line to the first knot at the signpost the route leaves from`() {
+    val signposts = leavingFirstKnotAtSignpost()
+    val away = fix(-500.0, north = 195.0)
+
+    val navigation = signposts.start(away).navigation
+
+    assertTrue(navigation.offRoute)
+    assertEquals(signposts.signpost, navigation.wayToRoute(away))
+  }
+
+  @Test
+  fun `off route heading for a knot on the route at the signpost used`() {
+    val signposts = throughSignpostOf45()
+    val started = signposts.start(fix(0.0))
+    // 1.2 km north of the signpost, 1.4 km from the main position.
+    val away = fix(1000.0, north = 1395.0)
+
+    val update = started.navigation.update(away)
+
+    assertEquals(listOf("Off route, next 45, 1.2 km to the south"), update.notices.map { it.text })
+    assertEquals("1.2 km", update.navigation.guidance(away)?.distance)
+    assertEquals("1.2 km", update.navigation.progress(away).nextKnotDistance)
+    assertTrue(update.navigation.progressLine.startsWith("1.2 km"), update.navigation.progressLine)
+  }
+
+  @Test
+  fun `the route uses the other signpost`() {
+    // The courses keep to the road, so the line reaches 45 at its main position.
+    val signposts =
+      Signposts(knot45, east = 1000.0, north = 195.0, { listOf(knot24, it, knot12) }, mapOf())
+    val started = signposts.start(fix(0.0))
+    val away = fix(1000.0, north = 1395.0)
+
+    val navigation = started.navigation.update(away).navigation
+
+    assertEquals("1.4 km", navigation.guidance(away)?.distance)
+  }
+
+  @Test
+  fun `reminder at the signpost used`() {
+    val signposts = throughSignpostOf45()
+    val started = signposts.start(fix(0.0))
+
+    // On the course: 305 m from the signpost, then 150 m from it and 222 m from the main position.
+    val (navigation, notices) =
+      started.navigation.ride(fix(700.0, north = 136.5), fix(853.0, north = 166.0))
+
+    assertEquals(
+      listOf("45 ahead, then 12"),
+      notices.filter { it.kind == NoticeKind.REMINDER }.map { it.text },
+    )
+    assertEquals(
+      listOf(),
+      navigation.ride(fix(880.0, north = 171.6)).second.filter { it.kind == NoticeKind.REMINDER },
+    )
+  }
+
+  /** The line runs through both places 45 is signposted at, on the way in or on the way out. */
+  private fun throughBothSignpostsOf45(arrivingThroughSignpost: Boolean) =
+    Signposts(
+      knot45,
+      east = 1000.0,
+      north = 195.0,
+      { listOf(knot24, it, knot12) },
+      if (arrivingThroughSignpost)
+        mapOf((24L to 45L) to listOf(at(0.0, 0.0), at(1000.0, 195.0), at(1000.0, 0.0)))
+      else mapOf((45L to 12L) to listOf(at(1000.0, 0.0), at(1000.0, 195.0), at(2000.0, 0.0))),
+    )
+
+  @Test
+  fun `line through both signposts reaching the other node first`() {
+    val signposts = throughBothSignpostsOf45(arrivingThroughSignpost = true)
+    val away = fix(1000.0, north = 1395.0)
+
+    val update = signposts.start(fix(0.0)).navigation.update(away)
+
+    assertEquals("1.2 km", update.navigation.guidance(away)?.distance)
+
+    // On the line: 150 m from the signpost it gets to first, 222 m from the other.
+    val (_, notices) =
+      signposts
+        .start(fix(0.0))
+        .navigation
+        .ride(fix(700.0, north = 136.5), fix(853.0, north = 166.0))
+    assertEquals(
+      listOf("45 ahead, then 12"),
+      notices.filter { it.kind == NoticeKind.REMINDER }.map { it.text },
+    )
+  }
+
+  @Test
+  fun `line through both signposts reaching the main position first`() {
+    val signposts = throughBothSignpostsOf45(arrivingThroughSignpost = false)
+    val away = fix(1000.0, north = 1395.0)
+
+    val update = signposts.start(fix(0.0)).navigation.update(away)
+
+    assertEquals("1.4 km", update.navigation.guidance(away)?.distance)
+  }
+
+  @Test
+  fun `passing the other signpost`() {
+    val signposts = throughSignpostOf45()
+    val started = signposts.start(fix(0.0))
+
+    val update = started.navigation.update(fix(1000.0))
+
+    assertEquals(knot12, update.navigation.nextKnot)
+    assertEquals(listOf(NoticeKind.NEXT), update.notices.map { it.kind })
+  }
+
+  @Test
+  fun `a knot with one signpost is measured to its position`() {
+    val away = fix(1000.0, north = 1395.0)
+
+    val navigation = start(east = 0.0).navigation.update(away).navigation
+
+    assertEquals("1.4 km", navigation.guidance(away)?.distance)
+    assertEquals(point(knot45), navigation.courseAhead?.last())
+  }
+
+  @Test
+  fun `without courses the ways go to the main position`() {
+    val signposts = throughSignpostOf45()
+    val started =
+      assertNotNull(Navigation.start(signposts.route, signposts.mergedGraph, null, fix(0.0)))
+    val passing77 = fix(500.0, north = 300.0)
+    val away = fix(1000.0, north = 1395.0)
+
+    val navigation = started.navigation.ride(passing77, away).first
+
+    assertTrue(navigation.offRoute)
+    assertEquals("1.4 km", navigation.guidance(away)?.distance)
+    assertEquals(point(knot45), navigation.wayToRoute(away))
+  }
+
+  @Test
+  fun `sampling is fine near the signpost used`() {
+    val signposts = throughSignpostOf45(north = 500.0)
+    val started = signposts.start(fix(0.0))
+
+    // On the course, 335 m from the signpost and 461 m from the main position.
+    val navigation = started.navigation.update(fix(700.0, north = 350.0)).navigation
+
+    assertEquals(Precision.FINE, navigation.precision(visible = false))
+  }
+
   // Requirement: Leg ahead on the map
 
   private fun point(knot: Knot) = GeoPoint(knot.latitude, knot.longitude)

@@ -99,6 +99,8 @@ data class ProgressView(
  *
  * @property offsets the route distance of each knot from the first, along the connections
  * @property stops the positions of the stops in [knots], without the start and the end
+ * @property headedFor per position in [knots], the signpost the route's line uses there, see
+ *   `knot-navigation` "Straight ways to a knot with several signposts"
  */
 internal class RouteProgress
 private constructor(
@@ -108,6 +110,7 @@ private constructor(
   val stops: Set<Int>,
   private val ferryPositions: List<Int>,
   val assumedMetersPerSecond: Double,
+  val headedFor: List<GeoPoint>,
 ) {
 
   val length: Double
@@ -145,10 +148,10 @@ private constructor(
     return nearestAfter(fix.latitude, fix.longitude, course, fromFraction)
   }
 
-  /** The straight distance from [fix] to the knot at [index]. */
+  /** The straight distance from [fix] to the signpost used at the knot at [index]. */
   fun straightTo(fix: Fix, index: Int): Double {
-    val knot = knots[index]
-    return distanceMeters(fix.latitude, fix.longitude, knot.latitude, knot.longitude)
+    val signpost = headedFor[index]
+    return distanceMeters(fix.latitude, fix.longitude, signpost.latitude, signpost.longitude)
   }
 
   /**
@@ -370,12 +373,14 @@ private constructor(
      *
      * @param courses the course of each leg, or `null` without courses
      * @param stops the positions of the stops in [knots]
+     * @param headedFor per position in [knots], the signpost the route's line uses there
      */
     fun of(
       knots: List<Knot>,
       graph: NetworkGraph,
       courses: List<List<GeoPoint>>?,
       stops: Set<Int>,
+      headedFor: List<GeoPoint>,
     ): RouteProgress {
       val legLengths = knots.zipWithNext { from, to -> lengthOf(graph, from, to) }
       val ferries =
@@ -389,6 +394,7 @@ private constructor(
         stops.filter { it in 1 until knots.lastIndex }.toSet(),
         ferries,
         assumedMetersPerSecond(graph.network),
+        headedFor,
       )
     }
 
