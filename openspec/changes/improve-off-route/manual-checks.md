@@ -28,3 +28,7 @@ iOS checked the same way in the simulator (iPhone 18 Pro, iOS 27), with navigati
 Steps 1 and 3 ✅ on the iPhone: the line to the nearest part ahead, both in view, "28 is the end" again on the route. Not shown: the Pixel off route between knots, and step 2, the parallel path.
 
 Riding back along the route the wrong way stays "on route": a new change.
+
+### iOS: the end of the line, 2026-11-03
+
+The fit for "Both in view" was centered on the whole map, so the end of the line could lie behind the search field, as seen in the ride video `16-22-42`. Now centered on the area above it: in the simulator the rider, the line and 02 with its ring are clear of the search field ([screenshot](screenshots/ios-line-end-clear.jpg)).

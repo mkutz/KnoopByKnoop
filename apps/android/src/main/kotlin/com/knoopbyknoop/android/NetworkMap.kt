@@ -639,7 +639,13 @@ private class MapHolder {
         ?.let { rider ->
           map.getCameraForLatLngBounds(
             LatLngBounds.Builder().include(knot).include(rider).build(),
-            intArrayOf(NEAREST_PADDING, NEAREST_PADDING, NEAREST_PADDING, NEAREST_PADDING),
+            // Below the controls at the top, as the search field covers the map there.
+            intArrayOf(
+              NEAREST_PADDING,
+              compassTop + NEAREST_PADDING,
+              NEAREST_PADDING,
+              NEAREST_PADDING,
+            ),
           )
         }
         ?.takeIf { it.zoom >= KNOT_MIN_ZOOM }

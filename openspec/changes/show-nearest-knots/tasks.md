@@ -24,6 +24,10 @@
 
 - [x] 4.1 `manual-checks.md` with the scenarios and the maintainer's steps; `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; a CHANGELOG entry under Unreleased.
 
+## Found on the iPhone
+
+- [x] Knot behind the search field, button staying ("Clear of the controls"): the camera centered on the padded area, Android's top padding below the controls. Simulator before and after, emulator with a knot to the north-east.
+
 ## Workflow follow-up
 
 - The maintainer checks it on the Pixel and the iPhone before `/opsx:archive show-nearest-knots`.

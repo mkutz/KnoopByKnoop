@@ -25,6 +25,10 @@ While planning, when the map shows no knots of the selected network, because the
 - **WHEN** location access is allowed, the rider is 8 km from the nearest knot, and they tap the button
 - **THEN** the map shows both their position, marked with a dot, and that knot, with the knots shown
 
+#### Scenario: Clear of the controls
+- **WHEN** the map moves to show the rider's position and the nearest knot
+- **THEN** neither is hidden behind the search field, the network switch or the panel, and the button is gone, as a knot is in view
+
 #### Scenario: Without location access
 - **WHEN** location access was not allowed and the user taps the button
 - **THEN** the app does not ask for it, and the map shows the knot nearest to the middle of the map

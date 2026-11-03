@@ -26,3 +26,10 @@ Also checked on Android: German at the largest font in dark mode ([screenshot](s
 2. **iPhone, screen reader:** VoiceOver reads "Show the nearest knots" on the button.
 3. **iPhone:** zoom far out while navigating: no button.
 4. **German and Dutch:** do the texts read well to you?
+
+### Found on the iPhone, 2026-11-03
+
+The maintainer's screenshot at 08:10, north of Siegburg: after pressing the button, the map showed the rider, 02 was behind the search field, and the button and "No knots in view" stayed.
+
+- **iOS simulator, the same place:** reproduced ([before](screenshots/ios-knot-behind-search-before.jpg)). Fixed: both badges 02 and the rider clear of the search field, "Tap a knot to set the start", no button ([after](screenshots/ios-knot-clear-after.jpg)).
+- **Android emulator:** rider south-west of knot 01, both in view, the button gone ([screenshot](screenshots/android-rider-and-knot.jpg)). 01 lies close to the zoom buttons but is not covered. A knot straight north, where the new top padding matters, was not run.

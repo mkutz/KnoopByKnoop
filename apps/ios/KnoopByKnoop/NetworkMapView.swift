@@ -327,16 +327,17 @@ struct NetworkMapView: UIViewRepresentable {
       shownNearest = target
       let knot = CLLocationCoordinate2D(latitude: target.knot.latitude, longitude: target.knot.longitude)
       if let fix = target.rider, fix.latitude != knot.latitude || fix.longitude != knot.longitude {
-        let camera = mapView.cameraThatFitsCoordinateBounds(
-          MLNCoordinateBounds(
-            sw: CLLocationCoordinate2D(latitude: min(fix.latitude, knot.latitude), longitude: min(fix.longitude, knot.longitude)),
-            ne: CLLocationCoordinate2D(latitude: max(fix.latitude, knot.latitude), longitude: max(fix.longitude, knot.longitude))),
-          edgePadding: edgePadding(in: mapView))
+        let bounds = MLNCoordinateBounds(
+          sw: CLLocationCoordinate2D(latitude: min(fix.latitude, knot.latitude), longitude: min(fix.longitude, knot.longitude)),
+          ne: CLLocationCoordinate2D(latitude: max(fix.latitude, knot.latitude), longitude: max(fix.longitude, knot.longitude)))
+        let padding = clearPadding(in: mapView)
+        let camera = mapView.cameraThatFitsCoordinateBounds(bounds, edgePadding: padding)
         let latitude = camera.centerCoordinate.latitude
         let farthest = MLNAltitudeForZoomLevel(knotMinimumZoom, camera.pitch, latitude, mapView.frame.size)
         if camera.altitude <= farthest {
           camera.altitude = max(
             camera.altitude, MLNAltitudeForZoomLevel(myPositionZoom, camera.pitch, latitude, mapView.frame.size))
+          center(camera, on: bounds, padding: padding, in: mapView)
           mapView.setCamera(camera, animated: true)
           return
         }
@@ -499,14 +500,15 @@ struct NetworkMapView: UIViewRepresentable {
         // closer than following, as the way back can be short.
         let rider = CLLocationCoordinate2D(latitude: newPosition.latitude, longitude: newPosition.longitude)
         let end = CLLocationCoordinate2D(latitude: newWayToRoute.latitude, longitude: newWayToRoute.longitude)
-        let camera = mapView.cameraThatFitsCoordinateBounds(
-          MLNCoordinateBounds(
-            sw: CLLocationCoordinate2D(latitude: min(rider.latitude, end.latitude), longitude: min(rider.longitude, end.longitude)),
-            ne: CLLocationCoordinate2D(latitude: max(rider.latitude, end.latitude), longitude: max(rider.longitude, end.longitude))),
-          edgePadding: edgePadding(in: mapView))
+        let bounds = MLNCoordinateBounds(
+          sw: CLLocationCoordinate2D(latitude: min(rider.latitude, end.latitude), longitude: min(rider.longitude, end.longitude)),
+          ne: CLLocationCoordinate2D(latitude: max(rider.latitude, end.latitude), longitude: max(rider.longitude, end.longitude)))
+        let padding = clearPadding(in: mapView)
+        let camera = mapView.cameraThatFitsCoordinateBounds(bounds, edgePadding: padding)
         camera.altitude = max(
           camera.altitude,
           MLNAltitudeForZoomLevel(navigationZoom, camera.pitch, camera.centerCoordinate.latitude, mapView.frame.size))
+        center(camera, on: bounds, padding: padding, in: mapView)
         mapView.setCamera(camera, animated: true)
       } else if begins {
         mapView.setCenter(
@@ -757,6 +759,28 @@ struct NetworkMapView: UIViewRepresentable {
       mapView.bounds.width > mapView.bounds.height
         ? UIEdgeInsets(top: 72, left: 40, bottom: 96, right: 80)
         : UIEdgeInsets(top: 140, left: 40, bottom: 260, right: 60)
+    }
+
+    /// [edgePadding] with room for a badge and its ring at the edge of the area.
+    private func clearPadding(in mapView: MLNMapView) -> UIEdgeInsets {
+      let padding = edgePadding(in: mapView)
+      return UIEdgeInsets(
+        top: padding.top + 24, left: padding.left + 16, bottom: padding.bottom + 32, right: padding.right + 16)
+    }
+
+    /// Moves `camera` so the middle of `bounds` is in the middle of the area left by `padding`. A
+    /// fitted camera has it in the middle of the whole map, which lies below the search field and
+    /// the panel, so what is at the lower edge of `bounds` is hidden behind them.
+    private func center(
+      _ camera: MLNMapCamera, on bounds: MLNCoordinateBounds, padding: UIEdgeInsets, in mapView: MLNMapView
+    ) {
+      let latitude = (bounds.sw.latitude + bounds.ne.latitude) / 2
+      let longitude = (bounds.sw.longitude + bounds.ne.longitude) / 2
+      let zoom = MLNZoomLevelForAltitude(camera.altitude, camera.pitch, latitude, mapView.frame.size)
+      let pointsPerDegree = 512 * pow(2, zoom) / 360
+      camera.centerCoordinate = CLLocationCoordinate2D(
+        latitude: latitude + (padding.top - padding.bottom) / 2 * cos(latitude * .pi / 180) / pointsPerDegree,
+        longitude: longitude - (padding.left - padding.right) / 2 / pointsPerDegree)
     }
 
     private func fit(to knots: [Knot], animated: Bool) {

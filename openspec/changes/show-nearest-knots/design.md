@@ -40,6 +40,8 @@
 
 The icon is a signpost, on Android as an own vector and on iOS as the symbol `signpost.right`: the network's knots are signposted, and it reads as different from the to-me button.
 
+**The fit stays clear of the controls.** Found by the maintainer on the iPhone, 2026-11-03: the knot lay behind the search field, and the button stayed, correctly, as `knotArea` leaves out the panel. `cameraThatFitsCoordinateBounds` honors the padding for the zoom, but keeps the middle of the bounds in the middle of the whole map, and on iOS the map lies below the panel. So the camera is moved to have it in the middle of the padded area, with a margin for a badge and its ring. Android's top padding now includes the controls. The same fit on iOS for the off-route line gets the same move (`improve-off-route` "Both in view").
+
 ## Risks / Trade-offs
 
 - **Knots behind the top controls count as in view:** the button can be missing with the only knot behind the search field or the network switch. Likewise on iOS with the panel pulled up, as the area only leaves out the panel at its smallest.
