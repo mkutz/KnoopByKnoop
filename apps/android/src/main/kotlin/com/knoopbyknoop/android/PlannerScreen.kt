@@ -39,6 +39,7 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -358,9 +359,11 @@ private fun MapArea(
       // sheet".
       if (!state.navigating)
         Row(
+          // Scrolls at very large text, so the words stay on one line and the info button in reach.
           modifier =
             Modifier.padding(top = 8.dp)
               .background(mapOverlayColor.copy(alpha = 0.85f), MaterialTheme.shapes.medium)
+              .horizontalScroll(rememberScrollState())
               .padding(horizontal = 8.dp),
           verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -372,7 +375,21 @@ private fun MapArea(
                 if (session?.waypoints.isNullOrEmpty()) viewModel.switchNetwork(network)
                 else onSwitch(network)
               },
-              label = { Text(stringResource(network.label)) },
+              label = { Text(stringResource(network.label), maxLines = 1, softWrap = false) },
+              // In the color of the word: the default is green, which means start in this app.
+              colors =
+                FilterChipDefaults.filterChipColors(
+                  iconColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+              // The word is what screen readers announce, so the icon has no description of its
+              // own.
+              leadingIcon = {
+                Icon(
+                  painterResource(network.icon),
+                  contentDescription = null,
+                  modifier = Modifier.size(FilterChipDefaults.IconSize),
+                )
+              },
               modifier = Modifier.padding(end = 8.dp),
             )
           }

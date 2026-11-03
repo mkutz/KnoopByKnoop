@@ -1,5 +1,6 @@
 package com.knoopbyknoop.android
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.knoopbyknoop.core.IndexedNetworkType
 import com.knoopbyknoop.core.KnotRole
@@ -11,6 +12,15 @@ val IndexedNetworkType.label: Int
     when (this) {
       IndexedNetworkType.CYCLING -> R.string.network_cycling
       IndexedNetworkType.HIKING -> R.string.network_hiking
+    }
+
+/** The icon next to the network's name, see `map-planning` "Icons on the network switch". */
+@get:DrawableRes
+val IndexedNetworkType.icon: Int
+  get() =
+    when (this) {
+      IndexedNetworkType.CYCLING -> R.drawable.ic_network_cycling
+      IndexedNetworkType.HIKING -> R.drawable.ic_network_hiking
     }
 
 @get:StringRes

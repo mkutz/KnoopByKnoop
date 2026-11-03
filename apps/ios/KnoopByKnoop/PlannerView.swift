@@ -221,17 +221,26 @@ struct PlannerView: View {
     return { [model] in model.showNearestKnots() }
   }
 
-  /// The network picker and the info button, at the top of the map.
+  /// The network switch and the info button, at the top of the map.
   private var networkSwitch: some View {
     HStack {
-      Picker("Knot network", selection: networkBinding) {
-        Text("Cycling").tag(IndexedNetworkType.cycling)
-        Text("Hiking").tag(IndexedNetworkType.hiking)
-      }
-      .pickerStyle(.segmented)
-      .frame(width: 200)
+      IconChoices(
+        selection: networkBinding,
+        choices: [
+          IconChoice(
+            value: IndexedNetworkType.cycling, word: String(localized: "Cycling", bundle: AppLanguage.bundle),
+            icon: Image(systemName: "bicycle")),
+          IconChoice(
+            value: IndexedNetworkType.hiking, word: String(localized: "Hiking", bundle: AppLanguage.bundle),
+            icon: Image(systemName: "figure.hiking")),
+        ]
+      )
+      .fixedSize()
+      .accessibilityLabel(String(localized: "Knot network", bundle: AppLanguage.bundle))
       infoButton
     }
+    // Without a fixed width, larger text would push the info button off a narrow phone.
+    .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
     .padding(8)
     .floatingBackground(in: RoundedRectangle(cornerRadius: 12))
     .padding(.horizontal, 12)
@@ -489,7 +498,18 @@ private struct WaypointSheet: View {
   /// see `map-planning` "What new knots become".
   private var newKnotsSwitch: some View {
     let label = String(localized: "Add knots", bundle: AppLanguage.bundle)
-    let choices = NewKnotsChoices(selection: $model.newKnots).accessibilityLabel(label)
+    let choices = IconChoices(
+      selection: $model.newKnots,
+      choices: [
+        IconChoice(
+          value: NewKnots.stop, word: String(localized: "Between", bundle: AppLanguage.bundle),
+          icon: Image(uiImage: NewKnotsIcon.between)),
+        IconChoice(
+          value: NewKnots.end, word: String(localized: "At end", bundle: AppLanguage.bundle),
+          icon: Image(uiImage: NewKnotsIcon.end)),
+      ]
+    )
+    .accessibilityLabel(label)
     return ViewThatFits(in: .horizontal) {
       HStack {
         Text(label).font(.callout).fixedSize()

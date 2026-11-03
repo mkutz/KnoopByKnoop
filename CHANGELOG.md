@@ -3,6 +3,7 @@
 ## Unreleased
 
 - A switch in the panel decides where tapped knots go: between the others as before, or at the end, to look around and extend your route as you go
+- The switch between cycling and hiking shows a bike and a hiker next to the words
 
 ## 0.8.0
 

@@ -34,41 +34,51 @@ struct IconAction: View {
   }
 }
 
-/// The choices of the switch for new knots, each with its icon and word. Not a segmented `Picker`,
-/// which shows only the word of a label, see `map-planning` "What new knots become".
-struct NewKnotsChoices: View {
+/// One choice of `IconChoices`.
+struct IconChoice<Value> {
+  let value: Value
+  let word: String
+  let icon: Image
+}
 
-  @Binding var selection: NewKnots
+/// Choices with an icon next to each word, for the switches of `map-planning` "What new knots
+/// become" and "Icons on the network switch". Not a segmented `Picker`, which shows only the word
+/// of a label.
+struct IconChoices<Value: Equatable>: View {
+
+  @Binding var selection: Value
+  let choices: [IconChoice<Value>]
 
   var body: some View {
     HStack(spacing: 2) {
-      choice(.stop, word: String(localized: "Between", bundle: AppLanguage.bundle), icon: NewKnotsIcon.between)
-      choice(.end, word: String(localized: "At end", bundle: AppLanguage.bundle), icon: NewKnotsIcon.end)
+      ForEach(choices.indices, id: \.self) { choice(choices[$0]) }
     }
     .padding(2)
     .background(Capsule().fill(Color(uiColor: .tertiarySystemFill)))
     .accessibilityElement(children: .contain)
   }
 
-  private func choice(_ newKnots: NewKnots, word: String, icon: UIImage) -> some View {
+  private func choice(_ choice: IconChoice<Value>) -> some View {
     Button {
-      selection = newKnots
+      selection = choice.value
     } label: {
       HStack(spacing: 6) {
-        Image(uiImage: icon).accessibilityHidden(true)
-        Text(word).font(.footnote.weight(.medium)).lineLimit(1).fixedSize()
+        choice.icon.accessibilityHidden(true)
+        Text(choice.word).lineLimit(1).fixedSize()
       }
+      .font(.footnote.weight(.medium))
       .padding(.horizontal, 10)
       .padding(.vertical, 6)
       .frame(maxWidth: .infinity)
-      .background(Capsule().fill(selection == newKnots ? Self.selected : .clear))
+      .background(Capsule().fill(selection == choice.value ? Self.selected : .clear))
       .contentShape(Capsule())
     }
     .buttonStyle(.plain)
     .foregroundStyle(.primary)
-    .accessibilityAddTraits(selection == newKnots ? .isSelected : [])
+    .accessibilityAddTraits(selection == choice.value ? .isSelected : [])
   }
 
-  private static let selected = Color(
-    uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor(white: 0.4, alpha: 1) : .white })
+  private static var selected: Color {
+    Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor(white: 0.4, alpha: 1) : .white })
+  }
 }
