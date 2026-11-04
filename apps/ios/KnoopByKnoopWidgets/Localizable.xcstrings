@@ -9,6 +9,12 @@
             "value" : "Bei"
           }
         },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -29,6 +35,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "folge"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "follow"
           }
         },
         "fr" : {
@@ -53,6 +65,12 @@
             "value" : "ist das Ende"
           }
         },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "is the end"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -75,6 +93,12 @@
             "value" : "Abseits der Route, nächster"
           }
         },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off route, next"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -95,6 +119,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Beenden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop"
           }
         },
         "fr" : {
@@ -142,16 +172,22 @@
             "value" : "Nächster"
           }
         },
-        "nl" : {
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Volgende"
+            "value" : "Next"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Prochain"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volgende"
           }
         }
       }
@@ -164,16 +200,22 @@
             "value" : "dann"
           }
         },
-        "nl" : {
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "dan"
+            "value" : "then"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "puis"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dan"
           }
         }
       }
@@ -184,6 +226,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Falsche Richtung, nächster"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wrong direction, next"
           }
         },
         "fr" : {

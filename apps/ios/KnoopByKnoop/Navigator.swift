@@ -294,7 +294,7 @@ final class Navigator: NSObject, ObservableObject {
     let content = ActivityContent(
       state: NavigationActivityAttributes.ContentState(
         next: "", follow: nil, offRoute: false, nextRole: nil, followRole: nil, text: String(localized: "Starting navigation…", bundle: AppLanguage.bundle),
-        dark: Self.systemIsDark),
+        dark: Self.systemIsDark, language: AppLanguage.code),
       staleDate: nil)
     activity = try? Activity.request(attributes: NavigationActivityAttributes(), content: content)
   }
@@ -317,7 +317,8 @@ final class Navigator: NSObject, ObservableObject {
       riderFraction: renewBar ? strip.rider : current?.riderFraction,
       marks: renewBar ? Self.barMarks(of: strip) : current?.marks ?? [],
       dark: Self.systemIsDark,
-      wrongWay: display.wrongWay)
+      wrongWay: display.wrongWay,
+      language: AppLanguage.code)
     guard let activity else {
       // Live Activities end after about 8 hours; opening the app starts a new one.
       if visible { startActivity() }

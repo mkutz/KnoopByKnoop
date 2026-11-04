@@ -29,4 +29,5 @@ Found and fixed: the info sheet's title stayed in the previous language when swi
 4. **Notices in the chosen language**: choose Français and navigate a short route: the notices are spoken in French ("Prochain point-nœud …") if the iPhone has a French voice, else in English.
 5. **Names of the languages**: in every language, the choices read "English", "Deutsch", "Nederlands", "Français", and "System"/"Systeem"/"Système" in the app's language.
 6. **Same as the system setting**: change the language in Settings → Apps → Knoop by Knoop → Language while the app's choice is System, and start the app: it follows that language. (A choice made in the app is shown there from the next start.)
-7. The location prompt and the Live Activity follow the chosen language from the next start of the app.
+7. The location prompt follows the chosen language from the next start of the app. In the simulator on 2026-11-03, with French chosen in Settings on an English system, its reason stayed English, though the French text is in the app; check it on the iPhone.
+8. **Outside the app**: choose a language, navigate, and check the lock screen and the Dynamic Island: their words and Stop are in that language. Stop navigating, choose another language, navigate again: they follow it, also back to English and System.

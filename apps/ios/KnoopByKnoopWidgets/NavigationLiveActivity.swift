@@ -17,11 +17,15 @@ struct NavigationLiveActivity: Widget {
       LockScreenCard(state: context.state)
     } dynamicIsland: { context in
       DynamicIsland {
-        DynamicIslandExpandedRegion(.leading) {
-          NextKnot(state: context.state, prominent: 1.5, textColor: .white).padding(.leading, 4)
+        // The first to get room, and below the camera if it needs more: by default this region is too
+        // narrow for "At 16 follow 17", which squeezed the words to nothing.
+        DynamicIslandExpandedRegion(.leading, priority: 1) {
+          NextKnot(state: context.state, prominent: 1.5, textColor: .white, oneLine: true)
+            .padding(.leading, 4)
+            .dynamicIsland(verticalPlacement: .belowIfTooWide)
         }
         DynamicIslandExpandedRegion(.trailing) {
-          StopButton()
+          StopButton(words: context.state.words)
         }
         DynamicIslandExpandedRegion(.bottom) {
           VStack(alignment: .leading, spacing: 6) {
@@ -73,16 +77,17 @@ private struct LockScreenCard: View {
 
   var body: some View {
     let dark = state.dark
-    HStack(alignment: .center, spacing: 16) {
-      VStack(alignment: .leading, spacing: 6) {
+    // Stop only beside the knots, so the distance and the bar have the card's whole width.
+    VStack(alignment: .leading, spacing: 6) {
+      HStack(alignment: .center, spacing: 16) {
         NextKnot(state: state, prominent: 1.8, textColor: dark ? .white : .knoopDark)
-        if let progress = state.progress {
-          Text(progress).font(.caption).foregroundStyle(Color(white: dark ? 0.8 : 0.35))
-        }
-        RouteBar(state: state, track: Color(white: dark ? 0.35 : 0.8))
+        Spacer(minLength: 0)
+        StopButton(words: state.words)
       }
-      Spacer()
-      StopButton()
+      if let progress = state.progress {
+        Text(progress).font(.caption).foregroundStyle(Color(white: dark ? 0.8 : 0.35))
+      }
+      RouteBar(state: state, track: Color(white: dark ? 0.35 : 0.8))
     }
     .padding()
     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -145,6 +150,9 @@ private struct NextKnot: View {
   let prominent: CGFloat
   /// Dark on the light lock screen card, light on the dark one and in the black Dynamic Island.
   let textColor: Color
+  /// For the Dynamic Island, where more height pushes the bar into the rounded corners: far from a
+  /// knot, "Next" and "then" in one line, and off route no more lines than fit.
+  var oneLine = false
 
   var body: some View {
     content.foregroundStyle(textColor)
@@ -155,41 +163,69 @@ private struct NextKnot: View {
       Text(state.text).font(.title3.bold())
     } else if state.offRoute || state.wrongWay {
       HStack(spacing: 8) {
-        Text(state.wrongWay ? "Wrong direction, next" : "Off route, next").font(.title3.bold()).foregroundStyle(.red)
+        Text(
+          state.wrongWay
+            ? String(localized: "Wrong direction, next", bundle: state.words)
+            : String(localized: "Off route, next", bundle: state.words)
+        )
+        .font(.title3.bold())
+        .foregroundStyle(.red)
+        // On the lock screen, as many lines as it takes; in the Dynamic Island, more than two would
+        // push the bar into its rounded corners, so the end is cut off there.
+        .fixedSize(horizontal: false, vertical: !oneLine)
         Badge(ref: state.next, role: state.nextRole, scale: 1.3)
+      }
+    } else if let follow = state.follow, !state.close, oneLine {
+      HStack(spacing: 8) {
+        Text(String(localized: "Next", bundle: state.words)).font(.title3).fixedSize()
+        Badge(ref: state.next, role: state.nextRole, scale: prominent)
+        Text(String(localized: "then", bundle: state.words)).font(.subheadline).fixedSize()
+        Badge(ref: follow, role: state.followRole, scale: 1)
       }
     } else if let follow = state.follow, !state.close {
       VStack(alignment: .leading, spacing: 4) {
         HStack(spacing: 8) {
-          Text("Next").font(.title3)
+          Text(String(localized: "Next", bundle: state.words)).font(.title3)
           Badge(ref: state.next, role: state.nextRole, scale: prominent)
         }
         HStack(spacing: 6) {
-          Text("then").font(.subheadline)
+          Text(String(localized: "then", bundle: state.words)).font(.subheadline)
           Badge(ref: follow, role: state.followRole, scale: 1)
         }
       }
     } else if let follow = state.follow {
       HStack(spacing: 8) {
-        Text("At").font(.title3)
+        Text(String(localized: "At", bundle: state.words)).font(.title3)
         Badge(ref: state.next, role: state.nextRole, scale: 1.3)
-        Text("follow").font(.title3)
+        Text(String(localized: "follow", bundle: state.words)).font(.title3)
         Badge(ref: follow, role: state.followRole, scale: prominent)
       }
     } else {
       HStack(spacing: 8) {
         Badge(ref: state.next, role: state.nextRole, scale: prominent)
-        Text("is the end").font(.title3)
+        Text(String(localized: "is the end", bundle: state.words)).font(.title3)
       }
     }
   }
 }
 
+extension NavigationActivityAttributes.ContentState {
+
+  /// The words in the app's language, see `app-languages` "Language setting". The extension runs
+  /// apart from the app and keeps the language it started with, which can be an old one.
+  fileprivate var words: Bundle {
+    language.flatMap { Bundle.main.path(forResource: $0, ofType: "lproj") }.flatMap(Bundle.init(path:)) ?? .main
+  }
+}
+
 /// Red with white text as the app's Stop, opaque, so it reads the same on every background.
 private struct StopButton: View {
+
+  let words: Bundle
+
   var body: some View {
     Button(intent: StopNavigationIntent()) {
-      Label("Stop", systemImage: "stop.fill")
+      Label(String(localized: "Stop", bundle: words), systemImage: "stop.fill")
         .font(.subheadline.bold())
         .foregroundStyle(.white)
         .padding(.horizontal, 12)

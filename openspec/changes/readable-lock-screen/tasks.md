@@ -24,6 +24,8 @@
 
 - [x] 3.2 Found on the ride of 2026-11-02: the minimal Dynamic Island showed the number to follow also while far ("Dynamic Island with room for one number"), and the bar's end markers were clipped in the expanded form. Fixed; the project builds, the real island goes to the maintainer's steps.
 
+- [x] 3.3 Found at home on 2026-11-03: in the expanded Dynamic Island, the leading region was too narrow for "At 16 follow 17", the words squeezed to slivers between the badges, and "Off route, next" wrapped to three lines. The region now has priority and may move below the camera. Far from a knot, the island shows "Next" and "then" in one line, as two lines below the camera pushed the bar into the rounded corners. Rendered in Xcode previews: the old layout shows the same squeeze as the iPhone, the new one all forms complete in all four languages, except that "Falsche Richtung, nächster" and its Dutch text end in "…", with the badge and the line below still naming the knot. On the lock screen, seen on the iPhone in German, Stop took a whole column, so the header wrapped to three lines and the bar stopped short: Stop now sits beside the knots only, the distance and the bar have the whole width, and the off-route header wraps rather than cutting off. Previews of all forms in all four languages, and in dark mode in French. The project builds. Seen on the iPhone on 2026-11-04 in German: far, close, off route and the end, on the lock screen and in the island, all complete. The other languages and "Wrong direction" on the real island stay in `manual-checks.md`.
+
 ## 4. Wrap-up
 
 - [x] 4.1 `manual-checks.md` with the scenarios and the maintainer's steps; `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; a CHANGELOG entry under Unreleased.

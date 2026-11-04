@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- iPhone: the Dynamic Island shows "At 16 follow 17" and the off-route header in full, and on the lock screen the distance and the bar use the whole width
+- iPhone: the words on the lock screen and in the Dynamic Island follow the language chosen in the app
+
 ## 0.9.0
 
 - A switch in the panel decides where tapped knots go: between the others as before, or at the end, to look around and extend your route as you go

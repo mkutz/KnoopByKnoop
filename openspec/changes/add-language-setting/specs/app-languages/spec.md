@@ -25,6 +25,10 @@ The info sheet SHALL offer the app's language: System, the default, which follow
 - **WHEN** the rider chose Deutsch in the app on Android 13 or later
 - **THEN** the system's per-app language setting of the app shows German, and choosing a language there shows in the app's setting too
 
+#### Scenario: Outside the app
+- **WHEN** the rider chose Deutsch on an English iPhone and navigates
+- **THEN** the lock screen and the Dynamic Island show their words in German, also when an earlier choice was another language
+
 #### Scenario: Names of the languages
 - **WHEN** the rider opens the info sheet in any language
 - **THEN** the choices read "English", "Deutsch", "Nederlands" and "Français", and "System" in the app's language

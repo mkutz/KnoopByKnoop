@@ -35,10 +35,30 @@ From the maintainer's videos, without sound:
 - **iPhone:** the expanded island with "Next 01", "then 02", the distance, the bar and the red Stop, not seen tapped. The small circle showed "02" with 01 next and the bar's end markers looked clipped, both changed. Screen recording shared the island, so the compact form was not shown.
 - **iPhone, lock screen, screenshot from the maintainer, 2026-11-02:** off route in dark mode, "Off route, next 02", "1.7 km south-west to 02", the red rider, the stop and the end on the bar complete, the red Stop. The far and close forms were not in it, and Stop was not tapped.
 
+### At home, 2026-11-03
+
+From the maintainer's screenshots, iPhone, English:
+- **Compact island:** off route the warning sign and 99, on route "99 →" and 90.
+- **Expanded island, off route:** the bar and its end marker complete, the start marker under the rider. "Off route, next" wrapped to three lines.
+- **Expanded island, close to a knot:** "At" and "follow" squeezed to slivers between 16 and 17, see task 3.3. The distance, the bar and Stop were fine.
+
+Xcode previews of the expanded island, iPhone Duo, with the translations typed into the view, as the preview's language setting had no effect: see task 3.3. A preview is not the real island, so step 2 stays open.
+
+### Run of 2026-11-04
+
+From the maintainer's screenshots on a run, iPhone, app in German, route 02 → 01 → 02, with the fix of task 3.3:
+- **Lock screen:** "Nächster 01", "dann 02" with "1,7 km bis 01 · Ende gegen 08:20"; "Bei 01 folge 02" with "225 m bis 01 · Ende gegen 08:25"; "02 ist das Ende" with "1,7 km bis zum Ende"; "Abseits der Route, nächster 02" with "641 m Richtung Südwest bis 02". All complete, the distance and the bar across the whole width.
+- **Expanded island:** the same four forms, with "Nächster 01 dann 02" in one line and "Abseits der Route, nächster" in two lines. Nothing squeezed or cut off, and the bar clear of the rounded corners.
+- **Compact island, sharing with music:** "02" and the flag at the end.
+
+- **Screen off:** the phone stayed locked between looks, and the distance and the bar had moved on each time. The maintainer found the distances plausible when paying attention, while running, so this was not measured.
+
+Not seen: English, Dutch and French on the real island with this build, and "Wrong direction".
+
 ### Steps for the maintainer
 
 1. **iPhone, lock screen:** start navigating and lock the phone. Far from a knot, "Next 29", "then 25", the distance and the bar; close to it, "At 29 follow 25". Stop works.
 2. **iPhone, Dynamic Island:** in another app, without a screen recording, the compact form shows the next knot and the number to follow. Long-press shows the bar, its end markers complete. While recording the screen, the small circle shows the next knot, and close to it the number to follow.
 3. ✅ **iPhone, light and dark:** the card is light in light mode and dark in dark mode, all text readable. Switch the mode while navigating: it follows at the next position. Checked by the maintainer in a real Live Activity, off route, 2026-11-02: both within the same minute.
-4. **Both, on a ride:** the distance moves on with the screen off, and the bar moves with it. ✅ Pixel, 2026-11-02.
+4. **Both, on a ride:** the distance moves on with the screen off, and the bar moves with it. ✅ Pixel, 2026-11-02. ✅ iPhone, on a run, 2026-11-04.
 5. **Pixel:** the chip in the status bar shows the next knot, and close to it the number to follow.

@@ -31,6 +31,8 @@ struct NavigationActivityAttributes: ActivityAttributes {
     var dark = false
     /// Whether the rider rides back along the route, see `knot-navigation` "Riding the wrong way".
     var wrongWay = false
+    /// The app's language, e.g. `de`, for the words the extension shows itself.
+    var language: String? = nil
   }
 
   /// A stop or ferry on the bar along the route.
