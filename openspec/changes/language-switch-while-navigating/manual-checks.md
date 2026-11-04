@@ -13,6 +13,8 @@ Android checked 2026-11-02 on the emulator (`Medium_Phone_API_37.0`) with the de
 | Ferry ahead | unit test | — | `FerryWarningTest`: in German, and not warned twice |
 | Nothing else changes | ✅ | ⏳ | No notice logged at the change; the strip's place and distances stayed. `NavigationTest` |
 
+Checked again on 2026-11-04 on the same emulator with the current debug build, route 02 → 28 → 27, English → German → Dutch → French → German. The panel and the notification changed within 5 seconds with no new position, on and off route, and later notices were logged in the new language. The map goes blank at each change while the activity is rebuilt, and came back after about 6 seconds with no new position. With the screen off and on again, the screenshot showed the app rather than the lock screen, so the lock screen's card was only read from the notification's text.
+
 ### Steps for the maintainer
 
 1. **Pixel:** while navigating, change the app's language in the system settings: the lock screen and the panel change at once, and the next notice is in the new language.
