@@ -25,7 +25,7 @@ Android checked 2026-10-31 on the emulator (`Medium_Phone_API_37.0`), system lan
 
 ### Native speaker review
 
-The Dutch and French texts are in `apps/android/src/main/res/values-nl` and `values-fr`, `apps/ios/KnoopByKnoop/Localizable.xcstrings` and `modules/core/.../Texts.kt` (`DutchTexts`, `FrenchTexts`); the shared terms in `glossary.md`. Not yet reviewed.
+The Dutch and French texts are in `apps/android/src/main/res/values-nl` and `values-fr`, `apps/ios/KnoopByKnoop/Localizable.xcstrings` and `modules/core/.../Texts.kt` (`DutchTexts`, `FrenchTexts`); the shared terms in `glossary.md`. Not yet reviewed: the testers check the languages on Android with 0.6.0 from Google Play's internal testing (2026-10-31).
 
 iOS built and checked in the simulator (iPhone 18 Pro, iOS 27) with `-AppleLanguages (de)` on 2026-10-31: the planner shows "Radfahren / Wandern", "5,2 km", "etwa 19 min", "Navigieren", "Orte suchen" and the ferry status "Geöffnet"; the layout holds. Not yet checked on the iPhone.
 
