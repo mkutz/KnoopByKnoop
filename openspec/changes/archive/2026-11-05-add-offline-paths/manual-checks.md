@@ -22,7 +22,7 @@ Checked 2026-11-05 with the published path file of 3 November, 102.7 MB, on a bu
 | Reaching the path data | ✅ | ✅ | Back near the route: a new way within 10 s |
 | Back on route with a guided way | ✅ | ✅ | "Zurück auf der Route", then "Nächster 28, dann 27" |
 | Screen off | ✅ | unit test | Precision only changes with the app being visible |
-| Switching between street and path | – | – | Added after the ride of 2026-11-05. For the maintainer: ride the roundabout by Grimmelsgasse in Siegburg again and listen for "auf den Radweg wechseln" |
+| Switching between street and path | ✅ | – | Emulator, 2026-11-05, build of 1c1cdf5, German, four mocked rides off route towards 02 in Siegburg: "In 100 Metern auf den Radweg wechseln", "In 70 Metern links abbiegen, auf die Straße", "Jetzt rechts abbiegen, auf den Radweg". Across the four rides the switch added one notice of its own; the others were turns said before, now with the switch. The one way through the Grimmelsgasse roundabout turned right there, so the ride's "geradeaus" wasn't reproduced. In the town centre the guided way has about 7 notices per km, from its turns rather than from switches. For the maintainer: the roundabout again, see the ride sheet |
 | Not enough memory | ✅ | – | Forcing the error: no crash, straight line. iOS has no such error to catch |
 
 Everything else in the delta specs is covered by `PathStoreTest`, `PathRouterTest`, `GuidedWayTest`, `WayGuideTest`, `NetworkIndexTest`, `PathExtractionTest` and `MainTest`.
