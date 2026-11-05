@@ -88,4 +88,9 @@
   <string name="clear_search">Effacer la recherche</string>
   <string name="language">Langue</string>
   <string name="language_system">Système</string>
+  <string name="guidance">Guidage hors itinéraire</string>
+  <string name="guidance_explanation">Vous ramène à l\'itinéraire par des chemins adaptés, même sans connexion. Pour cela, l\'app télécharge les chemins autour d\'un itinéraire planifié depuis GitHub. GitHub peut ainsi voir la zone approximative de votre itinéraire, mais jamais où vous êtes.</string>
+  <string name="path_data_loading">Chargement des chemins de cet itinéraire…</string>
+  <string name="path_data_ready">Les chemins de cet itinéraire sont chargés</string>
+  <string name="path_data_unavailable">Les chemins de cet itinéraire n\'ont pas pu être chargés</string>
 </resources>

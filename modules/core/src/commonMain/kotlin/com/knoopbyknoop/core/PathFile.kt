@@ -62,6 +62,13 @@ expect fun deflate(bytes: ByteArray): ByteArray
  */
 expect fun inflate(bytes: ByteArray, size: Int): ByteArray
 
+/** Where the router gets the ways of a square from: a whole file, or the squares installed. */
+interface PathSquareSource {
+
+  /** The segments of [square], none if it isn't there. */
+  fun segments(square: PathSquare): List<PathSegment>
+}
+
 /** A square of [PathFile]: its position in steps of 1/[PathFile.SQUARES_PER_DEGREE]°. */
 data class PathSquare(val latitudeIndex: Int, val longitudeIndex: Int) {
 
@@ -89,9 +96,17 @@ private constructor(
   private val directory: Map<PathSquare, Entry>,
   private val dataOffset: Long,
   private val read: (offset: Long, size: Int) -> ByteArray,
-) {
+) : PathSquareSource {
 
-  private class Entry(val offset: Long, val size: Int, val rawSize: Int, val sha256: String)
+  /** Where a square is in the file, counted from the end of the directory, and its checksum. */
+  class Entry(val offset: Long, val size: Int, val rawSize: Int, val sha256: String)
+
+  /** What a directory says, for downloading single squares. */
+  class Directory(
+    val dataDate: String,
+    val attribution: String,
+    val entries: Map<PathSquare, Entry>,
+  )
 
   /** What the index says about a path file's directory, see `network-data`. */
   class DirectoryInfo(
@@ -109,12 +124,12 @@ private constructor(
   class SquareInfo(val square: PathSquare, val size: Int, val rawSize: Int, val sha256: String)
 
   /** The segments of [square], none if it isn't in the file. */
-  fun segments(square: PathSquare): List<PathSegment> {
+  override fun segments(square: PathSquare): List<PathSegment> {
     val entry = directory[square] ?: return listOf()
     val bytes = read(dataOffset + entry.offset, entry.size)
     if (sha256Hex(bytes) != entry.sha256)
       throw GraphFormatException("Path square $square is broken")
-    return readSquare(inflate(bytes, entry.rawSize))
+    return decode(bytes, entry.rawSize)
   }
 
   companion object {
@@ -200,7 +215,19 @@ private constructor(
      */
     fun open(read: (offset: Long, size: Int) -> ByteArray): PathFile {
       val directorySize = directorySize(read)
-      val reader = ByteReader(read(HEADER_SIZE.toLong(), directorySize))
+      val parsed = parseDirectory(read(HEADER_SIZE.toLong(), directorySize))
+      return PathFile(
+        parsed.dataDate,
+        parsed.attribution,
+        parsed.entries,
+        HEADER_SIZE.toLong() + directorySize,
+        read,
+      )
+    }
+
+    /** The directory in [bytes], the range of the file the index names. */
+    fun parseDirectory(bytes: ByteArray): Directory {
+      val reader = ByteReader(bytes)
       val dataDate = reader.string()
       val attribution = reader.string()
       val directory = HashMap<PathSquare, Entry>()
@@ -209,8 +236,12 @@ private constructor(
           PathSquare(unzigzag(reader.varint()).toInt(), unzigzag(reader.varint()).toInt())
         directory[square] = Entry(reader.varint(), reader.count(), reader.count(), reader.string())
       }
-      return PathFile(dataDate, attribution, directory, HEADER_SIZE.toLong() + directorySize, read)
+      return Directory(dataDate, attribution, directory)
     }
+
+    /** The segments in a square's [bytes], as they are in the file. */
+    internal fun decode(bytes: ByteArray, rawSize: Int): List<PathSegment> =
+      readSquare(inflate(bytes, rawSize))
 
     /** What the index needs to know of the path file read through [read]. */
     fun directoryInfo(read: (offset: Long, size: Int) -> ByteArray): DirectoryInfo {

@@ -12,6 +12,7 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -33,6 +34,9 @@ import com.knoopbyknoop.core.NetworkCatalog
 import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkStatus
 import com.knoopbyknoop.core.NewKnots
+import com.knoopbyknoop.core.PathDataStatus
+import com.knoopbyknoop.core.PathDownloader
+import com.knoopbyknoop.core.PathSquares
 import com.knoopbyknoop.core.PlaceHit
 import com.knoopbyknoop.core.PlaceSearch
 import com.knoopbyknoop.core.PlanningSession
@@ -47,7 +51,12 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -111,6 +120,12 @@ data class AppState(
   val newKnots: NewKnots = NewKnots.STOP,
   /** The appearance chosen in the info sheet, see `map-planning` "Light and dark appearance". */
   val appearance: Appearance = Appearance.SYSTEM,
+  /** Whether guidance away from the route is on, see `network-sync`, off until the user chooses. */
+  val guidance: Boolean = false,
+  /** How far the path data for the planned route is ready, `null` if none is wanted. */
+  val pathData: PathDataStatus? = null,
+  /** The data date of the installed path data. */
+  val pathDataDate: String? = null,
   /** The navigation, or `null` when not navigating, see `knot-navigation`. */
   val navigation: NavigationState? = null,
   /**
@@ -162,6 +177,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
   private val storage = NetworkStorage(application.filesDir)
   private val settings = application.getSharedPreferences("settings", Context.MODE_PRIVATE)
+  private val paths = PathData.store(application)
 
   /** The language of the core's texts, see `app-languages` "Language of the texts". */
   private var language = Language.of(application.resources.configuration.locales[0].language)
@@ -192,6 +208,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
           settings.getString(KEY_APPEARANCE, null)?.let { saved ->
             Appearance.entries.firstOrNull { it.name == saved }
           } ?: Appearance.SYSTEM,
+        guidance = settings.getBoolean(KEY_GUIDANCE, false),
+        pathDataDate = paths.dataDate,
         initialPlace = camera,
         askLocationOnStart = camera == null && storage.route()?.waypoints.isNullOrEmpty(),
       )
@@ -217,6 +235,62 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     )
     state = state.copy(online = connectivity.activeNetwork != null)
     viewModelScope.launch { Navigating.state.collect { state = state.copy(navigation = it) } }
+    viewModelScope.launch { loadPathData() }
+  }
+
+  /**
+   * Keeps the squares around the planned route on the device, see `network-sync` "Path data around
+   * the route": requests start 2 seconds after the route last changed, and start over with a new
+   * route, the switch or network access coming back. A download running when navigation starts goes
+   * on, as only the route decides what is requested.
+   */
+  private suspend fun loadPathData() {
+    snapshotFlow { listOf(state.guidance, state.online, state.session, state.layers) }
+      .distinctUntilChanged()
+      .collectLatest {
+        val network = loaded?.takeIf { it.hasGeometry }
+        val route = state.session?.route
+        val course =
+          PathSquares.courseToLoad(
+            state.guidance,
+            state.session?.network,
+            if (route?.summary is RouteSummary.Complete && network != null) {
+              network.geometry.courseOf(route)
+            } else {
+              null
+            },
+          )
+        if (course == null) {
+          state = state.copy(pathData = null)
+          return@collectLatest
+        }
+        delay(PATH_DATA_DELAY_MILLIS)
+        val job = currentCoroutineContext()
+        val status =
+          withContext(Dispatchers.IO) {
+            PathDownloader(paths, HttpPathDataOrigin())
+              .load(
+                course,
+                System.currentTimeMillis(),
+                isCancelled = { !job.isActive },
+                onStatus = { status ->
+                  viewModelScope.launch { state = state.copy(pathData = status) }
+                },
+              )
+          }
+        job.ensureActive()
+        state = state.copy(pathData = status, pathDataDate = paths.dataDate)
+      }
+  }
+
+  /** Turns guidance away from the route on or off, see `network-sync`. */
+  fun chooseGuidance(on: Boolean) {
+    settings.edit().putBoolean(KEY_GUIDANCE, on).apply()
+    state = state.copy(guidance = on)
+    if (!on) {
+      state = state.copy(pathData = null, pathDataDate = null)
+      viewModelScope.launch(Dispatchers.IO) { paths.clear() }
+    }
   }
 
   /** Starts navigating the planned route; location access must be granted. */
@@ -691,5 +765,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 private const val LOCATE_TIMEOUT_MILLIS = 15_000L
 
 private const val KEY_APPEARANCE = "appearance"
+private const val KEY_GUIDANCE = "guidance"
+private const val PATH_DATA_DELAY_MILLIS = 2000L
 
 private const val KEY_NEW_KNOTS = "new_knots"

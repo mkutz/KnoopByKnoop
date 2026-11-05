@@ -1831,6 +1831,116 @@
     },
     "⛴ %@": {
       "shouldTranslate": false
+    },
+    "Guidance away from the route": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Führung abseits der Route"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Begeleiding buiten de route"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guidage hors itinéraire"
+          }
+        }
+      }
+    },
+    "Guides you back to the route along suitable paths, also without a connection. For this, the app downloads the ways around a planned route from GitHub, so GitHub can see the rough area of your route, but never where you are.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Führt dich auf geeigneten Wegen zurück zur Route, auch ohne Verbindung. Dafür lädt die App die Wege rund um eine geplante Route von GitHub. GitHub sieht so ungefähr, wo deine Route liegt, aber nie, wo du bist."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leidt je over geschikte paden terug naar de route, ook zonder verbinding. Daarvoor downloadt de app de paden rond een geplande route van GitHub. GitHub kan zo ongeveer zien waar je route ligt, maar nooit waar jij bent."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous ramène à l'itinéraire par des chemins adaptés, même sans connexion. Pour cela, l'app télécharge les chemins autour d'un itinéraire planifié depuis GitHub. GitHub peut ainsi voir la zone approximative de votre itinéraire, mais jamais où vous êtes."
+          }
+        }
+      }
+    },
+    "Loading ways for this route…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wege für diese Route werden geladen…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paden voor deze route worden geladen…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chargement des chemins de cet itinéraire…"
+          }
+        }
+      }
+    },
+    "Ways for this route are loaded": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wege für diese Route sind geladen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paden voor deze route zijn geladen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les chemins de cet itinéraire sont chargés"
+          }
+        }
+      }
+    },
+    "Ways for this route couldn't be loaded": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wege für diese Route konnten nicht geladen werden"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paden voor deze route konden niet worden geladen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les chemins de cet itinéraire n'ont pas pu être chargés"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

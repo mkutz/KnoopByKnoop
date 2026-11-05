@@ -339,6 +339,19 @@ private struct WaypointSheet: View {
   /// Shows a coming knot on the map.
   let onShowKnot: (Knot) -> Void
 
+  /// Whether the ways for the route are in, see `network-sync` "Path data ready for the ride".
+  private func pathDataNote(_ status: PathDataStatus) -> some View {
+    Group {
+      switch status {
+      case .loading: Text("Loading ways for this route…")
+      case .ready: Text("Ways for this route are loaded")
+      default: Text("Ways for this route couldn't be loaded")
+      }
+    }
+    .font(.caption)
+    .foregroundStyle(.secondary)
+  }
+
   var body: some View {
     let complete = model.routeDescription as? RouteDescriptionComplete
     // While navigating, where the rider is on the route, see `knot-navigation` "Progress strip".
@@ -392,6 +405,9 @@ private struct WaypointSheet: View {
           ProgressPanel(progress: progress, ferries: complete?.ferries ?? [], navigation: navigation)
         } else if let complete {
           RouteKnots(description: complete)
+          if let status = model.pathData {
+            pathDataNote(status)
+          }
         }
         if navigator.state == nil, session.route != nil {
           newKnotsSwitch

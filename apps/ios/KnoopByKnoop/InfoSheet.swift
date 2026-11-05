@@ -34,6 +34,19 @@ struct InfoSheet: View {
           }
           .pickerStyle(.menu)
         }
+        // Off until chosen here, see `network-sync` "Turning on guidance away from the route".
+        Section {
+          Toggle("Guidance away from the route", isOn: $model.guidance)
+          if let date = model.pathDataDate {
+            Text(String(localized: "Data of \(date)", bundle: AppLanguage.bundle))
+              .font(.subheadline)
+              .foregroundStyle(.secondary)
+          }
+        } footer: {
+          Text(
+            "Guides you back to the route along suitable paths, also without a connection. For this, the app downloads the ways around a planned route from GitHub, so GitHub can see the rough area of your route, but never where you are."
+          )
+        }
         Section("Knot network data") {
           ForEach(model.catalog.networks, id: \.network) { status in
             HStack {

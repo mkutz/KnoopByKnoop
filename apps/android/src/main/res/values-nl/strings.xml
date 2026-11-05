@@ -88,4 +88,9 @@
   <string name="clear_search">Zoekopdracht wissen</string>
   <string name="language">Taal</string>
   <string name="language_system">Systeem</string>
+  <string name="guidance">Begeleiding buiten de route</string>
+  <string name="guidance_explanation">Leidt je over geschikte paden terug naar de route, ook zonder verbinding. Daarvoor downloadt de app de paden rond een geplande route van GitHub. GitHub kan zo ongeveer zien waar je route ligt, maar nooit waar jij bent.</string>
+  <string name="path_data_loading">Paden voor deze route worden geladen…</string>
+  <string name="path_data_ready">Paden voor deze route zijn geladen</string>
+  <string name="path_data_unavailable">Paden voor deze route konden niet worden geladen</string>
 </resources>

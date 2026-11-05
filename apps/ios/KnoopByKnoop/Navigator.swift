@@ -69,8 +69,8 @@ final class Navigator: NSObject, ObservableObject {
   private var lastWaySearch: Date?
   /// Finds ways one at a time, off the main thread; only used on this queue.
   private static let pathQueue = DispatchQueue(label: "com.knoopbyknoop.paths", qos: .userInitiated)
-  nonisolated(unsafe) private static var pathRouter: PathRouter?
-  nonisolated(unsafe) private static var pathRouterOpened = false
+  nonisolated(unsafe) private static let pathRouter = PathRouter(file: PathData.store)
+  nonisolated(unsafe) private static var pathRouterVersion: Int32 = -1
 
   /// Notices and precision changes are logged, to check navigation on a ride and to tune the
   /// precision for the battery. Read them in Console with the category `Navigation`.
@@ -258,23 +258,23 @@ final class Navigator: NSObject, ObservableObject {
     let heading = track.directionAt(fix: fix)
     let logger = logger
     Self.pathQueue.async {
-      if !Self.pathRouterOpened {
-        Self.pathRouterOpened = true
-        // Test build: the path file is copied onto the phone, there is no download or switch yet.
-        let file = URL.documentsDirectory.appending(path: "cycling.paths").path
-        Self.pathRouter = PathFile_iosKt.openPathRouter(path: file)
-        logger.notice("path file: \(Self.pathRouter != nil, privacy: .public)")
+      // Squares may have arrived or gone, see `knot-navigation` "Path data arrives on the way".
+      if Self.pathRouterVersion != PathData.store.version {
+        Self.pathRouter.forgetSquares()
+        Self.pathRouterVersion = PathData.store.version
       }
       let started = Date()
-      let way = Self.pathRouter?.way(from: from, to: target, heading: heading)
+      let way = Self.pathRouter.way(from: from, to: target, heading: heading)
       let millis = Int(Date().timeIntervalSince(started) * 1000)
       logger.notice(
-        "guided way: \(way.map { Int($0.lengthMeters) } ?? -1, privacy: .public) m, \(way?.turns.count ?? -1, privacy: .public) turns, \(millis, privacy: .public) ms, \(Self.pathRouter?.visitedSteps ?? 0, privacy: .public) steps, \(Self.pathRouter?.loadedSquares ?? 0, privacy: .public) squares")
-      if let way {
-        // Test build: lets a mocked ride follow the way.
-        let points = way.points.map { "\($0.longitude),\($0.latitude)" }.joined(separator: ";")
-        logger.debug("way points: \(points, privacy: .public)")
-      }
+        "guided way: \(way.map { Int($0.lengthMeters) } ?? -1, privacy: .public) m, \(way?.turns.count ?? -1, privacy: .public) turns, \(millis, privacy: .public) ms, \(Self.pathRouter.visitedSteps, privacy: .public) steps, \(Self.pathRouter.loadedSquares, privacy: .public) squares")
+      #if DEBUG
+        // For a mocked ride to follow the way; this is where the rider goes.
+        if let way {
+          let points = way.points.map { "\($0.longitude),\($0.latitude)" }.joined(separator: ";")
+          logger.debug("way points: \(points, privacy: .public)")
+        }
+      #endif
       nonisolated(unsafe) let found = way
       DispatchQueue.main.async {
         MainActor.assumeIsolated { self.foundWay(found) }

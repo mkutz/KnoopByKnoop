@@ -98,6 +98,7 @@ import com.knoopbyknoop.core.IndexedNetworkType
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.KnotRole
 import com.knoopbyknoop.core.NewKnots
+import com.knoopbyknoop.core.PathDataStatus
 import com.knoopbyknoop.core.ProgressView
 import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteSummary
@@ -568,6 +569,7 @@ private fun WaypointSheet(
           },
         )
         complete?.let { RouteKnots(it) }
+        state.pathData?.let { PathDataNote(it) }
         if (session.route != null) NewKnotsSwitch(state.newKnots, viewModel::chooseNewKnots)
       }
     }
@@ -825,6 +827,23 @@ private fun NavigationHeader(
         color = ActionColors.red,
       )
   }
+}
+
+/** Whether the ways for the route are in, see `network-sync` "Path data ready for the ride". */
+@Composable
+private fun PathDataNote(status: PathDataStatus) {
+  Text(
+    stringResource(
+      when (status) {
+        PathDataStatus.LOADING -> R.string.path_data_loading
+        PathDataStatus.READY -> R.string.path_data_ready
+        PathDataStatus.UNAVAILABLE -> R.string.path_data_unavailable
+      }
+    ),
+    style = MaterialTheme.typography.bodySmall,
+    color = MaterialTheme.colorScheme.onSurfaceVariant,
+    modifier = Modifier.padding(bottom = 4.dp),
+  )
 }
 
 /**

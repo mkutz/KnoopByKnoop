@@ -79,6 +79,22 @@ final class AppModel: ObservableObject {
   {
     didSet { UserDefaults.standard.set(newKnots == .end ? "end" : "stop", forKey: "newKnots") }
   }
+  /// Whether guidance away from the route is on, see `network-sync`, off until the user chooses.
+  @Published var guidance = UserDefaults.standard.bool(forKey: "guidance") {
+    didSet {
+      UserDefaults.standard.set(guidance, forKey: "guidance")
+      if !guidance {
+        pathDataDate = nil
+        PathData.queue.async { PathData.store.clear() }
+      }
+      loadPathData()
+    }
+  }
+  /// How far the path data for the planned route is ready, `nil` if none is wanted.
+  @Published private(set) var pathData: PathDataStatus?
+  /// The data date of the installed path data.
+  @Published private(set) var pathDataDate: String? = PathData.store.dataDate
+  private var pathDataLoad: (task: Task<Void, Never>, cancellation: PathDataCancellation, course: [GeoPoint], online: Bool)?
   @Published var message: String?
   /// Whether the `message` offers to open the app's settings, e.g. to allow location access.
   @Published var messageOpensSettings = false
@@ -280,6 +296,56 @@ final class AppModel: ObservableObject {
         refs: loaded.refs,
         hasCourses: loaded.hasGeometry)
     }
+    loadPathData()
+  }
+
+  /// Keeps the squares around the planned route on the device, see `network-sync` "Path data around
+  /// the route": requests start 2 seconds after the route last changed, and start over with a new
+  /// route, the switch or network access coming back. A download running when navigation starts
+  /// goes on, as only the route decides what is requested.
+  private func loadPathData() {
+    var course: [GeoPoint]?
+    if let route = session?.route, route.summary is RouteSummaryComplete, let loaded, loaded.hasGeometry {
+      course = loaded.geometry.courseOf(route: route)
+    }
+    guard let wanted = PathSquares.shared.courseToLoad(enabled: guidance, network: session?.network, course: course) else {
+      pathDataLoad?.cancellation.cancel()
+      pathDataLoad?.task.cancel()
+      pathDataLoad = nil
+      pathData = nil
+      return
+    }
+    if let running = pathDataLoad, running.course == wanted, running.online == online { return }
+    pathDataLoad?.cancellation.cancel()
+    pathDataLoad?.task.cancel()
+    let cancellation = PathDataCancellation()
+    let task = Task { [weak self] in
+      try? await Task.sleep(for: .seconds(2))
+      guard !Task.isCancelled else { return }
+      nonisolated(unsafe) let course = wanted
+      let status: PathDataStatus = await withCheckedContinuation { continuation in
+        PathData.queue.async {
+          let status = PathFile_iosKt.pathDownloader(store: PathData.store).load(
+            course: course,
+            nowMillis: Int64(Date().timeIntervalSince1970 * 1000),
+            isCancelled: { KotlinBoolean(bool: cancellation.isCancelled) },
+            onStatus: { status in
+              nonisolated(unsafe) let status = status
+              DispatchQueue.main.async {
+                MainActor.assumeIsolated {
+                  if !cancellation.isCancelled { self?.pathData = status }
+                }
+              }
+            })
+          nonisolated(unsafe) let result = status
+          continuation.resume(returning: result)
+        }
+      }
+      guard !cancellation.isCancelled else { return }
+      self?.pathData = status
+      self?.pathDataDate = PathData.store.dataDate
+    }
+    pathDataLoad = (task, cancellation, wanted, online)
   }
 
   private func restoreRoute() async {
@@ -557,6 +623,7 @@ final class AppModel: ObservableObject {
 
   private func networkAccessChanged(_ isOnline: Bool) {
     online = isOnline
+    loadPathData()
     if isOnline && syncPending { Task { await sync() } }
   }
 

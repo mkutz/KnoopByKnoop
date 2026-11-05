@@ -88,4 +88,9 @@
   <string name="clear_search">Suche löschen</string>
   <string name="language">Sprache</string>
   <string name="language_system">System</string>
+  <string name="guidance">Führung abseits der Route</string>
+  <string name="guidance_explanation">Führt dich auf geeigneten Wegen zurück zur Route, auch ohne Verbindung. Dafür lädt die App die Wege rund um eine geplante Route von GitHub. GitHub sieht so ungefähr, wo deine Route liegt, aber nie, wo du bist.</string>
+  <string name="path_data_loading">Wege für diese Route werden geladen…</string>
+  <string name="path_data_ready">Wege für diese Route sind geladen</string>
+  <string name="path_data_unavailable">Wege für diese Route konnten nicht geladen werden</string>
 </resources>

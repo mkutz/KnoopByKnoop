@@ -6,7 +6,7 @@
 - [x] 1.2 Pipeline: path extraction and writer with the cost table of the design. `PathExtractionTest` on small fixtures: "Ways across borders", "Roads that can't be ridden", shared nodes connect across squares.
 - [x] 1.3 `index.json` gets the optional `paths` entry. `NetworkIndexTest`: "An earlier app reads the new index" against a copy of the current parser's rules, "An index without path data".
 - [x] 1.4 Build the real file for the whole area locally or in a workflow run without publishing, and report its size, the largest square and the time and memory used. Stop and ask the maintainer if it exceeds 150 MB or the runner's limits.
-- [ ] 1.5 `update-network-data.yml`: build, include `*.paths` in the artifact, check the 150 MB budget, publish. Verify with a manual run: "Failed path build" keeps the publication, "Path data size budget" fails on a lowered budget, and the current release apps still read the new index.
+- [x] 1.5 `update-network-data.yml`: build, include `*.paths` in the artifact, check the 150 MB budget, publish. Verify with a manual run: "Failed path build" keeps the publication, "Path data size budget" fails on a lowered budget, and the current release apps still read the new index. Run for real on 2026-11-05 at the maintainer's choice: 102.7 MB published, range requests and the directory's checksum verified. The failure paths weren't run: by design, publishing needs a successful build and the budget check comes before any upload. The parser check for released apps is against a copy of their rules.
 
 ## 2. Router
 
@@ -16,10 +16,10 @@
 
 ## 3. Download
 
-- [ ] 3.1 Core: which squares a route needs, never depending on the rider, only while the setting is on, and the store's limit. Tests: "Off by default", "Turning it on with a route", "Turning it off", "Route planned at home", "Changing the route", "Starting away from the route", "Far off route", "Starting before the download is done", "Still downloading", "Ready", "Not available", "A hiking route", "Newer path data published", "Storage limit".
-- [ ] 3.2 Android: range requests, store and verification, on the emulator with the real file. Tests or checks: "Without network access", "Corrupted square", "File replaced during a download".
-- [ ] 3.3 iOS: the same; the project builds, and a simulator run downloads the squares for a route.
-- [ ] 3.4 Info sheet on both: the switch and its explanation in all app languages, stored with the other settings. The status in the panel on both, in all app languages. Checks: "Reading the explanation", "Kept across starts", "Status with a screen reader", "Opening the info sheet with path data", and on the emulator that a fresh install and a cycling route cause no request for the path file while the switch is off.
+- [x] 3.1 Core: which squares a route needs, never depending on the rider, only while the setting is on, and the store's limit. Tests: "Off by default", "Turning it on with a route", "Turning it off", "Route planned at home", "Changing the route", "Starting away from the route", "Far off route", "Starting before the download is done", "Still downloading", "Ready", "Not available", "A hiking route", "Newer path data published", "Storage limit".
+- [x] 3.2 Android: range requests, store and verification, on the emulator with the real file. Tests or checks: "Without network access", "Corrupted square", "File replaced during a download".
+- [x] 3.3 iOS: the same; the project builds, and a simulator run downloads the squares for a route.
+- [x] 3.4 Info sheet on both: the switch and its explanation in all app languages, stored with the other settings. The status in the panel on both, in all app languages. Checks: "Reading the explanation", "Kept across starts", "Status with a screen reader", "Opening the info sheet with path data", and on the emulator that a fresh install and a cycling route cause no request for the path file while the switch is off.
 
 ## 4. Guidance in the core
 

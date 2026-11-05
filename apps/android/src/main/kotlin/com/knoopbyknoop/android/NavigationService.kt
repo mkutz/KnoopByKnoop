@@ -8,6 +8,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
 import android.graphics.Bitmap
@@ -40,13 +41,10 @@ import com.knoopbyknoop.core.NavigationUpdate
 import com.knoopbyknoop.core.NetworkType
 import com.knoopbyknoop.core.Notice
 import com.knoopbyknoop.core.NoticeKind
-import com.knoopbyknoop.core.PathFile
 import com.knoopbyknoop.core.PathRouter
 import com.knoopbyknoop.core.Precision
 import com.knoopbyknoop.core.ProgressMarkKind
 import com.knoopbyknoop.core.RiddenTrack
-import java.io.File
-import java.io.RandomAccessFile
 import java.time.Instant
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
@@ -163,7 +161,10 @@ class NavigationService : Service() {
   private var guidedWay: GuidedWay? = null
   private var findingWay = false
   private var lastWaySearchMillis = 0L
-  private val pathRouter: PathRouter? by lazy { openPathRouter() }
+  private val pathStore by lazy { PathData.store(this) }
+  private val pathRouter by lazy { PathRouter(pathStore) }
+  private var pathRouterVersion = -1
+  private val debuggable by lazy { applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0 }
 
   private val callback =
     object : LocationCallback() {
@@ -335,7 +336,12 @@ class NavigationService : Service() {
     scope.launch {
       val found =
         withContext(Dispatchers.Default) {
-          val router = pathRouter ?: return@withContext null
+          val router = pathRouter
+          // Squares may have arrived or gone, see `knot-navigation` "Path data arrives on the way".
+          if (pathRouterVersion != pathStore.version) {
+            router.forgetSquares()
+            pathRouterVersion = pathStore.version
+          }
           val started = SystemClock.elapsedRealtime()
           val way =
             try {
@@ -357,13 +363,16 @@ class NavigationService : Service() {
               "${router.loadedSquares} squares, " +
               "${(runtime.totalMemory() - runtime.freeMemory()) / 1_000_000} MB used",
           )
-          // Test build: lets a mocked ride follow the way.
-          way?.let { found ->
-            Log.d(
-              LOG_TAG,
-              "way points: " + found.points.joinToString(";") { "${it.longitude},${it.latitude}" },
-            )
-          }
+          // Debug builds only, for a mocked ride to follow the way: this is where the rider goes.
+          way
+            ?.takeIf { debuggable }
+            ?.let { found ->
+              Log.d(
+                LOG_TAG,
+                "way points: " +
+                  found.points.joinToString(";") { "${it.longitude},${it.latitude}" },
+              )
+            }
           way
         }
       findingWay = false
@@ -373,29 +382,6 @@ class NavigationService : Service() {
       guidedWay = found?.let { GuidedWay.of(it, guidedWay) }
       publish(latest, latest.lastFix)
       notifyOfChange(latest, latest.lastFix)
-    }
-  }
-
-  /** Test build: the path file is copied onto the phone, there is no download or switch yet. */
-  private fun openPathRouter(): PathRouter? {
-    val file = File(getExternalFilesDir(null), "cycling.paths").takeIf { it.exists() }
-    if (file == null) {
-      Log.i(LOG_TAG, "no path file")
-      return null
-    }
-    val access = RandomAccessFile(file, "r")
-    return try {
-      PathRouter(
-        PathFile.open { offset, size ->
-          synchronized(access) {
-            access.seek(offset)
-            ByteArray(size).also(access::readFully)
-          }
-        }
-      )
-    } catch (exception: Exception) {
-      Log.w(LOG_TAG, "unreadable path file", exception)
-      null
     }
   }
 

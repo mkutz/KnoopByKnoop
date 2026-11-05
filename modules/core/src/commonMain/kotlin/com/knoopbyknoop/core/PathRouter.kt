@@ -51,7 +51,7 @@ class PathWay(
  * as the search reaches them and stay loaded until there are too many, see "Memory on a long ride".
  * Not safe for use from several threads at once.
  */
-class PathRouter(private val file: PathFile) {
+class PathRouter(private val file: PathSquareSource) {
 
   /** A [segment] ridden from its start, or from its end when [reversed]. */
   private class Step(val segment: PathSegment, val reversed: Boolean) {
