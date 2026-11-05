@@ -21,3 +21,11 @@ Dark mode on Android: the panel is dark and readable ([screenshot](screenshots/a
 2. Lock the phone while doing so: the notification or Live Activity shows it. iPhone: the Dynamic Island shows the warning sign and the next knot.
 3. Turn around again: "Back on route, next …" after about 50 m.
 4. Ride a winding stretch and a tight hairpin the right way: no warning. Say if 150 m feels too early or too late.
+
+### Ride of 2026-11-04
+
+Pixel: turned around on the route near 27, "Falsche Richtung, nächster 27", red header and the distance along the route. The iPhone's Live Activity and Dynamic Island are still on the ride sheet.
+
+### Archived 2026-11-05
+
+Archived with the iPhone cells still marked ⏳ or ❌ above, at the maintainer's decision. What is left is on the ride sheet "Knoop by Knoop: Next Test Ride".

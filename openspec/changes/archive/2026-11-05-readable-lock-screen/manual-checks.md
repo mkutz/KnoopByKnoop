@@ -13,11 +13,11 @@ iOS: the project builds and the app runs in the simulator (iPhone 18 Pro, iOS 27
 | Lock screen | ✅ | ✅ views | Close: "At 06 follow 05", "168 m to 06 · end around 15:30", with 05 as the badge ([screenshot](screenshots/android-live-update-close-off-route-turned-off.png), left) |
 | Off route outside the app | ✅ | ✅ views | "Off route, next 06", "397 m south to 06", the bar's dot red (middle) |
 | Live Update turned off | ✅ | — | With the app op denied: the same card with the bar, no chip (right) |
-| Stop from the lock screen | ✅ | ⏳ | Stop in the notification ended navigation and the notification |
+| Stop from the lock screen | ✅ | ✅ | Stop in the notification ended navigation and the notification. iPhone: tapped by the maintainer, ride sheet |
 | Distance on the way | ✅ | unit test | With the app in the background, "6.9 km to 06" became "168 m to 06" with no knot passed, at the next fix, about every 30 s. `RouteProgressTest` "distance on the way" |
 | Progress outside the app | unit test | unit test | `RouteProgressTest` |
 | Progress bar in the Live Activity | — | ✅ iPhone | In a real Live Activity on the maintainer's iPhone, off route, light and dark; the far and close forms and the green part ridden as views in the app |
-| Dynamic Island | — | ⏳ | Not visible in the simulator's screenshots |
+| Dynamic Island | — | ✅ | Not visible in the simulator's screenshots. iPhone: compact form and long press with both end markers, ride sheet |
 | Older Android | by code | — | No emulator before API 36 here: the bar is behind a version check for API 36, promotion and chip behind one for 36.1 (lint enforces both), and the large badge is outside them |
 
 Light and dark, checked 2026-11-02:

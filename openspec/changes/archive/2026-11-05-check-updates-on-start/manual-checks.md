@@ -18,3 +18,7 @@ Checked 2026-11-02, right after the network data of that morning (OpenStreetMap 
 1. Install the new build on the Pixel and the iPhone and start it: the info sheet (ⓘ) shows 2026-10-31 for cycling and hiking.
 2. After the next weekly data, swipe the app away and start it again: the info sheet shows the new date without waiting a day.
 3. iPhone: start the app in flight mode, then swipe it away and start it with a connection: the info sheet does not keep showing a failed update.
+
+### Archived 2026-11-05
+
+Archived with the iPhone cells still marked ⏳ or ❌ above, at the maintainer's decision. What is left is on the ride sheet "Knoop by Knoop: Next Test Ride".

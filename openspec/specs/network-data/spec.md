@@ -17,7 +17,7 @@ The pipeline SHALL extract every knot (a node with `rcn_ref` or `rwn_ref` in a `
 - **THEN** its length in meters is computed from the geometry of its ways
 
 ### Requirement: One knot per signposted junction
-Nodes of the same network with the same number that belong to one junction SHALL become one knot. Knots with the same number that are separate places SHALL stay separate knots. Only a ferry between two nodes makes them separate places.
+Nodes of the same network with the same number that belong to one junction SHALL become one knot. Knots with the same number that are separate places SHALL stay separate knots. Only a ferry between two nodes makes them separate places. The graph SHALL keep the position of every node a knot is tagged on.
 
 #### Scenario: Junction tagged on several nodes
 - **WHEN** knot 30 is tagged on two nodes within 500 m of each other, e.g. on both sides of a dual carriageway or around a roundabout, and no ferry lies between them
@@ -31,6 +31,10 @@ Nodes of the same network with the same number that belong to one junction SHALL
 - **WHEN** knot 30 is tagged on both banks of a river and a route including a ferry connects the two
 - **THEN** they stay two knots 30, connected by that route, so riders can choose which one to go to
 
+#### Scenario: Positions of a merged knot
+- **WHEN** knot 02 is tagged on two nodes 195 m apart and they become one knot
+- **THEN** the graph file has the positions of both nodes for knot 02
+
 ### Requirement: Compact versioned graph files
 Each graph file SHALL state its format version, its network type, the area it covers, the date of the OSM data and the ODbL attribution.
 
@@ -41,6 +45,14 @@ Each graph file SHALL state its format version, its network type, the area it co
 #### Scenario: Size budget
 - **WHEN** the graph for the cycling network of the whole covered area is written
 - **THEN** the file is smaller than 5 MB
+
+#### Scenario: Apps without the positions of merged knots
+- **WHEN** an app released before graph files had the positions of all nodes of a merged knot reads such a file
+- **THEN** it installs and reads it as before, each knot at one position
+
+#### Scenario: Graph files without the positions of merged knots
+- **WHEN** an app reads a graph file written before it had the positions of all nodes of a merged knot
+- **THEN** it reads it as before, each knot with one position
 
 ### Requirement: Weekly publication
 The network data SHALL be rebuilt and published at least once a week, together with an index of all published files, their network types, sizes, checksums and data dates.
@@ -57,7 +69,7 @@ An app SHALL be able to plan and navigate on an installed network without networ
 - **THEN** cycling routes can still be planned anywhere in the covered area
 
 ### Requirement: Course of every connection
-For every connection, the published data SHALL include the course of the path its length is measured on, accurate to within 5 m of the OpenStreetMap ways.
+For every connection, the published data SHALL include the course of the path its length is measured on, accurate to within 5 m of the OpenStreetMap ways. Where a connection reaches a merged knot at another node than the knot's position, its course SHALL continue to the knot's position along the network's ways between the two, and only where no such way exists in a straight line.
 
 #### Scenario: Winding path
 - **WHEN** a connection follows a winding forest path
@@ -70,6 +82,14 @@ For every connection, the published data SHALL include the course of the path it
 #### Scenario: Junction tagged on several nodes
 - **WHEN** a connection ends at a knot that was merged from several nodes
 - **THEN** its course still ends at that knot's position
+
+#### Scenario: Along the ways to the knot's position
+- **WHEN** a connection reaches knot 02 at its node near the L 16, 195 m from the knot's position, and a way of the network leads from there to the knot's position
+- **THEN** its course continues along that way to the knot's position, not straight across the road
+
+#### Scenario: No way between the nodes
+- **WHEN** no way of the network joins the node a connection reaches and the knot's position
+- **THEN** its course continues in a straight line to the knot's position, as before
 
 ### Requirement: Geometry belongs to one graph
 A geometry file SHALL belong to exactly one graph file. Geometry SHALL only be used together with the graph file it was built with.
@@ -137,3 +157,26 @@ For every connection that includes a ferry, the published graph SHALL carry the 
 #### Scenario: Older graph files
 - **WHEN** an app reads a graph file written before ferry details were published
 - **THEN** it reads it as before, without ferry details
+
+### Requirement: Courses to each signpost
+Where the ways of a connection's route reach one of its knots at several of the nodes the knot is tagged on, the published data SHALL also include a course to each of those nodes, along the route's own ways and not through another node of that knot. The connection's course and length SHALL stay as they are. Apps that do not know these courses SHALL still read the file.
+
+#### Scenario: Two branches of a route
+- **WHEN** the route 02-06 has one branch to the node of 02 by the river and one to its node near the L 16
+- **THEN** the data has a course from 06 to each of the two nodes, and the connection keeps its shortest course and length
+
+#### Scenario: Only through another node
+- **WHEN** a route reaches a knot's second node only by passing its first
+- **THEN** the data has no course of its own to the second node
+
+#### Scenario: One node
+- **WHEN** a route reaches a knot at only one of its nodes
+- **THEN** the data has no further course for that connection
+
+#### Scenario: Released apps
+- **WHEN** an app of version 0.7.0 reads a geometry file with these courses
+- **THEN** it reads the connections' courses as before, and ignores the others
+
+#### Scenario: Geometry size budget
+- **WHEN** the geometry for the cycling network of the whole covered area is written with these courses
+- **THEN** the file is still smaller than 10 MB

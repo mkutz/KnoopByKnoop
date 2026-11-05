@@ -337,7 +337,7 @@ The ferry list while planning, and the popover of a passed ferry while navigatin
 - **THEN** the status, including public holidays, is shown as online
 
 ### Requirement: Clear of the system bars
-The map SHALL extend behind the system's status bar and navigation bar, while the status bar's and navigation bar's icons SHALL stay readable on it in light and dark appearance. The controls over the map and the planner panel SHALL stay clear of the system bars and the display cutout, so all of their area can be tapped.
+The map SHALL extend behind the system's status bar and navigation bar, while the status bar's and navigation bar's icons SHALL stay readable on it in light and dark appearance. The controls over the map, including the map's compass, and the planner panel SHALL stay clear of the system bars and the display cutout, so all of their area can be tapped and the status icons stay visible.
 
 #### Scenario: Status bar on the light map
 - **WHEN** the app shows the light map
@@ -354,6 +354,10 @@ The map SHALL extend behind the system's status bar and navigation bar, while th
 #### Scenario: Landscape with a display cutout
 - **WHEN** the phone is in landscape with the camera cutout on the left or the right
 - **THEN** the search field, the network switch, the zoom buttons, the attribution and the side panel are not covered by the cutout or the navigation bar
+
+#### Scenario: Compass below the status bar
+- **WHEN** the map is rotated, so its compass button shows
+- **THEN** the compass is below the search field, and the clock and the status icons, the battery among them, are not covered
 
 ### Requirement: Clear actions in the planner panel
 The planner panel SHALL show Navigate, and Stop while navigating, as the most prominent actions, each with an icon and its label. Clear SHALL be shown as an icon button, and Back to start and Export GPX as entries with icon and label in a menu opened by a "More actions" icon button, shown when one of its entries is available; the header SHALL stay one row on phones 360 dp wide. Icon buttons SHALL be announced by name to screen readers. In light and in dark appearance, the labels of all these actions SHALL have a contrast of at least 4.5:1, and their icons at least 3:1, against what they are shown on.
@@ -440,6 +444,10 @@ The app SHALL follow the appearance chosen in the info sheet, by default the sys
 #### Scenario: Choice kept
 - **WHEN** the user chose Light and starts the app again
 - **THEN** the app is light, whatever the system's appearance
+
+#### Scenario: Off route in dark mode
+- **WHEN** the rider is off route in dark mode
+- **THEN** "Off route, next", the arrow towards the next knot and the rider's dot on the strip are a clear red, readable on the dark panel, not pink
 
 ### Requirement: Show my position
 While planning, the map SHALL offer a round button below the zoom buttons that centers the map on the rider's current position, at least at the zoom where knots are shown, and marks it with a dot that does not follow the rider. Location access SHALL be asked for on the first tap, and on the very first start of the app, when there is neither a saved map position nor a route. The position SHALL be found once per request, without updates afterwards.
@@ -681,3 +689,80 @@ Each choice of the network switch SHALL show an icon next to its word: a bike fo
 #### Scenario: Readable in both appearances
 - **WHEN** the switch is measured in light and in dark appearance
 - **THEN** its words and icons have a contrast of at least 4.5:1 to what they are shown on
+
+### Requirement: Knots signposted at several places
+A knot signposted at several places of one junction (see `network-data` "One knot per signposted junction") SHALL have its badge on the map at every one of them. The badges SHALL act as that one knot for tapping and highlighting; everywhere else the knot SHALL appear once. A route starting or ending at such a knot SHALL be drawn and exported from or to the signpost it uses.
+
+#### Scenario: Badges at both signposts
+- **WHEN** knot 02 is signposted at two places 195 m apart and the map shows them
+- **THEN** a badge 02 is shown at each of the two places
+
+#### Scenario: Tapping the other signpost
+- **WHEN** no start is set and the user taps the badge 02 that is not the knot's main position
+- **THEN** 02 becomes the start, the same knot as when tapping the other badge, and the waypoint list, the strip and the coming knots show 02 once
+
+#### Scenario: Route through a knot with two signposts
+- **WHEN** the route passes 02
+- **THEN** both badges 02 are highlighted as part of the route
+
+#### Scenario: Route starting at the other signpost
+- **WHEN** the route starts at 02 and leaves it at the signpost near the L 16, 195 m from the knot's main position
+- **THEN** its line starts at that signpost, without the path between the two badges, as a route leaving at the main position starts there
+
+#### Scenario: Route ending at the other signpost
+- **WHEN** the route ends at 02 and arrives at the signpost near the L 16
+- **THEN** its line ends at that signpost
+
+#### Scenario: Route through a knot between its signposts
+- **WHEN** the route passes 02, arriving at one signpost and leaving at the other
+- **THEN** its line includes the path between the two badges
+
+#### Scenario: Next knot with two signposts
+- **WHEN** the rider is navigating with 02 as the next knot
+- **THEN** both badges 02 have the next-knot ring
+
+#### Scenario: Knots with equal numbers on both banks
+- **WHEN** two knots 30 on both banks of a river are separate knots, connected by a ferry
+- **THEN** each has its own badge, and tapping one selects only that knot, as before
+
+### Requirement: Routes through a knot with several signposts
+A route passing a knot signposted at several places SHALL be drawn and exported through the signpost that fits the legs before and after it, the shortest way where several fit. Where the legs share no signpost, the line SHALL join them along the path between the signposts. The route's knots, distance and time SHALL NOT change.
+
+#### Scenario: Through the signpost of the next leg
+- **WHEN** the route goes 06 → 02 → 28, 02 → 28 leaves at the signpost near the L 16, and 06 → 02 reaches both signposts
+- **THEN** its line goes straight to the signpost near the L 16 and on to 28, without the 02 by the river
+
+#### Scenario: The other direction out of the knot
+- **WHEN** the route goes 06 → 02 → 01, and 02 → 01 leaves at the 02 by the river
+- **THEN** its line goes to the 02 by the river and on to 01, without the signpost near the L 16
+
+#### Scenario: A stop at the knot
+- **WHEN** 02 is a stop of the route 06 → 02 → 28
+- **THEN** its line is the same as when the route only passes 02
+
+#### Scenario: Back the same way
+- **WHEN** the route goes 28 → 02 → 28, and 28 reaches 02 only at the signpost near the L 16
+- **THEN** its line turns at that signpost, without the path to the 02 by the river and back
+
+#### Scenario: No shared signpost
+- **WHEN** the route goes 28 → 02 → 01, arriving at one signpost and leaving at the other
+- **THEN** its line joins them along the path between the two badges
+
+#### Scenario: Same distance
+- **WHEN** the line of a route goes through another signpost than before
+- **THEN** the route's distance, time and knots are the same
+
+### Requirement: Route used in both directions
+The route line SHALL be drawn beside its course, to the right in riding direction, so a stretch the route uses in both directions shows as two lines next to each other, each with its own arrows.
+
+#### Scenario: A stretch used twice
+- **WHEN** a route uses the same stretch in both directions
+- **THEN** the map shows two lines next to each other there, with arrows pointing the opposite ways
+
+#### Scenario: A stretch used once
+- **WHEN** a route uses a stretch in one direction
+- **THEN** the map shows one line there, slightly to the right of the course
+
+#### Scenario: Tapping the route when zoomed out
+- **WHEN** the map is zoomed out and the user taps the line beside the course
+- **THEN** the map zooms to show the whole route, as before

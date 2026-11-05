@@ -9,7 +9,7 @@ Checked 2026-11-02 at Siegburg 02 with cycling data built by this change's pipel
 | Two branches of a route | ✅ pipeline | ✅ pipeline | Köln extract: 19 of 1,222 cycling connections and 0 of 704 hiking ones have them; the cycling geometry file grows 3.9%. `NetworkExtractionTest` |
 | Only through another node, One node | unit test | unit test | `NetworkExtractionTest` |
 | Released apps | ✅ | ✅ | The core of 0.7.0 (5f5af73) read the new Köln file: 1,222 courses for 1,222 connections, format version 1 |
-| Geometry size budget | ⏳ | ⏳ | Köln is far below it. To be checked on the data run: it logs the size of the whole network |
+| Geometry size budget | ✅ | ✅ | Köln is far below it. To be checked on the data run: it logs the size of the whole network. Published file 2.5 MB of a 10 MB budget, data run of 2026-11-02 |
 | Through the signpost of the next leg | ✅ | ✅ simulator | 06 → 02 → 28 goes straight to the north-west 02, without the 02 by the river ([Android](screenshots/android-routes-through-signposts.png), left; [iOS](screenshots/ios-routes-through-signposts.png), left) |
 | The other direction out of the knot | ✅ | ✅ simulator | 06 → 02 → 01 goes through the 02 by the river (Android, middle; iOS, right) |
 | No shared signpost | ✅ | unit test | 28 → 02 → 01 joins them along the path (Android, right) |

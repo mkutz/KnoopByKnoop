@@ -6,7 +6,7 @@ Guides the rider along a planned route knot by knot: it tells which number to fo
 ## Requirements
 
 ### Requirement: Start navigation
-A complete route SHALL be navigable. Navigation SHALL be started by the user while the app is open, and SHALL begin where the rider is: at a knot of the route or on its course; more than 100 m from the course, it SHALL lead to the first knot of the route. Without courses, it SHALL begin at the route knot nearest to the rider. It SHALL need location access only while the app is in use, not always.
+A complete route SHALL be navigable. Navigation SHALL be started by the user while the app is open, and SHALL begin where the rider is: at a knot of the route, within 30 m of any of the nodes it is tagged on, or on its course; more than 100 m from the course, it SHALL lead to the first knot of the route. Standing within 30 m of several consecutive knots of the route, it SHALL begin after the last of them. Without courses, it SHALL begin at the route knot nearest to the rider. It SHALL need location access only while the app is in use, not always.
 
 #### Scenario: Start at the first knot
 - **WHEN** the route runs 24, 45, 12, 31 and the rider starts navigation standing at knot 24
@@ -19,6 +19,14 @@ A complete route SHALL be navigable. Navigation SHALL be started by the user whi
 #### Scenario: Start between two knots
 - **WHEN** the rider starts navigation on the course of the route between 45 and 12
 - **THEN** navigation begins with 12 as the next knot
+
+#### Scenario: Start at a double knot
+- **WHEN** the route runs 24, 45, 46, 12, 46 is 10 m after 45, and the rider starts navigation standing between 45 and 46
+- **THEN** navigation begins with 12 as the next knot
+
+#### Scenario: Start at another node of a merged knot
+- **WHEN** knot 24 of the route 24, 45, 12, 31 is tagged on two nodes 195 m apart, and the rider starts navigation standing at the node that is not the knot's position on the map
+- **THEN** navigation begins with 45 as the next knot
 
 #### Scenario: Start away from the route
 - **WHEN** the rider starts navigation 2 km away from the course of the route 24, 45, 12, 31, nearest to route knot 45
@@ -41,11 +49,23 @@ A complete route SHALL be navigable. Navigation SHALL be started by the user whi
 - **THEN** navigation begins with 45 as the next knot
 
 ### Requirement: Number to follow
-While navigating, the app SHALL show the number to follow at the next knot as its most prominent information, e.g. "At 45 follow 12", with the knots as badges like on the map, and in the same line the distance to the next knot along the route, or straight to it while off route. When the next knot is the end of the route, it SHALL say so instead.
+While navigating and close to the next knot, from when the rider is reminded of it (see "Reminder before a knot"), the app SHALL show the number to follow there as its most prominent information, e.g. "At 45 follow 12", with the knots as badges like on the map. Farther away, it SHALL show the next knot and the distance to it as its most prominent information, e.g. "Next 45", with the number to follow after it smaller, e.g. "then 12". In the same line as the next knot, it SHALL show the distance to the next knot along the route, or straight to it while off route or while the next knot is the first knot of the route. When the next knot is the end of the route, it SHALL say so instead.
 
 #### Scenario: Next knot in the middle of the route
-- **WHEN** the next knot is 45 and the route continues to 12
-- **THEN** the app shows "At 45 follow 12" with 45 and 12 as badges, 12 as the most prominent element, and the distance to 45, e.g. "800 m"
+- **WHEN** the next knot is 45, 150 m ahead, and the route continues to 12
+- **THEN** the app shows "At 45 follow 12" with 45 and 12 as badges, 12 as the most prominent element, and the distance to 45, "150 m"
+
+#### Scenario: Far from the next knot
+- **WHEN** the next knot is 83, 1.2 km ahead, and the route continues to 30
+- **THEN** the app shows "Next 83" and "1.2 km" with 83 as a badge, 83 and the distance as the most prominent elements, and "then 30" smaller below them, with 30 as a badge
+
+#### Scenario: Coming close
+- **WHEN** the rider heading to 83 comes within 200 m of it and is reminded "83 ahead, then 30"
+- **THEN** the app shows "At 83 follow 30" with 30 as the most prominent element
+
+#### Scenario: Knot right after the last one
+- **WHEN** the rider passes 45 and the next knot 12 is 150 m after it
+- **THEN** the app shows "At 12 follow 31" right away
 
 #### Scenario: Next knot is the end
 - **WHEN** the next knot is 31, the end of the route
@@ -55,8 +75,16 @@ While navigating, the app SHALL show the number to follow at the next knot as it
 - **WHEN** the rider is off route, 1.7 km straight from the next knot 02
 - **THEN** the app shows "Off route, next 02" with 02 as a badge and "1.7 km"
 
+#### Scenario: Distance to the first knot
+- **WHEN** the rider started away from the route 24, 45, 12, 31, came back within 30 m of its course 80 m straight from 24, and 24 is still the next knot
+- **THEN** the app shows "At 24 follow 45" and "80 m", and outside the app "80 m to 24", not "0 m"
+
+#### Scenario: Far from the next knot with a screen reader
+- **WHEN** a screen reader reaches the header while the next knot 83 is 1.2 km ahead and 30 follows
+- **THEN** it announces "Next 83, 1.2 km, then 30"
+
 ### Requirement: Passing a knot
-A knot SHALL count as passed when the rider comes within 30 m of it. Passing the next knot SHALL make the knot after it the next knot and SHALL be announced with the next two knots, e.g. "Next 12, then 31".
+A knot SHALL count as passed when the rider comes within 30 m of it, of any of the nodes it is tagged on. Passing the next knot SHALL make the knot after it the next knot and SHALL be announced with the next two knots, e.g. "Next 12, then 31". When the rider comes within 30 m of several consecutive knots of the route at once, all of them SHALL count as passed, and one announcement SHALL name the knot after the last of them.
 
 #### Scenario: Passing the next knot
 - **WHEN** the rider heading to 45 on the route 24, 45, 12, 31 comes within 30 m of 45
@@ -69,6 +97,22 @@ A knot SHALL count as passed when the rider comes within 30 m of it. Passing the
 #### Scenario: Round trip
 - **WHEN** the route is a round trip 24, 45, 12, 24 and the rider starts navigation at 24
 - **THEN** 45 is the next knot, and reaching 24 again only counts as arriving after 45 and 12 were passed
+
+#### Scenario: Passing a double knot
+- **WHEN** the rider heading to 45 on the route 24, 45, 46, 12, with 46 10 m after 45, comes within 30 m of both 45 and 46 at once
+- **THEN** both count as passed, 12 becomes the next knot, and the app says "Next 12" once, without a notice for 46
+
+#### Scenario: Riding on after a double knot
+- **WHEN** the rider passed the double knot 45, 46 and rides on towards 12
+- **THEN** the distance to 12 counts down and the rider's place on the progress strip moves on
+
+#### Scenario: Passing a merged knot at its other node
+- **WHEN** knot 45 of the route 24, 45, 12, 31 is tagged on two nodes 195 m apart, and the rider heading to 45 comes within 30 m of the node that is not the knot's position on the map
+- **THEN** 12 becomes the next knot and the app says "Next 12, then 31"
+
+#### Scenario: Passing a merged knot that is not on the route
+- **WHEN** knot 77, not on the route, is tagged on two nodes, and the rider heading to 45 comes within 30 m of the node that is not 77's position on the map
+- **THEN** the app says "Off route, next 45" with the distance and direction to 45
 
 ### Requirement: Reminder before a knot
 When the rider comes within 200 m of the next knot, the app SHALL remind them of the number to follow there, e.g. "45 ahead, then 12". The reminder SHALL be given once per knot.
@@ -89,7 +133,7 @@ When the rider passes a later knot of the route than the next knot, navigation S
 - **THEN** 31 becomes the next knot and the app says "Next 31"
 
 ### Requirement: Off route
-The rider SHALL be told they are off route when they pass a knot that is not on the route, or are more than 100 m away from the course of the route. The notice SHALL name the next knot and the straight distance and compass direction to it, e.g. "Off route, next 45, 1.7 km to the north-east". While off route, a guidance notice SHALL repeat the distance and direction when the rider got 500 m closer to the knot or its direction changed by more than 45° since the last notice. The app SHALL NOT plan a new route back.
+The rider SHALL be told they are off route when they pass a knot that is not on the route, or are more than 100 m away from the course of the route. They SHALL be back on route only when they pass a knot of the route or come within 30 m of the course, so a path running alongside the route does not count as the route. The notice SHALL name the next knot and the straight distance and compass direction to it, e.g. "Off route, next 45, 1.7 km to the north-east". While off route, a guidance notice SHALL repeat the distance and direction when the rider got 500 m closer to the knot or its direction changed by more than 45° since the last notice. The app SHALL NOT plan a new route back.
 
 #### Scenario: Passing a knot that is not on the route
 - **WHEN** the rider heading to 45 passes knot 77, which is not on the route
@@ -100,8 +144,12 @@ The rider SHALL be told they are off route when they pass a knot that is not on 
 - **THEN** the app says "Off route, next 45, 1.7 km to the north-east"
 
 #### Scenario: Back on route
-- **WHEN** the rider who is off route comes back within 100 m of the course, or passes a knot of the route
+- **WHEN** the rider who is off route comes back within 30 m of the course, or passes a knot of the route
 - **THEN** the app says they are back on route and names the next knot
+
+#### Scenario: Parallel path
+- **WHEN** the rider who is off route rides on a path 60 m beside the course
+- **THEN** they are still off route, and the app does not say they are back on route
 
 #### Scenario: Without geometry
 - **WHEN** the network's courses are not installed
@@ -139,15 +187,27 @@ Every notice SHALL be spoken in English, also with the screen off and while othe
 - **THEN** the music is lowered while the notice is spoken and plays on at its volume afterwards
 
 ### Requirement: Navigation with the screen off
-Navigation SHALL keep running with the screen off and while other apps are in use. While navigating, the app SHALL show the number to follow at the next knot outside the app, together with the distance to the next knot and the arrival at the end as of the last knot passed, with a button to stop: on Android in an ongoing notification, on iOS in a Live Activity on the lock screen and in the Dynamic Island. Showing them SHALL NOT need more location fixes than navigating does.
+Navigation SHALL keep running with the screen off and while other apps are in use. While navigating, the app SHALL show outside the app what its panel shows: the next knot, far from it with the number to follow after it, close to it the number to follow there, see "Number to follow". With them, it SHALL show the distance to the next knot and the arrival at the end, renewed about every 100 m of the route, with a button to stop: on Android in an ongoing notification, from Android 16 as a Live Update with the route's progress; on iOS in a Live Activity on the lock screen and in the Dynamic Island, also with the route's progress. Showing them SHALL NOT need more location fixes than navigating does.
+
+#### Scenario: Far from the next knot in German
+- **WHEN** the app is in German, the rider is far from 29 with 25 to follow, and the system's text is larger than its default
+- **THEN** the notification's title shows "Nächster 29, dann 25" completely
 
 #### Scenario: Lock screen
-- **WHEN** the rider is navigating and looks at the lock screen
-- **THEN** it shows "At 45 follow 12" and, e.g., "800 m to 45 · end around 19:05", updated whenever the next knot changes
+- **WHEN** the rider is navigating, close to 45 with 12 to follow, and looks at the lock screen
+- **THEN** it shows "At 45 follow 12" and, e.g., "150 m to 45 · end around 19:05"
+
+#### Scenario: Far from the next knot outside the app
+- **WHEN** the rider is 1.4 km from 29 with 25 to follow, and looks at the lock screen
+- **THEN** it shows "Next 29, then 25" on Android and "Next 29", "then 25" with badges on iOS, and "1.4 km to 29 · end around 15:25"
 
 #### Scenario: Dynamic Island
 - **WHEN** the rider is navigating on an iPhone with a Dynamic Island and uses another app
 - **THEN** the Dynamic Island shows the next knot and the number to follow there
+
+#### Scenario: Dynamic Island with room for one number
+- **WHEN** the Dynamic Island is shared, e.g. with a screen recording, so it has room for one number
+- **THEN** it shows the knot the app shows largest: the next knot while far from it or off route, the number to follow when close
 
 #### Scenario: Off route outside the app
 - **WHEN** the rider is off route and looks at the lock screen
@@ -159,7 +219,31 @@ Navigation SHALL keep running with the screen off and while other apps are in us
 
 #### Scenario: Progress outside the app
 - **WHEN** the rider passes a knot with the screen off, and the next knot is 800 m ahead and the end is reached around 19:05 at their pace
-- **THEN** the notification or Live Activity shows "800 m to 45 · end around 19:05" until the next knot is passed
+- **THEN** the notification or Live Activity shows "800 m to 45 · end around 19:05"
+
+#### Scenario: Distance on the way
+- **WHEN** the rider has ridden 100 m further towards 45 since the line was last renewed
+- **THEN** the notification or Live Activity shows the new distance and the arrival at their current pace, without the rider passing a knot and without more location fixes
+
+#### Scenario: Live Update
+- **WHEN** the rider is navigating on Android 16 or newer
+- **THEN** the notification shows a bar along the route with their place and marks for stops and ferries, the knot to look for as a large badge, and the same knot as a chip in the status bar: the next knot while far from it, the number to follow when close
+
+#### Scenario: Progress bar in the Live Activity
+- **WHEN** the rider is navigating on an iPhone and looks at the lock screen, or at the expanded Dynamic Island
+- **THEN** the Live Activity shows a bar along the route with their place and marks for stops and ferries, and the end, renewed with the distance, with the markers at both ends of the bar complete
+
+#### Scenario: Live Activity in light and dark mode
+- **WHEN** the rider navigates on an iPhone and the system is in light or in dark mode
+- **THEN** the Live Activity's card on the lock screen is light or dark with it, with all its text readable, and follows a change of the mode with a later position
+
+#### Scenario: Live Update turned off
+- **WHEN** the rider has turned off Live Updates for the app, or the phone has Android 16 without its QPR2 update
+- **THEN** the notification still shows the words, the distance and the bar, without the chip
+
+#### Scenario: Older Android
+- **WHEN** the rider is navigating on an Android version before 16
+- **THEN** the notification shows the words, the distance and the arrival, and the knot to look for as a large badge
 
 ### Requirement: Position on the map
 While navigating with the app open, the map SHALL show the rider's position, the route and the next knot, so the rider can decide how to get back to the route.
@@ -210,7 +294,7 @@ Navigating with the screen off SHALL use at most 5 % of the battery per hour, me
 - **THEN** the battery level drops by at most 5 percentage points
 
 ### Requirement: Following the rider
-While navigating with the app open, the map SHALL follow the rider, keeping their position in view as they ride, until the user moves or zooms the map. Then the map SHALL stay where the user put it and a recenter button SHALL appear, which brings the map back to the rider at the navigation zoom and follows them again. The map SHALL NOT return to the rider on its own.
+While navigating with the app open, the map SHALL follow the rider, keeping their position in view as they ride, until the user moves or zooms the map. Then the map SHALL stay where the user put it and a recenter button SHALL appear, which brings the map back to the rider at the navigation zoom and follows them again. The map SHALL NOT return to the rider on its own. While following, on the route and off it, the base map's labels and icons SHALL stay steady.
 
 #### Scenario: Riding with the map following
 - **WHEN** the rider rides along the route and has not touched the map since navigation started
@@ -231,6 +315,14 @@ While navigating with the app open, the map SHALL follow the rider, keeping thei
 #### Scenario: Off route while following
 - **WHEN** the rider leaves the route while the map follows them
 - **THEN** the map shows their position and the next knot together
+
+#### Scenario: Steady base map while following
+- **WHEN** the map follows the rider past a supermarket and a parking with their icons on the base map
+- **THEN** the icons and street names stay shown while they are in view, without disappearing and reappearing with every position
+
+#### Scenario: Steady base map off route
+- **WHEN** the map follows a rider who is off route or on the way to the first knot, showing them and the end of the line
+- **THEN** the icons and street names stay shown while they are in view, as while following along the route
 
 ### Requirement: Riding direction on the map
 While navigating, the rider's position SHALL be shown as an arrow pointing in the direction they are riding, taken from their most recent movement on the ridden track, not from the compass, while the map stays north-up. When the rider has not moved recently, the position SHALL be shown as a dot without a direction. The arrow SHALL be about 44 points long and the dot about 30 points across with its outline, so the position stands out at a glance.
@@ -302,7 +394,7 @@ While navigating and the app is in the foreground, the display SHALL stay on, ov
 - **THEN** the display turns off, and navigation continues with spoken notices
 
 ### Requirement: Ferry arrival estimate
-While navigating, the app SHALL estimate when the rider gets to each ferry still ahead on the route, from the route distance to it and the rider's pace on the route so far, renewed when navigation starts and whenever a knot is passed. Until the rider has covered 2 km of the route, it SHALL assume 16 km/h cycling and 4.5 km/h hiking. The popover of a ferry ahead on the progress strip SHALL show the estimate, rounded to five minutes, in one line that starts with it and tells whether the ferry is open then, in place of its status for now, as in "At 14:30: open until 19:00": in green when it is open then, and only the estimate without a color when the operating times do not tell.
+While navigating, the app SHALL estimate when the rider gets to each ferry still ahead on the route, from the route distance to it and the rider's pace, renewed with every precise position on the route. The pace SHALL be the one over the last 5 km of the route, without the time the rider stood still or was off route. Until the rider has covered 2 km of the route, it SHALL assume 16 km/h cycling and 4.5 km/h hiking. The popover of a ferry ahead on the progress strip SHALL show the estimate, rounded to five minutes, in one line that starts with it and tells whether the ferry is open then, in place of its status for now, as in "At 14:30: open until 19:00": in green when it is open then, and only the estimate without a color when the operating times do not tell.
 
 #### Scenario: Arrival in the ferry list
 - **WHEN** the rider navigates a route with a ferry ahead that runs "Apr-Oct: Mo-Su 07:00-19:00" and that they get to around 14:30 on Wednesday, 16 June 2027
@@ -323,6 +415,26 @@ While navigating, the app SHALL estimate when the rider gets to each ferry still
 #### Scenario: Phone in another time zone
 - **WHEN** the phone is set to London time and the rider gets to a ferry at 18:15 London time, which is 19:15 in the Netherlands
 - **THEN** the ferry's popover says "At 19:15", the strip "19:15" and any warning "around 19:15", compared with the ferry's times in Dutch time
+
+#### Scenario: Slowing down
+- **WHEN** the rider rode 20 km at 20 km/h and then the last 5 km at 12 km/h, and 10 km are left to the end at 18:00
+- **THEN** the strip shows "18:50" below the end, at 12 km/h, not "18:30"
+
+#### Scenario: Between two knots
+- **WHEN** the rider has covered more than 2 km, slows down, and is still before the next knot
+- **THEN** the arrivals on the strip and in the coming knots follow without the rider passing a knot
+
+#### Scenario: A break
+- **WHEN** the rider rode 10 km at 20 km/h, stands still for 30 minutes, and rides on
+- **THEN** the arrivals move later while they stand, and when they ride on the pace is still 20 km/h
+
+#### Scenario: A detour
+- **WHEN** the rider is off route for 10 minutes and comes back on the route
+- **THEN** those 10 minutes do not count for the pace
+
+#### Scenario: Closed at the renewed estimate
+- **WHEN** the rider slows down between two knots so that a ferry ahead is closed at the estimate
+- **THEN** the strip shows the ferry with its red ring and its popover the warning at once, and the spoken warning comes at the next knot passed
 
 ### Requirement: Ferry warning
 When a ferry ahead is closed at the rider's estimated arrival, or closes within 15 minutes after it, according to its operating times in OpenStreetMap in the ferry region's local time, the app SHALL warn the rider once per ferry with a spoken notice, and the progress strip SHALL show that ferry's badge with a red ring and its arrival in red, and its popover the warning in red. When the operating times do not tell whether the ferry runs then, the app SHALL NOT warn.
@@ -523,15 +635,23 @@ While navigating, tapping a ferry on the progress strip SHALL open a popover wit
 - **THEN** it announces it as a button, "Ferry 76 → 02, at 21:10 closed until 1 May 10:00"
 
 ### Requirement: Way to the route on the map
-While navigating and off route, the map SHALL show a dashed straight line from the rider's position to the knot to head for. While the map follows the rider, it SHALL keep both the rider and that knot in view.
+While navigating and off route, the map SHALL show a dashed straight line from the rider's position to the nearest point of the route ahead of them: on the course of the leg to the next knot, after the last place the rider was on the route. Without the network's courses, or before the first knot, the line SHALL go to the next knot. While the map follows the rider, it SHALL keep both the rider and the end of that line in view.
+
+#### Scenario: Line to the route
+- **WHEN** the rider heading to 02 left the course to the west and is off route 150 m from it, with 02 1.7 km ahead
+- **THEN** the map shows a dashed line from their position to the nearest point of the course ahead of where they left it, about 150 m long, not to 02
+
+#### Scenario: Route behind the rider
+- **WHEN** the rider is off route and the nearest point of the leg's course lies before the place where they left the route
+- **THEN** the line goes to that place where they left the route, not back along the part they already rode
 
 #### Scenario: Line to the knot
-- **WHEN** the rider is off route with 02 as the next knot
-- **THEN** the map shows a dashed line from their position to 02
+- **WHEN** the network's courses are not installed, or the rider is off route before the first knot 24
+- **THEN** the map shows a dashed line from their position to the next knot
 
 #### Scenario: Both in view
-- **WHEN** the rider is off route 1.7 km from 02 and the map follows them
-- **THEN** the map shows both their position and 02
+- **WHEN** the rider is off route 400 m from the course and the map follows them
+- **THEN** the map shows both their position and the end of the line
 
 #### Scenario: Back on route
 - **WHEN** the rider comes back on route
@@ -610,15 +730,23 @@ The distances and arrivals below the progress strip's marks SHALL grow with the 
 - **THEN** the strip shows its labels as before
 
 ### Requirement: Number to follow at large text sizes
-At large system text sizes, the number to follow, the distance to the next knot and Stop SHALL be shown completely. Where the distance does not fit in the line with the number to follow, it SHALL be shown in a line below it.
+In every app language and at large system text sizes, the number to follow, the next knot, the distance to it and Stop SHALL be shown completely, and off route the next knot's badge. Where the distance does not fit in the line with the number to follow or the next knot, it SHALL be shown in a line below it; where the badge does not fit in the line with the off-route text, it SHALL follow the text in the next line.
 
 #### Scenario: Number to follow at the largest text size
-- **WHEN** the system text size is at its largest and the rider is at 94 with 41 to follow, 467 m ahead
-- **THEN** the panel shows "At 94 follow 41" and Stop completely, and "467 m" completely below them
+- **WHEN** the system text size is at its largest and the rider is 150 m before 94 with 41 to follow
+- **THEN** the panel shows "At 94 follow 41" and Stop completely, and "150 m" completely below them
+
+#### Scenario: Next knot at the largest text size
+- **WHEN** the system text size is at its largest and the rider is 467 m before 94 with 41 to follow
+- **THEN** the panel shows "Next 94", "467 m", "then 41" and Stop completely
 
 #### Scenario: Number to follow at the default text size
 - **WHEN** the system text size is the default
 - **THEN** the distance stays in the line with the number to follow, as before
+
+#### Scenario: Off route in German
+- **WHEN** the app is in German and the rider is off route with 29 as the next knot
+- **THEN** the panel shows "Abseits der Route, nächster" and the badge 29 completely, with Stop
 
 ### Requirement: Coming knots
 While navigating, the panel SHALL list the coming knots of the route below the progress strip, in riding order from the next knot to the end: each with its badge as on the map, the distance to it along the route and the arrival, at the pace of "Ferry arrival estimate", following each position while shown. Ferries SHALL be listed between the knots they connect, with their arrival state as on the strip. Passed knots SHALL NOT be listed.
@@ -716,3 +844,143 @@ On Android, while navigating with the app on top when the phone is locked, the a
 #### Scenario: Not navigating
 - **WHEN** the rider locks the phone with the app on top while not navigating
 - **THEN** the lock screen shows as usual
+
+### Requirement: Riding the line through a signpost
+While navigating, a rider following any course of a connection to a signpost of its knot SHALL NOT be told they are off route for it, and passing that signpost SHALL count as passing the knot.
+
+#### Scenario: Following the line shown
+- **WHEN** the rider on 06 → 02 → 28 follows the branch to the signpost near the L 16, which at some point is more than 100 m from the connection's main course
+- **THEN** they stay on route, and passing that signpost makes 28 the next knot
+
+#### Scenario: The other branch
+- **WHEN** the rider on the same route takes the branch to the 02 by the river instead
+- **THEN** they stay on route, as this is a course of the connection too
+
+#### Scenario: Away from all courses
+- **WHEN** the rider is more than 100 m from every course of the current leg and its neighbors
+- **THEN** they are off route, as before
+
+### Requirement: Straight ways to a knot with several signposts
+Wherever navigation gives a straight distance or direction to the next knot, or draws a dashed line to it, and wherever it decides by the straight distance to that knot whether the rider is near it, it SHALL measure to the signpost the route's line uses: where the line first reaches the knot, or for the first knot of the route, where the line leaves it. Passing any signpost of the knot SHALL still count as passing it. Without the network's courses, it SHALL measure to the knot's main position.
+
+#### Scenario: Approaching the first knot at the signpost the route leaves from
+- **WHEN** the route 02, 28 leaves 02 at its north-west signpost, its main position is by the river, and the rider rides towards the north-west signpost, now 80 m from it
+- **THEN** the app shows "At 02 follow 28" and "80 m", and the distance shrinks as they get closer
+
+#### Scenario: Dashed line to the first knot
+- **WHEN** the rider is off route before the first knot 02 of the route 02, 28, which leaves 02 at its north-west signpost
+- **THEN** the dashed line ends at the north-west signpost, not at the one by the river
+
+#### Scenario: Off route, heading for a knot on the route
+- **WHEN** the rider on the route 06, 02, 28 is off route with 02 next, and the line reaches 02 at its north-west signpost, 1.2 km to the north
+- **THEN** the app says "Off route, next 02, 1.2 km to the north", measured to that signpost, in the notice, the header and outside the app
+
+#### Scenario: The route uses the other signpost
+- **WHEN** the rider on the route 06, 02, 01 is off route with 02 next, and the line reaches 02 at its signpost by the river
+- **THEN** the distance and direction go to the signpost by the river
+
+#### Scenario: Line through both signposts
+- **WHEN** the rider on the route 28, 02, 01 heads for 02, and the line reaches its north-west signpost first and runs on to the one by the river
+- **THEN** the reminder, and the distance and direction while off route, go to the north-west signpost, and on the route 01, 02, 28 to the one by the river
+
+#### Scenario: Reminder at the signpost used
+- **WHEN** the rider on the route 06, 02, 28 comes within 200 m of the north-west signpost of 02, more than 200 m from its main position
+- **THEN** the app says "02 ahead, then 28" once
+
+#### Scenario: Passing the other signpost
+- **WHEN** the rider heading for the north-west signpost of 02 passes its signpost by the river instead
+- **THEN** 02 counts as passed and the app names the next knot
+
+#### Scenario: A knot with one signpost
+- **WHEN** the next knot has one position
+- **THEN** the distances and directions are the same as before this change
+
+#### Scenario: Without courses
+- **WHEN** the network's courses are not installed and the rider is off route with 02 next
+- **THEN** the distance, the direction and the dashed line go to the main position of 02
+
+### Requirement: Leg ahead on the map
+While navigating, the map SHALL show the course to the next knot thick and with arrows, and the rest of the route thin and without arrows. When a knot is passed, the course to the new next knot SHALL take its place. The ridden track SHALL stay on top of the route. Starting on a stretch the route uses in both directions, navigation SHALL begin with its first use.
+
+#### Scenario: Which way at a fork
+- **WHEN** the rider nears a fork where the route also comes back on the other branch, with 28 as the next knot
+- **THEN** only the course to 28 is thick and has arrows, so the map shows which way to go now
+
+#### Scenario: Passing a knot
+- **WHEN** the rider passes 28 with 27 as the new next knot
+- **THEN** the course to 27 is thick and has arrows, and the course to 28 is thin
+
+#### Scenario: Before the first knot
+- **WHEN** the rider is off route before the first knot of the route
+- **THEN** no course stands out, the route is thin, and the dashed line leads to the first knot
+
+#### Scenario: Off route
+- **WHEN** the rider is off route with 28 as the next knot
+- **THEN** the course to 28 stays thick with its arrows
+
+#### Scenario: Starting on a stretch used twice
+- **WHEN** the rider starts navigating the round trip 02, 28, 27, 28, 02 on the course between 02 and 28, not at a knot
+- **THEN** 28 is the next knot, not 02 on the way back, even if the way back's course is a few metres nearer
+
+#### Scenario: Ending navigation
+- **WHEN** navigation ends
+- **THEN** the route is drawn as while planning, with arrows along all of it
+
+### Requirement: Riding the wrong way
+While navigating with the network's courses, a rider within 30 m of the course of the current leg who has ridden at least 150 m back along it from the furthest place they reached on that leg, and has moved at least 100 m in a straight line from that place, SHALL be told they are riding the wrong way. The app SHALL say it once and show it until they turn around, pass the next knot or leave the course. It SHALL NOT plan a new route.
+
+#### Scenario: Riding back along the route
+- **WHEN** the rider heading to 28 joined the route 2.0 km before 28 and has ridden 150 m back along it, away from 28
+- **THEN** the app says "Wrong direction, turn around, next 28" once
+
+#### Scenario: Wrong direction in the panel
+- **WHEN** the rider is riding the wrong way, 2.2 km along the route from 28
+- **THEN** the panel shows "Wrong direction, next 28" in red with 28 as a badge and "2.2 km", the rider's dot on the strip is red, and the map shows no dashed line and keeps following them
+
+#### Scenario: Wrong direction outside the app
+- **WHEN** the rider is riding the wrong way with the screen off or in another app
+- **THEN** the notification or Live Activity shows "Wrong direction, next 28" with its warning look, and the Dynamic Island shows the warning sign and 28
+
+#### Scenario: In the app's language
+- **WHEN** the app is in German and the rider is riding the wrong way
+- **THEN** the app says "Falsche Richtung, bitte wenden, nächster Knotenpunkt 28" and shows "Falsche Richtung, nächster 28"
+
+#### Scenario: Turning around
+- **WHEN** the rider who was told they ride the wrong way turns around and has ridden 50 m along the route towards 28
+- **THEN** the app says "Back on route, next 28" and shows the route's usual header
+
+#### Scenario: Turning back shortly
+- **WHEN** the rider rides 100 m back along the route, e.g. to pick something up, and goes on
+- **THEN** the app says nothing
+
+#### Scenario: A place that jumps
+- **WHEN** the course doubles back past itself, and the nearest place on it jumps 300 m back while the rider has moved 20 m
+- **THEN** the app says nothing
+
+#### Scenario: Leaving the course while riding the wrong way
+- **WHEN** the rider riding the wrong way gets more than 100 m away from the course
+- **THEN** the app says they are off route, as on any other way off the course
+
+#### Scenario: Passing the next knot
+- **WHEN** the rider riding the wrong way passes the next knot by another way
+- **THEN** the app gives the usual notice for the knot after it, and the warning is gone
+
+#### Scenario: Riding back again later
+- **WHEN** the rider turned around, rode on, and later rides 150 m back along the route again
+- **THEN** the app says it again
+
+#### Scenario: On the way back of an out-and-back route
+- **WHEN** the route goes 02 → 01 → 02, and the rider passed 01 and rides the same way back
+- **THEN** the app does not say they ride the wrong way
+
+#### Scenario: Following the branch to another signpost
+- **WHEN** the rider follows the course to a signpost of the next knot that is not on the main course
+- **THEN** the app does not say they ride the wrong way
+
+#### Scenario: Before the first knot
+- **WHEN** the first knot is still the next knot
+- **THEN** the app does not say they ride the wrong way
+
+#### Scenario: Without geometry
+- **WHEN** the network's courses are not installed
+- **THEN** the app does not say they ride the wrong way
