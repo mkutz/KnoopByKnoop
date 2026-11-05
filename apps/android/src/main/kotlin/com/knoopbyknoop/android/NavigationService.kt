@@ -343,6 +343,11 @@ class NavigationService : Service() {
             } catch (exception: Exception) {
               Log.w(LOG_TAG, "no guided way", exception)
               null
+            } catch (error: OutOfMemoryError) {
+              // A long way in a dense area can take a lot, see `path-routing` "No way found".
+              router.forgetSquares()
+              Log.w(LOG_TAG, "no guided way: out of memory", error)
+              null
             }
           val runtime = Runtime.getRuntime()
           Log.i(

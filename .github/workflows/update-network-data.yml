@@ -49,12 +49,26 @@ jobs:
           $RUNNER_TEMP/belgium.osm.pbf
           $RUNNER_TEMP/nordrhein-westfalen.osm.pbf"
 
+      # Holds many millions of nodes in memory, more than a JVM gets by default on a runner. A
+      # failure fails the job like any other, and the last publication stays as it is.
+      - name: Build path data
+        env:
+          JAVA_OPTS: -Xmx8g
+        run: |
+          ./gradlew :pipeline:installDist
+          pipeline/build/install/pipeline/bin/pipeline paths \
+            "$GITHUB_WORKSPACE/network-data/cycling.paths" \
+            "$RUNNER_TEMP/netherlands.osm.pbf" \
+            "$RUNNER_TEMP/belgium.osm.pbf" \
+            "$RUNNER_TEMP/nordrhein-westfalen.osm.pbf"
+
       - uses: actions/upload-artifact@v7
         with:
           name: network-data
           path: |
             network-data/*.graph
             network-data/*.geometry
+            network-data/*.paths
           if-no-files-found: error
 
   # Runs only when the build succeeded, so a failed run keeps the last publication.
@@ -90,6 +104,7 @@ jobs:
           }
           check cycling.graph 5000000
           check cycling.geometry 10000000
+          check cycling.paths 150000000
 
       - name: Write index
         run: ./gradlew :pipeline:run --args="index $GITHUB_WORKSPACE/network-data"

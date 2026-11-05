@@ -8,7 +8,9 @@ import com.knoopbyknoop.core.NetworkIndex
 import com.knoopbyknoop.core.NetworkIndexEntry
 import com.knoopbyknoop.core.OpeningHours
 import com.knoopbyknoop.core.PathFile
+import com.knoopbyknoop.core.PathIndexEntry
 import com.knoopbyknoop.core.sha256Hex
+import java.io.RandomAccessFile
 import java.nio.file.Path
 import java.time.Instant
 import java.time.LocalDate
@@ -206,10 +208,33 @@ fun index(directory: Path) {
       formatVersion = GraphFile.FORMAT_VERSION,
       generatedAt = Instant.now().truncatedTo(ChronoUnit.SECONDS).toString(),
       files = files,
+      paths = pathsEntry(directory.resolve(PATHS_FILE)),
     )
   directory.resolve("index.json").writeText(index.toJson())
-  println("index.json: ${files.size} files")
+  println("index.json: ${files.size} files${if (index.paths != null) " and path data" else ""}")
 }
+
+/** The index's entry for the path file at [file], if there is one, without reading all of it. */
+private fun pathsEntry(file: Path): PathIndexEntry? {
+  if (!file.exists()) return null
+  return RandomAccessFile(file.toFile(), "r").use { access ->
+    val info = PathFile.directoryInfo { offset, size ->
+      access.seek(offset)
+      ByteArray(size).also(access::readFully)
+    }
+    PathIndexEntry(
+      file.name,
+      access.length(),
+      info.dataDate,
+      info.formatVersion,
+      info.offset,
+      info.size,
+      info.sha256,
+    )
+  }
+}
+
+const val PATHS_FILE = "cycling.paths"
 
 fun graphFileName(network: IndexedNetworkType) = "${network.name.lowercase()}.graph"
 

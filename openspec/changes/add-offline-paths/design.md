@@ -101,6 +101,8 @@ The core gets a `PathRouter` over parsed squares, loaded when the search reaches
 ### Memory on a long ride
 Loaded squares stayed for good at first. Measured on a Pixel 7 along 254 and 264 km routes, the router kept 124 to 152 MB at the end, with a heap limit of 268 MB of which the app uses about 100 MB. So a search starts by forgetting all squares when more than 24 are loaded, and reads again what it needs. Dropping them one by one would save a few reads but needs untangling the ways of a square from its neighbors', for one slower search now and then.
 
+A search can still peak higher, 151 MB for a 28.7 km way in that measurement, so Android catches running out of memory during a search. iOS has no such error to catch: it ends an app over its limit, so the iPhone's measurement in task 2.3 has to show there's room.
+
 ### Target and fallback in `Navigation`
 `Navigation.wayToRoute` from `improve-off-route` already decides where the line ends. The guided way is a separate value next to it, so a failed route or missing data simply leaves today's behavior. A way that targets the course ends on the nearest path node within 30 m of the course ahead, which is also what brings the rider back on route.
 

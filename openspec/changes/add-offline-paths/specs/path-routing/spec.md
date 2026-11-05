@@ -105,3 +105,7 @@ When the installed squares don't connect two places, the router SHALL report tha
 #### Scenario: Squares missing in between
 - **WHEN** the squares between the rider and the target aren't installed
 - **THEN** no way is found
+
+#### Scenario: Not enough memory
+- **WHEN** a search runs out of memory on Android
+- **THEN** no way is found, the loaded squares are freed, and the app keeps running with the straight line

@@ -93,6 +93,15 @@ private constructor(
 
   private class Entry(val offset: Long, val size: Int, val rawSize: Int, val sha256: String)
 
+  /** What the index says about a path file's directory, see `network-data`. */
+  class DirectoryInfo(
+    val formatVersion: Int,
+    val dataDate: String,
+    val offset: Long,
+    val size: Int,
+    val sha256: String,
+  )
+
   /** A square as it is in the file. */
   class EncodedSquare(val square: PathSquare, val bytes: ByteArray, val rawSize: Int)
 
@@ -190,18 +199,7 @@ private constructor(
      *   `network-data` "Versioned path format"
      */
     fun open(read: (offset: Long, size: Int) -> ByteArray): PathFile {
-      val header = read(0, HEADER_SIZE)
-      if (header.size < HEADER_SIZE || !header.copyOf(MAGIC.size).contentEquals(MAGIC)) {
-        throw GraphFormatException("Not a path file")
-      }
-      val version = header[MAGIC.size].toInt() and 0xFF
-      if (version != FORMAT_VERSION) {
-        throw UnsupportedFormatVersionException("Path file format $version is not supported")
-      }
-      var directorySize = 0
-      for (shift in 0..3) {
-        directorySize = (directorySize shl 8) or (header[MAGIC.size + 1 + shift].toInt() and 0xFF)
-      }
+      val directorySize = directorySize(read)
       val reader = ByteReader(read(HEADER_SIZE.toLong(), directorySize))
       val dataDate = reader.string()
       val attribution = reader.string()
@@ -212,6 +210,35 @@ private constructor(
         directory[square] = Entry(reader.varint(), reader.count(), reader.count(), reader.string())
       }
       return PathFile(dataDate, attribution, directory, HEADER_SIZE.toLong() + directorySize, read)
+    }
+
+    /** What the index needs to know of the path file read through [read]. */
+    fun directoryInfo(read: (offset: Long, size: Int) -> ByteArray): DirectoryInfo {
+      val size = directorySize(read)
+      val bytes = read(HEADER_SIZE.toLong(), size)
+      return DirectoryInfo(
+        FORMAT_VERSION,
+        ByteReader(bytes).string(),
+        HEADER_SIZE.toLong(),
+        size,
+        sha256Hex(bytes),
+      )
+    }
+
+    private fun directorySize(read: (offset: Long, size: Int) -> ByteArray): Int {
+      val header = read(0, HEADER_SIZE)
+      if (header.size < HEADER_SIZE || !header.copyOf(MAGIC.size).contentEquals(MAGIC)) {
+        throw GraphFormatException("Not a path file")
+      }
+      val version = header[MAGIC.size].toInt() and 0xFF
+      if (version != FORMAT_VERSION) {
+        throw UnsupportedFormatVersionException("Path file format $version is not supported")
+      }
+      var size = 0
+      for (shift in 0..3) {
+        size = (size shl 8) or (header[MAGIC.size + 1 + shift].toInt() and 0xFF)
+      }
+      return size
     }
 
     private fun scaled(degrees: Double) = (degrees * COORDINATE_SCALE).roundToLong()

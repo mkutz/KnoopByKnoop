@@ -4,14 +4,14 @@
 
 - [x] 1.1 Core: `PathFile` format with the directory and per-square reader, and `expect fun inflate`. Tests: reading a written file; "Unsupported path format"; a square's checksum mismatch is rejected.
 - [x] 1.2 Pipeline: path extraction and writer with the cost table of the design. `PathExtractionTest` on small fixtures: "Ways across borders", "Roads that can't be ridden", shared nodes connect across squares.
-- [ ] 1.3 `index.json` gets the optional `paths` entry. `NetworkIndexTest`: "An earlier app reads the new index" against a copy of the current parser's rules, "An index without path data".
+- [x] 1.3 `index.json` gets the optional `paths` entry. `NetworkIndexTest`: "An earlier app reads the new index" against a copy of the current parser's rules, "An index without path data".
 - [x] 1.4 Build the real file for the whole area locally or in a workflow run without publishing, and report its size, the largest square and the time and memory used. Stop and ask the maintainer if it exceeds 150 MB or the runner's limits.
 - [ ] 1.5 `update-network-data.yml`: build, include `*.paths` in the artifact, check the 150 MB budget, publish. Verify with a manual run: "Failed path build" keeps the publication, "Path data size budget" fails on a lowered budget, and the current release apps still read the new index.
 
 ## 2. Router
 
-- [x] 2.1 Core: `PathRouter` with A* and a turning-back cost. `PathRouterTest` for each scenario of `path-routing`: "Without network access", "Cycle path beside a main road", "Main road with a cycle lane", "A much longer detour", "Poor surface", "Closed to bicycles", "Mandatory separate cycle path", "One-way street", "One-way street open to bicycles", "Ferry", "Turning back to change sides", "A stray piece of path", "Far from any path", "Squares missing in between", "A way ahead about as short as the way back", "The way back much shorter", "Standing still", "Ways all along a long route".
-- [ ] 2.2 Run the eight public trips of the design on the real file, with no requests to outside services, and report lengths against the design's table, plus whether Siegstraße still turns back.
+- [x] 2.1 Core: `PathRouter` with A* and a turning-back cost. `PathRouterTest` for each scenario of `path-routing`: "Without network access", "Cycle path beside a main road", "Main road with a cycle lane", "A much longer detour", "Poor surface", "Closed to bicycles", "Mandatory separate cycle path", "One-way street", "One-way street open to bicycles", "Ferry", "Turning back to change sides", "A stray piece of path", "Far from any path", "Squares missing in between", "Not enough memory" (on the emulator, forcing the error), "A way ahead about as short as the way back", "The way back much shorter", "Standing still", "Ways all along a long route".
+- [x] 2.2 Run the eight public trips of the design on the real file, with no requests to outside services, and report lengths against the design's table, plus whether Siegstraße still turns back.
 - [ ] 2.3 Measure on the maintainer's Pixel and iPhone with a temporary build: a 12 km way, with squares loaded from storage: with the screen on at most 500 ms, with the screen off at most 1.5 s for the first search and 500 ms after that, and at most 50 MB still in use after collecting (changed with the maintainer on 2026-11-05, as the first search runs off the main thread and once per ride, and most of the peak is garbage). On a release build, after compression. **Stop and go back to the maintainer if this fails.**
 
 ## 3. Download

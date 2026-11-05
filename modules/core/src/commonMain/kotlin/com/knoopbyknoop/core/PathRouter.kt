@@ -491,7 +491,8 @@ class PathRouter(private val file: PathFile) {
   private fun estimate(from: GeoPoint, to: GeoPoint) =
     distanceMeters(from.latitude, from.longitude, to.latitude, to.longitude)
 
-  private fun forgetSquares() {
+  /** Frees the loaded squares; they are read again when needed. */
+  fun forgetSquares() {
     loaded.clear()
     segmentsBySquare.clear()
     stepsByNode.clear()

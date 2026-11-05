@@ -4,6 +4,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 class NetworkIndexTest {
 
@@ -31,6 +33,58 @@ class NetworkIndexTest {
     val json = NetworkIndex(1, "2026-10-26T03:00:00Z", listOf(entry)).toJson()
 
     assertTrue("\"network\": \"cycling\"" in json, json)
+  }
+
+  private val paths = PathIndexEntry("cycling.paths", 1000, "2026-11-02", 2, 9, 100, "abc")
+
+  /** The index as released apps knew it, with their parser's rules. */
+  @Serializable
+  private data class EarlierIndex(
+    val formatVersion: Int,
+    val generatedAt: String,
+    val files: List<NetworkIndexEntry>,
+  )
+
+  @Test
+  fun `An earlier app reads the new index`() {
+    val json = NetworkIndex(1, "2026-11-02T03:00:00Z", listOf(entry), paths).toJson()
+
+    val earlier = Json { ignoreUnknownKeys = true }.decodeFromString<EarlierIndex>(json)
+
+    assertEquals(listOf(entry), earlier.files)
+  }
+
+  @Test
+  fun `An index with path data reads back the same`() {
+    val index = NetworkIndex(1, "2026-11-02T03:00:00Z", listOf(entry), paths)
+
+    assertEquals(index, NetworkIndex.parse(index.toJson()))
+  }
+
+  @Test
+  fun `An index without path data has no entry for it`() {
+    val index = NetworkIndex(1, "2026-11-02T03:00:00Z", listOf(entry))
+
+    assertFalse("paths" in index.toJson())
+    assertEquals(null, NetworkIndex.parse(index.toJson()).paths)
+  }
+
+  @Test
+  fun `The directory info describes the file`() {
+    val square = PathSquare(800, 100)
+    val point = GeoPoint(50.0, 6.25)
+    val segment =
+      PathSegment(1, 2, PathKind.CYCLE, true, true, 1.0, null, listOf(point, GeoPoint(50.01, 6.26)))
+    val bytes = PathFile.toBytes(mapOf(square to listOf(segment)), "2026-11-02", "OSM")
+    val read = { offset: Long, size: Int ->
+      bytes.copyOfRange(offset.toInt(), offset.toInt() + size)
+    }
+
+    val info = PathFile.directoryInfo(read)
+
+    assertEquals(PathFile.FORMAT_VERSION, info.formatVersion)
+    assertEquals("2026-11-02", info.dataDate)
+    assertEquals(sha256Hex(read(info.offset, info.size)), info.sha256)
   }
 
   @Test

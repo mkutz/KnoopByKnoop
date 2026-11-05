@@ -6,15 +6,19 @@ import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkIndex
 import com.knoopbyknoop.core.NetworkType
 import com.knoopbyknoop.core.NewKnots
+import com.knoopbyknoop.core.PathFile
 import com.knoopbyknoop.core.PlanningSession
 import com.knoopbyknoop.core.RouteSummary
 import java.nio.file.Path
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.readBytes
 import kotlin.io.path.readText
+import kotlin.io.path.writeBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class MainTest {
@@ -56,6 +60,30 @@ class MainTest {
         ),
     )
     return listOf(north, south)
+  }
+
+  @Test
+  fun `the index lists the path file when there is one`() {
+    val output = directory.resolve("with-paths")
+    build("nl-be-nrw", output, neighboringExtracts())
+    index(output)
+    assertNull(NetworkIndex.parse(output.resolve("index.json").readText()).paths)
+
+    val extraction = PathExtraction()
+    extraction.acceptWay(OsmWay(1, listOf(1, 2), mapOf("highway" to "cycleway")))
+    extraction.acceptNode(OsmNode(1, 50.0, 7.0, mapOf()))
+    extraction.acceptNode(OsmNode(2, 50.001, 7.0, mapOf()))
+    output
+      .resolve(PATHS_FILE)
+      .writeBytes(PathFile.toBytes(extraction.squares(), "2026-10-26", ATTRIBUTION))
+    index(output)
+
+    val paths = assertNotNull(NetworkIndex.parse(output.resolve("index.json").readText()).paths)
+    assertEquals(PATHS_FILE, paths.file)
+    assertEquals("2026-10-26", paths.dataDate)
+    assertEquals(PathFile.FORMAT_VERSION, paths.formatVersion)
+    assertEquals(output.resolve(PATHS_FILE).toFile().length(), paths.sizeBytes)
+    assertEquals(4, NetworkIndex.parse(output.resolve("index.json").readText()).files.size)
   }
 
   @Test

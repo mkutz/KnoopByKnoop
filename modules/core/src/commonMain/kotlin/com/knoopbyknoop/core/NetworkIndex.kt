@@ -9,12 +9,15 @@ import kotlinx.serialization.json.Json
  * graphs bundled into an app (`bundled-index.json`).
  *
  * @property generatedAt when the pipeline wrote this index, as ISO instant
+ * @property paths the path file, in an entry of its own, see `network-data` "Path data in the
+ *   index": a new kind of file in [files] would make released apps refuse the whole index
  */
 @Serializable
 data class NetworkIndex(
   val formatVersion: Int,
   val generatedAt: String,
   val files: List<NetworkIndexEntry>,
+  val paths: PathIndexEntry? = null,
 ) {
 
   fun toJson(): String = json.encodeToString(this)
@@ -32,6 +35,7 @@ data class NetworkIndex(
       encodeDefaults = true
       prettyPrint = true
       ignoreUnknownKeys = true
+      explicitNulls = false
     }
 
     @Throws(IllegalArgumentException::class)
@@ -63,6 +67,26 @@ data class NetworkIndexEntry(
   fun matches(bytes: ByteArray): Boolean =
     bytes.size.toLong() == sizeBytes && sha256Hex(bytes) == sha256
 }
+
+/**
+ * The published path file, see [PathFile]. Its squares are checked by the checksums in its
+ * directory, so the directory's range and checksum are enough to trust all of it.
+ *
+ * @property file the file name, relative to the index
+ * @property directoryOffset where the directory starts in the file
+ * @property directorySize how long the directory is
+ * @property directorySha256 the lowercase hex SHA-256 of the directory
+ */
+@Serializable
+data class PathIndexEntry(
+  val file: String,
+  val sizeBytes: Long,
+  val dataDate: String,
+  val formatVersion: Int,
+  val directoryOffset: Long,
+  val directorySize: Int,
+  val directorySha256: String,
+)
 
 /** The kinds of files a network type is published as. */
 @Serializable
