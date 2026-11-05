@@ -137,7 +137,7 @@ final class NetworkDownloads: NSObject, URLSessionDownloadDelegate {
   private func save(_ downloads: [(task: Int, entry: NetworkIndexEntry)]) {
     let encoded = Dictionary(
       uniqueKeysWithValues: downloads.map { download in
-        (String(download.task), NetworkIndex(formatVersion: 1, generatedAt: "", files: [download.entry]).toJson())
+        (String(download.task), NetworkIndex(formatVersion: 1, generatedAt: "", files: [download.entry], paths: nil).toJson())
       })
     defaults.set(encoded, forKey: "network-downloads")
   }

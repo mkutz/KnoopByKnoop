@@ -136,7 +136,7 @@ final class NetworkStorage: @unchecked Sendable {
   }
 
   private func saveInstalled(_ entries: [NetworkIndexEntry]) throws {
-    let index = NetworkIndex(formatVersion: GraphFile.companion.FORMAT_VERSION, generatedAt: "", files: entries)
+    let index = NetworkIndex(formatVersion: GraphFile.companion.FORMAT_VERSION, generatedAt: "", files: entries, paths: nil)
     try Data(index.toJson().utf8).write(to: installedFile, options: .atomic)
   }
 }
