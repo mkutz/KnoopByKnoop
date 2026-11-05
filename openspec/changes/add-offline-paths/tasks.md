@@ -12,7 +12,16 @@
 
 - [x] 2.1 Core: `PathRouter` with A* and a turning-back cost. `PathRouterTest` for each scenario of `path-routing`: "Without network access", "Cycle path beside a main road", "Main road with a cycle lane", "A much longer detour", "Poor surface", "Closed to bicycles", "Mandatory separate cycle path", "One-way street", "One-way street open to bicycles", "Ferry", "Turning back to change sides", "A stray piece of path", "Far from any path", "Squares missing in between", "Not enough memory" (on the emulator, forcing the error), "A way ahead about as short as the way back", "The way back much shorter", "Standing still", "Ways all along a long route".
 - [x] 2.2 Run the eight public trips of the design on the real file, with no requests to outside services, and report lengths against the design's table, plus whether Siegstraße still turns back.
-- [ ] 2.3 Measure on the maintainer's Pixel and iPhone with a temporary build: a 12 km way, with squares loaded from storage: with the screen on at most 500 ms, with the screen off at most 1.5 s for the first search and 500 ms after that, and at most 50 MB still in use after collecting (changed with the maintainer on 2026-11-05, as the first search runs off the main thread and once per ride, and most of the peak is garbage). On a release build, after compression. **Stop and go back to the maintainer if this fails.**
+- [x] 2.3 Measure on the maintainer's Pixel and iPhone with a temporary build: a 12 km way, with squares loaded from storage: with the screen on at most 500 ms, with the screen off at most 1.5 s for the first search and 500 ms after that, and at most 50 MB still in use after collecting (changed with the maintainer on 2026-11-05, as the first search runs off the main thread and once per ride, and most of the peak is garbage). On a release build, after compression. **Stop and go back to the maintainer if this fails.**
+  - **Pixel 7** (Android 17), the 12.5 km way from 50.7936,7.2030 to 50.7316,7.0966, release settings:
+    - screen on: about 250 ms first, 90 ms after;
+    - screen off, approximated with foreground priority: about 1 s first, 400 ms after;
+    - 21 MB in use after collecting, 58 MB peak.
+  - **iPhone 18 Pro**, same way, Release build, 2026-11-05:
+    - screen on: 74–77 ms first, 23–25 ms after;
+    - app not active, the phone having locked itself: 75 ms first, 25 ms after;
+    - Kotlin heap 53 MB in use after collecting, app footprint 55 MB more after collecting, 80 MB at most.
+  - The iPhone misses the 50 MB target by 3 MB, probably because Kotlin objects take more space on iOS than on the JVM. The maintainer accepted it on 2026-11-05: it's small for the phone, and the long-ride limit on kept squares still bounds it.
 
 ## 3. Download
 

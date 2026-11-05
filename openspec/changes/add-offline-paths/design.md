@@ -116,7 +116,7 @@ Requests start 2 seconds after the route last changed. Long routes fetch more: m
 
 ## Risks / Trade-offs
 
-- **[Risk] The phone is too slow or runs out of memory.** Python on a Mac says little, and `hiking-oom` shows memory is a real limit. → Task group 2 ends with a measurement on real phones, before any app work: for a 12 km way, at most 500 ms with the screen on, 1.5 s for the first search with the screen off and 500 ms after that, and 50 MB still in use after collecting. If this fails, the change stops and goes back to the maintainer.
+- **[Risk] The phone is too slow or runs out of memory.** Python on a Mac says little, and `hiking-oom` shows memory is a real limit. → Task group 2 ends with a measurement on real phones, before any app work: for a 12 km way, at most 500 ms with the screen on, 1.5 s for the first search with the screen off and 500 ms after that, and 50 MB still in use after collecting. If this fails, the change stops and goes back to the maintainer. Measured on 2026-11-05, see task 2.3: both phones are well within the times. The iPhone keeps 53 MB, which the maintainer accepted.
 - **[Risk] The whole area is bigger or takes the runner too long.** The 90 MB is scaled by land area from Köln and leaves out roads that can't be ridden. → Task 1.4 builds the real file before anything depends on it, with a 150 MB budget.
 - **[Risk] Bad ways are drawn just as clearly as good ones.** → The manual checks need real rides, and the costs are in the pipeline, so they can change weekly without a release.
 - **[Risk] OSM's cycle infrastructure is only a tag on a road in places.** About 21 % of it in Köln. → Those ways are still routed; they only look like a road.
