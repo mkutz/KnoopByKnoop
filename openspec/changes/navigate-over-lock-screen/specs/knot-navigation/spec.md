@@ -11,7 +11,7 @@ On Android, while navigating with the app on top when the phone is locked, the a
 
 #### Scenario: Audio playing
 - **WHEN** the same rider has audio playing
-- **THEN** the navigation shows over the lock screen in the same way, with no media player above it
+- **THEN** the navigation shows over the lock screen in the same way, with no media player above it, and pulling the notifications down shows the player and the navigation's notification
 
 #### Scenario: The place search
 - **WHEN** the navigation shows over the lock screen
@@ -46,8 +46,12 @@ On Android, while navigating with the app on top when the phone is locked, the a
 - **THEN** within about a second the place search and the usual Stop button are back, and navigation continues
 
 #### Scenario: The notification
-- **WHEN** the rider flicks the screen up while the navigation shows over the lock screen
+- **WHEN** the rider pulls the notifications down while the navigation shows over the lock screen
 - **THEN** the notification shows with its Stop button, and stopping there works as before
+
+#### Scenario: The lock screen behind the navigation
+- **WHEN** the rider flicks the screen up while the navigation shows over the lock screen
+- **THEN** the lock screen behind it shows, with the notification
 
 #### Scenario: Another app on top
 - **WHEN** the rider locks the phone with another app on top while navigating

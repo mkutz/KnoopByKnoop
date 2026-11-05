@@ -12,7 +12,7 @@ So a look at a locked phone shows little, and the card can be second or third. T
 - **Only the navigation is reachable there.** The place search is hidden; the info sheet and the planning controls are already gone while navigating.
 - **Stopping needs a hold** over the lock screen, so a touch in a pocket doesn't end the ride. The button is outlined instead of solid and fills up while held, because it would otherwise look like the Stop button in the app, which works with a tap. The maintainer found a tap seemed to do nothing on the first try.
 - **The display times out as usual** over the lock screen, instead of staying on as in the app. This changes "Display on while navigating in the app".
-- **The Live Update stays** as it is: flicking the screen up shows it, and it is what the rider sees when another app was on top when locking.
+- **The Live Update stays** as it is: pulling the notifications down or flicking up to the lock screen behind shows it, and it is what the rider sees when another app was on top when locking.
 
 ## Capabilities
 
