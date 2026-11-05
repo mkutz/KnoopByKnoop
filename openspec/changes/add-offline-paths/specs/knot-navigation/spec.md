@@ -25,6 +25,14 @@ While navigating a cycling route and off route, with guidance away from the rout
 - **WHEN** no way can be found, the squares aren't installed, the target is more than 20 km away, or the route is a hiking route
 - **THEN** off route works without a guided way, with the straight line, distance and compass direction
 
+#### Scenario: Beyond the path data
+- **WHEN** the rider is off route where no squares are installed, e.g. after starting 6 km from the route
+- **THEN** off route works without a guided way, with the straight line, distance and compass direction
+
+#### Scenario: Reaching the path data
+- **WHEN** the same rider gets to where the squares are installed
+- **THEN** the app finds a way and guides the rider along it, within 10 seconds
+
 #### Scenario: Guidance turned off
 - **WHEN** guidance away from the route is off and the rider is off route
 - **THEN** off route works without a guided way, with the straight line, distance and compass direction

@@ -7,12 +7,12 @@ Away from the route, the app only gives a straight line, a distance and a compas
 ## What Changes
 
 - **Path data:** the weekly pipeline also publishes the rideable ways of the covered area in one file, split into small squares. It holds the cycling network's surroundings only.
-- **Download around the route:** the app fetches the squares around a complete cycling route, and around the rider when navigation starts, so guidance also works offline on the ride.
+- **Download around the route:** the app fetches the squares within 5 km of a complete cycling route while planning, and shows when they are in. So guidance works offline on the ride, and nothing is requested because of where the rider is.
 - **Routing on the phone:** a new router in the core finds a way that prefers cycle paths and quiet streets. It uses no network.
 - **Guided way:** while off route on a cycling route, the app guides the rider to where today's dashed line ends: the course ahead, or the first knot before the route has begun. The way is drawn on the map and recalculated when the rider leaves it.
 - **Turn notices:** the header, the lock screen, the notification and the voice give the next turn and the distance along the way, in place of the straight distance and compass direction.
-- **Fallback:** with the feature off, without path data, without a way, on hiking routes, or more than 20 km from the target, off route works as it does today.
-- **Optional, off by default:** which squares the app asks GitHub for reveals the rough area of a route and of the rider at navigation start. So the feature only runs after the user turns it on in the info sheet, where this is explained. While it's off, the app requests no path data and "Your location and your routes stay on your device" holds as today. The privacy policy and the store declarations describe what changes for those who turn it on.
+- **Fallback:** with the feature off, without path data, e.g. more than 5 km from the route, without a way, on hiking routes, or more than 20 km from the target, off route works as it does today.
+- **Optional, off by default:** which squares the app asks GitHub for reveals the rough area of a planned route, but never where the rider is. So the feature only runs after the user turns it on in the info sheet, where this is explained. While it's off, the app requests no path data and "Your location and your routes stay on your device" holds as today. The privacy policy and the store declarations describe what changes for those who turn it on.
 
 ## Out of Scope
 

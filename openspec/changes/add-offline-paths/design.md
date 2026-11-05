@@ -102,15 +102,20 @@ The core gets a `PathRouter` over parsed squares, loaded when the search reaches
 `Navigation.wayToRoute` from `improve-off-route` already decides where the line ends. The guided way is a separate value next to it, so a failed route or missing data simply leaves today's behavior. A way that targets the course ends on the nearest path node within 30 m of the course ahead, which is also what brings the rider back on route.
 
 ### Fetching
+Squares are only requested for a planned route, and never because of the rider's position. The maintainer's decision: going more than 2 km off route needn't be supported, starting more than 5 km from the route is unlikely, and the straight line suffices for both. In return, no position reaches GitHub, and the downloading has no part in the ride.
+
+- **Alternative: also fetching around the rider at navigation start and near the edge of the squares,** as first planned. It would guide riders who start far away, but reveal their rough position, and it needs network access on the ride.
+- **Alternative: adding the rider's position while planning.** It wouldn't reliably be where they start, and it would bring the position back.
+
 Requests start 2 seconds after the route last changed. Long routes fetch more: the size grows with length, roughly 1 MB per 15 km around Bonn. It may be more in denser cities, and it isn't measured elsewhere.
 
 ## Risks / Trade-offs
 
-- **[Risk] The phone is too slow or runs out of memory.** Python on a Mac says little, and `hiking-oom` shows memory is a real limit. → Task group 2 ends with a measurement on real phones, before any app work: at most 500 ms and 50 MB extra for a 12 km way. If this fails, the change stops and goes back to the maintainer.
+- **[Risk] The phone is too slow or runs out of memory.** Python on a Mac says little, and `hiking-oom` shows memory is a real limit. → Task group 2 ends with a measurement on real phones, before any app work: for a 12 km way, at most 500 ms with the screen on, 1.5 s for the first search with the screen off and 500 ms after that, and 50 MB still in use after collecting. If this fails, the change stops and goes back to the maintainer.
 - **[Risk] The whole area is bigger or takes the runner too long.** The 90 MB is scaled by land area from Köln and leaves out roads that can't be ridden. → Task 1.4 builds the real file before anything depends on it, with a 150 MB budget.
 - **[Risk] Bad ways are drawn just as clearly as good ones.** → The manual checks need real rides, and the costs are in the pipeline, so they can change weekly without a release.
 - **[Risk] OSM's cycle infrastructure is only a tag on a road in places.** About 21 % of it in Köln. → Those ways are still routed; they only look like a road.
-- **[Trade-off] GitHub can see the rough area for those who turn the feature on.** Squares are requested around a route and the rider. → Off by default, and explained at the switch and in the privacy policy. The only way to avoid it would be downloading everything.
+- **[Trade-off] GitHub can see the rough area for those who turn the feature on.** Squares are requested around a planned route. → Off by default, and explained at the switch and in the privacy policy. The only way to avoid it would be downloading everything.
 - **[Trade-off] Few riders may find a switch in the info sheet.** → Accepted for now. A hint can be added later without changing the data or the router.
 - **[Risk] Turn notices come late at 3 s or 10 m between fixes.** → The notice comes at 100 m, about 20 s ahead at riding speed, so this should leave margin. To be checked on the ride.
 - **[Risk] Network changes while the squares are a week old.** → Accepted. It's the same delay as the network data.

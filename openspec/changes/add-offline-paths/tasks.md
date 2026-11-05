@@ -12,18 +12,18 @@
 
 - [x] 2.1 Core: `PathRouter` with A* and a turning-back cost. `PathRouterTest` for each scenario of `path-routing`: "Without network access", "Cycle path beside a main road", "Main road with a cycle lane", "A much longer detour", "Poor surface", "Closed to bicycles", "Mandatory separate cycle path", "One-way street", "One-way street open to bicycles", "Ferry", "Turning back to change sides", "A stray piece of path", "Far from any path", "Squares missing in between", "A way ahead about as short as the way back", "The way back much shorter", "Standing still".
 - [ ] 2.2 Run the eight public trips of the design on the real file, with no requests to outside services, and report lengths against the design's table, plus whether Siegstraße still turns back.
-- [ ] 2.3 Measure on the maintainer's Pixel and iPhone with a temporary build: a 12 km way at most 500 ms and at most 50 MB extra memory, with squares loaded from storage. **Stop and go back to the maintainer if this fails.**
+- [ ] 2.3 Measure on the maintainer's Pixel and iPhone with a temporary build: a 12 km way, with squares loaded from storage: with the screen on at most 500 ms, with the screen off at most 1.5 s for the first search and 500 ms after that, and at most 50 MB still in use after collecting (changed with the maintainer on 2026-11-05, as the first search runs off the main thread and once per ride, and most of the peak is garbage). On a release build, after compression. **Stop and go back to the maintainer if this fails.**
 
 ## 3. Download
 
-- [ ] 3.1 Core: which squares a route, the rider and the straight line need, only while the setting is on, and the store's limit. Tests: "Off by default", "Turning it on with a route", "Turning it off", "Route planned at home", "Changing the route", "Starting away from the route", "Leaving the downloaded area", "A hiking route", "Newer path data published", "Storage limit".
+- [ ] 3.1 Core: which squares a route needs, never depending on the rider, only while the setting is on, and the store's limit. Tests: "Off by default", "Turning it on with a route", "Turning it off", "Route planned at home", "Changing the route", "Starting away from the route", "Far off route", "Starting before the download is done", "Still downloading", "Ready", "Not available", "A hiking route", "Newer path data published", "Storage limit".
 - [ ] 3.2 Android: range requests, store and verification, on the emulator with the real file. Tests or checks: "Without network access", "Corrupted square", "File replaced during a download".
 - [ ] 3.3 iOS: the same; the project builds, and a simulator run downloads the squares for a route.
-- [ ] 3.4 Info sheet on both: the switch and its explanation in all app languages, stored with the other settings. Checks: "Reading the explanation", "Kept across starts", "Opening the info sheet with path data", and on the emulator that a fresh install and a cycling route cause no request for the path file while the switch is off.
+- [ ] 3.4 Info sheet on both: the switch and its explanation in all app languages, stored with the other settings. The status in the panel on both, in all app languages. Checks: "Reading the explanation", "Kept across starts", "Status with a screen reader", "Opening the info sheet with path data", and on the emulator that a fresh install and a cycling route cause no request for the path file while the switch is off.
 
 ## 4. Guidance in the core
 
-- [ ] 4.1 `Navigation` holds the guided way and its target. `NavigationTest`: "Starting away from the route", "Wrong turn", "Without courses", "Path data arrives on the way", "No way, no path data, far away or hiking", "Guidance turned off", "Back on route with a guided way", "Skipping ahead on the guided way".
+- [ ] 4.1 `Navigation` holds the guided way and its target. `NavigationTest`: "Starting away from the route", "Wrong turn", "Without courses", "Path data arrives on the way", "Beyond the path data", "Reaching the path data", "No way, no path data, far away or hiking", "Guidance turned off", "Back on route with a guided way", "Skipping ahead on the guided way".
 - [ ] 4.2 Leaving the way. Tests: "Missing a turn", "A single inaccurate fix", "No new way", "Riding away from the way", at most once in 10 seconds.
 - [ ] 4.3 Turn notices and texts in all app languages. Tests: "A turn ahead", "Turn close to the start of the way", "Two turns together", "Straight on", "A bend without a choice", "A bend with a choice", "Crossing with an offset", "Way behind the rider", "Still riding away", "Screen off" (no change in `precision`), "No guidance notices on a guided way".
 - [ ] 4.4 What the header and outside-the-app show. Tests: "In the header", "On the lock screen", "Distance to the course", "Distances ahead on a guided way", "Header with a screen reader", and the existing scenarios of "Off route", "Direction to the route" and "Direction outside the app" still pass without a guided way.
@@ -38,7 +38,7 @@
 
 ## 7. Wrap-up
 
-- [ ] 7.1 `PRIVACY.md`: only with the switch on, GitHub also receives the rough area of routes and of the rider at navigation start; the summary keeps its promise for the app as installed. List what the Play data safety form and the App Store labels need, for the maintainer to change. Verify by reading the result against "Turning on guidance away from the route".
+- [ ] 7.1 `PRIVACY.md`: only with the switch on, GitHub also receives the rough area of planned routes, and never where the rider is; the summary keeps its promise for the app as installed. List what the Play data safety form and the App Store labels need, for the maintainer to change. Verify by reading the result against "Turning on guidance away from the route".
 - [ ] 7.2 `manual-checks.md` with the scenarios and the maintainer's steps, at least: a real ride from home to the first knot, with the phone locked; a wrong turn on purpose; flight mode with the squares in; battery on the ride, against "Battery use while navigating".
 - [ ] 7.3 `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; a CHANGELOG entry under Unreleased.
 

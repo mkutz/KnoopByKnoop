@@ -3,7 +3,7 @@
 ## ADDED Requirements
 
 ### Requirement: Turning on guidance away from the route
-Guidance away from the route SHALL be off until the user turns it on with a switch in the info sheet. The switch SHALL explain that the app then requests path data from GitHub by area, so GitHub can see the rough area of a route and of the rider at navigation start. While it's off, the app SHALL NOT request any path data.
+Guidance away from the route SHALL be off until the user turns it on with a switch in the info sheet. The switch SHALL explain that the app then requests path data from GitHub by area, so GitHub can see the rough area of a planned route, and never where the rider is. While it's off, the app SHALL NOT request any path data.
 
 #### Scenario: Off by default
 - **WHEN** the user installs or updates the app and hasn't turned the switch on
@@ -26,7 +26,7 @@ Guidance away from the route SHALL be off until the user turns it on with a swit
 - **THEN** it's still on
 
 ### Requirement: Path data around the route
-While guidance away from the route is turned on and a cycling route is complete, the app SHALL download the squares of path data within 5 km of its course without the user doing anything else. When navigation starts, it SHALL also download those within 5 km of the rider and of the straight line to the target, up to 20 km from the target.
+While guidance away from the route is turned on and a cycling route is complete, the app SHALL download the squares of path data within 5 km of its course without the user doing anything else. The squares requested SHALL depend only on the route, and never on the rider's position.
 
 #### Scenario: Route planned at home
 - **WHEN** guidance away from the route is on, and the user completes a cycling route with network access and stops changing it for a moment
@@ -37,12 +37,16 @@ While guidance away from the route is turned on and a cycling route is complete,
 - **THEN** squares are only requested after the route has stopped changing, and squares already installed are not requested again
 
 #### Scenario: Starting away from the route
-- **WHEN** the rider starts navigating 6 km from the first knot with network access
-- **THEN** the squares around the rider and on the way to the first knot are downloaded too
+- **WHEN** the rider starts navigating 6 km from the route, with network access
+- **THEN** no squares are requested around the rider or on the way to the route
 
-#### Scenario: Leaving the downloaded area
-- **WHEN** the rider is off route with network access and gets within 2 km of the edge of the downloaded squares
-- **THEN** the squares ahead of them are downloaded
+#### Scenario: Far off route
+- **WHEN** the rider is off route with network access and gets near the edge of the downloaded squares
+- **THEN** no more squares are requested
+
+#### Scenario: Starting before the download is done
+- **WHEN** the rider starts navigating while squares of the route are still missing, with network access
+- **THEN** the missing squares of the route are downloaded, and no others
 
 #### Scenario: A hiking route
 - **WHEN** the user completes a hiking route
@@ -51,6 +55,25 @@ While guidance away from the route is turned on and a cycling route is complete,
 #### Scenario: Without network access
 - **WHEN** the squares around a route can't be downloaded
 - **THEN** planning and navigating work as before, and the download is tried again when network access is back
+
+### Requirement: Path data ready for the ride
+While planning a complete cycling route with guidance away from the route turned on, the panel SHALL show whether the path data for it is installed, so the rider knows before leaving. With the switch off, or on a hiking route, it SHALL show nothing about path data.
+
+#### Scenario: Still downloading
+- **WHEN** squares of the route are still being downloaded
+- **THEN** the panel says that ways for this route are loading
+
+#### Scenario: Ready
+- **WHEN** all squares of the route are installed
+- **THEN** the panel says that ways for this route are loaded
+
+#### Scenario: Not available
+- **WHEN** squares of the route are missing and can't be downloaded
+- **THEN** the panel says that ways for this route couldn't be loaded, and planning and navigating work as before
+
+#### Scenario: Status with a screen reader
+- **WHEN** a screen reader reaches the panel
+- **THEN** it announces the same status
 
 ### Requirement: Verified squares
 A downloaded square SHALL only be used if its checksum matches the published file's list of squares. A failed square SHALL NOT affect the squares already installed.
