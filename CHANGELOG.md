@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Off route on a cycling route, the app can guide you back along suitable paths, also without a connection: a switch in the info sheet, off until you turn it on, downloads the ways around your planned route. GitHub can then see the rough area of the route, but never where you are
 - Android: locking the phone while navigating with the app open keeps the navigation over the lock screen; stopping there takes holding the button, which fills up as you hold
 - Android: the display no longer stays on after navigation ended, when you had left the app and come back during the ride
 - iPhone: the Dynamic Island shows "At 16 follow 17" and the off-route header in full, and on the lock screen the distance and the bar use the whole width

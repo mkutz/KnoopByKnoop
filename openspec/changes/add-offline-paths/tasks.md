@@ -38,9 +38,9 @@
 
 ## 7. Wrap-up
 
-- [ ] 7.1 `PRIVACY.md`: only with the switch on, GitHub also receives the rough area of planned routes, and never where the rider is; the summary keeps its promise for the app as installed. List what the Play data safety form and the App Store labels need, for the maintainer to change. Verify by reading the result against "Turning on guidance away from the route".
-- [ ] 7.2 `manual-checks.md` with the scenarios and the maintainer's steps, at least: a real ride from home to the first knot, with the phone locked; a wrong turn on purpose; flight mode with the squares in; battery on the ride, against "Battery use while navigating".
-- [ ] 7.3 `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; a CHANGELOG entry under Unreleased.
+- [x] 7.1 `PRIVACY.md`: only with the switch on, GitHub also receives the rough area of planned routes, and never where the rider is; the summary keeps its promise for the app as installed. List what the Play data safety form and the App Store labels need, for the maintainer to change. Verify by reading the result against "Turning on guidance away from the route".
+- [x] 7.2 `manual-checks.md` with the scenarios and the maintainer's steps, at least: a real ride from home to the first knot, with the phone locked; a wrong turn on purpose; flight mode with the squares in; battery on the ride, against "Battery use while navigating".
+- [x] 7.3 `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; a CHANGELOG entry under Unreleased.
 
 ## Workflow follow-up
 
