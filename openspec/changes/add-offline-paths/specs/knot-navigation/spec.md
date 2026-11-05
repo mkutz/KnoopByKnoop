@@ -80,7 +80,7 @@ On a guided way, the app SHALL say each turn once, about 100 m before it, e.g. "
 - **THEN** the app gives one notice, using the overall direction of the two
 
 #### Scenario: Straight on
-- **WHEN** the way continues straight on over a junction
+- **WHEN** the way continues straight on over a junction, staying on the same street
 - **THEN** the app says nothing there
 
 #### Scenario: A bend without a choice
@@ -106,6 +106,37 @@ On a guided way, the app SHALL say each turn once, about 100 m before it, e.g. "
 #### Scenario: Screen off
 - **WHEN** the rider reaches a turn notice with the screen off
 - **THEN** it is spoken, without more location fixes than off route uses without a guided way
+
+### Requirement: Switching between street and path on the guided way
+Where the guided way changes at a junction from a street or road to a cycle path or another path, or back to a street, the notice SHALL name the way to switch to, also where the way otherwise goes straight on or bends and would need no notice. A switch that adds up to straight on SHALL be said without a direction, and a switch with a turn with the turn. A change between a cycle path and another path is no switch.
+
+#### Scenario: Cycle path beside the street
+- **WHEN** the rider rides on a street, and at a roundabout the way leaves it for the cycle path beside the street ahead, which adds up to straight on
+- **THEN** the app says "In 100 m, switch to the cycle path", not "go straight on"
+
+#### Scenario: Turning onto a cycle path
+- **WHEN** the way turns right from a street onto a cycle path
+- **THEN** the app says "In 100 m, turn right, onto the cycle path"
+
+#### Scenario: Back to the street
+- **WHEN** the way leaves a cycle path for the street beside it
+- **THEN** the app says "In 100 m, switch to the street"
+
+#### Scenario: Onto a path
+- **WHEN** the way leaves a street for a footway open to bicycles
+- **THEN** the app says "In 100 m, switch to the path"
+
+#### Scenario: From one path to another
+- **WHEN** the way goes from a cycle path straight on onto a footway open to bicycles
+- **THEN** the app says nothing there
+
+#### Scenario: Crossing a street on a path
+- **WHEN** the way follows a cycle path, runs 20 m along a street to cross it, and continues on a cycle path
+- **THEN** the app says no switch there
+
+#### Scenario: Switch in the header
+- **WHEN** a switch to the cycle path is the next notice
+- **THEN** the header shows "To the cycle path in 100 m"
 
 ### Requirement: Guided way in the header and outside the app
 On a guided way, the header, the Android notification and the iOS Live Activity SHALL show the next turn with its distance, and the distance left along the way, in place of the straight distance. The header SHALL also show the street name of the turn when known.

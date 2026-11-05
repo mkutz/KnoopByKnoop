@@ -92,8 +92,8 @@ private constructor(
       notice =
         Notice(
           NoticeKind.TURN,
-          turnNotice(turn.direction, meters, language),
-          spokenTurnNotice(turn.direction, meters, speechLanguage),
+          turnNotice(turn, meters, language),
+          spokenTurnNotice(turn, meters, speechLanguage),
         )
       newAnnounced = index + 1
     }
@@ -115,7 +115,11 @@ private constructor(
     } else {
       val distance =
         MapFeatures.formatDistance(rounded(turn.atMeters - place + awayMeters), language)
-      GuidedWayView(texts.turnIn(texts.turnName(turn.direction), distance), turn.name, remaining)
+      val name =
+        if (turn.switchTo != null && turn.direction == TurnDirection.STRAIGHT) {
+          texts.switchName(turn.switchTo)
+        } else texts.turnName(turn.direction)
+      GuidedWayView(texts.turnIn(name, distance), turn.name, remaining)
     }
   }
 
@@ -169,21 +173,22 @@ private constructor(
     return bestPlace to bestDistance
   }
 
-  private fun turnNotice(direction: TurnDirection, meters: Double, language: Language): String {
-    val texts = language.texts
-    return if (meters <= NOW_METERS) texts.turnNow(direction)
-    else texts.turnAhead(direction, MapFeatures.formatDistance(rounded(meters), language))
-  }
+  private fun turnNotice(turn: PathTurn, meters: Double, language: Language): String =
+    notice(turn, meters, language.texts, MapFeatures.formatDistance(rounded(meters), language))
 
   /** As [turnNotice], with the distance in words, as the voice would read `m` as a letter. */
-  private fun spokenTurnNotice(
-    direction: TurnDirection,
-    meters: Double,
-    language: Language,
-  ): String {
-    val texts = language.texts
-    return if (meters <= NOW_METERS) texts.turnNow(direction)
-    else texts.turnAhead(direction, texts.spokenDistanceAhead(rounded(meters)))
+  private fun spokenTurnNotice(turn: PathTurn, meters: Double, language: Language): String =
+    notice(turn, meters, language.texts, language.texts.spokenDistanceAhead(rounded(meters)))
+
+  private fun notice(turn: PathTurn, meters: Double, texts: Texts, distance: String): String {
+    val now = meters <= NOW_METERS
+    val switchTo = turn.switchTo
+    if (switchTo != null && turn.direction == TurnDirection.STRAIGHT) {
+      return if (now) texts.switchNow(switchTo) else texts.switchAhead(switchTo, distance)
+    }
+    val notice =
+      if (now) texts.turnNow(turn.direction) else texts.turnAhead(turn.direction, distance)
+    return if (switchTo != null) texts.onto(notice, switchTo) else notice
   }
 
   private fun rounded(meters: Double): Int =

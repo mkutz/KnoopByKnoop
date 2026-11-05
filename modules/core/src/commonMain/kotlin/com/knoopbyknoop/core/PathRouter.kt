@@ -24,8 +24,36 @@ enum class TurnDirection {
  *
  * @property atMeters where it is, along the way
  * @property name the way it turns into, if known
+ * @property switchTo the kind of way it switches to, see `knot-navigation` "Switching between
+ *   street and path on the guided way"; [direction] is [TurnDirection.STRAIGHT] for a switch
+ *   without a turn
  */
-data class PathTurn(val atMeters: Double, val direction: TurnDirection, val name: String?)
+data class PathTurn(
+  val atMeters: Double,
+  val direction: TurnDirection,
+  val name: String?,
+  val switchTo: PathSwitch? = null,
+)
+
+/** The kind of way a [PathTurn] switches to, between streets and paths. */
+enum class PathSwitch {
+  STREET,
+  CYCLE_PATH,
+  PATH;
+
+  companion object {
+    private fun isStreet(kind: PathKind) =
+      kind == PathKind.MAJOR || kind == PathKind.MAIN || kind == PathKind.STREET
+
+    /** The switch from a way of kind [from] to one of kind [to], if it is one. */
+    fun of(from: PathKind, to: PathKind): PathSwitch? =
+      when {
+        isStreet(from) && !isStreet(to) -> if (to == PathKind.CYCLE) CYCLE_PATH else PATH
+        !isStreet(from) && isStreet(to) -> STREET
+        else -> null
+      }
+  }
+}
 
 /**
  * A way found by [PathRouter].
@@ -216,6 +244,8 @@ class PathRouter(private val file: PathSquareSource) {
             piece.step.segment.name,
             exitsAt(piece.fromNode ?: 0L, previous.step),
             isPlainBend(points, piece.fromNode ?: 0L, previous.step, piece.step),
+            previous.step.segment.kind,
+            piece.step.segment.kind,
           )
         )
       }
@@ -292,6 +322,8 @@ class PathRouter(private val file: PathSquareSource) {
     val name: String?,
     val exits: Int,
     val plainBend: Boolean,
+    val fromKind: PathKind,
+    val toKind: PathKind,
   )
 
   /** The ways on at a junction other than back along [arriving], for telling turns from bends. */
@@ -339,9 +371,15 @@ class PathRouter(private val file: PathSquareSource) {
         (index..last).count {
           abs(angle(decisions[it].atMeters, decisions[it].atMeters)) >= STRAIGHT_DEGREES
         }
-      val direction =
+      val switchTo = PathSwitch.of(decisions[index].fromKind, decisions[last].toKind)
+      val turn =
         if (index == last && decisions[index].plainBend) null else directionOf(angle, realTurns)
-      if (direction != null) turns.add(PathTurn(firstMeters, direction, decisions[last].name))
+      // A switch is said even where the way goes on without a turn, see "Switching between street
+      // and path on the guided way".
+      val direction = turn ?: if (switchTo != null) TurnDirection.STRAIGHT else null
+      if (direction != null) {
+        turns.add(PathTurn(firstMeters, direction, decisions[last].name, switchTo))
+      }
       index = last + 1
     }
     return turns

@@ -309,6 +309,75 @@ class PathRouterTest {
     assertEquals(TurnDirection.STRAIGHT, way.turns.single().direction)
   }
 
+  /** A street to the east, and at 500 m a way of [kind] beside it, 5 m to the right. */
+  private fun besideTheStreet(kind: PathKind, first: PathKind = PathKind.STREET) =
+    routerOf(
+      segment(1, 2, start, at(500.0, 0.0), kind = first),
+      segment(2, 3, at(500.0, 0.0), at(1000.0, 0.0)),
+      segment(2, 4, at(500.0, 0.0), at(540.0, -5.0), at(1000.0, -5.0), kind = kind, cost = 1.0),
+    )
+
+  @Test
+  fun `Leaving the street for the cycle path beside it is a switch without a turn`() {
+    val way = assertNotNull(besideTheStreet(PathKind.CYCLE).way(start, at(1000.0, -5.0)))
+    val turn = way.turns.single()
+    assertEquals(TurnDirection.STRAIGHT, turn.direction)
+    assertEquals(PathSwitch.CYCLE_PATH, turn.switchTo)
+    assertEquals(500.0, turn.atMeters, 15.0)
+  }
+
+  @Test
+  fun `Leaving the street for a path beside it is a switch to the path`() {
+    val way = assertNotNull(besideTheStreet(PathKind.PATH).way(start, at(1000.0, -5.0)))
+    assertEquals(PathSwitch.PATH, way.turns.single().switchTo)
+  }
+
+  @Test
+  fun `Leaving a cycle path for the street beside it is a switch to the street`() {
+    val router =
+      routerOf(
+        segment(1, 2, start, at(500.0, 0.0), kind = PathKind.CYCLE),
+        segment(2, 3, at(500.0, 0.0), at(1000.0, 0.0), kind = PathKind.CYCLE),
+        segment(2, 4, at(500.0, 0.0), at(540.0, -5.0), at(1000.0, -5.0)),
+      )
+    val turn = assertNotNull(router.way(start, at(1000.0, -5.0))).turns.single()
+    assertEquals(TurnDirection.STRAIGHT, turn.direction)
+    assertEquals(PathSwitch.STREET, turn.switchTo)
+  }
+
+  @Test
+  fun `From one path to another is no switch`() {
+    val router = besideTheStreet(PathKind.PATH, first = PathKind.CYCLE)
+    assertEquals(listOf(), assertNotNull(router.way(start, at(1000.0, -5.0))).turns)
+  }
+
+  @Test
+  fun `Turning right from a street onto a cycle path is a turn with the switch`() {
+    val router =
+      routerOf(
+        segment(1, 2, start, at(500.0, 0.0)),
+        segment(2, 3, at(500.0, 0.0), at(1000.0, 0.0)),
+        segment(2, 4, at(500.0, 0.0), at(500.0, -500.0), kind = PathKind.CYCLE),
+      )
+    val turn = assertNotNull(router.way(start, at(500.0, -500.0))).turns.single()
+    assertEquals(TurnDirection.RIGHT, turn.direction)
+    assertEquals(PathSwitch.CYCLE_PATH, turn.switchTo)
+  }
+
+  @Test
+  fun `Crossing a street on a cycle path is no switch`() {
+    val router =
+      routerOf(
+        segment(1, 2, start, at(500.0, 0.0), kind = PathKind.CYCLE),
+        segment(6, 2, at(500.0, 300.0), at(500.0, 0.0)),
+        segment(2, 3, at(500.0, 0.0), at(500.0, -20.0)),
+        segment(3, 7, at(500.0, -20.0), at(500.0, -300.0)),
+        segment(3, 4, at(500.0, -20.0), at(1000.0, -20.0), kind = PathKind.CYCLE),
+      )
+    val way = assertNotNull(router.way(start, at(1000.0, -20.0)))
+    assertTrue(way.turns.all { it.switchTo == null }, "Turns: ${way.turns}")
+  }
+
   @Test
   fun `On a long ride squares do not pile up and ways are still found`() {
     val step = 4500.0

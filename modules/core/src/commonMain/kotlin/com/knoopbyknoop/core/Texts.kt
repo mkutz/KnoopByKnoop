@@ -156,6 +156,18 @@ internal interface Texts {
   /** E.g. `Turn left now`. */
   fun turnNow(direction: TurnDirection): String
 
+  /** A switch without a turn on its own, e.g. `To the cycle path`. */
+  fun switchName(switchTo: PathSwitch): String
+
+  /** E.g. `In 100 m, switch to the cycle path`. */
+  fun switchAhead(switchTo: PathSwitch, distance: String): String
+
+  /** E.g. `Switch to the cycle path now`. */
+  fun switchNow(switchTo: PathSwitch): String
+
+  /** A turn [notice] with the switch, e.g. `In 100 m, turn right, onto the cycle path`. */
+  fun onto(notice: String, switchTo: PathSwitch): String
+
   // Progress, see `knot-navigation` "Progress strip" and "Coming knots".
 
   /** E.g. `0.8 km to 45 · end around 19:05`. */
@@ -324,6 +336,22 @@ internal object EnglishTexts : Texts {
       TurnDirection.BACK -> "Turn back now"
     }
 
+  private fun way(switchTo: PathSwitch) =
+    when (switchTo) {
+      PathSwitch.STREET -> "the street"
+      PathSwitch.CYCLE_PATH -> "the cycle path"
+      PathSwitch.PATH -> "the path"
+    }
+
+  override fun switchName(switchTo: PathSwitch) = "To ${way(switchTo)}"
+
+  override fun switchAhead(switchTo: PathSwitch, distance: String) =
+    "In $distance, switch to ${way(switchTo)}"
+
+  override fun switchNow(switchTo: PathSwitch) = "Switch to ${way(switchTo)} now"
+
+  override fun onto(notice: String, switchTo: PathSwitch) = "$notice, onto ${way(switchTo)}"
+
   override fun toKnot(distance: String, next: String, endArrival: String?) =
     if (endArrival != null) "$distance to $next · end around $endArrival" else "$distance to $next"
 
@@ -486,6 +514,22 @@ internal object GermanTexts : Texts {
       TurnDirection.SHARP_RIGHT -> "Jetzt scharf rechts"
       TurnDirection.BACK -> "Jetzt umkehren"
     }
+
+  private fun way(switchTo: PathSwitch) =
+    when (switchTo) {
+      PathSwitch.STREET -> "die Straße"
+      PathSwitch.CYCLE_PATH -> "den Radweg"
+      PathSwitch.PATH -> "den Weg"
+    }
+
+  override fun switchName(switchTo: PathSwitch) = "Auf ${way(switchTo)}"
+
+  override fun switchAhead(switchTo: PathSwitch, distance: String) =
+    "In $distance auf ${way(switchTo)} wechseln"
+
+  override fun switchNow(switchTo: PathSwitch) = "Jetzt auf ${way(switchTo)} wechseln"
+
+  override fun onto(notice: String, switchTo: PathSwitch) = "$notice, auf ${way(switchTo)}"
 
   override fun toKnot(distance: String, next: String, endArrival: String?) =
     if (endArrival != null) "$distance bis $next · Ende gegen $endArrival"
@@ -661,6 +705,22 @@ internal object DutchTexts : Texts {
       TurnDirection.BACK -> "Nu omkeren"
     }
 
+  private fun way(switchTo: PathSwitch) =
+    when (switchTo) {
+      PathSwitch.STREET -> "de weg"
+      PathSwitch.CYCLE_PATH -> "het fietspad"
+      PathSwitch.PATH -> "het pad"
+    }
+
+  override fun switchName(switchTo: PathSwitch) = "Naar ${way(switchTo)}"
+
+  override fun switchAhead(switchTo: PathSwitch, distance: String) =
+    "Over $distance naar ${way(switchTo)}"
+
+  override fun switchNow(switchTo: PathSwitch) = "Nu naar ${way(switchTo)}"
+
+  override fun onto(notice: String, switchTo: PathSwitch) = "$notice, naar ${way(switchTo)}"
+
   override fun toKnot(distance: String, next: String, endArrival: String?) =
     if (endArrival != null) "$distance naar $next · einde rond $endArrival"
     else "$distance naar $next"
@@ -826,6 +886,22 @@ internal object FrenchTexts : Texts {
       TurnDirection.SHARP_RIGHT -> "Fortement à droite maintenant"
       TurnDirection.BACK -> "Faites demi-tour maintenant"
     }
+
+  private fun way(switchTo: PathSwitch) =
+    when (switchTo) {
+      PathSwitch.STREET -> "la route"
+      PathSwitch.CYCLE_PATH -> "la piste cyclable"
+      PathSwitch.PATH -> "le chemin"
+    }
+
+  override fun switchName(switchTo: PathSwitch) = "Vers ${way(switchTo)}"
+
+  override fun switchAhead(switchTo: PathSwitch, distance: String) =
+    "Dans $distance, prenez ${way(switchTo)}"
+
+  override fun switchNow(switchTo: PathSwitch) = "Prenez ${way(switchTo)} maintenant"
+
+  override fun onto(notice: String, switchTo: PathSwitch) = "$notice, sur ${way(switchTo)}"
 
   override fun toKnot(distance: String, next: String, endArrival: String?) =
     if (endArrival != null) "$distance jusqu'à $next · arrivée vers $endArrival"

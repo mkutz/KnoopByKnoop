@@ -39,6 +39,69 @@ class GuidedWayTest {
 
   private fun GuidedWay.at(point: GeoPoint) = update(fix(point), Language.EN, Language.EN)
 
+  /** 2 km to the east, with [turn] at 1 km. */
+  private fun guided(turn: PathTurn): GuidedWay {
+    val points = listOf(at(0.0), at(1000.0), at(2000.0))
+    val meters = points.map {
+      distanceMeters(origin.latitude, origin.longitude, it.latitude, it.longitude)
+    }
+    return GuidedWay.of(PathWay(points, meters, listOf(turn)))
+  }
+
+  @Test
+  fun `A switch to the cycle path without a turn is said as a switch`() {
+    val way = guided(PathTurn(1000.0, TurnDirection.STRAIGHT, null, PathSwitch.CYCLE_PATH))
+    assertEquals("In 100 m, switch to the cycle path", way.at(at(905.0)).notice?.text)
+    assertEquals("Switch to the cycle path now", way.at(at(975.0)).notice?.text)
+  }
+
+  @Test
+  fun `A switch with a turn is said with the turn`() {
+    val way = guided(PathTurn(1000.0, TurnDirection.RIGHT, null, PathSwitch.CYCLE_PATH))
+    assertEquals("In 100 m, turn right, onto the cycle path", way.at(at(905.0)).notice?.text)
+  }
+
+  @Test
+  fun `Switches back to the street and onto a path are named`() {
+    assertEquals(
+      "In 100 m, switch to the street",
+      guided(PathTurn(1000.0, TurnDirection.STRAIGHT, null, PathSwitch.STREET))
+        .at(at(905.0))
+        .notice
+        ?.text,
+    )
+    assertEquals(
+      "In 100 m, switch to the path",
+      guided(PathTurn(1000.0, TurnDirection.STRAIGHT, null, PathSwitch.PATH))
+        .at(at(905.0))
+        .notice
+        ?.text,
+    )
+  }
+
+  @Test
+  fun `The header shows a switch without a turn`() {
+    val way = guided(PathTurn(1000.0, TurnDirection.STRAIGHT, null, PathSwitch.CYCLE_PATH))
+    assertEquals("To the cycle path in 100 m", way.at(at(905.0)).way.view(Language.EN).turn)
+  }
+
+  @Test
+  fun `A switch is said in every app language`() {
+    val turn = PathTurn(1000.0, TurnDirection.STRAIGHT, null, PathSwitch.CYCLE_PATH)
+    val spoken =
+      listOf(Language.DE, Language.NL, Language.FR).map {
+        guided(turn).update(fix(at(905.0)), it, it).notice?.text
+      }
+    assertEquals(
+      listOf(
+        "In 100 m auf den Radweg wechseln",
+        "Over 100 m naar het fietspad",
+        "Dans 100 m, prenez la piste cyclable",
+      ),
+      spoken,
+    )
+  }
+
   @Test
   fun `A turn ahead is said once about 100 m before it`() {
     val far = guided().at(at(500.0))

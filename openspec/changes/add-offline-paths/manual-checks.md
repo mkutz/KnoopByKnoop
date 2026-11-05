@@ -22,6 +22,7 @@ Checked 2026-11-05 with the published path file of 3 November, 102.7 MB, on a bu
 | Reaching the path data | ✅ | ✅ | Back near the route: a new way within 10 s |
 | Back on route with a guided way | ✅ | ✅ | "Zurück auf der Route", then "Nächster 28, dann 27" |
 | Screen off | ✅ | unit test | Precision only changes with the app being visible |
+| Switching between street and path | – | – | Added after the ride of 2026-11-05. For the maintainer: ride the roundabout by Grimmelsgasse in Siegburg again and listen for "auf den Radweg wechseln" |
 | Not enough memory | ✅ | – | Forcing the error: no crash, straight line. iOS has no such error to catch |
 
 Everything else in the delta specs is covered by `PathStoreTest`, `PathRouterTest`, `GuidedWayTest`, `WayGuideTest`, `NetworkIndexTest`, `PathExtractionTest` and `MainTest`.

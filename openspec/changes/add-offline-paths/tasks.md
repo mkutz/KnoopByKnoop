@@ -36,6 +36,10 @@
 - [x] 4.2 Leaving the way. Tests: "Missing a turn", "A single inaccurate fix", "No new way", "Riding away from the way", at most once in 10 seconds.
 - [x] 4.3 Turn notices and texts in all app languages. Tests: "A turn ahead", "Turn close to the start of the way", "Two turns together", "Straight on", "A bend without a choice", "A bend with a choice", "Crossing with an offset", "Way behind the rider", "Still riding away", "Screen off" (no change in `precision`), "No guidance notices on a guided way".
 - [x] 4.4 What the header and outside-the-app show. Tests: "In the header", "On the lock screen", "Distance to the course", "Distances ahead on a guided way", "Header with a screen reader", and the existing scenarios of "Off route", "Direction to the route" and "Direction outside the app" still pass without a guided way.
+- [x] 4.5 Switches between street and path, from the maintainer's ride on 2026-11-05: at the roundabout by Grimmelsgasse in Siegburg, the way left the street for the cycle path beside it, and the app said "straight on".
+  - `PathRouterTest`: "Cycle path beside the street", "Turning onto a cycle path", "Back to the street", "Onto a path", "From one path to another", "Crossing a street on a path".
+  - `GuidedWayTest`: the texts, "Switch in the header", and all app languages.
+  - Both apps build. The ride check is in `manual-checks.md`.
 
 ## 5. Android
 
