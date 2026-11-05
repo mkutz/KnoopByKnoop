@@ -128,7 +128,7 @@ On a guided way, the header, the Android notification and the iOS Live Activity 
 
 #### Scenario: Header with a screen reader
 - **WHEN** a screen reader reaches the header on a guided way
-- **THEN** it announces "Off route, next 02, left in 120 m, Weierstraße, 1.9 km"
+- **THEN** it announces "Off route, next 02, Left in 120 m, Weierstraße, 1.9 km"
 
 ## MODIFIED Requirements
 

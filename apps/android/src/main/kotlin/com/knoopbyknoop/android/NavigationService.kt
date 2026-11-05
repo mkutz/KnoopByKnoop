@@ -32,19 +32,17 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.knoopbyknoop.core.FerryArrivalState
 import com.knoopbyknoop.core.Fix
-import com.knoopbyknoop.core.GeoPoint
 import com.knoopbyknoop.core.GuidedWay
 import com.knoopbyknoop.core.KnotRole
 import com.knoopbyknoop.core.Language
 import com.knoopbyknoop.core.Navigation
 import com.knoopbyknoop.core.NavigationUpdate
-import com.knoopbyknoop.core.NetworkType
-import com.knoopbyknoop.core.Notice
-import com.knoopbyknoop.core.NoticeKind
 import com.knoopbyknoop.core.PathRouter
 import com.knoopbyknoop.core.Precision
 import com.knoopbyknoop.core.ProgressMarkKind
 import com.knoopbyknoop.core.RiddenTrack
+import com.knoopbyknoop.core.WayGuide
+import com.knoopbyknoop.core.WaySearch
 import java.time.Instant
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
@@ -158,9 +156,10 @@ class NavigationService : Service() {
   private var stopping = false
 
   /** The way back to the route, see `knot-navigation` "Guided way while off route". */
-  private var guidedWay: GuidedWay? = null
-  private var findingWay = false
-  private var lastWaySearchMillis = 0L
+  private val wayGuide = WayGuide()
+  private val guidedWay: GuidedWay?
+    get() = wayGuide.way
+
   private val pathStore by lazy { PathData.store(this) }
   private val pathRouter by lazy { PathRouter(pathStore) }
   private var pathRouterVersion = -1
@@ -280,12 +279,18 @@ class NavigationService : Service() {
   private fun apply(update: NavigationUpdate, fix: Fix) {
     val newNavigation = update.navigation
     navigation = newNavigation
-    val turnNotice = followGuidedWay(newNavigation, fix)
-    // On a guided way, its turn notices replace the distance and direction, see "Off route".
-    val notices =
-      update.notices.filter { guidedWay == null || it.kind != NoticeKind.GUIDANCE } +
-        listOfNotNull(turnNotice)
-    notices.forEach {
+    val step =
+      wayGuide.onFix(
+        newNavigation,
+        update.notices,
+        fix,
+        route?.graph?.network,
+        track.directionAt(fix),
+        SystemClock.elapsedRealtime(),
+        speaker.language,
+      )
+    step.search?.let(::findWay)
+    step.notices.forEach {
       Log.i(LOG_TAG, "notice: ${it.text}, spoken in ${speaker.language}: ${it.speech}")
       speaker.speak(it.speech)
     }
@@ -306,33 +311,8 @@ class NavigationService : Service() {
     Navigating.update(NavigationState(newNavigation, fix, track, track.directionAt(fix), guidedWay))
   }
 
-  /** Moves the rider along the guided way, and finds one where needed; returns what to say. */
-  private fun followGuidedWay(current: Navigation, fix: Fix): Notice? {
-    if (!current.offRoute || current.arrived) {
-      guidedWay = null
-      return null
-    }
-    val update = guidedWay?.update(fix, current.language, speaker.language)
-    update?.let { guidedWay = it.way }
-    if (update == null || update.left) findWay(current, fix)
-    return update?.notice
-  }
-
-  /** Finds a way off the main thread, at most every [WAY_SEARCH_MILLIS]. */
-  private fun findWay(current: Navigation, fix: Fix) {
-    val now = SystemClock.elapsedRealtime()
-    if (
-      findingWay || (lastWaySearchMillis != 0L && now - lastWaySearchMillis < WAY_SEARCH_MILLIS)
-    ) {
-      return
-    }
-    if (route?.graph?.network != NetworkType.CYCLING) return
-    val target = current.wayToRoute(fix) ?: return
-    if (fix.accuracyMeters > Navigation.PRECISE_ACCURACY_METERS) return
-    val from = GeoPoint(fix.latitude, fix.longitude)
-    val heading = track.directionAt(fix)
-    findingWay = true
-    lastWaySearchMillis = now
+  /** Looks for a way off the main thread, see [WayGuide]. */
+  private fun findWay(search: WaySearch) {
     scope.launch {
       val found =
         withContext(Dispatchers.Default) {
@@ -345,7 +325,7 @@ class NavigationService : Service() {
           val started = SystemClock.elapsedRealtime()
           val way =
             try {
-              router.way(from, target, heading)
+              router.way(search.from, search.to, search.heading)
             } catch (exception: Exception) {
               Log.w(LOG_TAG, "no guided way", exception)
               null
@@ -375,11 +355,9 @@ class NavigationService : Service() {
             }
           way
         }
-      findingWay = false
-      if (stopping) return@launch
-      val latest = navigation ?: return@launch
-      if (!latest.offRoute || latest.arrived) return@launch
-      guidedWay = found?.let { GuidedWay.of(it, guidedWay) }
+      val latest = navigation
+      wayGuide.found(found, latest.takeUnless { stopping })
+      if (stopping || latest == null || !latest.offRoute || latest.arrived) return@launch
       publish(latest, latest.lastFix)
       notifyOfChange(latest, latest.lastFix)
     }
@@ -499,8 +477,6 @@ class NavigationService : Service() {
     private const val LOG_TAG = "Navigation"
     private const val NOTIFICATION_ID = 1
 
-    /** See `knot-navigation` "Leaving the guided way". */
-    private const val WAY_SEARCH_MILLIS = 10_000L
     private const val ACTION_STOP = "com.knoopbyknoop.android.STOP_NAVIGATION"
 
     /** Starts navigating [route]; call while the app is visible. */

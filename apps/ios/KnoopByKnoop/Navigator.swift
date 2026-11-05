@@ -64,9 +64,8 @@ final class Navigator: NSObject, ObservableObject {
   /// Set after arriving: navigation ends once "You've arrived" was spoken.
   private var stopping = false
   /// The way back to the route, see `knot-navigation` "Guided way while off route".
-  private var guidedWay: GuidedWay?
-  private var findingWay = false
-  private var lastWaySearch: Date?
+  private let wayGuide = WayGuide()
+  private var guidedWay: GuidedWay? { wayGuide.way }
   /// Finds ways one at a time, off the main thread; only used on this queue.
   private static let pathQueue = DispatchQueue(label: "com.knoopbyknoop.paths", qos: .userInitiated)
   nonisolated(unsafe) private static let pathRouter = PathRouter(file: PathData.store)
@@ -152,8 +151,7 @@ final class Navigator: NSObject, ObservableObject {
     route = nil
     precision = nil
     stopping = false
-    guidedWay = nil
-    lastWaySearch = nil
+    wayGuide.reset()
     state = nil
     let ending = activity
     activity = nil
@@ -199,11 +197,16 @@ final class Navigator: NSObject, ObservableObject {
 
   private func apply(_ update: NavigationUpdate, fix: Fix) {
     let navigation = update.navigation
-    let turnNotice = followGuidedWay(navigation, fix: fix)
-    // On a guided way, its turn notices replace the distance and direction, see "Off route".
-    let notices =
-      update.notices.filter { guidedWay == nil || $0.kind != .guidance } + (turnNotice.map { [$0] } ?? [])
-    for notice in notices {
+    let step = wayGuide.onFix(
+      navigation: navigation,
+      notices: update.notices,
+      fix: fix,
+      network: route?.graph.network,
+      heading: track.directionAt(fix: fix),
+      nowMillis: Int64(Date().timeIntervalSince1970 * 1000),
+      speechLanguage: AppLanguage.speech)
+    if let search = step.search { findWay(search) }
+    for notice in step.notices {
       logger.notice("notice: \(notice.text, privacy: .public)")
       speak(notice.speech)
     }
@@ -233,30 +236,10 @@ final class Navigator: NSObject, ObservableObject {
       strip: navigation.progress(fix: fix, guidedWay: guidedWay).strip)
   }
 
-  /// Moves the rider along the guided way, and finds one where needed; returns what to say.
-  private func followGuidedWay(_ navigation: Navigation, fix: Fix) -> Notice? {
-    guard navigation.offRoute, !navigation.arrived else {
-      guidedWay = nil
-      return nil
-    }
-    let update = guidedWay?.update(fix: fix, language: navigation.language, speechLanguage: AppLanguage.speech)
-    if let update { guidedWay = update.way }
-    if update == nil || update?.left == true { findWay(navigation, fix: fix) }
-    return update?.notice
-  }
-
-  /// Finds a way off the main thread, at most every 10 seconds, see "Leaving the guided way".
-  private func findWay(_ navigation: Navigation, fix: Fix) {
-    if findingWay { return }
-    if let lastWaySearch, Date().timeIntervalSince(lastWaySearch) < 10 { return }
-    guard route?.graph.network == .cycling, fix.accuracyMeters <= Navigation.companion.PRECISE_ACCURACY_METERS,
-      let target = navigation.wayToRoute(fix: fix)
-    else { return }
-    findingWay = true
-    lastWaySearch = Date()
-    let from = GeoPoint(latitude: fix.latitude, longitude: fix.longitude)
-    let heading = track.directionAt(fix: fix)
+  /// Looks for a way off the main thread, see `WayGuide`.
+  private func findWay(_ search: WaySearch) {
     let logger = logger
+    nonisolated(unsafe) let search = search
     Self.pathQueue.async {
       // Squares may have arrived or gone, see `knot-navigation` "Path data arrives on the way".
       if Self.pathRouterVersion != PathData.store.version {
@@ -264,7 +247,7 @@ final class Navigator: NSObject, ObservableObject {
         Self.pathRouterVersion = PathData.store.version
       }
       let started = Date()
-      let way = Self.pathRouter.way(from: from, to: target, heading: heading)
+      let way = Self.pathRouter.way(from: search.from, to: search.to, heading: search.heading)
       let millis = Int(Date().timeIntervalSince(started) * 1000)
       logger.notice(
         "guided way: \(way.map { Int($0.lengthMeters) } ?? -1, privacy: .public) m, \(way?.turns.count ?? -1, privacy: .public) turns, \(millis, privacy: .public) ms, \(Self.pathRouter.visitedSteps, privacy: .public) steps, \(Self.pathRouter.loadedSquares, privacy: .public) squares")
@@ -283,11 +266,10 @@ final class Navigator: NSObject, ObservableObject {
   }
 
   private func foundWay(_ way: PathWay?) {
-    findingWay = false
+    wayGuide.found(found: way, navigation: stopping ? nil : state?.navigation)
     guard !stopping, let navigation = state?.navigation, let position = state?.position,
       navigation.offRoute, !navigation.arrived
     else { return }
-    guidedWay = way.map { GuidedWay.companion.of(way: $0, previous: guidedWay) }
     publish(navigation, fix: position)
     showActivity(navigation, fix: position)
   }

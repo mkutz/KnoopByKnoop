@@ -23,18 +23,18 @@
 
 ## 4. Guidance in the core
 
-- [ ] 4.1 `Navigation` holds the guided way and its target. `NavigationTest`: "Starting away from the route", "Wrong turn", "Without courses", "Path data arrives on the way", "Beyond the path data", "Reaching the path data", "No way, no path data, far away or hiking", "Guidance turned off", "Back on route with a guided way", "Skipping ahead on the guided way".
-- [ ] 4.2 Leaving the way. Tests: "Missing a turn", "A single inaccurate fix", "No new way", "Riding away from the way", at most once in 10 seconds.
-- [ ] 4.3 Turn notices and texts in all app languages. Tests: "A turn ahead", "Turn close to the start of the way", "Two turns together", "Straight on", "A bend without a choice", "A bend with a choice", "Crossing with an offset", "Way behind the rider", "Still riding away", "Screen off" (no change in `precision`), "No guidance notices on a guided way".
-- [ ] 4.4 What the header and outside-the-app show. Tests: "In the header", "On the lock screen", "Distance to the course", "Distances ahead on a guided way", "Header with a screen reader", and the existing scenarios of "Off route", "Direction to the route" and "Direction outside the app" still pass without a guided way.
+- [x] 4.1 `WayGuide` holds the guided way and decides when to look for one, next to `Navigation`, which stays as it is, as the design has it, and both apps use it. `WayGuideTest`: "Starting away from the route", "Wrong turn", "Without courses", "Path data arrives on the way", "Beyond the path data", "Reaching the path data", "No way, no path data, far away or hiking", "Guidance turned off", "Back on route with a guided way", "Skipping ahead on the guided way".
+- [x] 4.2 Leaving the way. Tests: "Missing a turn", "A single inaccurate fix", "No new way", "Riding away from the way", at most once in 10 seconds.
+- [x] 4.3 Turn notices and texts in all app languages. Tests: "A turn ahead", "Turn close to the start of the way", "Two turns together", "Straight on", "A bend without a choice", "A bend with a choice", "Crossing with an offset", "Way behind the rider", "Still riding away", "Screen off" (no change in `precision`), "No guidance notices on a guided way".
+- [x] 4.4 What the header and outside-the-app show. Tests: "In the header", "On the lock screen", "Distance to the course", "Distances ahead on a guided way", "Header with a screen reader", and the existing scenarios of "Off route", "Direction to the route" and "Direction outside the app" still pass without a guided way.
 
 ## 5. Android
 
-- [ ] 5.1 `NetworkMap`, the planner's header and `NavigationService`, off the main thread. A mocked ride on the emulator with screenshots: "Line along the guided way", "Back to the dashed line", the header, the notification, a spoken notice in the log, and that no location precision changes.
+- [x] 5.1 `NetworkMap`, the planner's header and `NavigationService`, off the main thread. A mocked ride on the emulator with screenshots: "Line along the guided way", "Back to the dashed line", the header, the notification, a spoken notice in the log, and that no location precision changes.
 
 ## 6. iOS
 
-- [ ] 6.1 `NetworkMapView`, the planner's header, `Navigator` and the Live Activity. The project builds, and a simulator ride shows the same; the lock screen goes to the maintainer's steps.
+- [x] 6.1 `NetworkMapView`, the planner's header, `Navigator` and the Live Activity. The project builds, and a simulator ride shows the same; the lock screen goes to the maintainer's steps.
 
 ## 7. Wrap-up
 
