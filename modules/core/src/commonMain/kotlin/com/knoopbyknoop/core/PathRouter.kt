@@ -48,7 +48,8 @@ class PathWay(
 
 /**
  * Finds ways for a bicycle from a [PathFile] on the device, see `path-routing`. Squares are loaded
- * as the search reaches them and stay loaded. Not safe for use from several threads at once.
+ * as the search reaches them and stay loaded until there are too many, see "Memory on a long ride".
+ * Not safe for use from several threads at once.
  */
 class PathRouter(private val file: PathFile) {
 
@@ -96,6 +97,7 @@ class PathRouter(private val file: PathFile) {
    * @param heading the riding direction, clockwise from north, if known
    */
   fun way(from: GeoPoint, to: GeoPoint, heading: Double? = null): PathWay? {
+    if (loaded.size > MAX_KEPT_SQUARES) forgetSquares()
     val starts = candidates(from, leaving = true)
     val targets = candidates(to, leaving = false)
     if (starts.isEmpty() || targets.isEmpty()) return null
@@ -489,6 +491,12 @@ class PathRouter(private val file: PathFile) {
   private fun estimate(from: GeoPoint, to: GeoPoint) =
     distanceMeters(from.latitude, from.longitude, to.latitude, to.longitude)
 
+  private fun forgetSquares() {
+    loaded.clear()
+    segmentsBySquare.clear()
+    stepsByNode.clear()
+  }
+
   private fun load(place: GeoPoint) = load(PathSquare.of(place.latitude, place.longitude))
 
   private fun load(square: PathSquare) {
@@ -607,6 +615,9 @@ class PathRouter(private val file: PathFile) {
     const val SHORT_START_METERS = 10.0
 
     const val MAX_VISITED_STEPS = 400_000
+
+    /** See `path-routing` "Memory on a long ride": about 50 MB in a region with many ways. */
+    const val MAX_KEPT_SQUARES = 24
     const val MARGIN_DEGREES = 0.09
     const val METERS_PER_DEGREE = 111_195.0
     const val STEPS_PER_NODE = 3

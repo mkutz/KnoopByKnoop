@@ -49,6 +49,19 @@ class PathSegment(
   }
 }
 
+/**
+ * [bytes] packed with zlib, for the path file's squares. Only the pipeline writes real files, but
+ * the core's tests write them on every platform.
+ */
+expect fun deflate(bytes: ByteArray): ByteArray
+
+/**
+ * What [deflate] packed, [size] bytes when unpacked.
+ *
+ * @throws GraphFormatException if it can't be unpacked to that size
+ */
+expect fun inflate(bytes: ByteArray, size: Int): ByteArray
+
 /** A square of [PathFile]: its position in steps of 1/[PathFile.SQUARES_PER_DEGREE]°. */
 data class PathSquare(val latitudeIndex: Int, val longitudeIndex: Int) {
 
@@ -78,7 +91,13 @@ private constructor(
   private val read: (offset: Long, size: Int) -> ByteArray,
 ) {
 
-  private class Entry(val offset: Long, val size: Int, val sha256: String)
+  private class Entry(val offset: Long, val size: Int, val rawSize: Int, val sha256: String)
+
+  /** A square as it is in the file. */
+  class EncodedSquare(val square: PathSquare, val bytes: ByteArray, val rawSize: Int)
+
+  /** What the directory holds about a square. */
+  class SquareInfo(val square: PathSquare, val size: Int, val rawSize: Int, val sha256: String)
 
   /** The segments of [square], none if it isn't in the file. */
   fun segments(square: PathSquare): List<PathSegment> {
@@ -86,7 +105,7 @@ private constructor(
     val bytes = read(dataOffset + entry.offset, entry.size)
     if (sha256Hex(bytes) != entry.sha256)
       throw GraphFormatException("Path square $square is broken")
-    return readSquare(bytes)
+    return readSquare(inflate(bytes, entry.rawSize))
   }
 
   companion object {
@@ -94,7 +113,7 @@ private constructor(
     /** A square is 1/16° wide and high, see the change's design. */
     const val SQUARES_PER_DEGREE = 16
 
-    const val FORMAT_VERSION = 1
+    const val FORMAT_VERSION = 2
 
     private val MAGIC = "KBKP".encodeToByteArray()
     private const val HEADER_SIZE = 9
@@ -103,40 +122,63 @@ private constructor(
     private const val FORWARD = 1
     private const val BACKWARD = 2
 
-    /** The file's bytes for [squares]. */
-    fun toBytes(
-      squares: Map<PathSquare, List<PathSegment>>,
-      dataDate: String,
-      attribution: String,
-    ): ByteArray {
-      val sorted =
-        squares.entries.sortedWith(compareBy({ it.key.latitudeIndex }, { it.key.longitudeIndex }))
-      val data = sorted.map { writeSquare(it.value) }
+    /** [segments] as [square]'s part of the file. */
+    fun encode(square: PathSquare, segments: List<PathSegment>): EncodedSquare {
+      val raw = writeSquare(segments)
+      return EncodedSquare(square, deflate(raw), raw.size)
+    }
+
+    /**
+     * What comes before the squares' bytes in the file, for squares described by their sizes and
+     * checksums in the order of their bytes.
+     */
+    fun header(squares: List<SquareInfo>, dataDate: String, attribution: String): ByteArray {
       val directory = ByteWriter()
       directory.string(dataDate)
       directory.string(attribution)
-      directory.varint(sorted.size.toLong())
+      directory.varint(squares.size.toLong())
       var offset = 0L
-      sorted.forEachIndexed { index, (square, _) ->
-        directory.varint(zigzag(square.latitudeIndex.toLong()))
-        directory.varint(zigzag(square.longitudeIndex.toLong()))
+      squares.forEach {
+        directory.varint(zigzag(it.square.latitudeIndex.toLong()))
+        directory.varint(zigzag(it.square.longitudeIndex.toLong()))
         directory.varint(offset)
-        directory.varint(data[index].size.toLong())
-        directory.string(sha256Hex(data[index]))
-        offset += data[index].size
+        directory.varint(it.size.toLong())
+        directory.varint(it.rawSize.toLong())
+        directory.string(it.sha256)
+        offset += it.size
       }
       val directoryBytes = directory.toByteArray()
-      val result = ByteArray(HEADER_SIZE + directoryBytes.size + offset.toInt())
+      val result = ByteArray(HEADER_SIZE + directoryBytes.size)
       MAGIC.copyInto(result)
       result[MAGIC.size] = FORMAT_VERSION.toByte()
       for (shift in 0..3) {
         result[MAGIC.size + 1 + shift] = (directoryBytes.size ushr (24 - 8 * shift)).toByte()
       }
       directoryBytes.copyInto(result, HEADER_SIZE)
-      var position = HEADER_SIZE + directoryBytes.size
-      data.forEach {
-        it.copyInto(result, position)
-        position += it.size
+      return result
+    }
+
+    /** The whole file's bytes for [squares], for files small enough to hold in memory. */
+    fun toBytes(
+      squares: Map<PathSquare, List<PathSegment>>,
+      dataDate: String,
+      attribution: String,
+    ): ByteArray {
+      val encoded =
+        squares.entries
+          .sortedWith(compareBy({ it.key.latitudeIndex }, { it.key.longitudeIndex }))
+          .map { encode(it.key, it.value) }
+      val header =
+        header(
+          encoded.map { SquareInfo(it.square, it.bytes.size, it.rawSize, sha256Hex(it.bytes)) },
+          dataDate,
+          attribution,
+        )
+      val result = header.copyOf(header.size + encoded.sumOf { it.bytes.size })
+      var position = header.size
+      encoded.forEach {
+        it.bytes.copyInto(result, position)
+        position += it.bytes.size
       }
       return result
     }
@@ -167,7 +209,7 @@ private constructor(
       repeat(reader.count()) {
         val square =
           PathSquare(unzigzag(reader.varint()).toInt(), unzigzag(reader.varint()).toInt())
-        directory[square] = Entry(reader.varint(), reader.count(), reader.string())
+        directory[square] = Entry(reader.varint(), reader.count(), reader.count(), reader.string())
       }
       return PathFile(dataDate, attribution, directory, HEADER_SIZE.toLong() + directorySize, read)
     }

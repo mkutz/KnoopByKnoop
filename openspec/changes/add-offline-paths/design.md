@@ -98,6 +98,9 @@ A cycle lane reduces a road's excess over 1.0 to a quarter. Track grades 3 to 5 
 ### A* over squares loaded on demand
 The core gets a `PathRouter` over parsed squares, loaded when the search reaches them and not at all outside the area between rider and target. It's only called off route, on a fix when there's no way yet, or when leaving the way, so it doesn't run on every fix. It never runs on the main thread.
 
+### Memory on a long ride
+Loaded squares stayed for good at first. Measured on a Pixel 7 along 254 and 264 km routes, the router kept 124 to 152 MB at the end, with a heap limit of 268 MB of which the app uses about 100 MB. So a search starts by forgetting all squares when more than 24 are loaded, and reads again what it needs. Dropping them one by one would save a few reads but needs untangling the ways of a square from its neighbors', for one slower search now and then.
+
 ### Target and fallback in `Navigation`
 `Navigation.wayToRoute` from `improve-off-route` already decides where the line ends. The guided way is a separate value next to it, so a failed route or missing data simply leaves today's behavior. A way that targets the course ends on the nearest path node within 30 m of the course ahead, which is also what brings the rider back on route.
 
@@ -107,7 +110,7 @@ Squares are only requested for a planned route, and never because of the rider's
 - **Alternative: also fetching around the rider at navigation start and near the edge of the squares,** as first planned. It would guide riders who start far away, but reveal their rough position, and it needs network access on the ride.
 - **Alternative: adding the rider's position while planning.** It wouldn't reliably be where they start, and it would bring the position back.
 
-Requests start 2 seconds after the route last changed. Long routes fetch more: the size grows with length, roughly 1 MB per 15 km around Bonn. It may be more in denser cities, and it isn't measured elsewhere.
+Requests start 2 seconds after the route last changed. Long routes fetch more: measured on the whole area's file, four real routes of 218 to 264 km between Bonn, Antwerp, Den Haag, Rotterdam, Groningen and Zwolle take 135 to 165 squares and 5.4 to 6.7 MB, about 1 MB per 40 km.
 
 ## Risks / Trade-offs
 

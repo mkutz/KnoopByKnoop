@@ -310,6 +310,62 @@ class PathRouterTest {
   }
 
   @Test
+  fun `On a long ride squares do not pile up and ways are still found`() {
+    val step = 4500.0
+    val chain =
+      (0 until 60).map { index ->
+        segment(index.toLong(), index + 1L, at(index * step, 0.0), at((index + 1) * step, 0.0))
+      }
+    val router = routerOf(*chain.toTypedArray())
+    var most = 0
+    for (index in 0 until 59) {
+      val way = router.way(at(index * step + 100, 0.0), at((index + 1) * step + 100, 0.0))
+      assertEquals(step, assertNotNull(way).lengthMeters, 50.0)
+      most = maxOf(most, router.loadedSquares)
+    }
+    assertTrue(most <= 30, "At most $most squares")
+    assertTrue(most >= 10, "Squares stay loaded between searches: at most $most")
+  }
+
+  @Test
+  fun `A written file reads back the same`() {
+    val square = PathSquare.of(start.latitude, start.longitude)
+    val written = segment(1, 2, start, at(500.0, 100.0), end, name = "Weierstraße", cost = 1.25)
+    val bytes = PathFile.toBytes(mapOf(square to listOf(written)), "2026-11-02", "OSM")
+    val file = PathFile.open { offset, size ->
+      bytes.copyOfRange(offset.toInt(), offset.toInt() + size)
+    }
+    assertEquals("2026-11-02", file.dataDate)
+    assertEquals("OSM", file.attribution)
+    val read = file.segments(square).single()
+    assertEquals(listOf(1L, 2L), listOf(read.fromId, read.toId))
+    assertEquals("Weierstraße", read.name)
+    assertEquals(1.25, read.costFactor)
+    assertEquals(3, read.points.size)
+    assertEquals(at(500.0, 100.0).latitude, read.points[1].latitude, 0.00001)
+    assertEquals(listOf(), file.segments(PathSquare(0, 0)))
+  }
+
+  @Test
+  fun `Squares are packed in the file`() {
+    val square = PathSquare.of(start.latitude, start.longitude)
+    val many =
+      (0L until 200L).map { index ->
+        segment(index, index + 1, start, at(index * 10.0, 5.0), end, name = "Weierstraße")
+      }
+    val encoded = PathFile.encode(square, many)
+    assertTrue(encoded.bytes.size < encoded.rawSize / 2)
+    assertEquals(encoded.rawSize, inflate(encoded.bytes, encoded.rawSize).size)
+  }
+
+  @Test
+  fun `Packed bytes that do not unpack to their size are refused`() {
+    val packed = deflate(ByteArray(100) { 7 })
+    assertFailsWith<GraphFormatException> { inflate(packed, 50 + 100) }
+    assertFailsWith<GraphFormatException> { inflate(ByteArray(20) { 1 }, 100) }
+  }
+
+  @Test
   fun `A file in another format version is refused`() {
     val bytes = PathFile.toBytes(mapOf(), "2026-11-02", "OSM")
     bytes[4] = 99

@@ -15,10 +15,15 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import kotlin.io.path.Path
+import kotlin.io.path.absolute
 import kotlin.io.path.createDirectories
+import kotlin.io.path.createTempFile
+import kotlin.io.path.deleteIfExists
 import kotlin.io.path.exists
+import kotlin.io.path.inputStream
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
+import kotlin.io.path.outputStream
 import kotlin.io.path.readBytes
 import kotlin.io.path.writeBytes
 import kotlin.io.path.writeText
@@ -128,13 +133,39 @@ fun paths(output: Path, extracts: List<Path>) {
   val readers = extracts.map(::PbfExtract)
   val dataDates = readers.mapNotNull { it.forEachWay(extraction::acceptWay) }
   readers.forEach { it.forEachNode(extraction::acceptNode) }
-  val squares = extraction.squares()
   val dataDate = dataDates.minOrNull() ?: LocalDate.now(ZoneOffset.UTC)
-  output.writeBytes(PathFile.toBytes(squares, dataDate.toString(), ATTRIBUTION))
-  println(
-    "${output.name}: ${squares.size} squares, " +
-      "${squares.values.sumOf { it.size }} segments, ${output.toFile().length()} bytes"
-  )
+  // The squares go to a file first, as the directory before them needs their sizes.
+  val squareBytes = createTempFile(output.absolute().parent, output.name, ".squares")
+  try {
+    val infos = ArrayList<PathFile.SquareInfo>()
+    var segmentCount = 0L
+    squareBytes.outputStream().buffered().use { stream ->
+      extraction.forEachSquare { square, segments ->
+        val encoded = PathFile.encode(square, segments)
+        stream.write(encoded.bytes)
+        infos.add(
+          PathFile.SquareInfo(
+            square,
+            encoded.bytes.size,
+            encoded.rawSize,
+            sha256Hex(encoded.bytes),
+          )
+        )
+        segmentCount += segments.size
+      }
+    }
+    output.outputStream().buffered().use { stream ->
+      stream.write(PathFile.header(infos, dataDate.toString(), ATTRIBUTION))
+      squareBytes.inputStream().use { it.copyTo(stream) }
+    }
+    println(
+      "${output.name}: ${infos.size} squares, $segmentCount segments, " +
+        "${infos.sumOf { it.rawSize.toLong() }} bytes unpacked, " +
+        "${output.toFile().length()} bytes, largest ${infos.maxOfOrNull { it.size }}"
+    )
+  } finally {
+    squareBytes.deleteIfExists()
+  }
 }
 
 fun index(directory: Path) {

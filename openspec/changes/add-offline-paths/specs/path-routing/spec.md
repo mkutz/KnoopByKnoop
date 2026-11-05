@@ -77,6 +77,13 @@ When given the rider's riding direction, the router SHALL count starting against
 - **WHEN** the riding direction isn't known
 - **THEN** the cheapest way is found, and it isn't reported as starting against the riding direction
 
+### Requirement: Memory on a long ride
+The router SHALL only keep a limited amount of path data in memory between searches, however far the rider has come.
+
+#### Scenario: Ways all along a long route
+- **WHEN** the rider needs ways all along a route of 250 km
+- **THEN** the memory the router keeps stays about the same after the first few searches, and each way is still found
+
 ### Requirement: Connecting to the paths
 A way SHALL start and end on the nearest usable path within 200 m of the given place. A nearby path that isn't connected to the other place SHALL be skipped in favor of the next nearest.
 

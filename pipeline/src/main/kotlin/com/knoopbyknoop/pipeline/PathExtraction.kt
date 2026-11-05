@@ -1,6 +1,7 @@
 package com.knoopbyknoop.pipeline
 
 import com.knoopbyknoop.core.GeoPoint
+import com.knoopbyknoop.core.PathFile
 import com.knoopbyknoop.core.PathKind
 import com.knoopbyknoop.core.PathSegment
 import com.knoopbyknoop.core.PathSquare
@@ -156,7 +157,7 @@ internal data class PathAttributes(
 /**
  * Collects the ways around the networks: all ways first, then all nodes, as the extracts' order is.
  * Ways are cut at junctions into segments, each in the squares of both of its ends. Keeps nodes in
- * primitive arrays, as there are millions of them.
+ * primitive arrays, as there are millions of them, and makes segments one square at a time.
  */
 class PathExtraction {
 
@@ -164,6 +165,9 @@ class PathExtraction {
 
   private val ways = ArrayList<KeptWay>()
   private val seenWays = HashSet<Long>()
+
+  /** Ways with the same attributes share them, as there are millions of ways and few kinds. */
+  private val sharedAttributes = HashMap<PathAttributes, PathAttributes>()
   private var nodeIds = LongArray(0)
   private var latitudes = DoubleArray(0)
   private var longitudes = DoubleArray(0)
@@ -171,9 +175,12 @@ class PathExtraction {
   private var nodesPrepared = false
 
   fun acceptWay(way: OsmWay) {
-    if (way.nodeIds.size < 2 || !seenWays.add(way.id)) return
+    if (way.nodeIds.size < 2) return
     val attributes = PathAttributes.of(way.tags) ?: return
-    ways.add(KeptWay(attributes, way.nodeIds.toLongArray()))
+    if (!seenWays.add(way.id)) return
+    ways.add(
+      KeptWay(sharedAttributes.getOrPut(attributes) { attributes }, way.nodeIds.toLongArray())
+    )
   }
 
   fun acceptNode(node: OsmNode) {
@@ -211,20 +218,83 @@ class PathExtraction {
     }
   }
 
-  /** The segments of all squares. */
+  /** The segments of all squares in memory, for tests and small extracts. */
   fun squares(): Map<PathSquare, List<PathSegment>> {
-    if (!nodesPrepared) prepareNodes()
-    val squares = HashMap<PathSquare, MutableList<PathSegment>>()
-    ways.forEach { way -> segments(way).forEach { add(it, squares) } }
+    val squares = LinkedHashMap<PathSquare, List<PathSegment>>()
+    forEachSquare { square, segments -> squares[square] = segments }
     return squares
   }
 
-  private fun add(segment: PathSegment, squares: MutableMap<PathSquare, MutableList<PathSegment>>) {
-    val first = PathSquare.of(segment.points.first().latitude, segment.points.first().longitude)
-    val last = PathSquare.of(segment.points.last().latitude, segment.points.last().longitude)
-    squares.getOrPut(first) { mutableListOf() }.add(segment)
-    if (last != first) squares.getOrPut(last) { mutableListOf() }.add(segment)
+  /**
+   * Hands over the segments of each square, one at a time and sorted by square, so only one square
+   * is in memory: a whole region's segments would take many gigabytes.
+   */
+  fun forEachSquare(action: (PathSquare, List<PathSegment>) -> Unit) {
+    if (!nodesPrepared) prepareNodes()
+    val keys = squareKeys()
+    var position = 0
+    while (position < keys.size) {
+      val squareKey = keys[position] ushr WAY_BITS
+      val square = PathSquare(latitudeOf(squareKey), longitudeOf(squareKey))
+      val segments = ArrayList<PathSegment>()
+      while (position < keys.size && keys[position] ushr WAY_BITS == squareKey) {
+        val way = ways[(keys[position] and WAY_MASK).toInt()]
+        segments(way).filterTo(segments) { square in squaresOf(it) }
+        position++
+      }
+      action(square, segments)
+    }
   }
+
+  /** Per square and way with a segment ending in it, a number sorting by square and then way. */
+  private fun squareKeys(): LongArray {
+    var keys = LongArray(ways.size * 2)
+    var count = 0
+    ways.forEachIndexed { wayIndex, way ->
+      forEachSegmentEnd(way) { id ->
+        val position = nodeIds.binarySearch(id)
+        val square = PathSquare.of(latitudes[position], longitudes[position])
+        if (count == keys.size) keys = keys.copyOf(keys.size * 2)
+        keys[count++] = keyOf(square, wayIndex)
+      }
+    }
+    keys = keys.copyOf(count)
+    keys.sort()
+    var unique = 0
+    for (index in keys.indices) {
+      if (index == 0 || keys[index] != keys[index - 1]) keys[unique++] = keys[index]
+    }
+    return keys.copyOf(unique)
+  }
+
+  /** Hands over the nodes where [segments] of [way] start or end, without making the segments. */
+  private fun forEachSegmentEnd(way: KeptWay, action: (Long) -> Unit) {
+    var previous = -1L
+    var started = false
+    for (id in way.nodeIds) {
+      val index = nodeIds.binarySearch(id)
+      if (latitudes[index].isNaN()) {
+        started = false
+        continue
+      }
+      if (!started) {
+        started = true
+        previous = id
+        continue
+      }
+      if (uses[index] >= 2) {
+        action(previous)
+        action(id)
+        previous = id
+      }
+    }
+  }
+
+  private fun squaresOf(segment: PathSegment): Set<PathSquare> =
+    setOf(
+      PathSquare.of(segment.points.first().latitude, segment.points.first().longitude),
+      PathSquare.of(segment.points.last().latitude, segment.points.last().longitude),
+    )
 
   private fun segments(way: KeptWay): List<PathSegment> {
     val result = ArrayList<PathSegment>()
@@ -274,5 +344,22 @@ class PathExtraction {
   private companion object {
 
     const val PATH_TOLERANCE_METERS = 5.0
+
+    /** Keys are 13 bits of a square's longitude, 13 of its latitude, and the way's index. */
+    const val WAY_BITS = 37
+    const val WAY_MASK = (1L shl WAY_BITS) - 1
+    const val LATITUDE_OFFSET = 90 * PathFile.SQUARES_PER_DEGREE
+    const val LONGITUDE_OFFSET = 180 * PathFile.SQUARES_PER_DEGREE
+    const val INDEX_BITS = 13
+    const val INDEX_MASK = (1L shl INDEX_BITS) - 1
+
+    fun keyOf(square: PathSquare, wayIndex: Int): Long =
+      ((square.latitudeIndex + LATITUDE_OFFSET).toLong() shl (WAY_BITS + INDEX_BITS)) or
+        ((square.longitudeIndex + LONGITUDE_OFFSET).toLong() shl WAY_BITS) or
+        wayIndex.toLong()
+
+    fun latitudeOf(squareKey: Long): Int = (squareKey ushr INDEX_BITS).toInt() - LATITUDE_OFFSET
+
+    fun longitudeOf(squareKey: Long): Int = (squareKey and INDEX_MASK).toInt() - LONGITUDE_OFFSET
   }
 }
