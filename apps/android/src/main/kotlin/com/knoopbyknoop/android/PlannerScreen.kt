@@ -93,6 +93,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.knoopbyknoop.core.Guidance
+import com.knoopbyknoop.core.GuidedWayView
 import com.knoopbyknoop.core.IndexedNetworkType
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.KnotRole
@@ -339,6 +340,7 @@ private fun MapArea(
         state.navigation?.let { navigating ->
           navigating.position?.let { navigating.navigation?.wayToRoute(it) }
         },
+      guidedWay = state.navigation?.guidedWay?.pointsAhead(),
       myPosition = state.myPosition.takeUnless { state.navigating },
       locating = state.locating,
       onLocate = locate.takeUnless { state.navigating },
@@ -459,7 +461,9 @@ private fun WaypointSheet(
     val complete = state.description as? RouteDescription.Complete
     // While navigating, where the rider is on the route, see `knot-navigation` "Progress strip".
     val progress =
-      navigation?.position?.let { position -> navigation.navigation?.progress(position) }
+      navigation?.position?.let { position ->
+        navigation.navigation?.progress(position, navigation.guidedWay)
+      }
     if (navigation != null)
       // Measured for the sheet's smallest height while navigating, see `PlannerScreen`.
       Column(modifier = Modifier.onSizeChanged { onNavigationHeight(it.height) }) {
@@ -759,7 +763,13 @@ private fun NavigationHeader(
           )
         display.offRoute -> {
           val guidance = navigation.position?.let { current.guidance(it) }
-          OffRouteHeader(display.next, nextRole, guidance, navigation.direction)
+          OffRouteHeader(
+            display.next,
+            nextRole,
+            guidance,
+            navigation.direction,
+            guidedWay = navigation.guidedWay?.view(current.language),
+          )
           return@FlowRow
         }
         // On the route the wrong way, so the distance along it follows, see `knot-navigation`
@@ -1075,11 +1085,14 @@ private fun OffRouteHeader(
   guidance: Guidance?,
   ridingDirection: Double?,
   warning: String = stringResource(R.string.off_route_next),
+  guidedWay: GuidedWayView? = null,
 ) {
   Column(
     modifier =
       Modifier.clearAndSetSemantics {
-        contentDescription = listOfNotNull("$warning $next", guidance?.text).joinToString(", ")
+        contentDescription =
+          listOfNotNull("$warning $next", guidedWay?.description ?: guidance?.text)
+            .joinToString(", ")
       }
   ) {
     // The badge follows the text in the next line where both do not fit in one, as the German
@@ -1095,25 +1108,43 @@ private fun OffRouteHeader(
       )
       KnotBadge(next, role, scale = 1.3f)
     }
-    guidance?.let {
-      Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        modifier = Modifier.padding(top = 2.dp),
-      ) {
-        Text(it.distance, style = MaterialTheme.typography.titleMedium)
-        Icon(
-          painterResource(R.drawable.ic_action_navigate),
-          contentDescription = null,
-          tint = MaterialTheme.colorScheme.error,
-          modifier = Modifier.size(22.dp).rotate((it.bearing - (ridingDirection ?: 0.0)).toFloat()),
-        )
+    guidedWay?.let {
+      Text(it.turn, style = MaterialTheme.typography.titleMedium)
+      it.street?.let { street ->
         Text(
-          it.direction,
-          style = MaterialTheme.typography.titleMedium,
+          street,
+          style = MaterialTheme.typography.bodyMedium,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
       }
+      Text(
+        it.remaining,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
     }
+    guidance
+      ?.takeIf { guidedWay == null }
+      ?.let {
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(6.dp),
+          modifier = Modifier.padding(top = 2.dp),
+        ) {
+          Text(it.distance, style = MaterialTheme.typography.titleMedium)
+          Icon(
+            painterResource(R.drawable.ic_action_navigate),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.error,
+            modifier =
+              Modifier.size(22.dp).rotate((it.bearing - (ridingDirection ?: 0.0)).toFloat()),
+          )
+          Text(
+            it.direction,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+        }
+      }
   }
 }

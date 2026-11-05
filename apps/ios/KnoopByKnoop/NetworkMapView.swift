@@ -89,6 +89,8 @@ struct NetworkMapView: UIViewRepresentable {
   /// Off route, where the line back to the route ends, see `knot-navigation` "Way to the route on
   /// the map"; `nil` on the route.
   var wayToRoute: GeoPoint? = nil
+  /// Off route, the way along paths, see `knot-navigation` "Guided way while off route".
+  var guidedWay: [GeoPoint]? = nil
   /// The track ridden while navigating, see `knot-navigation` "Ridden track".
   var track: RiddenTrack? = nil
   /// The riding direction, see `knot-navigation` "Riding direction on the map".
@@ -266,7 +268,7 @@ struct NetworkMapView: UIViewRepresentable {
     context.coordinator.onMove = onMove
     context.coordinator.showMarker(marker, on: mapView)
     context.coordinator.showNavigation(
-      position: position, nextKnot: nextKnot, wayToRoute: wayToRoute, direction: direction, on: mapView)
+      position: position, nextKnot: nextKnot, wayToRoute: wayToRoute, guidedWay: guidedWay, direction: direction, on: mapView)
     context.coordinator.showTrack(track)
     context.coordinator.showLegAhead(navigating: navigating, courseAhead: courseAhead)
     context.coordinator.showKnot(shownKnot, on: mapView)
@@ -392,6 +394,7 @@ struct NetworkMapView: UIViewRepresentable {
     private var position: Fix?
     private var nextKnot: Knot?
     private var wayToRoute: GeoPoint?
+    private var guidedWay: [GeoPoint]?
 
     /// Whether the map moves to the rider with the next position, e.g. after the app was opened.
     var findRider = false
@@ -480,15 +483,16 @@ struct NetworkMapView: UIViewRepresentable {
     /// Shows the rider and the next knot; when navigation begins or the app is opened while
     /// navigating, the map moves to the rider, see `knot-navigation` "Looking at the map".
     func showNavigation(
-      position newPosition: Fix?, nextKnot newNextKnot: Knot?, wayToRoute newWayToRoute: GeoPoint?, direction newDirection: Double?,
+      position newPosition: Fix?, nextKnot newNextKnot: Knot?, wayToRoute newWayToRoute: GeoPoint?, guidedWay newGuidedWay: [GeoPoint]?, direction newDirection: Double?,
       on mapView: MLNMapView
     ) {
-      guard newPosition !== position || newNextKnot !== nextKnot || newWayToRoute != wayToRoute else { return }
+      guard newPosition !== position || newNextKnot !== nextKnot || newWayToRoute != wayToRoute || newGuidedWay != guidedWay else { return }
       let begins = newPosition != nil && (position == nil || findRider)
       if begins { findRider = false }
       position = newPosition
       nextKnot = newNextKnot
       wayToRoute = newWayToRoute
+      guidedWay = newGuidedWay
       direction = newDirection
       if begins { following = true }
       if newPosition == nil { following = false }
@@ -542,7 +546,7 @@ struct NetworkMapView: UIViewRepresentable {
       // Off route, the straight way back to the route, see `knot-navigation` "Way to the route on
       // the map".
       var way: MLNShape? = nil
-      if let position, let wayToRoute {
+      if let position, let wayToRoute, guidedWay == nil {
         var coordinates = [
           CLLocationCoordinate2D(latitude: position.latitude, longitude: position.longitude),
           CLLocationCoordinate2D(latitude: wayToRoute.latitude, longitude: wayToRoute.longitude),
@@ -550,6 +554,12 @@ struct NetworkMapView: UIViewRepresentable {
         way = MLNPolylineFeature(coordinates: &coordinates, count: 2)
       }
       (style?.source(withIdentifier: "way-to-route") as? MLNShapeSource)?.shape = way
+      var guided: MLNShape? = nil
+      if let guidedWay, guidedWay.count >= 2 {
+        var coordinates = guidedWay.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+        guided = MLNPolylineFeature(coordinates: &coordinates, count: UInt(coordinates.count))
+      }
+      (style?.source(withIdentifier: "guided-way") as? MLNShapeSource)?.shape = guided
     }
 
     private func updateMarker() {
@@ -902,6 +912,14 @@ struct NetworkMapView: UIViewRepresentable {
       wayLayer.lineDashPattern = NSExpression(forConstantValue: [2, 2])
       wayLayer.lineCap = NSExpression(forConstantValue: "round")
       style.addLayer(wayLayer)
+      let guidedSource = MLNShapeSource(identifier: "guided-way", shape: nil)
+      style.addSource(guidedSource)
+      let guidedLayer = MLNLineStyleLayer(identifier: "guided-way", source: guidedSource)
+      guidedLayer.lineColor = NSExpression(forConstantValue: UIColor.systemRed)
+      guidedLayer.lineWidth = NSExpression(forConstantValue: 5)
+      guidedLayer.lineCap = NSExpression(forConstantValue: "round")
+      guidedLayer.lineJoin = NSExpression(forConstantValue: "round")
+      style.addLayer(guidedLayer)
       let nextKnotSource = MLNShapeSource(identifier: "next-knot", shape: nil)
       style.addSource(nextKnotSource)
       let nextKnotLayer = MLNCircleStyleLayer(identifier: "next-knot", source: nextKnotSource)

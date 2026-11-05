@@ -1,6 +1,7 @@
 package com.knoopbyknoop.android
 
 import com.knoopbyknoop.core.Fix
+import com.knoopbyknoop.core.GuidedWay
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.Navigation
 import com.knoopbyknoop.core.NetworkGeometry
@@ -23,6 +24,8 @@ data class NavigationState(
   val position: Fix?,
   val track: RiddenTrack = RiddenTrack(),
   val direction: Double? = null,
+  /** The way back to the route, see `knot-navigation` "Guided way while off route". */
+  val guidedWay: GuidedWay? = null,
 )
 
 /** A route to navigate: what [Navigation.start] needs. */

@@ -66,6 +66,24 @@ class GuidanceTest {
     return started.ride(fix(300.0), fix(1000.0, north = 2000.0))
   }
 
+  // Requirement: Guided way in the header and outside the app
+
+  @Test
+  fun `distances ahead count along the guided way and then the route`() {
+    val (navigation, _) = offRoute()
+    val rider = GeoPoint(latitude(100.0), longitude(300.0))
+    val onCourse = GeoPoint(latitude(0.0), longitude(400.0))
+    val meters =
+      distanceMeters(rider.latitude, rider.longitude, onCourse.latitude, onCourse.longitude)
+    val way = GuidedWay.of(PathWay(listOf(rider, onCourse), listOf(0.0, meters), listOf()))
+
+    val coming = navigation.progress(Fix(rider.latitude, rider.longitude, 5.0, time), way).coming
+
+    assertEquals("741 m", coming[0].distance)
+    assertEquals("1.7 km", coming[1].distance)
+    assertEquals("2.0 km", navigation.progress(fix(1000.0, north = 2000.0)).coming[0].distance)
+  }
+
   // Requirement: Off route
 
   @Test

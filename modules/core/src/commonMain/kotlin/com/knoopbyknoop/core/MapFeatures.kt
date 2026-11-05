@@ -349,10 +349,14 @@ object MapFeatures {
    */
   fun formatDistance(meters: Int, language: Language = Language.EN): String {
     if (meters < 1000) return "$meters m"
+    return "${kilometers(meters, language.texts.decimalSeparator)} km"
+  }
+
+  /** The number of kilometers as written, e.g. `1.7`, or `12` from 10 km on. */
+  internal fun kilometers(meters: Int, separator: Char): String {
     val tenthsOfKilometers = (meters / 100.0).roundToInt()
-    if (tenthsOfKilometers >= 100) return "${(meters / 1000.0).roundToInt()} km"
-    val separator = language.texts.decimalSeparator
-    return "${tenthsOfKilometers / 10}$separator${tenthsOfKilometers % 10} km"
+    if (tenthsOfKilometers >= 100) return "${(meters / 1000.0).roundToInt()}"
+    return "${tenthsOfKilometers / 10}$separator${tenthsOfKilometers % 10}"
   }
 
   private fun pointOf(knot: Knot) = GeoPoint(knot.latitude, knot.longitude)

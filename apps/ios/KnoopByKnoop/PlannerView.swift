@@ -174,6 +174,7 @@ struct PlannerView: View {
         wayToRoute: navigator.state.flatMap { state in
           state.position.flatMap { state.navigation?.wayToRoute(fix: $0) }
         },
+        guidedWay: navigator.state?.guidedWay?.pointsAhead(),
         track: navigator.state?.track,
         direction: navigator.state?.direction,
         myPosition: navigator.state == nil ? model.myPosition : nil,
@@ -342,7 +343,7 @@ private struct WaypointSheet: View {
     let complete = model.routeDescription as? RouteDescriptionComplete
     // While navigating, where the rider is on the route, see `knot-navigation` "Progress strip".
     let progress = navigator.state.flatMap { state in
-      state.position.flatMap { state.navigation?.progress(fix: $0) }
+      state.position.flatMap { state.navigation?.progress(fix: $0, guidedWay: state.guidedWay) }
     }
     VStack(alignment: .leading, spacing: 0) {
       // The header stays in place; below it, the ferries and the waypoints scroll together, see
@@ -791,7 +792,13 @@ private struct NavigationHeader: View {
           badge(next, at: index, scale: 1.3)
         }
       }
-      if let guidance {
+      if let guided = state.guidedWay?.view(language: AppLanguage.current), !wrongWay {
+        Text(guided.turn).font(.title3)
+        if let street = guided.street {
+          Text(street).font(.subheadline).foregroundStyle(.secondary)
+        }
+        Text(guided.remaining).font(.subheadline).foregroundStyle(.secondary)
+      } else if let guidance {
         // The direction goes below the distance where both do not fit in one line.
         ViewThatFits(in: .horizontal) {
           HStack(spacing: 6) {
@@ -812,7 +819,7 @@ private struct NavigationHeader: View {
     .accessibilityLabel(
       wrongWay
         ? String(localized: "Wrong direction, next \(next)", bundle: AppLanguage.bundle)
-        : [String(localized: "Off route, next \(next)", bundle: AppLanguage.bundle), guidance?.text].compactMap { $0 }.joined(separator: ", "))
+        : [String(localized: "Off route, next \(next)", bundle: AppLanguage.bundle), state.guidedWay?.view(language: AppLanguage.current).description ?? guidance?.text].compactMap { $0 }.joined(separator: ", "))
   }
 
   /// The distance to the next knot and an arrow towards it.

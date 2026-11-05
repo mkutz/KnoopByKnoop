@@ -133,6 +133,29 @@ internal interface Texts {
   /** E.g. `Off route, next 45`. */
   fun offRouteNext(next: String): String
 
+  // The guided way, see `knot-navigation` "Turn notices on the guided way".
+
+  /** A distance as the voice says it, as it would read `m` as a letter, e.g. `528 meters`. */
+  fun spokenDistance(meters: Int): String
+
+  /** A distance after "in", e.g. `100 meters`, in German `100 Metern`. */
+  fun spokenDistanceAhead(meters: Int): String
+
+  /** On a guided way with no turn left. */
+  val followTheWay: String
+
+  /** The turn on its own, e.g. `Left`. */
+  fun turnName(direction: TurnDirection): String
+
+  /** E.g. `Left in 120 m`. */
+  fun turnIn(turn: String, distance: String): String
+
+  /** E.g. `In 100 m, turn left`. */
+  fun turnAhead(direction: TurnDirection, distance: String): String
+
+  /** E.g. `Turn left now`. */
+  fun turnNow(direction: TurnDirection): String
+
   // Progress, see `knot-navigation` "Progress strip" and "Coming knots".
 
   /** E.g. `0.8 km to 45 · end around 19:05`. */
@@ -253,6 +276,54 @@ internal object EnglishTexts : Texts {
 
   override fun offRouteNext(next: String) = "Off route, next $next"
 
+  override fun spokenDistance(meters: Int) =
+    if (meters < 1000) "$meters meters"
+    else "${MapFeatures.kilometers(meters, decimalSeparator)} kilometers"
+
+  override fun spokenDistanceAhead(meters: Int) =
+    if (meters < 1000) "$meters meters"
+    else "${MapFeatures.kilometers(meters, decimalSeparator)} kilometers"
+
+  override val followTheWay = "Follow the way"
+
+  override fun turnName(direction: TurnDirection) =
+    when (direction) {
+      TurnDirection.STRAIGHT -> "Straight on"
+      TurnDirection.SLIGHT_LEFT -> "Slight left"
+      TurnDirection.LEFT -> "Left"
+      TurnDirection.SHARP_LEFT -> "Sharp left"
+      TurnDirection.SLIGHT_RIGHT -> "Slight right"
+      TurnDirection.RIGHT -> "Right"
+      TurnDirection.SHARP_RIGHT -> "Sharp right"
+      TurnDirection.BACK -> "Turn back"
+    }
+
+  override fun turnIn(turn: String, distance: String) = "$turn in $distance"
+
+  override fun turnAhead(direction: TurnDirection, distance: String) =
+    when (direction) {
+      TurnDirection.STRAIGHT -> "In $distance, go straight on"
+      TurnDirection.SLIGHT_LEFT -> "In $distance, bear left"
+      TurnDirection.LEFT -> "In $distance, turn left"
+      TurnDirection.SHARP_LEFT -> "In $distance, turn sharp left"
+      TurnDirection.SLIGHT_RIGHT -> "In $distance, bear right"
+      TurnDirection.RIGHT -> "In $distance, turn right"
+      TurnDirection.SHARP_RIGHT -> "In $distance, turn sharp right"
+      TurnDirection.BACK -> "In $distance, turn back"
+    }
+
+  override fun turnNow(direction: TurnDirection) =
+    when (direction) {
+      TurnDirection.STRAIGHT -> "Go straight on now"
+      TurnDirection.SLIGHT_LEFT -> "Bear left now"
+      TurnDirection.LEFT -> "Turn left now"
+      TurnDirection.SHARP_LEFT -> "Turn sharp left now"
+      TurnDirection.SLIGHT_RIGHT -> "Bear right now"
+      TurnDirection.RIGHT -> "Turn right now"
+      TurnDirection.SHARP_RIGHT -> "Turn sharp right now"
+      TurnDirection.BACK -> "Turn back now"
+    }
+
   override fun toKnot(distance: String, next: String, endArrival: String?) =
     if (endArrival != null) "$distance to $next · end around $endArrival" else "$distance to $next"
 
@@ -367,6 +438,54 @@ internal object GermanTexts : Texts {
   override fun isTheEnd(next: String) = "$next ist das Ende"
 
   override fun offRouteNext(next: String) = "Abseits der Route, nächster $next"
+
+  override fun spokenDistance(meters: Int) =
+    if (meters < 1000) "$meters Meter"
+    else "${MapFeatures.kilometers(meters, decimalSeparator)} Kilometer"
+
+  override fun spokenDistanceAhead(meters: Int) =
+    if (meters < 1000) "$meters Metern"
+    else "${MapFeatures.kilometers(meters, decimalSeparator)} Kilometer"
+
+  override val followTheWay = "Dem Weg folgen"
+
+  override fun turnName(direction: TurnDirection) =
+    when (direction) {
+      TurnDirection.STRAIGHT -> "Geradeaus"
+      TurnDirection.SLIGHT_LEFT -> "Leicht links"
+      TurnDirection.LEFT -> "Links"
+      TurnDirection.SHARP_LEFT -> "Scharf links"
+      TurnDirection.SLIGHT_RIGHT -> "Leicht rechts"
+      TurnDirection.RIGHT -> "Rechts"
+      TurnDirection.SHARP_RIGHT -> "Scharf rechts"
+      TurnDirection.BACK -> "Umkehren"
+    }
+
+  override fun turnIn(turn: String, distance: String) = "$turn in $distance"
+
+  override fun turnAhead(direction: TurnDirection, distance: String) =
+    when (direction) {
+      TurnDirection.STRAIGHT -> "In $distance geradeaus"
+      TurnDirection.SLIGHT_LEFT -> "In $distance leicht links"
+      TurnDirection.LEFT -> "In $distance links abbiegen"
+      TurnDirection.SHARP_LEFT -> "In $distance scharf links"
+      TurnDirection.SLIGHT_RIGHT -> "In $distance leicht rechts"
+      TurnDirection.RIGHT -> "In $distance rechts abbiegen"
+      TurnDirection.SHARP_RIGHT -> "In $distance scharf rechts"
+      TurnDirection.BACK -> "In $distance umkehren"
+    }
+
+  override fun turnNow(direction: TurnDirection) =
+    when (direction) {
+      TurnDirection.STRAIGHT -> "Jetzt geradeaus"
+      TurnDirection.SLIGHT_LEFT -> "Jetzt leicht links"
+      TurnDirection.LEFT -> "Jetzt links abbiegen"
+      TurnDirection.SHARP_LEFT -> "Jetzt scharf links"
+      TurnDirection.SLIGHT_RIGHT -> "Jetzt leicht rechts"
+      TurnDirection.RIGHT -> "Jetzt rechts abbiegen"
+      TurnDirection.SHARP_RIGHT -> "Jetzt scharf rechts"
+      TurnDirection.BACK -> "Jetzt umkehren"
+    }
 
   override fun toKnot(distance: String, next: String, endArrival: String?) =
     if (endArrival != null) "$distance bis $next · Ende gegen $endArrival"
@@ -494,6 +613,54 @@ internal object DutchTexts : Texts {
 
   override fun offRouteNext(next: String) = "Van de route af, volgende $next"
 
+  override fun spokenDistance(meters: Int) =
+    if (meters < 1000) "$meters meter"
+    else "${MapFeatures.kilometers(meters, decimalSeparator)} kilometer"
+
+  override fun spokenDistanceAhead(meters: Int) =
+    if (meters < 1000) "$meters meter"
+    else "${MapFeatures.kilometers(meters, decimalSeparator)} kilometer"
+
+  override val followTheWay = "Volg de weg"
+
+  override fun turnName(direction: TurnDirection) =
+    when (direction) {
+      TurnDirection.STRAIGHT -> "Rechtdoor"
+      TurnDirection.SLIGHT_LEFT -> "Flauw links"
+      TurnDirection.LEFT -> "Links"
+      TurnDirection.SHARP_LEFT -> "Scherp links"
+      TurnDirection.SLIGHT_RIGHT -> "Flauw rechts"
+      TurnDirection.RIGHT -> "Rechts"
+      TurnDirection.SHARP_RIGHT -> "Scherp rechts"
+      TurnDirection.BACK -> "Omkeren"
+    }
+
+  override fun turnIn(turn: String, distance: String) = "$turn over $distance"
+
+  override fun turnAhead(direction: TurnDirection, distance: String) =
+    when (direction) {
+      TurnDirection.STRAIGHT -> "Over $distance rechtdoor"
+      TurnDirection.SLIGHT_LEFT -> "Over $distance flauw links"
+      TurnDirection.LEFT -> "Over $distance linksaf"
+      TurnDirection.SHARP_LEFT -> "Over $distance scherp links"
+      TurnDirection.SLIGHT_RIGHT -> "Over $distance flauw rechts"
+      TurnDirection.RIGHT -> "Over $distance rechtsaf"
+      TurnDirection.SHARP_RIGHT -> "Over $distance scherp rechts"
+      TurnDirection.BACK -> "Over $distance omkeren"
+    }
+
+  override fun turnNow(direction: TurnDirection) =
+    when (direction) {
+      TurnDirection.STRAIGHT -> "Nu rechtdoor"
+      TurnDirection.SLIGHT_LEFT -> "Nu flauw links"
+      TurnDirection.LEFT -> "Nu linksaf"
+      TurnDirection.SHARP_LEFT -> "Nu scherp links"
+      TurnDirection.SLIGHT_RIGHT -> "Nu flauw rechts"
+      TurnDirection.RIGHT -> "Nu rechtsaf"
+      TurnDirection.SHARP_RIGHT -> "Nu scherp rechts"
+      TurnDirection.BACK -> "Nu omkeren"
+    }
+
   override fun toKnot(distance: String, next: String, endArrival: String?) =
     if (endArrival != null) "$distance naar $next · einde rond $endArrival"
     else "$distance naar $next"
@@ -611,6 +778,54 @@ internal object FrenchTexts : Texts {
   override fun isTheEnd(next: String) = "$next est l'arrivée"
 
   override fun offRouteNext(next: String) = "Hors itinéraire, suivant $next"
+
+  override fun spokenDistance(meters: Int) =
+    if (meters < 1000) "$meters mètres"
+    else "${MapFeatures.kilometers(meters, decimalSeparator)} kilomètres"
+
+  override fun spokenDistanceAhead(meters: Int) =
+    if (meters < 1000) "$meters mètres"
+    else "${MapFeatures.kilometers(meters, decimalSeparator)} kilomètres"
+
+  override val followTheWay = "Suivez le chemin"
+
+  override fun turnName(direction: TurnDirection) =
+    when (direction) {
+      TurnDirection.STRAIGHT -> "Tout droit"
+      TurnDirection.SLIGHT_LEFT -> "Légèrement à gauche"
+      TurnDirection.LEFT -> "À gauche"
+      TurnDirection.SHARP_LEFT -> "Fortement à gauche"
+      TurnDirection.SLIGHT_RIGHT -> "Légèrement à droite"
+      TurnDirection.RIGHT -> "À droite"
+      TurnDirection.SHARP_RIGHT -> "Fortement à droite"
+      TurnDirection.BACK -> "Demi-tour"
+    }
+
+  override fun turnIn(turn: String, distance: String) = "$turn dans $distance"
+
+  override fun turnAhead(direction: TurnDirection, distance: String) =
+    when (direction) {
+      TurnDirection.STRAIGHT -> "Dans $distance, tout droit"
+      TurnDirection.SLIGHT_LEFT -> "Dans $distance, légèrement à gauche"
+      TurnDirection.LEFT -> "Dans $distance, tournez à gauche"
+      TurnDirection.SHARP_LEFT -> "Dans $distance, fortement à gauche"
+      TurnDirection.SLIGHT_RIGHT -> "Dans $distance, légèrement à droite"
+      TurnDirection.RIGHT -> "Dans $distance, tournez à droite"
+      TurnDirection.SHARP_RIGHT -> "Dans $distance, fortement à droite"
+      TurnDirection.BACK -> "Dans $distance, faites demi-tour"
+    }
+
+  override fun turnNow(direction: TurnDirection) =
+    when (direction) {
+      TurnDirection.STRAIGHT -> "Tout droit maintenant"
+      TurnDirection.SLIGHT_LEFT -> "Légèrement à gauche maintenant"
+      TurnDirection.LEFT -> "Tournez à gauche maintenant"
+      TurnDirection.SHARP_LEFT -> "Fortement à gauche maintenant"
+      TurnDirection.SLIGHT_RIGHT -> "Légèrement à droite maintenant"
+      TurnDirection.RIGHT -> "Tournez à droite maintenant"
+      TurnDirection.SHARP_RIGHT -> "Fortement à droite maintenant"
+      TurnDirection.BACK -> "Faites demi-tour maintenant"
+    }
 
   override fun toKnot(distance: String, next: String, endArrival: String?) =
     if (endArrival != null) "$distance jusqu'à $next · arrivée vers $endArrival"

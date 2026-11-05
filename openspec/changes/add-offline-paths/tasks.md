@@ -3,14 +3,14 @@
 ## 1. Path data
 
 - [ ] 1.1 Core: `PathFile` format with the directory and per-square reader, and `expect fun inflate`. Tests: reading a written file; "Unsupported path format"; a square's checksum mismatch is rejected.
-- [ ] 1.2 Pipeline: path extraction and writer with the cost table of the design. `PathExtractionTest` on small fixtures: "Ways across borders", "Roads that can't be ridden", shared nodes connect across squares.
+- [x] 1.2 Pipeline: path extraction and writer with the cost table of the design. `PathExtractionTest` on small fixtures: "Ways across borders", "Roads that can't be ridden", shared nodes connect across squares.
 - [ ] 1.3 `index.json` gets the optional `paths` entry. `NetworkIndexTest`: "An earlier app reads the new index" against a copy of the current parser's rules, "An index without path data".
 - [ ] 1.4 Build the real file for the whole area locally or in a workflow run without publishing, and report its size, the largest square and the time and memory used. Stop and ask the maintainer if it exceeds 150 MB or the runner's limits.
 - [ ] 1.5 `update-network-data.yml`: build, include `*.paths` in the artifact, check the 150 MB budget, publish. Verify with a manual run: "Failed path build" keeps the publication, "Path data size budget" fails on a lowered budget, and the current release apps still read the new index.
 
 ## 2. Router
 
-- [ ] 2.1 Core: `PathRouter` with A* and a turning-back cost. `PathRouterTest` for each scenario of `path-routing`: "Without network access", "Cycle path beside a main road", "Main road with a cycle lane", "A much longer detour", "Poor surface", "Closed to bicycles", "Mandatory separate cycle path", "One-way street", "One-way street open to bicycles", "Ferry", "Turning back to change sides", "A stray piece of path", "Far from any path", "Squares missing in between".
+- [x] 2.1 Core: `PathRouter` with A* and a turning-back cost. `PathRouterTest` for each scenario of `path-routing`: "Without network access", "Cycle path beside a main road", "Main road with a cycle lane", "A much longer detour", "Poor surface", "Closed to bicycles", "Mandatory separate cycle path", "One-way street", "One-way street open to bicycles", "Ferry", "Turning back to change sides", "A stray piece of path", "Far from any path", "Squares missing in between", "A way ahead about as short as the way back", "The way back much shorter", "Standing still".
 - [ ] 2.2 Run the eight public trips of the design on the real file, with no requests to outside services, and report lengths against the design's table, plus whether Siegstraße still turns back.
 - [ ] 2.3 Measure on the maintainer's Pixel and iPhone with a temporary build: a 12 km way at most 500 ms and at most 50 MB extra memory, with squares loaded from storage. **Stop and go back to the maintainer if this fails.**
 
@@ -24,9 +24,9 @@
 ## 4. Guidance in the core
 
 - [ ] 4.1 `Navigation` holds the guided way and its target. `NavigationTest`: "Starting away from the route", "Wrong turn", "Without courses", "Path data arrives on the way", "No way, no path data, far away or hiking", "Guidance turned off", "Back on route with a guided way", "Skipping ahead on the guided way".
-- [ ] 4.2 Leaving the way. Tests: "Missing a turn", "A single inaccurate fix", "No new way", at most once in 20 seconds.
-- [ ] 4.3 Turn notices and texts in all app languages. Tests: "A turn ahead", "Turn close to the start of the way", "Two turns together", "Straight on", "Screen off" (no change in `precision`), "No guidance notices on a guided way".
-- [ ] 4.4 What the header and outside-the-app show. Tests: "In the header", "On the lock screen", "Distance to the course", "Header with a screen reader", and the existing scenarios of "Off route", "Direction to the route" and "Direction outside the app" still pass without a guided way.
+- [ ] 4.2 Leaving the way. Tests: "Missing a turn", "A single inaccurate fix", "No new way", "Riding away from the way", at most once in 10 seconds.
+- [ ] 4.3 Turn notices and texts in all app languages. Tests: "A turn ahead", "Turn close to the start of the way", "Two turns together", "Straight on", "A bend without a choice", "A bend with a choice", "Crossing with an offset", "Way behind the rider", "Still riding away", "Screen off" (no change in `precision`), "No guidance notices on a guided way".
+- [ ] 4.4 What the header and outside-the-app show. Tests: "In the header", "On the lock screen", "Distance to the course", "Distances ahead on a guided way", "Header with a screen reader", and the existing scenarios of "Off route", "Direction to the route" and "Direction outside the app" still pass without a guided way.
 
 ## 5. Android
 

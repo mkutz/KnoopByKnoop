@@ -7,6 +7,7 @@ import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkIndex
 import com.knoopbyknoop.core.NetworkIndexEntry
 import com.knoopbyknoop.core.OpeningHours
+import com.knoopbyknoop.core.PathFile
 import com.knoopbyknoop.core.sha256Hex
 import java.nio.file.Path
 import java.time.Instant
@@ -32,6 +33,7 @@ const val ATTRIBUTION =
 private const val USAGE =
   """Usage:
   pipeline build <area> <output-dir> <extract.osm.pbf>...   extract one graph per network type from all extracts
+  pipeline paths <output-file> <extract.osm.pbf>...         extract the ways around the networks from all extracts
   pipeline index <output-dir>                               write index.json for all graph files
   pipeline bundle [--allow-unavailable] <base-url> <output-dir>
                                                             fetch and verify the published graphs for the apps
@@ -41,6 +43,7 @@ private const val USAGE =
 fun main(args: Array<String>) {
   when (args.firstOrNull()) {
     "build" if args.size >= 4 -> build(args[1], Path(args[2]), args.drop(3).map(::Path))
+    "paths" if args.size >= 3 -> paths(Path(args[1]), args.drop(2).map(::Path))
     "index" if args.size == 2 -> index(Path(args[1]))
     "bundle" if args.size == 3 -> bundle(args[1], Path(args[2]))
     "dark-style" if args.size == 3 -> DarkStyle.generate(args[1], Path(args[2]))
@@ -117,6 +120,21 @@ fun build(area: String, outputDirectory: Path, extracts: List<Path>) {
   for ((reason, count) in result.skippedRoutes.toSortedMap()) {
     println("Skipped $count routes: ${reason.name.lowercase().replace('_', ' ')}")
   }
+}
+
+/** Writes the ways of [extracts] together, see `network-data` "Published path data". */
+fun paths(output: Path, extracts: List<Path>) {
+  val extraction = PathExtraction()
+  val readers = extracts.map(::PbfExtract)
+  val dataDates = readers.mapNotNull { it.forEachWay(extraction::acceptWay) }
+  readers.forEach { it.forEachNode(extraction::acceptNode) }
+  val squares = extraction.squares()
+  val dataDate = dataDates.minOrNull() ?: LocalDate.now(ZoneOffset.UTC)
+  output.writeBytes(PathFile.toBytes(squares, dataDate.toString(), ATTRIBUTION))
+  println(
+    "${output.name}: ${squares.size} squares, " +
+      "${squares.values.sumOf { it.size }} segments, ${output.toFile().length()} bytes"
+  )
 }
 
 fun index(directory: Path) {

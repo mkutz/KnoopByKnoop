@@ -19,6 +19,47 @@ class PbfExtract(private val path: Path) {
    */
   fun readInto(extraction: NetworkExtraction): LocalDate? = readAll(listOf(this), extraction)
 
+  /**
+   * Hands every way of the extract to [action].
+   *
+   * @return the date of the data, from the replication timestamp in the file's header
+   */
+  fun forEachWay(action: (OsmWay) -> Unit): LocalDate? {
+    var dataDate: LocalDate? = null
+    read(
+      object : ElementParser() {
+        override fun parse(header: Osmformat.HeaderBlock) {
+          if (header.hasOsmosisReplicationTimestamp()) {
+            dataDate =
+              Instant.ofEpochSecond(header.osmosisReplicationTimestamp)
+                .atZone(ZoneOffset.UTC)
+                .toLocalDate()
+          }
+        }
+
+        override fun parseWays(ways: List<Osmformat.Way>) {
+          ways.forEach { action(toOsmWay(it)) }
+        }
+      }
+    )
+    return dataDate
+  }
+
+  /** Hands every node of the extract to [action]. */
+  fun forEachNode(action: (OsmNode) -> Unit) {
+    read(
+      object : ElementParser() {
+        override fun parseNodes(nodes: List<Osmformat.Node>) {
+          nodes.forEach { action(toOsmNode(it)) }
+        }
+
+        override fun parseDense(nodes: Osmformat.DenseNodes) {
+          forEachDenseNode(nodes, action)
+        }
+      }
+    )
+  }
+
   private fun readRelations(extraction: NetworkExtraction): LocalDate? {
     var dataDate: LocalDate? = null
     read(

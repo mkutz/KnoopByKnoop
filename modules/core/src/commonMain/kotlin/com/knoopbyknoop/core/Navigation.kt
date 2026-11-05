@@ -4,6 +4,7 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sin
@@ -52,6 +53,9 @@ enum class NoticeKind {
    * route".
    */
   GUIDANCE,
+
+  /** A turn on the guided way, see `knot-navigation` "Turn notices on the guided way". */
+  TURN,
 }
 
 /**
@@ -276,11 +280,16 @@ private constructor(
 
   /**
    * The progress strip and the distances and times ahead with the rider at [fix], see
-   * `knot-navigation` "Progress strip" and "Distances and times ahead".
+   * `knot-navigation` "Progress strip" and "Distances and times ahead"; on [guidedWay], along it,
+   * see "Distances ahead on a guided way".
    */
-  fun progress(fix: Fix): ProgressView {
+  fun progress(fix: Fix, guidedWay: GuidedWay? = null): ProgressView {
     val straightDistance =
-      if (offRoute && !arrived) route.straightTo(fix, nextIndex) else straightToFirst(fix)
+      when {
+        offRoute && !arrived && guidedWay != null -> alongGuidedWay(guidedWay, fix)
+        offRoute && !arrived -> route.straightTo(fix, nextIndex)
+        else -> straightToFirst(fix)
+      }
     val place =
       if (offRoute || arrived || fix.accuracyMeters > PRECISE_ACCURACY_METERS) this.place
       else route.placeOf(fix, nextIndex)
@@ -295,6 +304,14 @@ private constructor(
       { ferryWatch?.arrivalAt(it)?.state },
       language,
     )
+  }
+
+  /** How far the next knot is along [guidedWay] and then along the route. */
+  private fun alongGuidedWay(guidedWay: GuidedWay, fix: Fix): Double {
+    val end = guidedWay.way.points.last()
+    val endPlace =
+      route.placeOf(fix.copy(latitude = end.latitude, longitude = end.longitude), nextIndex)
+    return guidedWay.remainingMeters + max(0.0, route.offsets[nextIndex] - endPlace)
   }
 
   val nextKnot: Knot
@@ -627,9 +644,16 @@ private constructor(
     return notice(
       NoticeKind.OFF_ROUTE,
       texts.offRoute(knots[index].ref, wayTo(fix, headedFor(index), language).text),
-      speech.offRoute(spoken(knots[index].ref), wayTo(fix, headedFor(index), speechLanguage).text),
+      speech.offRoute(spoken(knots[index].ref), spokenWay(fix, headedFor(index))),
     )
   }
+
+  /** E.g. `528 meters to the south-west`: the voice would read `m` as a letter. */
+  private fun spokenWay(fix: Fix, point: GeoPoint): String =
+    speech.way(
+      speech.spokenDistance(distanceTo(fix, point).roundToInt()),
+      compass(bearing(fix, point), speechLanguage),
+    )
 
   private fun routeLine(fix: Fix): String =
     route.line(
@@ -669,7 +693,7 @@ private constructor(
         notice(
           NoticeKind.GUIDANCE,
           texts.guidance(nextKnot.ref, way.text),
-          speech.guidance(spoken(nextKnot.ref), wayTo(fix, target, speechLanguage).text),
+          speech.guidance(spoken(nextKnot.ref), spokenWay(fix, target)),
         )
       else null
     val told = startedNow || last == null || notice != null

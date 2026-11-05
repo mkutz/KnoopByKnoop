@@ -62,6 +62,21 @@ The router SHALL only reverse direction at a junction when no other way of reaso
 - **WHEN** two roads meet, and the cheapest way without a turn cost would go back along the arriving path to reach the other side
 - **THEN** the way continues without turning back, if that adds less than 200 m
 
+### Requirement: Starting in the riding direction
+When given the rider's riding direction, the router SHALL count starting against it like turning back at a junction, and SHALL report whether the way it found starts against it.
+
+#### Scenario: A way ahead about as short as the way back
+- **WHEN** the rider rides along a path, and the way back to the target is less than 200 m shorter than the way ahead
+- **THEN** the way goes ahead
+
+#### Scenario: The way back much shorter
+- **WHEN** the way back is more than 200 m shorter than the way ahead
+- **THEN** the way goes back and is reported as starting against the riding direction
+
+#### Scenario: Standing still
+- **WHEN** the riding direction isn't known
+- **THEN** the cheapest way is found, and it isn't reported as starting against the riding direction
+
 ### Requirement: Connecting to the paths
 A way SHALL start and end on the nearest usable path within 200 m of the given place. A nearby path that isn't connected to the other place SHALL be skipped in favor of the next nearest.
 
@@ -72,6 +87,10 @@ A way SHALL start and end on the nearest usable path within 200 m of the given p
 #### Scenario: Far from any path
 - **WHEN** the nearest path is more than 200 m from the rider
 - **THEN** no way is found
+
+#### Scenario: Riding on a path
+- **WHEN** the rider is on a path, and another path 120 m away would give a cheaper way
+- **THEN** the way starts on the path they are on
 
 ### Requirement: No way found
 When the installed squares don't connect two places, the router SHALL report that there is no way, instead of a partial way.

@@ -38,22 +38,26 @@ While navigating a cycling route and off route, with guidance away from the rout
 - **THEN** the guided way ends and navigation continues from 12, as when skipping ahead
 
 ### Requirement: Leaving the guided way
-When the rider is more than 50 m from the guided way on two location fixes in a row, the app SHALL find a new way from their position, at most once every 20 seconds. It SHALL keep the last way until it has a new one.
+When the rider is more than 30 m from the guided way on two location fixes in a row, the app SHALL find a new way from their position and riding direction, at most once every 10 seconds. It SHALL keep the last way until it has a new one. While the rider is more than 15 m from the way, the distances shown SHALL include how far they are from it, and the line on the map SHALL start at the rider.
 
 #### Scenario: Missing a turn
-- **WHEN** the rider rides past a turn and is more than 50 m from the way on two fixes
+- **WHEN** the rider rides past a turn and is more than 30 m from the way on two fixes
 - **THEN** the app finds a new way, and the next turn notice is about the new way
 
 #### Scenario: A single inaccurate fix
-- **WHEN** one fix is more than 50 m from the way and the next is on it again
+- **WHEN** one fix is more than 30 m from the way and the next is on it again
 - **THEN** the way stays as it is
 
 #### Scenario: No new way
 - **WHEN** no new way can be found
 - **THEN** off route continues without a guided way
 
+#### Scenario: Riding away from the way
+- **WHEN** the rider is 40 m from a way with 320 m left, and hasn't been more than 30 m away on two fixes yet
+- **THEN** the distance left shown is "360 m", and the line on the map runs from the rider to the way
+
 ### Requirement: Turn notices on the guided way
-On a guided way, the app SHALL say each turn once, about 100 m before it, e.g. "In 100 m, turn left". Turns within 40 m of each other SHALL count as one. Continuing straight on SHALL need no notice. The notice SHALL be spoken, also with the screen off and in the app's language.
+On a guided way, the app SHALL say each turn once, about 100 m before it, e.g. "In 100 m, turn left". Turns within 40 m of each other SHALL count as one. Continuing straight on SHALL need no notice, and neither SHALL a bend where every other way at the junction turns at least 30° more than the way to take. Several turns at one junction that add up to straight on SHALL be said as straight on. When a way starts against the riding direction, the app SHALL say to turn back, and SHALL show it until the rider follows the way. The notice SHALL be spoken, also with the screen off and in the app's language.
 
 #### Scenario: A turn ahead
 - **WHEN** the rider is 100 m from a left turn on the guided way
@@ -70,6 +74,26 @@ On a guided way, the app SHALL say each turn once, about 100 m before it, e.g. "
 #### Scenario: Straight on
 - **WHEN** the way continues straight on over a junction
 - **THEN** the app says nothing there
+
+#### Scenario: A bend without a choice
+- **WHEN** the path bends right at a junction, and the only other way there turns left by more than 30° further
+- **THEN** the app says nothing there
+
+#### Scenario: A bend with a choice
+- **WHEN** the way bends right at a junction, and another way there continues straighter
+- **THEN** the app says the turn
+
+#### Scenario: Crossing with an offset
+- **WHEN** the way turns right and, 30 m later, left at a crossing, and continues in the same direction
+- **THEN** the app says "In 100 m, go straight on"
+
+#### Scenario: Way behind the rider
+- **WHEN** a new way starts against the riding direction
+- **THEN** the app says "Turn back now", and the header shows "Turn back" until the rider has followed the way for 15 m
+
+#### Scenario: Still riding away
+- **WHEN** the rider ignores it, and the next new way also starts against the riding direction
+- **THEN** the header shows "Turn back" again, and the app doesn't say it again
 
 #### Scenario: Screen off
 - **WHEN** the rider reaches a turn notice with the screen off
@@ -89,6 +113,10 @@ On a guided way, the header, the Android notification and the iOS Live Activity 
 #### Scenario: Distance to the course
 - **WHEN** the guided way ends on the course of the route, 300 m ahead
 - **THEN** the distance left shown is "300 m", to the route and not to the next knot
+
+#### Scenario: Distances ahead on a guided way
+- **WHEN** the rider is on a guided way with 140 m left, ending on the course 1.1 km before 82
+- **THEN** the progress panel shows 1.2 km to 82, and the knots after it and the arrival times count from there
 
 #### Scenario: Header with a screen reader
 - **WHEN** a screen reader reaches the header on a guided way

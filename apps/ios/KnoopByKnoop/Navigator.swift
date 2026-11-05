@@ -14,6 +14,8 @@ struct NavigationState {
   var track = RiddenTrack(points: [])
   /// The riding direction from the most recent movement, or `nil` when standing.
   var direction: Double? = nil
+  /// The way back to the route, see `knot-navigation` "Guided way while off route".
+  var guidedWay: GuidedWay? = nil
 }
 
 /// A route to navigate: what `Navigation.start` needs. Without courses, `geometry` is `nil`:
@@ -61,6 +63,14 @@ final class Navigator: NSObject, ObservableObject {
   private var activity: Activity<NavigationActivityAttributes>?
   /// Set after arriving: navigation ends once "You've arrived" was spoken.
   private var stopping = false
+  /// The way back to the route, see `knot-navigation` "Guided way while off route".
+  private var guidedWay: GuidedWay?
+  private var findingWay = false
+  private var lastWaySearch: Date?
+  /// Finds ways one at a time, off the main thread; only used on this queue.
+  private static let pathQueue = DispatchQueue(label: "com.knoopbyknoop.paths", qos: .userInitiated)
+  nonisolated(unsafe) private static var pathRouter: PathRouter?
+  nonisolated(unsafe) private static var pathRouterOpened = false
 
   /// Notices and precision changes are logged, to check navigation on a ride and to tune the
   /// precision for the battery. Read them in Console with the category `Navigation`.
@@ -142,6 +152,8 @@ final class Navigator: NSObject, ObservableObject {
     route = nil
     precision = nil
     stopping = false
+    guidedWay = nil
+    lastWaySearch = nil
     state = nil
     let ending = activity
     activity = nil
@@ -187,14 +199,16 @@ final class Navigator: NSObject, ObservableObject {
 
   private func apply(_ update: NavigationUpdate, fix: Fix) {
     let navigation = update.navigation
-    for notice in update.notices {
+    let turnNotice = followGuidedWay(navigation, fix: fix)
+    // On a guided way, its turn notices replace the distance and direction, see "Off route".
+    let notices =
+      update.notices.filter { guidedWay == nil || $0.kind != .guidance } + (turnNotice.map { [$0] } ?? [])
+    for notice in notices {
       logger.notice("notice: \(notice.text, privacy: .public)")
       speak(notice.speech)
     }
     track = track.add(fix: fix)
-    state = NavigationState(
-      navigation: navigation, position: fix, track: track,
-      direction: track.directionAt(fix: fix).map { $0.doubleValue })
+    publish(navigation, fix: fix)
     if navigation.arrived {
       // "You've arrived" is spoken before navigation ends, see `knot-navigation` "Arriving".
       stopping = true
@@ -202,10 +216,80 @@ final class Navigator: NSObject, ObservableObject {
       if !speech.isSpeaking { stop() }
       return
     }
-    updateActivity(
-      navigation.display, nextIndex: Int(navigation.nextIndex), progress: navigation.progressLine,
-      strip: navigation.progress(fix: fix).strip)
+    showActivity(navigation, fix: fix)
     request(update.precision)
+  }
+
+  private func publish(_ navigation: Navigation, fix: Fix) {
+    state = NavigationState(
+      navigation: navigation, position: fix, track: track,
+      direction: track.directionAt(fix: fix).map { $0.doubleValue }, guidedWay: guidedWay)
+  }
+
+  private func showActivity(_ navigation: Navigation, fix: Fix) {
+    updateActivity(
+      navigation.display, nextIndex: Int(navigation.nextIndex),
+      progress: guidedWay?.view(language: navigation.language).line ?? navigation.progressLine,
+      strip: navigation.progress(fix: fix, guidedWay: guidedWay).strip)
+  }
+
+  /// Moves the rider along the guided way, and finds one where needed; returns what to say.
+  private func followGuidedWay(_ navigation: Navigation, fix: Fix) -> Notice? {
+    guard navigation.offRoute, !navigation.arrived else {
+      guidedWay = nil
+      return nil
+    }
+    let update = guidedWay?.update(fix: fix, language: navigation.language, speechLanguage: AppLanguage.speech)
+    if let update { guidedWay = update.way }
+    if update == nil || update?.left == true { findWay(navigation, fix: fix) }
+    return update?.notice
+  }
+
+  /// Finds a way off the main thread, at most every 10 seconds, see "Leaving the guided way".
+  private func findWay(_ navigation: Navigation, fix: Fix) {
+    if findingWay { return }
+    if let lastWaySearch, Date().timeIntervalSince(lastWaySearch) < 10 { return }
+    guard route?.graph.network == .cycling, fix.accuracyMeters <= Navigation.companion.PRECISE_ACCURACY_METERS,
+      let target = navigation.wayToRoute(fix: fix)
+    else { return }
+    findingWay = true
+    lastWaySearch = Date()
+    let from = GeoPoint(latitude: fix.latitude, longitude: fix.longitude)
+    let heading = track.directionAt(fix: fix)
+    let logger = logger
+    Self.pathQueue.async {
+      if !Self.pathRouterOpened {
+        Self.pathRouterOpened = true
+        // Test build: the path file is copied onto the phone, there is no download or switch yet.
+        let file = URL.documentsDirectory.appending(path: "cycling.paths").path
+        Self.pathRouter = PathFile_iosKt.openPathRouter(path: file)
+        logger.notice("path file: \(Self.pathRouter != nil, privacy: .public)")
+      }
+      let started = Date()
+      let way = Self.pathRouter?.way(from: from, to: target, heading: heading)
+      let millis = Int(Date().timeIntervalSince(started) * 1000)
+      logger.notice(
+        "guided way: \(way.map { Int($0.lengthMeters) } ?? -1, privacy: .public) m, \(way?.turns.count ?? -1, privacy: .public) turns, \(millis, privacy: .public) ms, \(Self.pathRouter?.visitedSteps ?? 0, privacy: .public) steps, \(Self.pathRouter?.loadedSquares ?? 0, privacy: .public) squares")
+      if let way {
+        // Test build: lets a mocked ride follow the way.
+        let points = way.points.map { "\($0.longitude),\($0.latitude)" }.joined(separator: ";")
+        logger.debug("way points: \(points, privacy: .public)")
+      }
+      nonisolated(unsafe) let found = way
+      DispatchQueue.main.async {
+        MainActor.assumeIsolated { self.foundWay(found) }
+      }
+    }
+  }
+
+  private func foundWay(_ way: PathWay?) {
+    findingWay = false
+    guard !stopping, let navigation = state?.navigation, let position = state?.position,
+      navigation.offRoute, !navigation.arrived
+    else { return }
+    guidedWay = way.map { GuidedWay.companion.of(way: $0, previous: guidedWay) }
+    publish(navigation, fix: position)
+    showActivity(navigation, fix: position)
   }
 
   /// Samples with `newPrecision`, mapped as in the design's precision table.

@@ -182,6 +182,8 @@ fun NetworkMap(
    * the map"; `null` on the route.
    */
   wayToRoute: GeoPoint? = null,
+  /** Off route, the way along paths, see `knot-navigation` "Guided way while off route". */
+  guidedWay: List<GeoPoint>? = null,
   /** The position found on request while planning, see `map-planning` "Show my position". */
   myPosition: Fix? = null,
   /** Whether the position is being found. */
@@ -292,8 +294,8 @@ fun NetworkMap(
       onNearestShown()
     }
   }
-  LaunchedEffect(position, nextKnot, wayToRoute) {
-    holder.showNavigation(position, nextKnot, wayToRoute, direction)
+  LaunchedEffect(position, nextKnot, wayToRoute, guidedWay) {
+    holder.showNavigation(position, nextKnot, wayToRoute, direction, guidedWay)
   }
   LaunchedEffect(track) { holder.showTrack(track) }
   LaunchedEffect(navigating, courseAhead) { holder.showLegAhead(navigating, courseAhead) }
@@ -532,6 +534,7 @@ private class MapHolder {
   private var position: Fix? = null
   private var nextKnot: Knot? = null
   private var wayToRoute: GeoPoint? = null
+  private var guidedWay: List<GeoPoint>? = null
 
   /** Whether the map moves to the rider with the next position, e.g. after the app was opened. */
   var findRider = false
@@ -553,6 +556,7 @@ private class MapHolder {
     newNextKnot: Knot?,
     newWayToRoute: GeoPoint? = null,
     newDirection: Double? = null,
+    newGuidedWay: List<GeoPoint>? = null,
   ) {
     val begins = newPosition != null && (position == null || findRider)
     if (begins) {
@@ -563,6 +567,7 @@ private class MapHolder {
     position = newPosition
     nextKnot = newNextKnot
     wayToRoute = newWayToRoute
+    guidedWay = newGuidedWay
     direction = newDirection
     style?.let { updateNavigation(it) }
     if (newPosition == null || !following) return
@@ -748,8 +753,22 @@ private class MapHolder {
     style
       .getSourceAs<GeoJsonSource>("way-to-route")
       ?.setGeoJson(
-        if (fix != null && end != null)
+        if (fix != null && end != null && guidedWay == null)
           """{"type": "LineString", "coordinates": [[${fix.longitude}, ${fix.latitude}], [${end.longitude}, ${end.latitude}]]}"""
+        else empty
+      )
+    val way = guidedWay
+    style
+      .getSourceAs<GeoJsonSource>("guided-way")
+      ?.setGeoJson(
+        if (way != null)
+          way.joinToString(
+            ",",
+            """{"type": "LineString", "coordinates": [""",
+            "]}",
+          ) {
+            "[${it.longitude}, ${it.latitude}]"
+          }
         else empty
       )
   }
@@ -858,6 +877,7 @@ private class MapHolder {
         "route",
         "route-ahead",
         "way-to-route",
+        "guided-way",
         "next-knot",
         "route-knots",
         "knots",
@@ -979,6 +999,15 @@ private class MapHolder {
           PropertyFactory.lineWidth(4f),
           PropertyFactory.lineDasharray(arrayOf(2f, 2f)),
           PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+        )
+    )
+    style.addLayer(
+      LineLayer("guided-way", "guided-way")
+        .withProperties(
+          PropertyFactory.lineColor("#D32F2F"),
+          PropertyFactory.lineWidth(5f),
+          PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+          PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
         )
     )
     // The position found on request while planning: a dot that does not follow the rider.
