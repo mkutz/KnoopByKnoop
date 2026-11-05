@@ -20,6 +20,7 @@
   <string name="clear">Löschen</string>
   <string name="navigate">Navigieren</string>
   <string name="stop">Beenden</string>
+  <string name="stop_hold">Halten zum Beenden</string>
   <string name="waiting_for_position">Warte auf deine Position…</string>
   <string name="at">Bei</string>
   <string name="follow">folge</string>

@@ -51,6 +51,9 @@ object Navigating {
    */
   val visible = MutableStateFlow(false)
 
+  /** Whether the phone is locked with the app over the lock screen. */
+  val overLockScreen = MutableStateFlow(false)
+
   /** The route for the next start of [NavigationService]. */
   @Volatile var route: NavigationRoute? = null
 

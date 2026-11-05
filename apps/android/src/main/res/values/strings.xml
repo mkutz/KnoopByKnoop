@@ -21,6 +21,7 @@
   <string name="clear">Clear</string>
   <string name="navigate">Navigate</string>
   <string name="stop">Stop</string>
+  <string name="stop_hold">Hold to stop</string>
   <string name="waiting_for_position">Waiting for your position…</string>
   <string name="at">At</string>
   <string name="follow">follow</string>

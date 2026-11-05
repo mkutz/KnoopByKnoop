@@ -3,6 +3,7 @@ package com.knoopbyknoop.android
 import android.Manifest
 import android.content.res.Configuration
 import android.os.Build
+import android.view.WindowManager
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -59,6 +60,7 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.mutableFloatStateOf
@@ -81,7 +83,6 @@ import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -116,10 +117,17 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
   // The display stays on while navigating with the app open, see `knot-navigation` "Display on
   // while navigating in the app". Only while the window is visible, so leaving the app or the
   // power button work as usual.
-  val view = LocalView.current
-  DisposableEffect(state.navigating) {
-    view.keepScreenOn = state.navigating
-    onDispose { view.keepScreenOn = false }
+  val window = LocalActivity.current?.window
+  // Over the lock screen, the display goes off as usual. The window's flag and not
+  // `View.keepScreenOn`, which stayed set for good after leaving the app and coming back.
+  val overLockScreen by Navigating.overLockScreen.collectAsState()
+  DisposableEffect(window, state.navigating, overLockScreen) {
+    if (state.navigating && !overLockScreen) {
+      window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    } else {
+      window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+    onDispose { window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
   }
   // Kept when the activity is recreated, e.g. in another language chosen in the info sheet.
   var showInfo by rememberSaveable { mutableStateOf(false) }
@@ -353,7 +361,7 @@ private fun MapArea(
           .padding(12.dp)
           .onGloballyPositioned { topControlsStart = it.positionInParent().x.roundToInt() }
     ) {
-      PlaceSearchField(state, viewModel)
+      if (!Navigating.overLockScreen.collectAsState().value) PlaceSearchField(state, viewModel)
       // Not while navigating: the route is fixed then, see `knot-navigation` "Switching the network
       // while navigating", and the info sheet is not needed on the ride, see `network-sync` "Info
       // sheet".
@@ -795,12 +803,17 @@ private fun NavigationHeader(
         )
       }
     }
-    ProminentAction(
-      stringResource(R.string.stop),
-      R.drawable.ic_action_stop,
-      onStop,
-      color = ActionColors.red,
-    )
+    // Over the lock screen, a touch in the pocket shouldn't end the ride.
+    val overLockScreen by Navigating.overLockScreen.collectAsState()
+    if (overLockScreen)
+      HoldAction(stringResource(R.string.stop_hold), R.drawable.ic_action_stop, onStop)
+    else
+      ProminentAction(
+        stringResource(R.string.stop),
+        R.drawable.ic_action_stop,
+        onStop,
+        color = ActionColors.red,
+      )
   }
 }
 

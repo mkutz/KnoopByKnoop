@@ -1,8 +1,10 @@
 package com.knoopbyknoop.android
 
+import android.app.KeyguardManager
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.SystemBarStyle
@@ -14,8 +16,15 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.knoopbyknoop.core.Language
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+private const val LOCK_CHECK_MILLIS = 1000L
 
 class MainActivity : AppCompatActivity() {
 
@@ -32,6 +41,17 @@ class MainActivity : AppCompatActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    // No callback tells an app without a system role of an unlock for sure, see the design of
+    // `navigate-over-lock-screen`.
+    val keyguard = getSystemService(KeyguardManager::class.java)
+    lifecycleScope.launch {
+      repeatOnLifecycle(Lifecycle.State.STARTED) {
+        while (true) {
+          Navigating.overLockScreen.value = keyguard.isKeyguardLocked
+          delay(LOCK_CHECK_MILLIS)
+        }
+      }
+    }
     setContent {
       val viewModel: AppViewModel = viewModel()
       KnoopTheme(viewModel.state.appearance) {
@@ -41,6 +61,12 @@ class MainActivity : AppCompatActivity() {
         val dark = isAppInDarkTheme()
         LaunchedEffect(dark) { showSystemBars(dark) }
         val state = viewModel.state
+        // See `knot-navigation` "Navigation over the lock screen".
+        LaunchedEffect(state.navigating) {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(state.navigating)
+          }
+        }
         // The core's texts follow the app's language, also when it changes while the app is open,
         // see `app-languages` "Language of the texts".
         val language = Language.of(LocalConfiguration.current.locales[0].language)
