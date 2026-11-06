@@ -161,6 +161,7 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
         viewModel,
         onSwitch = { pendingNetwork = it },
         onInfo = { showInfo = true },
+        infoShown = showInfo,
         modifier = modifier,
       )
     }
@@ -319,6 +320,7 @@ private fun MapArea(
   viewModel: AppViewModel,
   onSwitch: (IndexedNetworkType) -> Unit,
   onInfo: () -> Unit,
+  infoShown: Boolean,
   modifier: Modifier,
 ) {
   // The map is shown right away; the network follows when it is loaded, see `map-planning`.
@@ -361,6 +363,9 @@ private fun MapArea(
     var topControlsBottom by remember { mutableIntStateOf(0) }
     var topControlsStart by remember { mutableIntStateOf(0) }
     NetworkMap(
+      // The map follows an appearance chosen in the info sheet when the sheet closes, see
+      // `map-planning` "Choosing the appearance in the info sheet".
+      holdAppearance = infoShown,
       graph = session?.graph,
       layers = layers,
       // Without a saved place, the map shows the whole route if there is one.

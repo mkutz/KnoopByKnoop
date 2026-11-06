@@ -212,6 +212,11 @@ fun NetworkMap(
    */
   topControlsBottom: Int = 0,
   topControlsStart: Int = 0,
+  /**
+   * Holds back a change of the appearance until this is `false` again, e.g. while the info sheet is
+   * open.
+   */
+  holdAppearance: Boolean = false,
 ) {
   val context = LocalContext.current
   val touchTargetPixels = with(LocalDensity.current) { TOUCH_TARGET_DP * density }
@@ -326,7 +331,9 @@ fun NetworkMap(
   // The offline style has no base map; it is loaded as soon as network access is back.
   LaunchedEffect(online) { if (online && holder.usesOfflineStyle) holder.loadBaseMap() }
   // Switched in place, the camera stays, see `map-planning` "Switching while the app is open".
-  LaunchedEffect(dark) { holder.reloadStyleIfAppearanceChanged() }
+  LaunchedEffect(dark, holdAppearance) {
+    if (!holdAppearance) holder.reloadStyleIfAppearanceChanged()
+  }
 
   val lifecycle = LocalLifecycleOwner.current.lifecycle
   DisposableEffect(lifecycle) {
