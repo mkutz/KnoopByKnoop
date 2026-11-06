@@ -3,7 +3,7 @@
 ## ADDED Requirements
 
 ### Requirement: Choose a route point on the map
-Where knots are shown, a tap with no knot or route point within the tolerance SHALL offer "Start here" and "End here" for the tapped place, and "Add stop here" once a route exists. The offer SHALL NOT change the route until one is chosen, and SHALL be dismissible.
+Where knots are shown, a tap with no knot or route point within the tolerance SHALL offer "Start here" and "End here" for the tapped place, and "Add stop here" once a route exists. The offer SHALL NOT change the route until one is chosen, and SHALL be dismissible. A place farther than 20 km on a cycling route, or 5 km on a hiking route, from every course of the network SHALL NOT be offered; the user SHALL be told that the network has no knots within that distance.
 
 #### Scenario: Knots go first
 - **WHEN** the user taps a place with a knot within the tolerance
@@ -24,6 +24,10 @@ Where knots are shown, a tap with no knot or route point within the tolerance SH
 #### Scenario: Zoomed out
 - **WHEN** knots are not shown and the user taps the map
 - **THEN** nothing is offered
+
+#### Scenario: Too far from the network
+- **WHEN** hiking is chosen and the user taps a place 70 km from the nearest hiking course
+- **THEN** nothing is offered, the route does not change, and the user is told there are no hiking knots within 5 km
 
 ### Requirement: What a chosen route point does
 "Start here" SHALL make the place the new start, "End here" the new end, and "Add stop here" a stop in the leg where it adds the least distance, whatever the switch in "What new knots become" says. A waypoint that was the start or end before SHALL become a stop, whether it is a knot or a route point.

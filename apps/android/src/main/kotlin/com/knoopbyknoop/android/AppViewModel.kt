@@ -37,6 +37,7 @@ import com.knoopbyknoop.core.MapTap
 import com.knoopbyknoop.core.NetworkCatalog
 import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkStatus
+import com.knoopbyknoop.core.NetworkType
 import com.knoopbyknoop.core.NewKnots
 import com.knoopbyknoop.core.PathDataStatus
 import com.knoopbyknoop.core.PathDownloader
@@ -619,6 +620,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
       is MapTap.OnKnot -> update(session.tap(tapped.knot, state.newKnots))
       is MapTap.OnRoutePoint -> {}
       is MapTap.Offer -> if (!state.navigating) state = state.copy(offer = PlaceOffer(tapped, x, y))
+      // See `map-planning` "Too far from the network".
+      is MapTap.TooFar ->
+        if (!state.navigating) {
+          val kilometers = (tapped.limitMeters / 1000).toInt()
+          state =
+            state.copy(
+              message =
+                when (session.network) {
+                  NetworkType.CYCLING -> text(R.string.no_cycling_knots_within, kilometers)
+                  NetworkType.HIKING -> text(R.string.no_hiking_knots_within, kilometers)
+                }
+            )
+        }
     }
   }
 

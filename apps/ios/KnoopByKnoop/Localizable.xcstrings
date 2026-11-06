@@ -1742,6 +1742,50 @@
         }
       }
     },
+    "No cycling knots within %lld km": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Radknotenpunkte im Umkreis von %lld km"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen fietsknooppunten binnen %lld km"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun point-nœud vélo à moins de %lld km"
+          }
+        }
+      }
+    },
+    "No hiking knots within %lld km": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Wanderknotenpunkte im Umkreis von %lld km"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen wandelknooppunten binnen %lld km"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun point-nœud de randonnée à moins de %lld km"
+          }
+        }
+      }
+    },
     "Your position could not be found.": {
       "localizations": {
         "de": {

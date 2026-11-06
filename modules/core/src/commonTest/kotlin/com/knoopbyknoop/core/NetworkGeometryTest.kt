@@ -357,6 +357,33 @@ class NetworkGeometryTest {
     )
   }
 
+  /** [besideTheCourse] moved north by [meters], away from every course of [branches]. */
+  private fun northOfTheCourse(meters: Double) =
+    GeoPoint(besideTheCourse.latitude + meters / 111_195.0, besideTheCourse.longitude)
+
+  @Test
+  fun `too far from the network`() {
+    val hiking = branches.knots.values.map { it.copy(network = NetworkType.HIKING) }
+    val hikingGraph = NetworkGraph(hiking, branches.connections)
+    val hikingSession = PlanningSession.start(hikingGraph)
+    val hikingGeometry = NetworkGeometry(hikingGraph, branchGeometry.courses)
+
+    assertEquals(
+      MapTap.TooFar(5_000.0),
+      hikingSession.tapAt(northOfTheCourse(7_000.0), 30.0, null, hikingGeometry),
+    )
+    assertIs<MapTap.Offer>(
+      hikingSession.tapAt(northOfTheCourse(3_000.0), 30.0, null, hikingGeometry)
+    )
+    assertEquals(
+      MapTap.TooFar(20_000.0),
+      branchSession.tapAt(northOfTheCourse(25_000.0), 30.0, null, branchGeometry),
+    )
+    assertIs<MapTap.Offer>(
+      branchSession.tapAt(northOfTheCourse(15_000.0), 30.0, null, branchGeometry)
+    )
+  }
+
   @Test
   fun `on a course`() {
     val point = pointBesideTheCourse()

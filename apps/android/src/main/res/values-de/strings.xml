@@ -88,6 +88,8 @@
   <string name="settings">Einstellungen</string>
   <string name="my_position">Meine Position</string>
   <string name="no_knots_in_view">Keine Knotenpunkte zu sehen</string>
+  <string name="no_cycling_knots_within">Keine Radknotenpunkte im Umkreis von %d km</string>
+  <string name="no_hiking_knots_within">Keine Wanderknotenpunkte im Umkreis von %d km</string>
   <string name="show_nearest_knots">Nächste Knotenpunkte zeigen</string>
   <string name="recenter">Zentrieren</string>
   <string name="zoom_in">Vergrößern</string>

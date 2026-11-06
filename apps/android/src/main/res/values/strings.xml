@@ -89,6 +89,8 @@
   <string name="settings">Settings</string>
   <string name="my_position">My position</string>
   <string name="no_knots_in_view">No knots in view</string>
+  <string name="no_cycling_knots_within">No cycling knots within %d km</string>
+  <string name="no_hiking_knots_within">No hiking knots within %d km</string>
   <string name="show_nearest_knots">Show the nearest knots</string>
   <string name="recenter">Recenter</string>
   <string name="zoom_in">Zoom in</string>

@@ -88,6 +88,8 @@
   <string name="settings">Paramètres</string>
   <string name="my_position">Ma position</string>
   <string name="no_knots_in_view">Aucun point-nœud en vue</string>
+  <string name="no_cycling_knots_within">Aucun point-nœud vélo à moins de %d km</string>
+  <string name="no_hiking_knots_within">Aucun point-nœud de randonnée à moins de %d km</string>
   <string name="show_nearest_knots">Afficher les points-nœuds les plus proches</string>
   <string name="recenter">Recentrer</string>
   <string name="zoom_in">Zoom avant</string>

@@ -33,6 +33,10 @@
 
 - [x] 6.1 `manual-checks.md` with the scenarios and the maintainer's steps; a CHANGELOG entry under Unreleased; `./gradlew check` and `npx @fission-ai/openspec validate --all` pass.
 
+## 7. Found on the maintainer's walk
+
+- [ ] 7.1 No offer far from the network (hiking route from home ran 70 km out to the Eifel and back, 141 km): `tapAt` answers `MapTap.TooFar` beyond 20 km (cycling) or 5 km (hiking) from every course, and both apps say so in all four languages. Tests for "Too far from the network"; checked on the emulator and in the simulator.
+
 ## Workflow follow-up
 
 - The maintainer plans from home on the Pixel and iPhone, adds a stop at a place off the network, rides it, and listens to the notices, before `/opsx:archive add-route-points`.

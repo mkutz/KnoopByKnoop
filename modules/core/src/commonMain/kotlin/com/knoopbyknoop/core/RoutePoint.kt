@@ -253,7 +253,23 @@ sealed interface MapTap {
    */
   data class Offer(val position: GeoPoint, val onCourse: CoursePlace?, val canAddStop: Boolean) :
     MapTap
+
+  /**
+   * The place is farther than [limitMeters] from every course of the network; nothing is offered,
+   * see `map-planning` "Too far from the network".
+   */
+  data class TooFar(val limitMeters: Double) : MapTap
 }
+
+/**
+ * How far from the network a route point may be, see `map-planning` "Choose a route point on the
+ * map": as far as ways are looked for on a cycling route, and an hour's walk on a hiking route.
+ */
+fun maxRoutePointMeters(network: NetworkType): Double =
+  when (network) {
+    NetworkType.CYCLING -> RoutePointWays.MAX_METERS
+    NetworkType.HIKING -> 5_000.0
+  }
 
 /**
  * What a tap at [position] means, with [knot] the knot within [radiusMeters] if any, see
@@ -273,6 +289,10 @@ fun PlanningSession.tapAt(
       return MapTap.OnRoutePoint(it)
     }
   val onCourse = geometry?.nearestOnCourses(position, radiusMeters)?.firstOrNull()
+  if (onCourse == null && geometry != null) {
+    val limit = maxRoutePointMeters(network)
+    if (geometry.nearestOnCourses(position, limit).isEmpty()) return MapTap.TooFar(limit)
+  }
   return MapTap.Offer(position, onCourse, canAddStop = route != null)
 }
 

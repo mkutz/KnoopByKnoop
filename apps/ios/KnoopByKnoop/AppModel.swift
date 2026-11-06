@@ -264,6 +264,13 @@ final class AppModel: ObservableObject {
     case let onKnot as MapTapOnKnot: change { $0.tap(knot: onKnot.knot, newKnots: newKnots) }
     case let place as MapTapOffer:
       offer = PlaceOffer(offer: place, point: point)
+    // See `map-planning` "Too far from the network".
+    case let tooFar as MapTapTooFar:
+      let kilometers = Int(tooFar.limitMeters / 1000)
+      message =
+        session.network == .hiking
+        ? String(localized: "No hiking knots within \(kilometers) km", bundle: AppLanguage.bundle)
+        : String(localized: "No cycling knots within \(kilometers) km", bundle: AppLanguage.bundle)
     default: break
     }
   }
