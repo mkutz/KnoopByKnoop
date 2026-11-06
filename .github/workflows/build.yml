@@ -29,6 +29,8 @@ jobs:
 
       - run: sh .github/scripts/release-notes-test.sh
 
+      - run: sh .github/scripts/play-release-notes-test.sh
+
       - run: sh .github/scripts/check-workflow-secrets-test.sh
 
       # Pull requests from forks get no signing keys or store credentials, see `release-delivery`.

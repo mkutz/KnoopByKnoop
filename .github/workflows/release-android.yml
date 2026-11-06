@@ -84,7 +84,9 @@ jobs:
           RELEASE_NOTES: ${{ inputs.release-notes }}
         run: |
           mkdir -p "$RUNNER_TEMP/whatsnew"
-          printf '%s\n' "$RELEASE_NOTES" > "$RUNNER_TEMP/whatsnew/whatsnew-en-US"
+          # Fitted into Play's 500 characters, see `release-delivery` "Release notes from the changelog".
+          printf '%s\n' "$RELEASE_NOTES" | sh .github/scripts/play-release-notes.sh > "$RUNNER_TEMP/whatsnew/whatsnew-en-US"
+          cat "$RUNNER_TEMP/whatsnew/whatsnew-en-US"
 
       - uses: r0adkll/upload-google-play@v1
         with:
