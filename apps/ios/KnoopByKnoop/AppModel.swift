@@ -10,6 +10,8 @@ struct MapLayers {
   let route: String
   let routeKnots: String
   let routeKnotList: [RouteKnot]
+  /// The ways of the route points, see `map-planning` "The line on the map".
+  let routePointWays: String
   let refs: Set<String>
   /// Whether `connections` follow their course, or are straight lines without geometry.
   let hasCourses: Bool
@@ -33,6 +35,7 @@ private struct PreparedSession: @unchecked Sendable {
   let route: String
   let routeKnots: String
   let routeKnotMarkers: [RouteKnot]
+  let routePointWays: String
 
   init(_ session: PlanningSession, geometry: NetworkGeometry) {
     self.session = session
@@ -40,6 +43,7 @@ private struct PreparedSession: @unchecked Sendable {
     route = MapFeatures.shared.route(session: session, geometry: geometry)
     routeKnots = MapFeatures.shared.routeKnotsLayer(session: session)
     routeKnotMarkers = MapFeatures.shared.routeKnotMarkers(session: session)
+    routePointWays = MapFeatures.shared.routePointWays(session: session)
   }
 }
 
@@ -53,6 +57,19 @@ final class NearestKnots {
     self.knot = knot
     self.rider = rider
   }
+}
+
+/// A tapped place offered as a route point, see `map-planning` "Choose a route point on the map".
+struct PlaceOffer: Identifiable {
+  let id = UUID()
+  let offer: MapTapOffer
+  /// Where the place is on the map now, to show the choices there; it follows the map.
+  var point: CGPoint
+}
+
+/// What to make of an offered place, see `map-planning` "What a chosen route point does".
+enum PlaceChoice {
+  case start, stop, end
 }
 
 /// A `knot` to show on the map; `request` counts the taps, so the same knot can be shown again.
@@ -179,16 +196,16 @@ final class AppModel: ObservableObject {
     }
     Navigator.shared.start(
       NavigationRoute(
-        knots: knots, roles: description.knots.map { BadgeRole($0.role) }, graph: session.graph,
-        geometry: loaded.hasGeometry ? loaded.geometry : nil,
+        knots: knots, roles: description.knots.map { BadgeRole($0.role) }, graph: session.routeGraph,
+        geometry: loaded.hasGeometry ? loaded.geometry.withRoutePoints(routeGraph: session.routeGraph) : nil,
         stops: Set(description.stopPositions.map { Int(truncating: $0) })))
   }
 
   /// The course of the planned route along the network, or `nil` while it cannot be exported, see
   /// `map-planning` "Export the route as GPX": not while navigating, and not as straight lines.
   private var exportCourse: [GeoPoint]? {
-    guard !navigating, let route = session?.route, let loaded, loaded.hasGeometry,
-      let course = loaded.geometry.courseOf(route: route),
+    guard !navigating, let session, let route = session.route, let loaded, loaded.hasGeometry,
+      let course = loaded.geometry.withRoutePoints(routeGraph: session.routeGraph).courseOf(route: route),
       Gpx.shared.canExport(route: route, course: course)
     else { return nil }
     return course
@@ -230,15 +247,89 @@ final class AppModel: ObservableObject {
   }
 
   /// Handles a tap on the map; `radiusMeters` is the touch target at the current zoom level.
-  func tap(latitude: Double, longitude: Double, radiusMeters: Double) {
-    guard let locator = loaded?.locator else { return }
+  func tap(latitude: Double, longitude: Double, radiusMeters: Double, at point: CGPoint) {
+    // A tap beside the choices closes them, see `map-planning` "Offer and dismiss".
+    if offer != nil {
+      offer = nil
+      return
+    }
+    guard let loaded, let session, !navigating else { return }
     let newKnots = newKnots
-    change { session in
-      // Any badge of a knot, see `map-planning` "Knots signposted at several places".
-      locator.nearestAtAnyNode(latitude: latitude, longitude: longitude, radiusMeters: radiusMeters)
-        .map { session.tap(knot: $0, newKnots: newKnots) }
+    // Any badge of a knot, see `map-planning` "Knots signposted at several places".
+    let knot = loaded.locator.nearestAtAnyNode(latitude: latitude, longitude: longitude, radiusMeters: radiusMeters)
+    let tapped = session.tapAt(
+      position: GeoPoint(latitude: latitude, longitude: longitude), radiusMeters: radiusMeters, knot: knot,
+      geometry: loaded.geometry)
+    switch tapped {
+    case let onKnot as MapTapOnKnot: change { $0.tap(knot: onKnot.knot, newKnots: newKnots) }
+    case let place as MapTapOffer:
+      offer = PlaceOffer(offer: place, point: point)
+    default: break
     }
   }
+
+  /// A tapped place whose choices are shown, see `map-planning` "Choose a route point on the map".
+  @Published var offer: PlaceOffer?
+
+  /// Keeps the offered place's choices at its flag while the map moves.
+  func offerMoved(to point: CGPoint) {
+    guard offer != nil, offer?.point != point else { return }
+    offer?.point = point
+  }
+
+  /// Makes the offered place a route point, see `map-planning` "What a chosen route point does".
+  func choose(_ choice: PlaceChoice) {
+    guard let offered = offer?.offer, let session, let loaded,
+      let point = session.routePointFor(offer: offered, geometry: loaded.geometry)
+    else {
+      offer = nil
+      return
+    }
+    offer = nil
+    change { session in
+      switch choice {
+      case .start: return session.startAt(point: point)
+      case .stop: return session.route != nil ? session.addStopAt(point: point) : nil
+      case .end: return session.endAt(point: point)
+      }
+    }
+    findWays()
+  }
+
+  /// Replaces the straight lines of the route points by ways along paths where the installed path
+  /// data has them, on the path data's queue, see `map-planning` "A route point away from the network".
+  private func findWays() {
+    // After the change that added the point.
+    let previous = changes
+    Task {
+      await previous?.value
+      guard let session, session.hasStraightLines, !navigating, let loaded, loaded.hasGeometry else { return }
+      nonisolated(unsafe) let points = session.routePoints.filter { $0.routePoint?.straight == true }
+      nonisolated(unsafe) let geometry = loaded.geometry
+      let found: [Knot] = await withCheckedContinuation { continuation in
+        PathData.queue.async {
+          // Squares arrived since: the router read them as missing, see "While the path data loads".
+          if AppModel.pathRouterVersion != PathData.store.version {
+            AppModel.pathRouter.forgetSquares()
+            AppModel.pathRouterVersion = PathData.store.version
+          }
+          let ways = RoutePointWays(router: AppModel.pathRouter, geometry: geometry)
+          nonisolated(unsafe) let found = points.compactMap { ways.wayFor(point: $0) }
+          continuation.resume(returning: found)
+        }
+      }
+      guard !found.isEmpty, !navigating else { return }
+      // Onto the session as it is now: the route may have changed meanwhile.
+      change { session in
+        let updated = found.reduce(session) { $0.withRoutePoint(point: $1) }
+        return updated === session ? nil : updated
+      }
+    }
+  }
+
+  /// One router for the planner's ways, used on `PathData.queue` only.
+  nonisolated(unsafe) private static let pathRouter = PathRouter(file: PathData.store)
+  nonisolated(unsafe) private static var pathRouterVersion: Int32 = -1
 
   func moveWaypoint(from: Int, to: Int) {
     change { $0.moveWaypoint(from: Int32(from), to: Int32(to)) }
@@ -292,6 +383,7 @@ final class AppModel: ObservableObject {
         route: prepared.route,
         routeKnots: prepared.routeKnots,
         routeKnotList: prepared.routeKnotMarkers,
+        routePointWays: prepared.routePointWays,
         refs: loaded.refs,
         hasCourses: loaded.hasGeometry)
     }
@@ -343,15 +435,18 @@ final class AppModel: ObservableObject {
       self?.pathData = status
       self?.pathDataDate = PathData.store.dataDate
       self?.pathDataBytes = PathData.store.installedBytes()
+      // The squares around a straight line may have arrived, see "While the path data loads".
+      if status == .ready { self?.findWays() }
     }
     pathDataLoad = (task, cancellation, wanted, online)
   }
 
   /// The course of the complete planned route, `nil` without one or without courses.
   private func plannedCourse() -> [GeoPoint]? {
-    guard let route = session?.route, route.summary is RouteSummaryComplete, let loaded, loaded.hasGeometry
+    guard let session, let route = session.route, route.summary is RouteSummaryComplete, let loaded,
+      loaded.hasGeometry
     else { return nil }
-    return loaded.geometry.courseOf(route: route)
+    return loaded.geometry.withRoutePoints(routeGraph: session.routeGraph).courseOf(route: route)
   }
 
   /// Deletes the downloaded ways; the planned route's squares come again once it changes or
@@ -441,7 +536,15 @@ final class AppModel: ObservableObject {
     // Another network or newer data may have been loaded meanwhile.
     guard let withCourses, network == self.network, loaded?.connections == withoutCourses.connections else { return }
     loaded = withCourses
-    if let session { show(session) }
+    if let session {
+      // Route points whose connection went away join the courses anew, see "Connection gone".
+      let reattached = session.reattached(geometry: withCourses.geometry)
+      if reattached !== session {
+        storage.saveRoute(RouteSnapshot.companion.of(session: reattached))
+      }
+      show(reattached)
+    }
+    findWays()
   }
 
   /// Where the map opens: where it was when the app was left last.

@@ -146,4 +146,40 @@ class GpxTest {
     assertFalse("A&<" in written)
     assertEquals("knoop-by-knoop-hiking-A1-B2.gpx", Gpx.fileName(oddRoute))
   }
+
+  // Requirement: Export the route as GPX, with route points
+
+  private val home = TestNetwork.pointOn(knot12, knot30, 0.25)
+
+  private fun withPoints(vararg waypoints: Knot): Pair<Route, List<GeoPoint>> {
+    val routeGraph = graph.withRoutePoints(waypoints.toList())
+    val route = Route.plan(waypoints.toList(), ShortestPathRouter(routeGraph))
+    return route to geometry.withRoutePoints(routeGraph).courseOf(route)!!
+  }
+
+  @Test
+  fun `start point in the file`() {
+    val (route, course) = withPoints(home, knot45)
+    val file = Gpx.write(route, course)
+
+    assertTrue("<name>Start</name><type>start</type>" in file, file)
+    assertTrue("<name>Cycling Start → 45</name>" in file, file)
+    assertEquals("knoop-by-knoop-cycling-start-45.gpx", Gpx.fileName(route))
+    assertTrue(
+      Gpx.decimal(home.latitude) in file.substringAfter("<trkseg>").substringBefore("</trkpt>")
+    )
+  }
+
+  @Test
+  fun `a stop in the file`() {
+    val stop = TestNetwork.pointOn(knot30, knot45, 0.5, wayMeters = 200)
+    val (route, course) = withPoints(knot12, stop, knot45)
+    val file = Gpx.write(route, course)
+
+    assertTrue("<name>Stop</name><type>stop</type>" in file, file)
+    assertTrue(
+      Gpx.decimal(stop.latitude) in file.substringAfter("<trkseg>"),
+      "the way is part of the track",
+    )
+  }
 }

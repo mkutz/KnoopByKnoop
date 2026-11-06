@@ -44,11 +44,22 @@ enum KnotBadges {
       let attributes: [NSAttributedString.Key: Any] = [
         .font: UIFont.boldSystemFont(ofSize: fontSize), .foregroundColor: UIColor(style.text),
       ]
-      let text = ref as NSString
-      let textSize = text.size(withAttributes: attributes)
-      text.draw(
-        at: CGPoint(x: (size.width - textSize.width) / 2, y: (size.height - textSize.height) / 2),
-        withAttributes: attributes)
+      if ref.isEmpty {
+        // A route point has no number: a flag, as in the list.
+        let configuration = UIImage.SymbolConfiguration(pointSize: fontSize * 1.1, weight: .bold)
+        if let flag = UIImage(systemName: "flag.fill", withConfiguration: configuration)?
+          .withTintColor(UIColor(style.text), renderingMode: .alwaysOriginal)
+        {
+          flag.draw(
+            at: CGPoint(x: (size.width - flag.size.width) / 2, y: (size.height - flag.size.height) / 2))
+        }
+      } else {
+        let text = ref as NSString
+        let textSize = text.size(withAttributes: attributes)
+        text.draw(
+          at: CGPoint(x: (size.width - textSize.width) / 2, y: (size.height - textSize.height) / 2),
+          withAttributes: attributes)
+      }
     }
   }
 

@@ -35,32 +35,43 @@ data class Ferry(
 /**
  * An immutable node network: its knots and the connections between them.
  *
+ * A graph made by [withRoutePoints] adds route points to an installed graph, sharing its indexes.
+ *
  * @param ferries the connections that include a ferry, with its details
  */
-class NetworkGraph(
-  knots: Collection<Knot>,
-  connections: Collection<Connection>,
-  ferries: Map<Connection, Ferry> = mapOf(),
+class NetworkGraph
+private constructor(
+  /** All knots of this network by their [Knot.id]. */
+  val knots: Map<Long, Knot>,
+  /** All connections between the knots of this network. */
+  val connections: List<Connection>,
+  /** The connections that include a ferry, with its details. */
+  val ferries: Map<Connection, Ferry>,
+  /** The type shared by all knots of this network, or `null` for an empty network. */
+  val network: NetworkType?,
+  private val connectionsByKnotId: Map<Long, List<Connection>>,
+  private val ferriesByKnotIds: Map<Pair<Long, Long>, Ferry>,
+  /** The installed graph this one adds route points to, see [withRoutePoints]. */
+  private val base: NetworkGraph?,
 ) {
 
-  /** All knots of this network by their [Knot.id]. */
-  val knots: Map<Long, Knot> = knots.associateBy { it.id }
-
-  /** All connections between the knots of this network. */
-  val connections: List<Connection> = connections.toList()
-
-  /** The connections that include a ferry, with its details. */
-  val ferries: Map<Connection, Ferry> = ferries.toMap()
-
-  /** The type shared by all knots of this network, or `null` for an empty network. */
-  val network: NetworkType? = knots.firstOrNull()?.network
-
-  private val connectionsByKnotId: Map<Long, List<Connection>>
-
-  private val ferriesByKnotIds: Map<Pair<Long, Long>, Ferry> =
-    ferries.entries.associate { (connection, ferry) -> knotIdsOf(connection) to ferry }
-
-  init {
+  constructor(
+    knots: Collection<Knot>,
+    connections: Collection<Connection>,
+    ferries: Map<Connection, Ferry> = mapOf(),
+  ) : this(
+    knots = knots.associateBy { it.id },
+    connections = connections.toList(),
+    ferries = ferries.toMap(),
+    network = knots.firstOrNull()?.network,
+    connectionsByKnotId =
+      connections
+        .flatMap { listOf(it.fromId to it, it.toId to it) }
+        .groupBy({ it.first }, { it.second }),
+    ferriesByKnotIds =
+      ferries.entries.associate { (connection, ferry) -> knotIdsOf(connection) to ferry },
+    base = null,
+  ) {
     require(knots.all { it.network == network }) { "All knots must belong to the same network" }
     connections.forEach { connection ->
       require(connection.fromId in this.knots && connection.toId in this.knots) {
@@ -71,11 +82,13 @@ class NetworkGraph(
     ferries.keys.forEach { connection ->
       require(connection in connectionSet) { "Ferry on $connection, which is not a connection" }
     }
-    connectionsByKnotId =
-      connections
-        .flatMap { listOf(it.fromId to it, it.toId to it) }
-        .groupBy({ it.first }, { it.second })
   }
+
+  /**
+   * The installed graph without route points: this one, or the one [withRoutePoints] was called on.
+   */
+  val installed: NetworkGraph
+    get() = base ?: this
 
   operator fun contains(knot: Knot): Boolean = knots[knot.id] == knot
 
@@ -83,13 +96,63 @@ class NetworkGraph(
   fun ferryBetween(from: Knot, to: Knot): Ferry? =
     ferriesByKnotIds[knotIdsOf(Connection(from.id, to.id, 0))]
 
-  private fun knotIdsOf(connection: Connection) =
-    minOf(connection.fromId, connection.toId) to maxOf(connection.fromId, connection.toId)
+  /** The connection between the knots with IDs [fromId] and [toId], in either direction. */
+  fun connectionBetween(fromId: Long, toId: Long): Connection? =
+    connectionsOf(fromId).firstOrNull {
+      (it.fromId == fromId && it.toId == toId) || (it.fromId == toId && it.toId == fromId)
+    }
+
+  private fun connectionsOf(knotId: Long): List<Connection> =
+    base?.connectionsOf(knotId).orEmpty() + connectionsByKnotId[knotId].orEmpty()
 
   /** The neighbors of the given knot with the length of the connection to each. */
   fun neighborsOf(knot: Knot): List<Pair<Knot, Int>> =
-    connectionsByKnotId[knot.id].orEmpty().map { connection ->
+    connectionsOf(knot.id).map { connection ->
       val neighborId = if (connection.fromId == knot.id) connection.toId else connection.fromId
       knots.getValue(neighborId) to connection.lengthMeters
     }
+
+  /**
+   * This graph with [points] joined to the knots of their connections, and to each other where they
+   * share one, see `route-planning` "Route from waypoints". The installed graph's indexes are
+   * shared, so this is cheap to call on every edit. A point whose connection is not in this graph
+   * is added without connections.
+   */
+  fun withRoutePoints(points: Collection<Knot>): NetworkGraph {
+    val installed = installed
+    val distinct = points.filter { it.isRoutePoint }.distinctBy { it.id }
+    if (distinct.isEmpty()) return installed
+    val added = routePointConnections(installed, distinct)
+    return NetworkGraph(
+      knots = OverlayMap(installed.knots, distinct.associateBy { it.id }),
+      connections = installed.connections + added,
+      ferries = installed.ferries,
+      network = installed.network,
+      connectionsByKnotId =
+        added
+          .flatMap { listOf(it.fromId to it, it.toId to it) }
+          .groupBy({ it.first }, { it.second }),
+      ferriesByKnotIds = installed.ferriesByKnotIds,
+      base = installed,
+    )
+  }
+
+  private companion object {
+    fun knotIdsOf(connection: Connection) =
+      minOf(connection.fromId, connection.toId) to maxOf(connection.fromId, connection.toId)
+  }
+}
+
+/** [base] with [extra] added, without copying [base]. */
+internal class OverlayMap<K, V>(private val base: Map<K, V>, private val extra: Map<K, V>) :
+  AbstractMap<K, V>() {
+
+  override val entries: Set<Map.Entry<K, V>> by lazy { (base + extra).entries }
+
+  override fun get(key: K): V? = extra[key] ?: base[key]
+
+  override fun containsKey(key: K): Boolean = key in extra || key in base
+
+  override val size: Int
+    get() = base.size + extra.count { it.key !in base }
 }

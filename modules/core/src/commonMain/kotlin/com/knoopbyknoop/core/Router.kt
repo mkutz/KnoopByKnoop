@@ -40,6 +40,9 @@ class ShortestPathRouter(private val graph: NetworkGraph) : Router {
       val (distance, knot) = queue.removeMin()
       if (!settled.add(knot.id)) continue
       if (knot.id == to.id) break
+      // Routes don't pass through a route point, only start or end there, see `route-planning`
+      // "Passing a route point that is not on this leg".
+      if (knot.isRoutePoint && knot.id != from.id) continue
       for ((neighbor, lengthMeters) in graph.neighborsOf(knot)) {
         val neighborDistance = distance + lengthMeters
         if (neighborDistance < (distances[neighbor.id] ?: Int.MAX_VALUE)) {

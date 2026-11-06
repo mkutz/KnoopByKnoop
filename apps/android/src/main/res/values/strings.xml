@@ -15,6 +15,12 @@
   <string name="osm_contributors">© OpenStreetMap contributors</string>
   <string name="tap_to_set_start">Tap a knot to set the start</string>
   <string name="start_at_set_end">Start at %1$s, tap a knot to set the end</string>
+  <string name="start_here">Start here</string>
+  <string name="add_stop_here">Add stop here</string>
+  <string name="end_here">End here</string>
+  <string name="start_point_set_end">Start set, tap a knot to set the end</string>
+  <string name="end_point_set_start">End set, tap a knot to set the start</string>
+  <string name="straight_ways">The way to a chosen place is only a straight line so far, and so is its length</string>
   <string name="no_route_for">No route for %1$s</string>
   <string name="back_to_start">Back to start</string>
   <string name="export_gpx">Export GPX</string>

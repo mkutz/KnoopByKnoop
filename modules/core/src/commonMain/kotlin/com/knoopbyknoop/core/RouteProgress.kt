@@ -41,6 +41,8 @@ data class ProgressMark(
   val arrival: String? = null,
   val position: Int? = null,
   val state: FerryArrivalState? = null,
+  /** Whether this is a route point, drawn with a flag in place of its empty [label]. */
+  val routePoint: Boolean = false,
 )
 
 /**
@@ -232,7 +234,7 @@ private constructor(
         marks,
         rider,
         offRoute,
-        texts.ridden(ridden(place, texts), knots[nextIndex].ref),
+        texts.ridden(ridden(place, texts), Spot.at(knots, nextIndex)),
       ),
       MapFeatures.formatDistance(toNext.roundToInt(), language),
       coming,
@@ -256,13 +258,16 @@ private constructor(
         ProgressMarkKind.END -> texts.end
         else -> null
       }
+    // A route point is named by its role alone, see `knot-navigation` "On the strip".
+    val name = texts.knot(Spot(knot.ref, roleOf(kind).takeIf { knot.isRoutePoint }))
     return ComingKnot(
       kind,
       knot,
       knot.ref,
       distance,
       at,
-      description = listOfNotNull(texts.knot(knot.ref), role, distance, at).joinToString(", "),
+      description =
+        listOfNotNull(name, role.takeUnless { knot.isRoutePoint }, distance, at).joinToString(", "),
     )
   }
 
@@ -275,7 +280,9 @@ private constructor(
   ): ComingKnot {
     val distance = MapFeatures.formatDistance(meters.roundToInt(), language)
     val at = arrival(meters)
-    val legs = "${knots[position].ref} → ${knots[position + 1].ref}"
+    val texts = language.texts
+    val legs =
+      "${texts.name(Spot.at(knots, position))} → ${texts.name(Spot.at(knots, position + 1))}"
     return ComingKnot(
       ProgressMarkKind.FERRY,
       null,
@@ -317,7 +324,7 @@ private constructor(
     val toEnd = length - offsets[nextIndex] + toNextMeters
     val arrival = localTime?.let { arrivalText(now, max(0.0, toEnd) / metersPerSecond, it) }
     return if (nextIndex == knots.lastIndex) texts.toTheEnd(toNext, arrival)
-    else texts.toKnot(toNext, knots[nextIndex].ref, arrival)
+    else texts.toKnot(toNext, Spot.at(knots, nextIndex), arrival)
   }
 
   private fun marks(): List<ProgressMark> {
@@ -331,7 +338,12 @@ private constructor(
             in stops -> ProgressMarkKind.STOP
             else -> ProgressMarkKind.KNOT
           }
-        ProgressMark(kind, knots[index].ref, fraction(offsets[index]))
+        ProgressMark(
+          kind,
+          knots[index].ref,
+          fraction(offsets[index]),
+          routePoint = knots[index].isRoutePoint,
+        )
       }
     val ferryMarks = ferryPositions.map { position ->
       ProgressMark(
@@ -505,3 +517,11 @@ private constructor(
     }
   }
 }
+
+/** The waypoint role of a mark's [kind], for a route point's name. */
+private fun roleOf(kind: ProgressMarkKind): WaypointRole =
+  when (kind) {
+    ProgressMarkKind.START -> WaypointRole.START
+    ProgressMarkKind.END -> WaypointRole.END
+    else -> WaypointRole.STOP
+  }

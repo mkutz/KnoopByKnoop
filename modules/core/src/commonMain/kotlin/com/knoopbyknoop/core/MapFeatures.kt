@@ -8,8 +8,19 @@ sealed interface RouteDescription {
   /** No waypoint yet: the next tap sets the start. */
   data object Empty : RouteDescription
 
-  /** Only the start is set: the next tap sets the end. */
-  data class StartOnly(val start: String) : RouteDescription
+  /**
+   * Only the start is set: the next tap sets the end.
+   *
+   * @property start the start's number, empty for a route point
+   * @property routePoint whether the waypoint is a route point, which has no number
+   * @property endFirst whether it is an end chosen before any start, so the next tap sets the
+   *   start, see `map-planning` "End before the start"
+   */
+  data class StartOnly(
+    val start: String,
+    val routePoint: Boolean = false,
+    val endFirst: Boolean = false,
+  ) : RouteDescription
 
   /**
    * The route's [knots] in riding order with their roles, e.g. the distance `3.5 km`, the time it
@@ -190,7 +201,8 @@ object MapFeatures {
    */
   fun route(session: PlanningSession, geometry: NetworkGeometry): String {
     val legs = session.route?.legs.orEmpty()
-    val courses = legCourses(legs.map { it.path }, geometry)
+    // With the route points' courses, see `route-planning` "Route from waypoints".
+    val courses = legCourses(legs.map { it.path }, geometry.withRoutePoints(session.routeGraph))
     return featureCollection(legs.withIndex().toList()) { (index, leg) ->
       lineString(courses[index] ?: listOf(leg.from, leg.to).map(::pointOf))
       properties { property("reachable", leg.isReachable.toString()) }
@@ -228,6 +240,19 @@ object MapFeatures {
     return lines.toList()
   }
 
+  /**
+   * The ways of the route points away from the network, from each point to the course, with the
+   * property `straight`: a straight line is drawn differently from a way along paths, see
+   * `map-planning` "The line on the map".
+   */
+  fun routePointWays(session: PlanningSession): String =
+    featureCollection(
+      session.routePoints.mapNotNull { it.routePoint?.takeIf { point -> point.way.size >= 2 } }
+    ) { routePoint ->
+      lineString(routePoint.way)
+      properties { property("straight", routePoint.straight.toString()) }
+    }
+
   /** The line of [course], the leg ahead while navigating, or none. */
   fun legAhead(course: List<GeoPoint>?): String =
     featureCollection(listOfNotNull(course)) { line ->
@@ -235,20 +260,17 @@ object MapFeatures {
       properties {}
     }
 
-  /** Points with the properties `position` and `role` (`start`, `stop` or `end`). */
+  /**
+   * Points with the properties `position`, `role` (`start`, `stop` or `end`) and `point`, whether
+   * it is a route point.
+   */
   fun waypoints(session: PlanningSession): String =
     featureCollection(session.waypoints.withIndex().toList()) { (index, knot) ->
       point(knot)
       properties {
         property("position", index.toString())
-        property(
-          "role",
-          when {
-            index == 0 -> "\"start\""
-            index == session.waypoints.lastIndex -> "\"end\""
-            else -> "\"stop\""
-          },
-        )
+        property("role", quoted(session.roleOf(index).name.lowercase()))
+        property("point", knot.isRoutePoint.toString())
       }
     }
 
@@ -273,10 +295,10 @@ object MapFeatures {
   fun waypointKnots(session: PlanningSession): List<RouteKnot> =
     session.waypoints.mapIndexed { index, knot ->
       val role =
-        when {
-          index == 0 -> KnotRole.START
-          index == session.waypoints.lastIndex -> KnotRole.END
-          else -> KnotRole.STOP
+        when (session.roleOf(index)) {
+          WaypointRole.START -> KnotRole.START
+          WaypointRole.STOP -> KnotRole.STOP
+          WaypointRole.END -> KnotRole.END
         }
       RouteKnot(knot, role)
     }
@@ -308,14 +330,16 @@ object MapFeatures {
       properties {
         property("ref", quoted(routeKnot.knot.ref))
         property("role", quoted(routeKnot.role.name.lowercase()))
+        property("point", routeKnot.knot.isRoutePoint.toString())
       }
     }
 
   fun describe(session: PlanningSession, language: Language = Language.EN): RouteDescription {
     val route =
       session.route
-        ?: return session.waypoints.firstOrNull()?.let { RouteDescription.StartOnly(it.ref) }
-          ?: RouteDescription.Empty
+        ?: return session.waypoints.firstOrNull()?.let {
+          RouteDescription.StartOnly(it.ref, it.isRoutePoint, session.endFirst)
+        } ?: RouteDescription.Empty
     return when (val summary = route.summary) {
       is RouteSummary.Complete -> {
         val knots = routeKnots(session)
@@ -338,7 +362,12 @@ object MapFeatures {
       }
       is RouteSummary.Incomplete ->
         RouteDescription.Unreachable(
-          summary.unreachableLegs.map { "${it.from.ref} → ${it.to.ref}" }
+          summary.unreachableLegs.map { leg ->
+            val index = route.legs.indexOf(leg)
+            val texts = language.texts
+            "${texts.name(Spot.at(route.waypoints, index))} → " +
+              texts.name(Spot.at(route.waypoints, index + 1))
+          }
         )
     }
   }

@@ -41,6 +41,27 @@ object TestNetwork {
         ),
     )
 
+  /**
+   * A route point on the connection from [from] to [to], [fraction] along it, reached by a straight
+   * way of [wayMeters] from the north, or on the course if 0.
+   */
+  fun pointOn(from: Knot, to: Knot, fraction: Double, wayMeters: Int = 0): Knot {
+    val connection = graph.connectionBetween(from.id, to.id)!!
+    val connectionFraction = if (connection.fromId == from.id) fraction else 1 - fraction
+    val place =
+      GeoPoint(
+        from.latitude + (to.latitude - from.latitude) * fraction,
+        from.longitude + (to.longitude - from.longitude) * fraction,
+      )
+    val position = GeoPoint(place.latitude + wayMeters / 111_195.0, place.longitude)
+    return routePointKnot(
+      position,
+      NetworkType.CYCLING,
+      CoursePlace(connection, connectionFraction, place, wayMeters.toDouble()),
+      way = if (wayMeters == 0) listOf() else listOf(position, place),
+    )
+  }
+
   private fun cyclingKnot(ref: Long, latitude: Double, longitude: Double) =
     Knot(id = ref, ref = "$ref", network = NetworkType.CYCLING, latitude, longitude)
 }

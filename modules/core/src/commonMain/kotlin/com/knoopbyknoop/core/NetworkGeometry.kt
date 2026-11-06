@@ -24,11 +24,20 @@ data class SignpostCourse(val fromPosition: Int, val toPosition: Int, val course
  * @property signpostCourses per index into [courses], the courses to each signpost, for connections
  *   reaching their knots at several of them
  */
-class NetworkGeometry(
+class NetworkGeometry
+private constructor(
   val graph: NetworkGraph,
   val courses: List<List<GeoPoint>>,
-  val signpostCourses: Map<Int, List<SignpostCourse>> = mapOf(),
+  val signpostCourses: Map<Int, List<SignpostCourse>>,
+  /** The installed geometry this one adds route points to, see [withRoutePoints]. */
+  private val base: NetworkGeometry?,
 ) {
+
+  constructor(
+    graph: NetworkGraph,
+    courses: List<List<GeoPoint>>,
+    signpostCourses: Map<Int, List<SignpostCourse>> = mapOf(),
+  ) : this(graph, courses, signpostCourses, null)
 
   init {
     require(courses.size == graph.connections.size) {
@@ -38,9 +47,143 @@ class NetworkGeometry(
   }
 
   private val courseIndexByKnotIds: Map<Pair<Long, Long>, Int> =
-    graph.connections.withIndex().associate { (index, connection) ->
-      (connection.fromId to connection.toId) to index
+    graph.connections
+      .withIndex()
+      .drop(base?.courses?.size ?: 0)
+      .associate { (index, connection) -> (connection.fromId to connection.toId) to index }
+      .let { added -> base?.let { OverlayMap(it.courseIndexByKnotIds, added) } ?: added }
+
+  /**
+   * The installed geometry without route points: this one, or the one [withRoutePoints] was called
+   * on.
+   */
+  val installed: NetworkGeometry
+    get() = base ?: this
+
+  /** Each course's bounds as south, west, north, east, to find places quickly. */
+  private val bounds: List<DoubleArray> by lazy {
+    courses.map { course ->
+      doubleArrayOf(
+        course.minOf { it.latitude },
+        course.minOf { it.longitude },
+        course.maxOf { it.latitude },
+        course.maxOf { it.longitude },
+      )
     }
+  }
+
+  /**
+   * The nearest places on the courses of up to [count] connections within [maxMeters] of
+   * [position], nearest first, one per connection. Connections with a ferry are left out, as the
+   * data does not say where on the course the ferry is, see `map-planning` "On a ferry connection".
+   */
+  fun nearestOnCourses(position: GeoPoint, maxMeters: Double, count: Int = 1): List<CoursePlace> {
+    val installed = installed
+    val latitudeMargin = maxMeters / 111_195.0
+    val longitudeMargin = latitudeMargin / kotlin.math.cos(position.latitude * kotlin.math.PI / 180)
+    val ferries = installed.graph.ferries.keys
+    return installed.courses.indices
+      .asSequence()
+      .filter { index ->
+        val box = installed.bounds[index]
+        position.latitude >= box[0] - latitudeMargin &&
+          position.latitude <= box[2] + latitudeMargin &&
+          position.longitude >= box[1] - longitudeMargin &&
+          position.longitude <= box[3] + longitudeMargin
+      }
+      .map { index -> index to nearestOn(installed.courses[index], position) }
+      .filter { (index, on) ->
+        on.distanceMeters <= maxMeters && installed.graph.connections[index] !in ferries
+      }
+      .sortedBy { (_, on) -> on.distanceMeters }
+      .take(count)
+      .map { (index, on) ->
+        CoursePlace(installed.graph.connections[index], on.fraction, on.place, on.distanceMeters)
+      }
+      .toList()
+  }
+
+  /**
+   * This geometry for [routeGraph], the installed graph with route points: the courses of their
+   * connections are cut from the installed courses at their places, with their ways in front, see
+   * `route-planning` "Route from waypoints". Signpost courses passing within 10 m of a place are
+   * cut too, so a route from a point picks the fitting signpost.
+   */
+  fun withRoutePoints(routeGraph: NetworkGraph): NetworkGeometry {
+    val installed = installed
+    if (routeGraph.connections.size == installed.courses.size) return installed
+    val added = routeGraph.connections.drop(installed.courses.size)
+    val addedCourses = added.map { connection ->
+      installed.routePointCourse(routeGraph, connection)
+    }
+    val addedSignposts =
+      added
+        .withIndex()
+        .mapNotNull { (offset, connection) ->
+          installed
+            .routePointSignposts(routeGraph, connection)
+            .takeIf { it.isNotEmpty() }
+            ?.let {
+              installed.courses.size + offset to it
+            }
+        }
+        .toMap()
+    return NetworkGeometry(
+      routeGraph,
+      installed.courses + addedCourses,
+      if (addedSignposts.isEmpty()) installed.signpostCourses
+      else installed.signpostCourses + addedSignposts,
+      installed,
+    )
+  }
+
+  /** The course of [connection], which starts at a route point. */
+  private fun routePointCourse(routeGraph: NetworkGraph, connection: Connection): List<GeoPoint> {
+    val point = routeGraph.knots.getValue(connection.fromId)
+    val routePoint = point.routePoint!!
+    val other = routeGraph.knots.getValue(connection.toId)
+    val main = mainCourseOf(routePoint)
+    val way = routePoint.way
+    val otherRoutePoint = other.routePoint
+    val onCourse =
+      when {
+        otherRoutePoint != null ->
+          between(main, routePoint.fraction, otherRoutePoint.fractionFrom(routePoint.fromId)) +
+            otherRoutePoint.way.asReversed()
+        other.id == routePoint.fromId ->
+          cutAt(main, routePoint.fraction, routePoint.place).first.asReversed()
+        else -> cutAt(main, routePoint.fraction, routePoint.place).second
+      }
+    return joined(way, onCourse)
+  }
+
+  /** The signpost courses of [connection], which starts at a route point and ends at a knot. */
+  private fun routePointSignposts(
+    routeGraph: NetworkGraph,
+    connection: Connection,
+  ): List<SignpostCourse> {
+    val routePoint = routeGraph.knots.getValue(connection.fromId).routePoint!!
+    if (routeGraph.knots.getValue(connection.toId).isRoutePoint) return listOf()
+    val index = courseIndexByKnotIds[routePoint.fromId to routePoint.toId] ?: return listOf()
+    return signpostCourses[index].orEmpty().mapNotNull { signpost ->
+      val on = nearestOn(signpost.course, routePoint.place)
+      if (on.distanceMeters > ON_SIGNPOST_METERS) return@mapNotNull null
+      val (before, after) = cutAt(signpost.course, on.fraction, routePoint.place)
+      if (connection.toId == routePoint.fromId) {
+        SignpostCourse(0, signpost.fromPosition, joined(routePoint.way, before.asReversed()))
+      } else {
+        SignpostCourse(0, signpost.toPosition, joined(routePoint.way, after))
+      }
+    }
+  }
+
+  /** The main course of a route point's connection, from its `from` knot. */
+  private fun mainCourseOf(routePoint: RoutePoint): List<GeoPoint> =
+    courseIndexByKnotIds[routePoint.fromId to routePoint.toId]?.let { courses[it] }
+      ?: courseIndexByKnotIds[routePoint.toId to routePoint.fromId]?.let {
+        courses[it].asReversed()
+      }
+      ?: listOf(routePoint.place, routePoint.place)
 
   /** The course from [from] to [to] along their direct connection, or `null` if there is none. */
   fun courseOf(from: Knot, to: Knot): List<GeoPoint>? {

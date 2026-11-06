@@ -93,8 +93,14 @@ private data class NotificationContent(
     fun of(navigation: Navigation, fix: Fix, guidedWay: GuidedWay?): NotificationContent {
       val display = navigation.display
       val strip = navigation.progress(fix, guidedWay).strip
+      // A route point has no signs to follow, see `knot-navigation` "Navigating with route points".
       val toFollow =
-        display.close && !display.offRoute && !display.wrongWay && display.follow != null
+        display.close &&
+          !display.offRoute &&
+          !display.wrongWay &&
+          display.follow != null &&
+          display.nextRole == null &&
+          display.followRole == null
       fun onBar(fraction: Double) = (fraction * PROGRESS_SCALE).roundToInt()
       val ranked =
         strip.marks.mapNotNull { mark ->

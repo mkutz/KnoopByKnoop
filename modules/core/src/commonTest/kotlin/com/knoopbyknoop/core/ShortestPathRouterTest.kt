@@ -40,4 +40,14 @@ class ShortestPathRouterTest {
 
     assertNull(router.shortestPath(knot12, unknownKnot))
   }
+
+  @Test
+  fun `paths do not pass through a route point`() {
+    // Through the point on 12-30 is as long as the connection itself.
+    val point = TestNetwork.pointOn(knot12, knot30, 0.5)
+    val withPoint = ShortestPathRouter(graph.withRoutePoints(listOf(point)))
+
+    assertEquals(Path(listOf(knot12, knot30), 2000), withPoint.shortestPath(knot12, knot30))
+    assertEquals(Path(listOf(point, knot30), 1000), withPoint.shortestPath(point, knot30))
+  }
 }

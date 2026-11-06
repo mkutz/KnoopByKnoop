@@ -9,6 +9,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.serialization.json.Json
@@ -309,5 +311,124 @@ class NetworkGeometryTest {
         .jsonArray
 
     assertEquals(2, coordinates.size)
+  }
+
+  // Requirement: Choose a route point on the map, A route point on a course
+
+  private val branchSession = PlanningSession.start(branches)
+
+  /** Halfway between 06 and the fork, a few meters east of the course. */
+  private val besideTheCourse = GeoPoint(52.1060, 5.10555)
+
+  private fun pointBesideTheCourse(): Knot {
+    val offer =
+      assertIs<MapTap.Offer>(branchSession.tapAt(besideTheCourse, 30.0, null, branchGeometry))
+    return assertNotNull(branchSession.routePointFor(offer, branchGeometry))
+  }
+
+  @Test
+  fun `knots go first`() {
+    assertEquals(
+      MapTap.OnKnot(knot06),
+      branchSession.tapAt(besideTheCourse, 30.0, knot06, branchGeometry),
+    )
+  }
+
+  @Test
+  fun `a route point goes first`() {
+    val point = pointBesideTheCourse()
+    val planned = branchSession.startAt(point)
+
+    assertEquals(
+      MapTap.OnRoutePoint(point),
+      planned.tapAt(besideTheCourse, 30.0, null, branchGeometry),
+    )
+  }
+
+  @Test
+  fun `offer without a route`() {
+    val offer =
+      assertIs<MapTap.Offer>(branchSession.tapAt(besideTheCourse, 30.0, null, branchGeometry))
+    assertFalse(offer.canAddStop)
+    val withRoute = branchSession.tap(knot06, NewKnots.STOP).tap(knot28, NewKnots.STOP)
+    assertTrue(
+      assertIs<MapTap.Offer>(withRoute.tapAt(besideTheCourse, 30.0, null, branchGeometry))
+        .canAddStop
+    )
+  }
+
+  @Test
+  fun `on a course`() {
+    val point = pointBesideTheCourse()
+    val routePoint = assertNotNull(point.routePoint)
+
+    assertEquals(6L to 2L, routePoint.fromId to routePoint.toId)
+    assertTrue(routePoint.way.isEmpty(), "no way to the course")
+    assertEquals(routePoint.place, GeoPoint(point.latitude, point.longitude))
+    val planned = branchSession.startAt(point).tap(knot02, NewKnots.STOP)
+    val course =
+      branchGeometry.withRoutePoints(planned.routeGraph).courseOf(assertNotNull(planned.route))
+    assertEquals(routePoint.place, course?.first(), "the line begins there")
+  }
+
+  @Test
+  fun `through the fitting signpost`() {
+    val point = pointBesideTheCourse()
+    val place = point.routePoint!!.place
+    val planned = branchSession.startAt(point).tap(knot02, NewKnots.STOP).tap(knot28, NewKnots.END)
+    val routeGeometry = branchGeometry.withRoutePoints(planned.routeGraph)
+
+    assertEquals(listOf(place, fork, signpost, west), routeGeometry.courseOf(planned.route!!))
+    val east = branchSession.startAt(point).tap(knot02, NewKnots.STOP).tap(knot01, NewKnots.END)
+    assertEquals(
+      listOf(place, fork, river, this.east),
+      branchGeometry.withRoutePoints(east.routeGraph).courseOf(east.route!!),
+    )
+  }
+
+  @Test
+  fun `on a ferry connection`() {
+    val ferried =
+      NetworkGraph(
+        listOf(knot02, knot28, knot01, knot06),
+        listOf(Connection(2, 28, 700), Connection(2, 1, 800), Connection(6, 2, 1400)),
+        ferries = mapOf(Connection(6, 2, 1400) to Ferry(name = "Fähre")),
+      )
+    val ferryGeometry = NetworkGeometry(ferried, branchGeometry.courses)
+    val session = PlanningSession.start(ferried)
+
+    val offer = assertIs<MapTap.Offer>(session.tapAt(besideTheCourse, 30.0, null, ferryGeometry))
+
+    assertNull(offer.onCourse, "away from the network")
+    val point = assertNotNull(session.routePointFor(offer, ferryGeometry))
+    assertTrue(assertNotNull(point.routePoint).straight)
+    assertTrue(
+      Connection(6, 2, 1400) !=
+        ferried.connectionBetween(point.routePoint!!.fromId, point.routePoint!!.toId)
+    )
+  }
+
+  @Test
+  fun `the way is part of the line`() {
+    val farAway = GeoPoint(52.1060, 5.1150)
+    val offer = assertIs<MapTap.Offer>(branchSession.tapAt(farAway, 30.0, null, branchGeometry))
+    val point = assertNotNull(branchSession.routePointFor(offer, branchGeometry))
+    val planned = branchSession.startAt(point).tap(knot02, NewKnots.STOP)
+
+    val course =
+      branchGeometry.withRoutePoints(planned.routeGraph).courseOf(assertNotNull(planned.route))
+
+    assertEquals(farAway, course?.first(), "from the chosen place")
+    assertEquals(point.routePoint!!.place, course?.get(1), "straight to the course")
+  }
+
+  @Test
+  fun `places within reach are found nearest first and one per connection`() {
+    val places = branchGeometry.nearestOnCourses(besideTheCourse, 5000.0, count = 3)
+
+    assertEquals(3, places.size)
+    assertEquals(Connection(6, 2, 1400), places.first().connection)
+    assertEquals(places.sortedBy { it.distanceMeters }, places)
+    assertEquals(3, places.map { it.connection }.distinct().size)
   }
 }

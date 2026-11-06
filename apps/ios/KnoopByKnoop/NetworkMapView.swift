@@ -66,7 +66,8 @@ struct NetworkMapView: UIViewRepresentable {
   let layers: MapLayers?
   /// The knots to show when a network is opened, e.g. those of a restored route.
   let focus: [Knot]
-  let onTap: (Double, Double, Double) -> Void
+  /// A tap with its position, the touch target in meters, and where on the map it was.
+  let onTap: (Double, Double, Double, CGPoint) -> Void
   /// Whether the device has internet access; the base map is loaded again once it is back.
   let online: Bool
   /// Where the map opens: where it was when the app was left last.
@@ -110,6 +111,11 @@ struct NetworkMapView: UIViewRepresentable {
   /// A coming knot to show while navigating, see `knot-navigation` "Showing a coming knot on the
   /// map".
   var shownKnot: ShownKnot? = nil
+  /// A tapped place offered as a route point, marked with a flag on the map, see `map-planning`
+  /// "Choose a route point on the map".
+  var offerPlace: GeoPoint? = nil
+  /// Called with where `offerPlace` is on the screen while the map moves, so its choices follow.
+  var onOfferMoved: (CGPoint) -> Void = { _ in }
 
   func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -267,6 +273,8 @@ struct NetworkMapView: UIViewRepresentable {
     context.coordinator.onLeave = onLeave
     context.coordinator.onMove = onMove
     context.coordinator.showMarker(marker, on: mapView)
+    context.coordinator.onOfferMoved = onOfferMoved
+    context.coordinator.showOffer(offerPlace)
     context.coordinator.showNavigation(
       position: position, nextKnot: nextKnot, wayToRoute: wayToRoute, guidedWay: guidedWay, direction: direction, on: mapView)
     context.coordinator.showTrack(track)
@@ -293,9 +301,11 @@ struct NetworkMapView: UIViewRepresentable {
   /// Keeps the style and what is shown, so updates only touch what changed.
   final class Coordinator: NSObject, MLNMapViewDelegate {
 
-    var onTap: (Double, Double, Double) -> Void = { _, _, _ in }
+    var onTap: (Double, Double, Double, CGPoint) -> Void = { _, _, _, _ in }
     var onLeave: (CameraPlace) -> Void = { _ in }
     var onMove: (CameraPlace, GeoBounds?) -> Void = { _, _ in }
+    var onOfferMoved: (CGPoint) -> Void = { _ in }
+    private var offerPlace: GeoPoint?
     var onLocate: (() -> Void)?
     weak var locateButton: UIButton?
     weak var locateSpinner: UIActivityIndicatorView?
@@ -562,6 +572,35 @@ struct NetworkMapView: UIViewRepresentable {
       (style?.source(withIdentifier: "guided-way") as? MLNShapeSource)?.shape = guided
     }
 
+    func showOffer(_ place: GeoPoint?) {
+      guard place !== offerPlace else { return }
+      offerPlace = place
+      updateOffer()
+    }
+
+    private func updateOffer() {
+      guard let source = style?.source(withIdentifier: "offer") as? MLNShapeSource else { return }
+      if let offerPlace {
+        let point = MLNPointFeature()
+        point.coordinate = CLLocationCoordinate2D(latitude: offerPlace.latitude, longitude: offerPlace.longitude)
+        source.shape = point
+      } else {
+        source.shape = nil
+      }
+    }
+
+    /// Keeps the offered place's choices next to its flag while the map moves.
+    private func reportOffer(on mapView: MLNMapView) {
+      guard let offerPlace else { return }
+      onOfferMoved(
+        mapView.convert(
+          CLLocationCoordinate2D(latitude: offerPlace.latitude, longitude: offerPlace.longitude), toPointTo: mapView))
+    }
+
+    func mapViewRegionIsChanging(_ mapView: MLNMapView) {
+      reportOffer(on: mapView)
+    }
+
     private func updateMarker() {
       guard let source = style?.source(withIdentifier: "marker") as? MLNShapeSource else { return }
       if let marker {
@@ -574,6 +613,7 @@ struct NetworkMapView: UIViewRepresentable {
     }
 
     func mapView(_ mapView: MLNMapView, regionDidChangeAnimated animated: Bool) {
+      reportOffer(on: mapView)
       onMove(
         CameraPlace(
           latitude: mapView.centerCoordinate.latitude, longitude: mapView.centerCoordinate.longitude,
@@ -644,7 +684,7 @@ struct NetworkMapView: UIViewRepresentable {
       }
       let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
       let metersPerPoint = mapView.metersPerPoint(atLatitude: coordinate.latitude)
-      onTap(coordinate.latitude, coordinate.longitude, metersPerPoint * touchTargetPoints)
+      onTap(coordinate.latitude, coordinate.longitude, metersPerPoint * touchTargetPoints, point)
     }
 
     private var coursesHandedOver = false
@@ -736,7 +776,7 @@ struct NetworkMapView: UIViewRepresentable {
         shownNetwork = layers.connections
         coursesHandedOver = layers.hasCourses
       }
-      if shownRoute != layers.route + layers.routeKnots {
+      if shownRoute != layers.route + layers.routeKnots + layers.routePointWays {
         // Route knots change without the route, e.g. when only the start is set.
         for routeKnot in layers.routeKnotList {
           let name = KnotBadges.name(routeKnot.role, routeKnot.knot.ref)
@@ -744,7 +784,8 @@ struct NetworkMapView: UIViewRepresentable {
         }
         (style.source(withIdentifier: "route") as? MLNShapeSource)?.shape = shape(layers.route)
         (style.source(withIdentifier: "route-knots") as? MLNShapeSource)?.shape = shape(layers.routeKnots)
-        shownRoute = layers.route + layers.routeKnots
+        (style.source(withIdentifier: "route-point-ways") as? MLNShapeSource)?.shape = shape(layers.routePointWays)
+        shownRoute = layers.route + layers.routeKnots + layers.routePointWays
       }
       if shownGraph !== graph, let graph {
         // The map keeps its place: the one saved when the app was left, or the one before
@@ -863,6 +904,24 @@ struct NetworkMapView: UIViewRepresentable {
       direction.iconIgnoresPlacement = NSExpression(forConstantValue: true)
       style.addLayer(direction)
 
+      // The ways of route points over the route: dots along paths, long dashes where only a
+      // straight line is known, see `map-planning` "The line on the map".
+      let pointWaysSource = MLNShapeSource(identifier: "route-point-ways", shape: nil)
+      style.addSource(pointWaysSource)
+      let pointWays = MLNLineStyleLayer(identifier: "route-point-ways", source: pointWaysSource)
+      pointWays.predicate = NSPredicate(format: "straight == NO")
+      pointWays.lineColor = NSExpression(forConstantValue: UIColor.white)
+      pointWays.lineWidth = NSExpression(forConstantValue: 2)
+      pointWays.lineDashPattern = NSExpression(forConstantValue: [0.1, 2])
+      pointWays.lineCap = NSExpression(forConstantValue: "round")
+      style.addLayer(pointWays)
+      let pointStraight = MLNLineStyleLayer(identifier: "route-point-straight", source: pointWaysSource)
+      pointStraight.predicate = NSPredicate(format: "straight == YES")
+      pointStraight.lineColor = NSExpression(forConstantValue: UIColor.white)
+      pointStraight.lineWidth = NSExpression(forConstantValue: 2)
+      pointStraight.lineDashPattern = NSExpression(forConstantValue: [3, 3])
+      style.addLayer(pointStraight)
+
       // While navigating, the course to the next knot, see `knot-navigation` "Leg ahead on the map".
       let aheadSource = MLNShapeSource(identifier: "route-ahead", shape: nil)
       style.addSource(aheadSource)
@@ -936,6 +995,19 @@ struct NetworkMapView: UIViewRepresentable {
       routeKnots.iconIgnoresPlacement = NSExpression(forConstantValue: true)
       routeKnots.minimumZoomLevel = Float(knotMinimumZoom)
       style.addLayer(routeKnots)
+
+      // The tapped place while its choices are shown: a flag in a white badge, above the route, so
+      // it is clear where a route point would go, see `map-planning` "Choose a route point on the map".
+      style.setImage(KnotBadges.image(nil, ""), forName: "offer-flag")
+      let offerSource = MLNShapeSource(identifier: "offer", shape: nil)
+      style.addSource(offerSource)
+      let offerLayer = MLNSymbolStyleLayer(identifier: "offer", source: offerSource)
+      offerLayer.iconImageName = NSExpression(forConstantValue: "offer-flag")
+      offerLayer.iconScale = NSExpression(forConstantValue: 1.4)
+      offerLayer.iconAllowsOverlap = NSExpression(forConstantValue: true)
+      offerLayer.iconIgnoresPlacement = NSExpression(forConstantValue: true)
+      style.addLayer(offerLayer)
+      updateOffer()
 
       // The rider's position while navigating, above everything else, in the blue maps use for it.
       // The position found on request while planning: a dot that does not follow the rider.

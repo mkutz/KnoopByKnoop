@@ -93,9 +93,15 @@ private constructor(val waypoints: List<Knot>, val legs: List<Leg>, private val 
     return withWaypoints(waypoints.toMutableList().apply { removeAt(position) })
   }
 
-  private fun withWaypoints(newWaypoints: List<Knot>): Route {
-    val knownLegs = legs.associateBy { it.from.id to it.to.id }
-    return plan(newWaypoints, router) { from, to -> knownLegs[from.id to to.id] }
+  /**
+   * This route with legs found by [newRouter] from now on, e.g. one that knows new route points.
+   */
+  internal fun using(newRouter: Router): Route = Route(waypoints, legs, newRouter)
+
+  internal fun withWaypoints(newWaypoints: List<Knot>): Route {
+    // By the knots themselves, so a route point whose way changed is routed again.
+    val knownLegs = legs.associateBy { it.from to it.to }
+    return plan(newWaypoints, router) { from, to -> knownLegs[from to to] }
   }
 
   companion object {

@@ -40,20 +40,38 @@ object Gpx {
     return knots
   }
 
-  /** E.g. `knoop-by-knoop-cycling-12-34.gpx`. */
+  /** E.g. `knoop-by-knoop-cycling-12-34.gpx`, or `…-start-34.gpx` from a route point. */
   fun fileName(route: Route): String {
     val network = route.waypoints.first().network.name.lowercase()
-    val start = fileNamePart(route.waypoints.first().ref)
-    val end = fileNamePart(route.waypoints.last().ref)
+    val start = fileNamePart(fileNameOf(route.waypoints.first(), Role.START))
+    val end = fileNamePart(fileNameOf(route.waypoints.last(), Role.END))
     return "knoop-by-knoop-$network-$start-$end.gpx"
   }
+
+  private fun fileNameOf(knot: Knot, role: Role) =
+    if (knot.isRoutePoint) nameOf(knot, role).lowercase() else knot.ref
+
+  /**
+   * The name of [knot] in the file: its number, or for a route point its role in English, as the
+   * file's other words, see `map-planning` "Export the route as GPX".
+   */
+  private fun nameOf(knot: Knot, role: Role): String =
+    if (!knot.isRoutePoint) knot.ref
+    else
+      when (role) {
+        Role.START -> "Start"
+        Role.END -> "End"
+        else -> "Stop"
+      }
 
   /** The GPX file of [route] along [course], see [canExport]. */
   fun write(route: Route, course: List<GeoPoint>): String {
     require(canExport(route, course)) { "Only a complete route with its course can be exported" }
     val network =
       route.waypoints.first().network.name.lowercase().replaceFirstChar { it.uppercase() }
-    val name = "$network ${route.waypoints.first().ref} → ${route.waypoints.last().ref}"
+    val name =
+      "$network ${nameOf(route.waypoints.first(), Role.START)} → " +
+        nameOf(route.waypoints.last(), Role.END)
     return buildString {
       append("""<?xml version="1.0" encoding="UTF-8"?>""").append('\n')
       append(
@@ -63,7 +81,7 @@ object Gpx {
       append("  <metadata><name>").append(escape(name)).append("</name></metadata>\n")
       for ((knot, role) in knotsWithRoles(route)) {
         append("  <wpt ").append(coordinates(knot.latitude, knot.longitude)).append(">")
-        append("<name>").append(escape(knot.ref)).append("</name>")
+        append("<name>").append(escape(nameOf(knot, role))).append("</name>")
         append("<type>").append(role.name.lowercase()).append("</type></wpt>\n")
       }
       append("  <trk>\n    <name>").append(escape(name)).append("</name>\n    <trkseg>\n")

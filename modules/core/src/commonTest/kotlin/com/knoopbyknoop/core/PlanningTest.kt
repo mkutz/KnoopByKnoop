@@ -10,6 +10,7 @@ import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertSame
@@ -695,5 +696,174 @@ class PlanningTest {
           ?.first
       assertSame(nearest, knot)
     }
+  }
+
+  // Requirement: What a chosen route point does
+
+  private val home = TestNetwork.pointOn(knot12, knot30, 0.25)
+
+  @Test
+  fun `first waypoint`() {
+    val planned = session.startAt(home).tap(knot45, NewKnots.STOP)
+
+    assertEquals(listOf(home, knot45), planned.waypoints)
+    assertTrue(planned.route?.summary is RouteSummary.Complete)
+  }
+
+  @Test
+  fun `end before the start`() {
+    val endOnly = session.endAt(home)
+
+    assertEquals(WaypointRole.END, endOnly.roleOf(0))
+    assertNull(endOnly.route)
+    val planned = endOnly.tap(knot45, NewKnots.STOP)
+    assertEquals(listOf(knot45, home), planned.waypoints)
+    assertEquals(WaypointRole.START, planned.roleOf(0))
+  }
+
+  @Test
+  fun `before an existing start`() {
+    val planned = session.tapAll(knot12, knot45).startAt(home)
+
+    assertEquals(listOf(home, knot12, knot45), planned.waypoints)
+    assertEquals(WaypointRole.STOP, planned.roleOf(1))
+  }
+
+  @Test
+  fun `after an existing end`() {
+    val planned = session.tapAll(knot45, knot12).endAt(home)
+
+    assertEquals(listOf(knot45, knot12, home), planned.waypoints)
+    assertEquals(WaypointRole.STOP, planned.roleOf(1))
+    assertEquals(WaypointRole.END, planned.roleOf(2))
+  }
+
+  @Test
+  fun `an earlier route point`() {
+    val other = TestNetwork.pointOn(knot30, knot45, 0.5)
+    val planned = session.startAt(home).tap(knot45, NewKnots.STOP).startAt(other)
+
+    assertEquals(listOf(other, home, knot45), planned.waypoints)
+    assertEquals(listOf(other, knot45), planned.removeWaypoint(1).waypoints)
+  }
+
+  @Test
+  fun `a round trip stops being one`() {
+    val roundTrip = session.tapAll(knot12, knot45).returnToStart()
+
+    val planned = roundTrip.endAt(home)
+
+    assertEquals(listOf(knot12, knot45, knot12, home), planned.waypoints)
+  }
+
+  @Test
+  fun `removing the route point`() {
+    val planned = session.startAt(home).tap(knot12, NewKnots.STOP).tap(knot45, NewKnots.END)
+
+    val removed = planned.removeWaypoint(0)
+
+    assertEquals(listOf(knot12, knot45), removed.waypoints)
+    assertNull(removed.routeGraph.knots[home.id])
+  }
+
+  @Test
+  fun `out and back from home`() {
+    val planned = session.startAt(home).tap(knot45, NewKnots.STOP).returnToStart()
+
+    assertEquals(listOf(home, knot45, home), planned.waypoints)
+    val summary = assertIs<RouteSummary.Complete>(planned.route?.summary)
+    assertEquals(8000, summary.lengthMeters)
+  }
+
+  @Test
+  fun `a stop at a place`() {
+    val stop = TestNetwork.pointOn(knot30, knot45, 0.5)
+
+    val planned = session.tapAll(knot12, knot45).addStopAt(stop)
+
+    assertEquals(listOf(knot12, stop, knot45), planned.waypoints)
+    assertEquals(WaypointRole.STOP, planned.roleOf(1))
+  }
+
+  @Test
+  fun `route points are only in the route graph`() {
+    val planned = session.startAt(home).tap(knot45, NewKnots.STOP)
+
+    assertNull(planned.graph.knots[home.id])
+    assertEquals(home, planned.routeGraph.knots[home.id])
+  }
+
+  @Test
+  fun `a found way replaces the straight line`() {
+    val straight = TestNetwork.pointOn(knot12, knot30, 0.25, wayMeters = 320)
+    val planned = session.startAt(straight).tap(knot45, NewKnots.STOP)
+    val way = straight.routePoint!!.way
+    val found =
+      straight.copy(
+        routePoint =
+          straight.routePoint!!.copy(
+            way =
+              listOf(
+                way.first(),
+                GeoPoint(way.first().latitude, way.first().longitude + 0.003),
+                way.last(),
+              ),
+            straight = false,
+          )
+      )
+
+    val replaced = planned.withRoutePoint(found)
+
+    assertEquals(listOf(found, knot45), replaced.waypoints)
+    val before = assertIs<RouteSummary.Complete>(planned.route?.summary).lengthMeters
+    val after = assertIs<RouteSummary.Complete>(replaced.route?.summary).lengthMeters
+    assertTrue(after > before, "$after > $before")
+  }
+
+  // Requirement: Keeping route points
+
+  @Test
+  fun `after a restart`() {
+    val away = TestNetwork.pointOn(knot12, knot30, 0.25, wayMeters = 320)
+    val found = away.copy(routePoint = away.routePoint!!.copy(straight = false))
+    val planned = session.startAt(found).tap(knot45, NewKnots.STOP)
+
+    // Restored from the graph alone: no geometry, no path data, no internet access.
+    val restored = RouteSnapshot.parse(RouteSnapshot.of(planned).toJson()).restore(graph)
+
+    assertEquals(planned.waypoints, restored.session.waypoints)
+    assertEquals(listOf(), restored.removedWaypoints)
+    assertEquals(
+      assertIs<RouteSummary.Complete>(planned.route?.summary).lengthMeters,
+      assertIs<RouteSummary.Complete>(restored.session.route?.summary).lengthMeters,
+    )
+  }
+
+  @Test
+  fun `connection gone`() {
+    val point = TestNetwork.pointOn(knot12, knot30, 0.25, wayMeters = 320)
+    val snapshot = RouteSnapshot.of(session.startAt(point).tap(knot45, NewKnots.STOP))
+    // An update removed 12-30.
+    val updated =
+      NetworkGraph(
+        graph.knots.values,
+        graph.connections.filterNot { it.fromId == 12L && it.toId == 30L },
+      )
+    val geometry = NetworkGeometry.straightLines(updated)
+
+    val restored = snapshot.restore(updated).session
+
+    assertEquals(2, restored.waypoints.size, "the point stays in the route")
+    val reattached = restored.reattached(geometry)
+    val routePoint = assertNotNull(reattached.routePoints.single().routePoint)
+    assertTrue(updated.connectionBetween(routePoint.fromId, routePoint.toId) != null)
+    assertTrue(reattached.route?.summary is RouteSummary.Complete)
+  }
+
+  @Test
+  fun `older route`() {
+    val json = """{"network":"cycling","waypoints":[{"id":12,"ref":"12"},{"id":45,"ref":"45"}]}"""
+
+    assertEquals(listOf(knot12, knot45), RouteSnapshot.parse(json).restore(graph).session.waypoints)
   }
 }

@@ -14,6 +14,12 @@
   <string name="osm_contributors">© OpenStreetMap-bijdragers</string>
   <string name="tap_to_set_start">Tik op een knooppunt om de start te kiezen</string>
   <string name="start_at_set_end">Start bij %1$s, tik op een knooppunt voor het einde</string>
+  <string name="start_here">Hier starten</string>
+  <string name="add_stop_here">Hier tussenstop</string>
+  <string name="end_here">Hier eindigen</string>
+  <string name="start_point_set_end">Start gezet, tik op een knooppunt voor het einde</string>
+  <string name="end_point_set_start">Einde gezet, tik op een knooppunt voor de start</string>
+  <string name="straight_ways">De weg naar een gekozen plek is nog maar een rechte lijn, en de lengte ook</string>
   <string name="no_route_for">Geen route voor %1$s</string>
   <string name="back_to_start">Terug naar de start</string>
   <string name="export_gpx">GPX exporteren</string>

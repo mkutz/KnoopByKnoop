@@ -158,7 +158,7 @@ fun NetworkMap(
   graph: NetworkGraph?,
   layers: MapLayers?,
   focus: List<Knot>,
-  onTap: (latitude: Double, longitude: Double, radiusMeters: Double) -> Unit,
+  onTap: (latitude: Double, longitude: Double, radiusMeters: Double, x: Float, y: Float) -> Unit,
   online: Boolean,
   initialPlace: CameraPlace?,
   onLeave: (CameraPlace) -> Unit,
@@ -200,6 +200,13 @@ fun NetworkMap(
   /** A coming knot to show while navigating, see `knot-navigation` "Showing a coming knot". */
   shownKnot: ShownKnot? = null,
   /**
+   * A tapped place offered as a route point, marked with a flag, see `map-planning` "Choose a route
+   * point on the map".
+   */
+  offerPlace: GeoPoint? = null,
+  /** Called with where [offerPlace] is on the map, in pixels, while the map moves. */
+  onOfferMoved: (x: Float, y: Float) -> Unit = { _, _ -> },
+  /**
    * Where the controls at the top of the map end, in pixels from its top, and where they start,
    * from its start, so the compass shows below them, see `map-planning` "Clear of the system bars".
    */
@@ -226,6 +233,8 @@ fun NetworkMap(
         holder.map = map
         holder.placeCompass()
         map.addOnCameraIdleListener { holder.place()?.let { holder.onMove(it, holder.knotArea()) } }
+        // The offered place's choices stay at its flag while the map moves.
+        map.addOnCameraMoveListener { holder.reportOffer() }
         // Moving or zooming the map by hand stops following the rider; the app's own camera moves
         // don't.
         map.addOnCameraMoveStartedListener { reason ->
@@ -248,7 +257,14 @@ fun NetworkMap(
             return@addOnMapClickListener true
           }
           val metersPerPixel = map.projection.getMetersPerPixelAtLatitude(point.latitude)
-          holder.onTap(point.latitude, point.longitude, metersPerPixel * touchTargetPixels)
+          val screenPoint = map.projection.toScreenLocation(point)
+          holder.onTap(
+            point.latitude,
+            point.longitude,
+            metersPerPixel * touchTargetPixels,
+            screenPoint.x,
+            screenPoint.y,
+          )
           true
         }
         initialPlace?.let {
@@ -285,6 +301,8 @@ fun NetworkMap(
   holder.show(graph, layers, focus)
   // A chosen search hit: the map moves there, close enough to tap knots, see `place-search`.
   LaunchedEffect(marker) { holder.showMarker(marker) }
+  holder.onOfferMoved = onOfferMoved
+  LaunchedEffect(offerPlace) { holder.showOffer(offerPlace) }
   LaunchedEffect(myPosition) {
     holder.showMyPosition(myPosition, center = myPosition != nearestKnots?.rider)
   }
@@ -420,7 +438,7 @@ private class MapHolder {
     settings.setCompassMargins(compassStart, compassTop, 0, 0)
   }
 
-  var onTap: (Double, Double, Double) -> Unit = { _, _, _ -> }
+  var onTap: (Double, Double, Double, Float, Float) -> Unit = { _, _, _, _, _ -> }
   private var style: Style? = null
 
   /** Whether a style is loaded, the base map or the offline style. */
@@ -509,6 +527,7 @@ private class MapHolder {
     }
     addLayers(loaded)
     updateMarker(loaded)
+    updateOffer(loaded)
     updateNavigation(loaded)
     updateTrack(loaded)
     updateLegAhead(loaded)
@@ -517,6 +536,29 @@ private class MapHolder {
 
   var onMove: (CameraPlace, GeoBounds?) -> Unit = { _, _ -> }
   private var marker: PlaceHit? = null
+  var onOfferMoved: (Float, Float) -> Unit = { _, _ -> }
+  private var offerPlace: GeoPoint? = null
+
+  fun showOffer(place: GeoPoint?) {
+    offerPlace = place
+    style?.let { updateOffer(it) }
+  }
+
+  /** Where the offered place is on the map now, for its choices. */
+  fun reportOffer() {
+    val place = offerPlace ?: return
+    val point = map?.projection?.toScreenLocation(LatLng(place.latitude, place.longitude)) ?: return
+    onOfferMoved(point.x, point.y)
+  }
+
+  private fun updateOffer(style: Style) {
+    val point = offerPlace?.let {
+      """{"type": "Point", "coordinates": [${it.longitude}, ${it.latitude}]}"""
+    }
+    style
+      .getSourceAs<GeoJsonSource>("offer")
+      ?.setGeoJson(point ?: """{"type": "FeatureCollection", "features": []}""")
+  }
 
   fun showMarker(newMarker: PlaceHit?) {
     marker = newMarker
@@ -838,6 +880,7 @@ private class MapHolder {
       }
       style.getSourceAs<GeoJsonSource>("route")?.setGeoJson(layers.route)
       style.getSourceAs<GeoJsonSource>("route-knots")?.setGeoJson(layers.routeKnots)
+      style.getSourceAs<GeoJsonSource>("route-point-ways")?.setGeoJson(layers.routePointWays)
     }
     shownLayers = layers
     if (shownGraph !== graph) {
@@ -876,10 +919,12 @@ private class MapHolder {
         "ridden-track",
         "route",
         "route-ahead",
+        "route-point-ways",
         "way-to-route",
         "guided-way",
         "next-knot",
         "route-knots",
+        "offer",
         "knots",
         "my-position",
         "position",
@@ -944,6 +989,27 @@ private class MapHolder {
           PropertyFactory.iconOffset(ARROW_OFFSET),
           PropertyFactory.iconAllowOverlap(true),
           PropertyFactory.iconIgnorePlacement(true),
+        )
+    )
+    // The ways of route points over the route: dots along paths, long dashes where only a straight
+    // line is known, see `map-planning` "The line on the map".
+    style.addLayer(
+      LineLayer("route-point-ways", "route-point-ways")
+        .withFilter(Expression.eq(Expression.get("straight"), false))
+        .withProperties(
+          PropertyFactory.lineColor("#FFFFFF"),
+          PropertyFactory.lineWidth(2.5f),
+          PropertyFactory.lineDasharray(arrayOf(0.1f, 2f)),
+          PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+        )
+    )
+    style.addLayer(
+      LineLayer("route-point-straight", "route-point-ways")
+        .withFilter(Expression.eq(Expression.get("straight"), true))
+        .withProperties(
+          PropertyFactory.lineColor("#FFFFFF"),
+          PropertyFactory.lineWidth(2.5f),
+          PropertyFactory.lineDasharray(arrayOf(3f, 3f)),
         )
     )
     // While navigating, the course to the next knot, see `knot-navigation` "Leg ahead on the map".
@@ -1047,6 +1113,18 @@ private class MapHolder {
           PropertyFactory.iconIgnorePlacement(true),
         )
         .apply { minZoom = KNOT_MIN_ZOOM.toFloat() }
+    )
+    // The tapped place while its choices are shown: a flag in a white badge, above the route, so it
+    // is clear where a route point would go, see `map-planning` "Choose a route point on the map".
+    style.addImage("offer-flag", badgeBitmap(null, ""))
+    style.addLayer(
+      SymbolLayer("offer", "offer")
+        .withProperties(
+          PropertyFactory.iconImage("offer-flag"),
+          PropertyFactory.iconSize(1.4f),
+          PropertyFactory.iconAllowOverlap(true),
+          PropertyFactory.iconIgnorePlacement(true),
+        )
     )
     // The rider's position while navigating, above everything else.
     style.addLayer(

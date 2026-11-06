@@ -161,7 +161,7 @@ struct PlannerView: View {
     ZStack(alignment: .top) {
       NetworkMapView(
         graph: model.session?.graph, layers: model.layers, focus: model.session.map(focus) ?? [],
-        onTap: model.tap(latitude:longitude:radiusMeters:),
+        onTap: model.tap(latitude:longitude:radiusMeters:at:),
         online: model.online,
         initialPlace: model.initialPlace,
         onLeave: model.saveCamera,
@@ -183,7 +183,9 @@ struct PlannerView: View {
         findingNearest: model.findingNearest,
         onShowNearest: showNearestAction,
         nearestKnots: model.nearestKnots,
-        shownKnot: model.shownKnot
+        shownKnot: model.shownKnot,
+        offerPlace: model.offer?.offer.position,
+        onOfferMoved: { point in DispatchQueue.main.async { model.offerMoved(to: point) } }
       )
       .ignoresSafeArea()
       // While typing in landscape, the hits need the room up to the top, see `place-search`.
@@ -202,6 +204,18 @@ struct PlannerView: View {
         .padding(.top, notesTop)
       } else if !model.status.hasGeometry {
         CoursesNote(online: model.online).padding(.top, notesTop)
+      }
+      // The choices for a tapped place, at its flag and above the controls, see `map-planning`
+      // "Choose a route point on the map". In the map's coordinates, which ignore the safe area.
+      if let offer = model.offer {
+        GeometryReader { map in
+          PlaceOfferMenu(canAddStop: offer.offer.canAddStop, choose: model.choose)
+            .fixedSize()
+            .position(
+              x: min(max(offer.point.x, 110), map.size.width - 110),
+              y: offer.point.y + 90)
+        }
+        .ignoresSafeArea()
       }
     }
     .overlay(alignment: .bottom) { searchOverlay(landscape: landscape, keyboardShown: keyboardShown, screen: screen) }
@@ -415,6 +429,12 @@ private struct WaypointSheet: View {
           RouteKnots(description: complete)
           if let status = model.pathData {
             pathDataNote(status)
+          }
+          // See `map-planning` "No path data".
+          if session.hasStraightLines {
+            Text("The way to a chosen place is only a straight line so far, and so is its length")
+              .font(.caption)
+              .foregroundStyle(.secondary)
           }
         }
         if navigator.state == nil, session.route != nil {
@@ -642,7 +662,13 @@ private struct WaypointSheet: View {
         Text(complete.duration).font(.caption).foregroundStyle(.secondary).lineLimit(1)
       }
     case let startOnly as RouteDescriptionStartOnly:
-      Text("Start at \(startOnly.start), tap a knot to set the end").font(.headline)
+      if startOnly.endFirst {
+        Text("End set, tap a knot to set the start").font(.headline)
+      } else if startOnly.routePoint {
+        Text("Start set, tap a knot to set the end").font(.headline)
+      } else {
+        Text("Start at \(startOnly.start), tap a knot to set the end").font(.headline)
+      }
     case let unreachable as RouteDescriptionUnreachable:
       Text("No route for \(unreachable.legs.joined(separator: ", "))").font(.headline).foregroundStyle(.red)
     default:
@@ -655,7 +681,8 @@ private struct WaypointSheet: View {
   }
 
   private func role(_ index: Int) -> KnotRole {
-    switch index {
+    if session.endFirst { return .end }
+    return switch index {
     case 0: .start
     case rows.count - 1: .end
     default: .stop
@@ -735,7 +762,10 @@ private struct NavigationHeader: View {
       offRouteHeader(display.next, at: next, guidance: state.position.flatMap { navigation.guidance(fix: $0) })
     } else if display.wrongWay {
       offRouteHeader(display.next, at: next, guidance: nil, wrongWay: true)
-    } else if let follow = display.follow, !display.close {
+    } else if let follow = display.follow,
+      // A route point has no signs to follow, so it is named like before the reminder.
+      !display.close || display.nextRole != nil || display.followRole != nil
+    {
       nextKnotHeader(display.next, at: next, follow: follow)
     } else {
       // The distance moves below the number to follow where it does not fit next to it, and the
@@ -914,6 +944,34 @@ private struct WaypointRow: Equatable {
     return session.waypoints.map { knot in
       let repeated = !seen.insert(knot.id).inserted
       return WaypointRow(id: repeated ? "\(knot.id)-again" : "\(knot.id)", knot: knot)
+    }
+  }
+}
+
+/// The choices for a tapped place, shown below its flag on the map and following it while the map
+/// moves. Dismissed by tapping the map elsewhere.
+private struct PlaceOfferMenu: View {
+  let canAddStop: Bool
+  let choose: (PlaceChoice) -> Void
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      item("Start here", .start)
+      if canAddStop {
+        Divider()
+        item("Add stop here", .stop)
+      }
+      Divider()
+      item("End here", .end)
+    }
+    .frame(width: 200)
+    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
+    .shadow(radius: 8)
+  }
+
+  private func item(_ title: LocalizedStringKey, _ choice: PlaceChoice) -> some View {
+    Button { choose(choice) } label: {
+      Text(title).frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).padding(.horizontal, 16)
     }
   }
 }

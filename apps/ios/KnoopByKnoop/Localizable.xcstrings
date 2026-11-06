@@ -26,6 +26,28 @@
         }
       }
     },
+    "Add stop here": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hier Zwischenstopp"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hier tussenstop"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter une étape ici"
+          }
+        }
+      }
+    },
     "Appearance": {
       "localizations": {
         "de": {
@@ -330,6 +352,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Données téléchargées"
+          }
+        }
+      }
+    },
+    "End here": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hier enden"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hier eindigen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arriver ici"
+          }
+        }
+      }
+    },
+    "End set, tap a knot to set the start": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ende gesetzt, tippe auf einen Knotenpunkt für den Start"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einde gezet, tik op een knooppunt voor de start"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrivée choisie, touchez un point-nœud pour le départ"
           }
         }
       }
@@ -1214,6 +1280,50 @@
         }
       }
     },
+    "Start here": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hier starten"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hier starten"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partir d'ici"
+          }
+        }
+      }
+    },
+    "Start set, tap a knot to set the end": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start gesetzt, tippe auf einen Knotenpunkt für das Ende"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start gezet, tik op een knooppunt voor het einde"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Départ choisi, touchez un point-nœud pour l'arrivée"
+          }
+        }
+      }
+    },
     "Starting navigation…": {
       "localizations": {
         "de": {
@@ -1452,6 +1562,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Les réseaux de points-nœuds nécessitent une connexion internet une fois"
+          }
+        }
+      }
+    },
+    "The way to a chosen place is only a straight line so far, and so is its length": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Weg zu einem gewählten Ort ist bisher nur eine Luftlinie, ebenso seine Länge"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De weg naar een gekozen plek is nog maar een rechte lijn, en de lengte ook"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le chemin vers un lieu choisi n'est encore qu'une ligne droite, sa longueur aussi"
           }
         }
       }

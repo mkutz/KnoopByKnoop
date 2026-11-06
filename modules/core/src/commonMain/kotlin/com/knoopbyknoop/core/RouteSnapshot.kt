@@ -16,15 +16,74 @@ data class RouteSnapshot(
   val waypoints: List<Waypoint>,
 ) {
 
-  @Serializable data class Waypoint(val id: Long, val ref: String)
+  /**
+   * @property point for a route point, where it is and how it joins the network, see `map-planning`
+   *   "Keeping route points"
+   */
+  @Serializable
+  data class Waypoint(val id: Long, val ref: String, val point: StoredPoint? = null) {
+
+    internal fun toKnot(network: NetworkType): Knot? = point?.toKnot(id, network)
+  }
+
+  /** A route point as stored: everything needed to restore it without geometry or path data. */
+  @Serializable
+  data class StoredPoint(
+    val latitude: Double,
+    val longitude: Double,
+    val fromId: Long,
+    val toId: Long,
+    val fraction: Double,
+    val placeLatitude: Double,
+    val placeLongitude: Double,
+    val way: List<List<Double>> = listOf(),
+    val straight: Boolean = false,
+  ) {
+
+    internal fun toKnot(id: Long, network: NetworkType) =
+      Knot(
+        id,
+        "",
+        network,
+        latitude,
+        longitude,
+        routePoint =
+          RoutePoint(
+            fromId,
+            toId,
+            fraction,
+            GeoPoint(placeLatitude, placeLongitude),
+            way.map { GeoPoint(it[0], it[1]) },
+            straight,
+          ),
+      )
+
+    companion object {
+      internal fun of(knot: Knot): StoredPoint? =
+        knot.routePoint?.let {
+          StoredPoint(
+            knot.latitude,
+            knot.longitude,
+            it.fromId,
+            it.toId,
+            it.fraction,
+            it.place.latitude,
+            it.place.longitude,
+            it.way.map { point -> listOf(point.latitude, point.longitude) },
+            it.straight,
+          )
+        }
+    }
+  }
 
   fun toJson(): String = json.encodeToString(this)
 
   /** Restores the route on [graph], the installed graph of [network]. */
   fun restore(graph: NetworkGraph): RestoredRoute {
-    val (present, missing) = waypoints.partition { it.id in graph.knots }
-    val session = PlanningSession.start(graph, present.map { graph.knots.getValue(it.id) })
-    return RestoredRoute(session, missing.map { it.ref })
+    val network = requireNotNull(graph.network) { "Cannot restore on an empty network" }
+    val (present, missing) = waypoints.partition { it.point != null || it.id in graph.knots }
+    val knots = present.map { it.toKnot(network) ?: graph.knots.getValue(it.id) }
+    return RestoredRoute(PlanningSession.start(graph, knots), missing.map { it.ref })
   }
 
   companion object {
@@ -34,7 +93,7 @@ data class RouteSnapshot(
     fun of(session: PlanningSession): RouteSnapshot =
       RouteSnapshot(
         network = IndexedNetworkType.of(session.network),
-        waypoints = session.waypoints.map { Waypoint(it.id, it.ref) },
+        waypoints = session.waypoints.map { Waypoint(it.id, it.ref, StoredPoint.of(it)) },
       )
 
     @Throws(IllegalArgumentException::class)

@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.res.Configuration
 import android.os.Build
 import android.view.WindowManager
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -38,6 +40,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -90,7 +94,9 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import com.knoopbyknoop.core.Guidance
 import com.knoopbyknoop.core.GuidedWayView
@@ -102,6 +108,7 @@ import com.knoopbyknoop.core.PathDataStatus
 import com.knoopbyknoop.core.ProgressView
 import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteSummary
+import com.knoopbyknoop.core.hasStraightLines
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
@@ -353,7 +360,10 @@ private fun MapArea(
       shownKnot = state.shownKnot,
       topControlsBottom = topControlsBottom,
       topControlsStart = topControlsStart,
+      offerPlace = state.offer?.offer?.position,
+      onOfferMoved = viewModel::offerMoved,
     )
+    state.offer?.let { PlaceOfferMenu(it, viewModel) }
     // Below the status bar and clear of the cutout, where touches go to the system, see
     // `map-planning` "Clear of the system bars".
     Column(
@@ -498,7 +508,11 @@ private fun WaypointSheet(
                 )
               is RouteDescription.StartOnly ->
                 Text(
-                  stringResource(R.string.start_at_set_end, description.start),
+                  when {
+                    description.endFirst -> stringResource(R.string.end_point_set_start)
+                    description.routePoint -> stringResource(R.string.start_point_set_end)
+                    else -> stringResource(R.string.start_at_set_end, description.start)
+                  },
                   style = MaterialTheme.typography.titleMedium,
                 )
               is RouteDescription.Complete ->
@@ -570,6 +584,15 @@ private fun WaypointSheet(
         )
         complete?.let { RouteKnots(it) }
         state.pathData?.let { PathDataNote(it) }
+        // See `map-planning` "No path data".
+        if (session.hasStraightLines) {
+          Text(
+            stringResource(R.string.straight_ways),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 4.dp),
+          )
+        }
         if (session.route != null) NewKnotsSwitch(state.newKnots, viewModel::chooseNewKnots)
       }
     }
@@ -587,6 +610,7 @@ private fun WaypointSheet(
     // "Long routes in the panel".
     WaypointList(
         session.waypoints,
+        session.endFirst,
         session.canRemoveWaypoints,
         viewModel,
         editable = true,
@@ -786,7 +810,9 @@ private fun NavigationHeader(
             ridingDirection = null,
             warning = stringResource(R.string.wrong_direction_next),
           )
-        follow != null && !display.close -> {
+        // A route point has no signs to follow, so it is named like before the reminder.
+        follow != null &&
+          (!display.close || display.nextRole != null || display.followRole != null) -> {
           NextKnotHeader(
             display.next,
             nextRole,
@@ -877,6 +903,7 @@ private fun RouteKnots(description: RouteDescription.Complete) {
 @Composable
 private fun WaypointList(
   waypoints: List<Knot>,
+  endFirst: Boolean,
   canRemove: Boolean,
   viewModel: AppViewModel,
   editable: Boolean,
@@ -944,9 +971,10 @@ private fun WaypointList(
       ) {
         // Read here, so the role follows the shown order while dragging.
         val role =
-          when (order.indexOf(index)) {
-            0 -> KnotRole.START
-            order.lastIndex -> KnotRole.END
+          when {
+            endFirst -> KnotRole.END
+            order.indexOf(index) == 0 -> KnotRole.START
+            order.indexOf(index) == order.lastIndex -> KnotRole.END
             else -> KnotRole.STOP
           }
         val roleName = stringResource(role.label)
@@ -954,8 +982,10 @@ private fun WaypointList(
         val moveUp = stringResource(R.string.move_up)
         val moveDown = stringResource(R.string.move_down)
         val remove = stringResource(R.string.remove)
-        val removeKnot = stringResource(R.string.remove_knot, knot.ref)
-        val moveKnot = stringResource(R.string.move_knot, knot.ref)
+        // A route point is named by its role, as it has no number.
+        val name = if (knot.isRoutePoint) roleName else knot.ref
+        val removeKnot = stringResource(R.string.remove_knot, name)
+        val moveKnot = stringResource(R.string.move_knot, name)
         Row(
           verticalAlignment = Alignment.CenterVertically,
           modifier =
@@ -1174,5 +1204,38 @@ private fun OffRouteHeader(
           )
         }
       }
+  }
+}
+
+/**
+ * The choices for a tapped place, at the place, see `map-planning` "Choose a route point on the
+ * map". Dismissing changes nothing.
+ */
+@Composable
+private fun PlaceOfferMenu(offer: PlaceOffer, viewModel: AppViewModel) {
+  Box(modifier = Modifier.offset { IntOffset(offer.x.roundToInt(), offer.y.roundToInt()) }) {
+    // Not focusable, so the map can still be moved and the menu follows its flag; a tap on the map
+    // or Back closes it.
+    BackHandler(onBack = viewModel::dismissOffer)
+    DropdownMenu(
+      expanded = true,
+      onDismissRequest = viewModel::dismissOffer,
+      properties = PopupProperties(focusable = false, dismissOnClickOutside = false),
+    ) {
+      DropdownMenuItem(
+        text = { Text(stringResource(R.string.start_here)) },
+        onClick = { viewModel.choose(PlaceChoice.START) },
+      )
+      if (offer.offer.canAddStop) {
+        DropdownMenuItem(
+          text = { Text(stringResource(R.string.add_stop_here)) },
+          onClick = { viewModel.choose(PlaceChoice.STOP) },
+        )
+      }
+      DropdownMenuItem(
+        text = { Text(stringResource(R.string.end_here)) },
+        onClick = { viewModel.choose(PlaceChoice.END) },
+      )
+    }
   }
 }

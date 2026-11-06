@@ -53,7 +53,7 @@ Where knots are shown, a tap with no knot or route point within the tolerance SH
 - **THEN** the waypoints keep 12 as start and as a stop, and the point is the end
 
 ### Requirement: A route point on a course
-A tap with a course of the network within the tolerance SHALL put the route point at the nearest place on that course, without using the routing service. Connections with a ferry SHALL be left out, as the data does not say where on the course the ferry is.
+A tap with a course of the network within the tolerance SHALL put the route point at the nearest place on that course. Connections with a ferry SHALL be left out, as the data does not say where on the course the ferry is.
 
 #### Scenario: On a course
 - **WHEN** the user chooses "Start here" on the course of 02-06
@@ -68,39 +68,39 @@ A tap with a course of the network within the tolerance SHALL put the route poin
 - **THEN** the point is treated as away from the network
 
 ### Requirement: A route point away from the network
-A route point with no course within the tolerance SHALL connect to the nearest place on a course without a ferry, by a way from an online routing service for the network's type, cycling or walking. Until the service answers, and when it does not, the way SHALL be a straight line. Planning SHALL never wait for the service. A route point's way SHALL be requested again only if it is still a straight line, when the planner is shown with internet access, and never while navigating.
+On a cycling route, a route point with no course within the tolerance SHALL connect to a nearby place on a course without a ferry, by a way found on the device from the path data, see `path-routing`. Otherwise, and on a hiking route, it SHALL connect by a straight line to the nearest place on a course, which SHALL be replaced by a way once the path data allows, only while planning. Planning SHALL never wait for a way, and the point's position SHALL NOT be sent anywhere.
 
-#### Scenario: The service answers
-- **WHEN** the user chooses a place away from the network and the service answers
-- **THEN** the point connects along the answered way, and the route's length and time include it
+#### Scenario: A way is found
+- **WHEN** the user chooses a place 400 m from the network on a cycling route, with the squares around it installed
+- **THEN** the point connects along a way on suitable paths, and the route's length and time include it
 
-#### Scenario: While waiting
-- **WHEN** the user chooses a place away from the network and the service has not answered yet
-- **THEN** the route is shown at once with a straight line, and is updated when the answer arrives
+#### Scenario: Joining a nearby course
+- **WHEN** the nearest course is across a river with no bridge nearby, and another course on the same side is a little further
+- **THEN** the way joins the course on the same side, if its way is shorter
 
-#### Scenario: No internet access
-- **WHEN** the device has no internet access and the user chooses a place away from the network
+#### Scenario: While the path data loads
+- **WHEN** the user chooses a place away from the network and the squares around it are not installed yet
+- **THEN** the route is shown at once with a straight line, and the line is replaced by a way when the squares have arrived
+
+#### Scenario: No path data
+- **WHEN** the squares around the place can't be downloaded, e.g. without internet access, or the user deleted the ways
 - **THEN** the point connects by a straight line, the planner says that its way and length are only straight, and planning keeps working
 
-#### Scenario: The service fails
-- **WHEN** the service does not answer in time, answers with an error, or finds no way
-- **THEN** the point connects by a straight line, as without internet access
+#### Scenario: No way found
+- **WHEN** the installed squares don't connect the place to a course, e.g. as it is in a closed area
+- **THEN** the point connects by a straight line, as without path data
 
-#### Scenario: Internet access is back
-- **WHEN** a route has a straight line and the planner is shown with internet access
-- **THEN** the way is requested again and replaces the line if the service answers
+#### Scenario: A hiking route
+- **WHEN** the user chooses a place away from the network on a hiking route
+- **THEN** the point connects by a straight line, and no path data is requested
 
-#### Scenario: Service turned off
-- **WHEN** the published index names no routing service
-- **THEN** points away from the network connect by straight lines and nothing is requested
-
-#### Scenario: What is sent
-- **WHEN** the way is requested
-- **THEN** the service receives the point's position, the place on the course and the network's type, and not the rider's position or the rest of the route
+#### Scenario: Nothing leaves the device
+- **WHEN** the user chooses a place away from the network
+- **THEN** no request contains the place, and only the squares around the route's course are requested, as for any cycling route
 
 #### Scenario: The line on the map
 - **WHEN** a route has a way to a point away from the network
-- **THEN** that way is drawn differently from the route on the network, and a straight line differently from a way from the service
+- **THEN** that way is drawn differently from the route on the network, and a straight line differently from a way along paths
 
 ### Requirement: Route points on the map and in the list
 A route point SHALL be shown as a flag instead of a number badge, on the map and in the waypoint list and knot sequence, with the word for start, stop or end for screen readers.
@@ -125,10 +125,10 @@ The action to return to the start SHALL also be available when the start is a ro
 - **THEN** the route goes from the point to 28 and back to the same point
 
 ### Requirement: Keeping route points
-Route points and their ways SHALL be kept with the route across restarts, also before the courses are loaded and without internet access. A route point whose connection no longer exists after a data update SHALL connect anew to the nearest course. A route stored before route points existed SHALL still be restored.
+Route points and their ways SHALL be kept with the route across restarts, also before the courses are loaded, without path data and without internet access. A route point whose connection no longer exists after a data update SHALL connect anew to the nearest course. A route stored before route points existed SHALL still be restored.
 
 #### Scenario: After a restart
-- **WHEN** a waypoint is a route point with a way from the service, and the app is restarted without internet access
+- **WHEN** a waypoint is a route point with a way along paths, and the app is restarted without internet access
 - **THEN** the same place and the same way are in the route, and its length is unchanged
 
 #### Scenario: Connection gone

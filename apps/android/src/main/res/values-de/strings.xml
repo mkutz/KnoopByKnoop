@@ -14,6 +14,12 @@
   <string name="osm_contributors">© OpenStreetMap-Mitwirkende</string>
   <string name="tap_to_set_start">Tippe auf einen Knotenpunkt, um den Start zu setzen</string>
   <string name="start_at_set_end">Start bei %1$s, tippe auf einen Knotenpunkt für das Ende</string>
+  <string name="start_here">Hier starten</string>
+  <string name="add_stop_here">Hier Zwischenstopp</string>
+  <string name="end_here">Hier enden</string>
+  <string name="start_point_set_end">Start gesetzt, tippe auf einen Knotenpunkt für das Ende</string>
+  <string name="end_point_set_start">Ende gesetzt, tippe auf einen Knotenpunkt für den Start</string>
+  <string name="straight_ways">Der Weg zu einem gewählten Ort ist bisher nur eine Luftlinie, ebenso seine Länge</string>
   <string name="no_route_for">Keine Route für %1$s</string>
   <string name="back_to_start">Zurück zum Start</string>
   <string name="export_gpx">GPX exportieren</string>

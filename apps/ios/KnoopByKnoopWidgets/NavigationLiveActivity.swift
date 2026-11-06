@@ -43,23 +43,23 @@ struct NavigationLiveActivity: Widget {
           Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
         } else if context.state.follow != nil {
           HStack(spacing: 2) {
-            Text(context.state.next).bold()
+            NumberOrFlag(ref: context.state.next).bold()
             Image(systemName: "arrow.right").font(.caption2.bold())
           }
         } else {
-          Text(context.state.next).bold()
+          NumberOrFlag(ref: context.state.next).bold()
         }
       } compactTrailing: {
         if context.state.offRoute || context.state.wrongWay {
-          Text(context.state.next).bold()
+          NumberOrFlag(ref: context.state.next).bold()
         } else if let follow = context.state.follow {
-          Text(follow).bold().foregroundStyle(Color.knoopGreen)
+          NumberOrFlag(ref: follow).bold().foregroundStyle(Color.knoopGreen)
         } else {
           Image(systemName: "flag.checkered")
         }
       } minimal: {
         // The one number left when the island is shared: the knot the app shows largest.
-        Text(context.state.close && !context.state.offRoute && !context.state.wrongWay ? context.state.follow ?? context.state.next : context.state.next)
+        NumberOrFlag(ref: context.state.close && !context.state.offRoute && !context.state.wrongWay ? context.state.follow ?? context.state.next : context.state.next)
           .bold()
           .foregroundStyle(Color.knoopGreen)
       }
@@ -256,5 +256,15 @@ private struct StopButton: View {
         .background(Color.actionRed, in: Capsule())
     }
     .buttonStyle(.plain)
+  }
+}
+
+/// A knot's number, or a flag for a route point, which has none, see `knot-navigation` "Navigating
+/// with route points".
+struct NumberOrFlag: View {
+  let ref: String
+
+  var body: some View {
+    if ref.isEmpty { Image(systemName: "flag.fill") } else { Text(ref) }
   }
 }

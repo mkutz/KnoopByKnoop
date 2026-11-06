@@ -93,6 +93,9 @@ data class Notice(val kind: NoticeKind, val text: String, val speech: String)
  *   the number to follow the most prominent, see `knot-navigation` "Number to follow"
  * @property wrongWay whether the rider rides back along the route, see `knot-navigation` "Riding
  *   the wrong way"
+ * @property nextRole the role of the next knot if it is a route point, which has no number; the
+ *   apps draw a flag in place of [next], see `knot-navigation` "Navigating with route points"
+ * @property followRole the same for [follow]
  */
 data class NavigationDisplay(
   val next: String,
@@ -101,7 +104,12 @@ data class NavigationDisplay(
   val language: Language = Language.EN,
   val close: Boolean = true,
   val wrongWay: Boolean = false,
+  val nextRole: WaypointRole? = null,
+  val followRole: WaypointRole? = null,
 ) {
+
+  private val nextSpot: Spot
+    get() = Spot(next, nextRole)
 
   /**
    * E.g. `At 45 follow 12` when [close], `Next 45, then 12` before, `31 is the end`, or `Wrong
@@ -110,15 +118,15 @@ data class NavigationDisplay(
   val text: String
     get() =
       when {
-        wrongWay -> language.texts.wrongWayNext(next)
-        follow == null -> language.texts.isTheEnd(next)
-        close -> language.texts.follow(next, follow)
-        else -> language.texts.nextOutside(next, follow)
+        wrongWay -> language.texts.wrongWayNext(nextSpot)
+        follow == null -> language.texts.isTheEnd(nextSpot)
+        close -> language.texts.follow(nextSpot, Spot(follow, followRole))
+        else -> language.texts.nextOutside(nextSpot, Spot(follow, followRole))
       }
 
   /** E.g. `Off route, next 45`, shown instead of [text] while off route. */
   val offRouteText: String
-    get() = language.texts.offRouteNext(next)
+    get() = language.texts.offRouteNext(nextSpot)
 }
 
 /**
@@ -339,7 +347,12 @@ private constructor(
         language,
         close = remindedIndex == nextIndex,
         wrongWay = wrongWay,
+        nextRole = spotAt(nextIndex).role,
+        followRole = knots.getOrNull(nextIndex + 1)?.let { spotAt(nextIndex + 1).role },
       )
+
+  /** What sentences call the knot at [index]: its number, or a route point's role. */
+  private fun spotAt(index: Int): Spot = Spot.at(knots, index)
 
   /**
    * When the rider gets to the ferry on the leg from the knot at [fromPosition] of [knots], as
@@ -370,7 +383,7 @@ private constructor(
     val line =
       if (offRoute && !arrived) {
         val way = wayTo(fix, headedFor(nextIndex), newLanguage)
-        newLanguage.texts.wayTo(way.distance, way.direction, nextKnot.ref)
+        newLanguage.texts.wayTo(way.distance, way.direction, spotAt(nextIndex))
       } else {
         navigation.routeLine(fix)
       }
@@ -433,6 +446,11 @@ private constructor(
       val offRouteKnot = enteredOffRouteKnot(fix)
       val distanceToCourse = distanceToCourse(fix)
       when {
+        offRouteKnot == null && onStraightLine(fix) -> {
+          // A straight line cannot be followed, see `knot-navigation` "A straight line".
+          if (offRoute) notices += backOnRouteNotice(nextIndex)
+          navigation = navigation.copy(offRoute = false, offRouteKnot = null, guided = null)
+        }
         offRouteKnot != null -> {
           if (!offRoute) notices += offRouteNotice(nextIndex, fix)
           navigation =
@@ -462,11 +480,14 @@ private constructor(
       navigation = navigation.copy(remindedIndex = navigation.nextIndex)
     }
 
+    val straight = passedIndex == null && navigation.onStraightLine(fix)
     if (passedIndex == null && !navigation.offRoute) {
       val place = route.placeOf(fix, navigation.nextIndex)
-      val (watched, directionNotice) = navigation.watchingDirection(place, fix)
-      directionNotice?.let { notices += it }
-      navigation = watched
+      if (!straight) {
+        val (watched, directionNotice) = navigation.watchingDirection(place, fix)
+        directionNotice?.let { notices += it }
+        navigation = watched
+      }
       val pace = paceAt(place, fix)
       navigation =
         navigation.copy(
@@ -482,7 +503,16 @@ private constructor(
         )
       // Also back on route: the route's progress line again, see "Direction outside the app".
       // Before the first knot, the place stands still while the distance to it changes.
-      if (offRoute || navigation.nextIndex == 0 || abs(place - linePlace) >= LINE_METERS) {
+      if (straight && navigation.knots[navigation.nextIndex].isRoutePoint) {
+        // The distance and direction to the point, as its line cannot be followed.
+        val target = navigation.headedFor(navigation.nextIndex)
+        val way = wayTo(fix, target, language)
+        navigation =
+          navigation.copy(
+            progressLine =
+              texts.wayTo(way.distance, way.direction, navigation.spotAt(navigation.nextIndex))
+          )
+      } else if (offRoute || navigation.nextIndex == 0 || abs(place - linePlace) >= LINE_METERS) {
         navigation = navigation.copy(progressLine = navigation.routeLine(fix), linePlace = place)
       }
     }
@@ -533,8 +563,8 @@ private constructor(
   private fun wrongWayNotice(): Notice =
     notice(
       NoticeKind.WRONG_WAY,
-      texts.wrongWay(nextKnot.ref),
-      speech.wrongWay(spoken(nextKnot.ref)),
+      texts.wrongWay(spotAt(nextIndex)),
+      speech.wrongWay(spotAt(nextIndex).spoken()),
     )
 
   /** The pace with the rider at [place] at [fix]; time off route does not count. */
@@ -586,7 +616,7 @@ private constructor(
     val line =
       previous?.takeIf { fix.timeMillis - it.timeMillis <= LINE_MAX_MILLIS }
         ?: return distanceToNearestNode(fix, knot) <= PASS_RADIUS_METERS
-    return knot.positions.any { position ->
+    return knot.reachPositions.any { position ->
       distanceToLine(
         position.latitude,
         position.longitude,
@@ -609,6 +639,22 @@ private constructor(
       .minOfOrNull { distanceToPolyline(fix.latitude, fix.longitude, it) }
   }
 
+  /**
+   * Whether the rider is on the way to or from a route point joined by a straight line only, near
+   * enough to it that being away from the line is no detour, see `knot-navigation` "A straight
+   * line".
+   */
+  private fun onStraightLine(fix: Fix): Boolean {
+    if (nextIndex == 0) return false
+    val toward = knots[nextIndex].routePoint?.takeIf { it.straight }
+    val from = knots[nextIndex - 1].routePoint?.takeIf { it.straight }
+    val point = if (toward != null) knots[nextIndex] else knots[nextIndex - 1]
+    val routePoint = toward ?: from ?: return false
+    val line = lengthOf(routePoint.way)
+    val position = GeoPoint(point.latitude, point.longitude)
+    return distanceTo(fix, position) <= line + OFF_COURSE_METERS
+  }
+
   /** Whether the knot at [index] is so close to the one before it that the notice named it. */
   private fun closeToPrevious(index: Int): Boolean =
     index > 0 &&
@@ -620,22 +666,22 @@ private constructor(
       ) < REMINDER_METERS
 
   private fun nextNotice(index: Int): Notice {
-    val next = knots[index].ref
-    val after = knots.getOrNull(index + 1)?.ref
+    val next = spotAt(index)
+    val after = knots.getOrNull(index + 1)?.let { spotAt(index + 1) }
     return notice(
       NoticeKind.NEXT,
       texts.next(next, after),
-      speech.next(spoken(next), after?.let(::spoken)),
+      speech.next(next.spoken(), after?.spoken()),
     )
   }
 
   private fun reminderNotice(): Notice {
-    val next = nextKnot.ref
-    val after = knots.getOrNull(nextIndex + 1)?.ref
+    val next = spotAt(nextIndex)
+    val after = knots.getOrNull(nextIndex + 1)?.let { spotAt(nextIndex + 1) }
     return notice(
       NoticeKind.REMINDER,
       texts.ahead(next, after),
-      speech.ahead(spoken(next), after?.let(::spoken)),
+      speech.ahead(next.spoken(), after?.spoken()),
     )
   }
 
@@ -643,8 +689,8 @@ private constructor(
   private fun offRouteNotice(index: Int, fix: Fix): Notice {
     return notice(
       NoticeKind.OFF_ROUTE,
-      texts.offRoute(knots[index].ref, wayTo(fix, headedFor(index), language).text),
-      speech.offRoute(spoken(knots[index].ref), spokenWay(fix, headedFor(index))),
+      texts.offRoute(spotAt(index), wayTo(fix, headedFor(index), language).text),
+      speech.offRoute(spotAt(index).spoken(), spokenWay(fix, headedFor(index))),
     )
   }
 
@@ -692,8 +738,8 @@ private constructor(
       )
         notice(
           NoticeKind.GUIDANCE,
-          texts.guidance(nextKnot.ref, way.text),
-          speech.guidance(spoken(nextKnot.ref), spokenWay(fix, target)),
+          texts.guidance(spotAt(nextIndex), way.text),
+          speech.guidance(spotAt(nextIndex).spoken(), spokenWay(fix, target)),
         )
       else null
     val told = startedNow || last == null || notice != null
@@ -705,15 +751,15 @@ private constructor(
         lineMeters = if (renewLine) meters else last.lineMeters,
       )
     val line =
-      if (renewLine) texts.wayTo(way.distance, way.direction, nextKnot.ref) else progressLine
+      if (renewLine) texts.wayTo(way.distance, way.direction, spotAt(nextIndex)) else progressLine
     return copy(guided = guided, progressLine = line) to notice
   }
 
   private fun backOnRouteNotice(index: Int): Notice =
     notice(
       NoticeKind.BACK_ON_ROUTE,
-      texts.backOnRoute(knots[index].ref),
-      speech.backOnRoute(spoken(knots[index].ref)),
+      texts.backOnRoute(spotAt(index)),
+      speech.backOnRoute(spotAt(index).spoken()),
     )
 
   private fun arrivedNotice(): Notice = notice(NoticeKind.ARRIVED, texts.arrived, speech.arrived)
@@ -999,7 +1045,9 @@ private fun distanceTo(fix: Fix, point: GeoPoint): Double =
 
 /** The distance from [fix] to the nearest of the nodes [knot] is tagged on. */
 private fun distanceToNearestNode(fix: Fix, knot: Knot): Double =
-  knot.positions.minOf { distanceMeters(fix.latitude, fix.longitude, it.latitude, it.longitude) }
+  knot.reachPositions.minOf {
+    distanceMeters(fix.latitude, fix.longitude, it.latitude, it.longitude)
+  }
 
 private const val METERS_PER_DEGREE_LATITUDE = 6_371_008.8 * PI / 180
 
@@ -1060,3 +1108,10 @@ private fun wayTo(fix: Fix, point: GeoPoint, language: Language): Guidance {
   val direction = compass(bearing, language)
   return Guidance(distance, bearing, direction, language.texts.way(distance, direction))
 }
+
+/**
+ * Where the rider reaches [Knot]: its nodes, and for a route point also the end of its way, see
+ * `knot-navigation` "A point the way does not reach".
+ */
+private val Knot.reachPositions: List<GeoPoint>
+  get() = positions + listOfNotNull(routePoint?.wayEnd)

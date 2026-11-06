@@ -191,6 +191,45 @@ internal interface Texts {
 
   /** E.g. `Ferry 12 → 31`. */
   fun ferryBetween(legs: String): String
+
+  // Route points, see `knot-navigation` "Navigating with route points": where a sentence names a
+  // knot by its number, a route point is named by its role.
+
+  /** A route point with its article, e.g. `the stop`, e.g. after `then`. */
+  fun point(role: WaypointRole): String
+
+  /** E.g. `On to the stop, then 12`, or `On to the end`. */
+  fun nextPoint(role: WaypointRole, after: String?): String
+
+  /** E.g. `The stop ahead, then 12`, or `The end ahead`. */
+  fun aheadPoint(role: WaypointRole, after: String?): String
+
+  /** E.g. `Off route, on to the end, 300 m to the north`. */
+  fun offRoutePoint(role: WaypointRole, way: String): String
+
+  /** E.g. `On to the end, 300 m to the north`. */
+  fun guidancePoint(role: WaypointRole, way: String): String
+
+  /** E.g. `Back on route, on to the end`. */
+  fun backOnRoutePoint(role: WaypointRole): String
+
+  /** E.g. `Wrong direction, turn around, on to the end`. */
+  fun wrongWayPoint(role: WaypointRole): String
+
+  /** E.g. `Wrong direction, on to the end`. */
+  fun wrongWayNextPoint(role: WaypointRole): String
+
+  /** E.g. `Off route, on to the end`. */
+  fun offRouteNextPoint(role: WaypointRole): String
+
+  /** E.g. `300 m north to the end`. */
+  fun wayToPoint(distance: String, direction: String, role: WaypointRole): String
+
+  /** E.g. `0.8 km to the stop · end around 19:05`. */
+  fun toPoint(distance: String, role: WaypointRole, endArrival: String?): String
+
+  /** E.g. `4.0 of 12.4 km ridden, on to the stop`. */
+  fun riddenPoint(ridden: String, role: WaypointRole): String
 }
 
 internal object EnglishTexts : Texts {
@@ -369,6 +408,43 @@ internal object EnglishTexts : Texts {
   override fun knot(ref: String) = "Knot $ref"
 
   override fun ferryBetween(legs: String) = "Ferry $legs"
+
+  override fun point(role: WaypointRole) =
+    when (role) {
+      WaypointRole.START -> "the start"
+      WaypointRole.STOP -> "the stop"
+      WaypointRole.END -> "the end"
+    }
+
+  private fun onTo(role: WaypointRole) = "on to ${point(role)}"
+
+  override fun nextPoint(role: WaypointRole, after: String?) =
+    if (after != null) "On to ${point(role)}, then $after" else "On to ${point(role)}"
+
+  override fun aheadPoint(role: WaypointRole, after: String?) =
+    if (after != null) "${capitalized(point(role))} ahead, then $after"
+    else "${capitalized(point(role))} ahead"
+
+  override fun offRoutePoint(role: WaypointRole, way: String) = "Off route, ${onTo(role)}, $way"
+
+  override fun guidancePoint(role: WaypointRole, way: String) = "On to ${point(role)}, $way"
+
+  override fun backOnRoutePoint(role: WaypointRole) = "Back on route, ${onTo(role)}"
+
+  override fun wrongWayPoint(role: WaypointRole) = "Wrong direction, turn around, ${onTo(role)}"
+
+  override fun wrongWayNextPoint(role: WaypointRole) = "Wrong direction, ${onTo(role)}"
+
+  override fun offRouteNextPoint(role: WaypointRole) = "Off route, ${onTo(role)}"
+
+  override fun wayToPoint(distance: String, direction: String, role: WaypointRole) =
+    "$distance $direction to ${point(role)}"
+
+  override fun toPoint(distance: String, role: WaypointRole, endArrival: String?) =
+    if (endArrival != null) "$distance to ${point(role)} · end around $endArrival"
+    else "$distance to ${point(role)}"
+
+  override fun riddenPoint(ridden: String, role: WaypointRole) = "$ridden ridden, ${onTo(role)}"
 }
 
 internal object GermanTexts : Texts {
@@ -550,6 +626,59 @@ internal object GermanTexts : Texts {
   override fun knot(ref: String) = "Knotenpunkt $ref"
 
   override fun ferryBetween(legs: String) = "Fähre $legs"
+
+  override fun point(role: WaypointRole) =
+    when (role) {
+      WaypointRole.START -> "der Start"
+      WaypointRole.STOP -> "der Zwischenstopp"
+      WaypointRole.END -> "das Ziel"
+    }
+
+  /** E.g. `zum Ziel`. */
+  private fun toThe(role: WaypointRole) =
+    when (role) {
+      WaypointRole.START -> "zum Start"
+      WaypointRole.STOP -> "zum Zwischenstopp"
+      WaypointRole.END -> "zum Ziel"
+    }
+
+  /** Without article, e.g. `Ziel voraus`. */
+  private fun bare(role: WaypointRole) =
+    when (role) {
+      WaypointRole.START -> "Start"
+      WaypointRole.STOP -> "Zwischenstopp"
+      WaypointRole.END -> "Ziel"
+    }
+
+  override fun nextPoint(role: WaypointRole, after: String?) =
+    if (after != null) "Weiter ${toThe(role)}, dann $after" else "Weiter ${toThe(role)}"
+
+  override fun aheadPoint(role: WaypointRole, after: String?) =
+    if (after != null) "${bare(role)} voraus, dann $after" else "${bare(role)} voraus"
+
+  override fun offRoutePoint(role: WaypointRole, way: String) =
+    "Abseits der Route, weiter ${toThe(role)}, $way"
+
+  override fun guidancePoint(role: WaypointRole, way: String) = "Weiter ${toThe(role)}, $way"
+
+  override fun backOnRoutePoint(role: WaypointRole) = "Zurück auf der Route, weiter ${toThe(role)}"
+
+  override fun wrongWayPoint(role: WaypointRole) =
+    "Falsche Richtung, bitte wenden, weiter ${toThe(role)}"
+
+  override fun wrongWayNextPoint(role: WaypointRole) = "Falsche Richtung, weiter ${toThe(role)}"
+
+  override fun offRouteNextPoint(role: WaypointRole) = "Abseits der Route, weiter ${toThe(role)}"
+
+  override fun wayToPoint(distance: String, direction: String, role: WaypointRole) =
+    "$distance Richtung $direction bis ${toThe(role)}"
+
+  override fun toPoint(distance: String, role: WaypointRole, endArrival: String?) =
+    if (endArrival != null) "$distance bis ${toThe(role)} · Ende gegen $endArrival"
+    else "$distance bis ${toThe(role)}"
+
+  override fun riddenPoint(ridden: String, role: WaypointRole) =
+    "$ridden zurückgelegt, weiter ${toThe(role)}"
 }
 
 internal object DutchTexts : Texts {
@@ -739,6 +868,46 @@ internal object DutchTexts : Texts {
   override fun knot(ref: String) = "Knooppunt $ref"
 
   override fun ferryBetween(legs: String) = "Pont $legs"
+
+  override fun point(role: WaypointRole) =
+    when (role) {
+      WaypointRole.START -> "de start"
+      WaypointRole.STOP -> "de tussenstop"
+      WaypointRole.END -> "het einde"
+    }
+
+  override fun nextPoint(role: WaypointRole, after: String?) =
+    if (after != null) "Verder naar ${point(role)}, dan $after" else "Verder naar ${point(role)}"
+
+  override fun aheadPoint(role: WaypointRole, after: String?) =
+    if (after != null) "${capitalized(point(role))} komt eraan, dan $after"
+    else "${capitalized(point(role))} komt eraan"
+
+  override fun offRoutePoint(role: WaypointRole, way: String) =
+    "Van de route af, verder naar ${point(role)}, $way"
+
+  override fun guidancePoint(role: WaypointRole, way: String) = "Verder naar ${point(role)}, $way"
+
+  override fun backOnRoutePoint(role: WaypointRole) =
+    "Terug op de route, verder naar ${point(role)}"
+
+  override fun wrongWayPoint(role: WaypointRole) =
+    "Verkeerde richting, keer om, verder naar ${point(role)}"
+
+  override fun wrongWayNextPoint(role: WaypointRole) =
+    "Verkeerde richting, verder naar ${point(role)}"
+
+  override fun offRouteNextPoint(role: WaypointRole) = "Van de route af, verder naar ${point(role)}"
+
+  override fun wayToPoint(distance: String, direction: String, role: WaypointRole) =
+    "$distance richting $direction naar ${point(role)}"
+
+  override fun toPoint(distance: String, role: WaypointRole, endArrival: String?) =
+    if (endArrival != null) "$distance naar ${point(role)} · einde rond $endArrival"
+    else "$distance naar ${point(role)}"
+
+  override fun riddenPoint(ridden: String, role: WaypointRole) =
+    "$ridden afgelegd, verder naar ${point(role)}"
 }
 
 internal object FrenchTexts : Texts {
@@ -922,4 +1091,50 @@ internal object FrenchTexts : Texts {
   override fun knot(ref: String) = "Point-nœud $ref"
 
   override fun ferryBetween(legs: String) = "Bac $legs"
+
+  override fun point(role: WaypointRole) =
+    when (role) {
+      WaypointRole.START -> "le départ"
+      WaypointRole.STOP -> "l'étape"
+      WaypointRole.END -> "l'arrivée"
+    }
+
+  /** E.g. `jusqu'au départ` or `jusqu'à l'arrivée`. */
+  private fun upTo(role: WaypointRole) =
+    if (role == WaypointRole.START) "jusqu'au départ" else "jusqu'à ${point(role)}"
+
+  override fun nextPoint(role: WaypointRole, after: String?) =
+    if (after != null) "Vers ${point(role)}, puis $after" else "Vers ${point(role)}"
+
+  override fun aheadPoint(role: WaypointRole, after: String?) =
+    if (after != null) "${capitalized(point(role))} approche, puis $after"
+    else "${capitalized(point(role))} approche"
+
+  override fun offRoutePoint(role: WaypointRole, way: String) =
+    "Hors itinéraire, vers ${point(role)}, $way"
+
+  override fun guidancePoint(role: WaypointRole, way: String) = "Vers ${point(role)}, $way"
+
+  override fun backOnRoutePoint(role: WaypointRole) =
+    "De retour sur l'itinéraire, vers ${point(role)}"
+
+  override fun wrongWayPoint(role: WaypointRole) =
+    "Mauvaise direction, faites demi-tour, vers ${point(role)}"
+
+  override fun wrongWayNextPoint(role: WaypointRole) = "Mauvaise direction, vers ${point(role)}"
+
+  override fun offRouteNextPoint(role: WaypointRole) = "Hors itinéraire, vers ${point(role)}"
+
+  override fun wayToPoint(distance: String, direction: String, role: WaypointRole) =
+    "$distance direction $direction ${upTo(role)}"
+
+  override fun toPoint(distance: String, role: WaypointRole, endArrival: String?) =
+    if (endArrival != null) "$distance ${upTo(role)} · arrivée vers $endArrival"
+    else "$distance ${upTo(role)}"
+
+  override fun riddenPoint(ridden: String, role: WaypointRole) =
+    "$ridden parcourus, vers ${point(role)}"
 }
+
+/** [text] with its first letter upper case, e.g. `The stop`. */
+internal fun capitalized(text: String): String = text.replaceFirstChar { it.uppercase() }

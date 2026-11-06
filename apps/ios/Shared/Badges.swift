@@ -65,8 +65,15 @@ struct Badge: View {
   var body: some View {
     let style = BadgeStyle(role)
     let side: CGFloat = (style.large ? 34 : 28) * scale
-    Text(ref)
-      .font(.system(size: (ref.count > 2 ? 10 : 12) * (style.large ? 1.2 : 1) * scale, weight: .bold))
+    // A route point has no number: a flag, see `map-planning` "Route points on the map and in the list".
+    Group {
+      if ref.isEmpty {
+        Image(systemName: "flag.fill").font(.system(size: 12 * (style.large ? 1.2 : 1) * scale, weight: .bold))
+          .accessibilityHidden(true)
+      } else {
+        Text(ref).font(.system(size: (ref.count > 2 ? 10 : 12) * (style.large ? 1.2 : 1) * scale, weight: .bold))
+      }
+    }
       .foregroundStyle(style.text)
       .frame(width: side, height: side)
       .background(

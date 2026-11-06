@@ -6,6 +6,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Typeface
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -92,9 +94,30 @@ fun badgeBitmap(role: KnotRole?, ref: String): Bitmap {
       typeface = Typeface.DEFAULT_BOLD
       textSize = (if (ref.length > 2) 18f else 24f) * (if (style.large) 1.25f else 1f)
     }
-  canvas.drawText(ref, size / 2f, size / 2f - (text.descent() + text.ascent()) / 2, text)
+  if (ref.isEmpty()) {
+    // A route point has no number: a flag, see `map-planning` "Route points on the map and in the
+    // list".
+    canvas.drawPath(
+      flagPath(size.toFloat()),
+      Paint(Paint.ANTI_ALIAS_FLAG).apply { color = style.text.toArgb() },
+    )
+  } else {
+    canvas.drawText(ref, size / 2f, size / 2f - (text.descent() + text.ascent()) / 2, text)
+  }
   return bitmap
 }
+
+/** A flag for a route point, filling a badge of [size]: a pole and a pennant. */
+fun flagPath(size: Float): Path =
+  Path().apply {
+    val pole = size * 0.06f
+    val left = size * 0.34f
+    addRect(left, size * 0.24f, left + pole, size * 0.78f, Path.Direction.CW)
+    moveTo(left + pole, size * 0.24f)
+    lineTo(size * 0.72f, size * 0.37f)
+    lineTo(left + pole, size * 0.52f)
+    close()
+  }
 
 /** An arrow pointing along the line it is placed on, for the riding direction. */
 fun arrowBitmap(): Bitmap {
@@ -173,13 +196,20 @@ fun KnotBadge(ref: String, role: KnotRole?, modifier: Modifier = Modifier, scale
       with(LocalDensity.current) {
         ((if (ref.length > 2) 10 else 12).dp * (if (style.large) 1.2f else 1f) * scale).toSp()
       }
-    Text(
-      ref,
-      color = style.text,
-      fontWeight = FontWeight.Bold,
-      fontSize = textSize,
-      lineHeight = textSize,
-      maxLines = 1,
-    )
+    if (ref.isEmpty()) {
+      // A route point's flag, as on the map.
+      Canvas(Modifier.size(size)) {
+        drawPath(flagPath(this.size.width).asComposePath(), style.text)
+      }
+    } else {
+      Text(
+        ref,
+        color = style.text,
+        fontWeight = FontWeight.Bold,
+        fontSize = textSize,
+        lineHeight = textSize,
+        maxLines = 1,
+      )
+    }
   }
 }

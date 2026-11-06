@@ -14,6 +14,12 @@
   <string name="osm_contributors">© contributeurs OpenStreetMap</string>
   <string name="tap_to_set_start">Touchez un point-nœud pour choisir le départ</string>
   <string name="start_at_set_end">Départ au %1$s, touchez un point-nœud pour l\'arrivée</string>
+  <string name="start_here">Partir d\'ici</string>
+  <string name="add_stop_here">Ajouter une étape ici</string>
+  <string name="end_here">Arriver ici</string>
+  <string name="start_point_set_end">Départ choisi, touchez un point-nœud pour l\'arrivée</string>
+  <string name="end_point_set_start">Arrivée choisie, touchez un point-nœud pour le départ</string>
+  <string name="straight_ways">Le chemin vers un lieu choisi n\'est encore qu\'une ligne droite, sa longueur aussi</string>
   <string name="no_route_for">Pas d\'itinéraire pour %1$s</string>
   <string name="back_to_start">Retour au départ</string>
   <string name="export_gpx">Exporter en GPX</string>

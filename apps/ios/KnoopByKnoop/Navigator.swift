@@ -379,7 +379,8 @@ final class Navigator: NSObject, ObservableObject {
       followRole: roles.indices.contains(nextIndex + 1) ? roles[nextIndex + 1] : nil,
       text: display.offRoute ? display.offRouteText : display.text,
       progress: progress,
-      close: display.close,
+      // A route point has no signs to follow, see `knot-navigation` "Navigating with route points".
+      close: display.close && display.nextRole == nil && display.followRole == nil,
       riderFraction: renewBar ? strip.rider : current?.riderFraction,
       marks: renewBar ? Self.barMarks(of: strip) : current?.marks ?? [],
       dark: Self.systemIsDark,

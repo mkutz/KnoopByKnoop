@@ -10,6 +10,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
+import kotlin.test.assertTrue
 
 /** Covers the scenarios of `openspec/changes/add-waypoint-route-planning/specs/route-planning`. */
 class RouteTest {
@@ -157,5 +158,105 @@ class RouteTest {
     route.insertStop(knot7, position = 2)
 
     assertEquals(listOf(30L to 7L, 7L to 45L), routedLegs)
+  }
+
+  // Requirement: Route from waypoints, with route points
+
+  private val home = TestNetwork.pointOn(knot12, knot30, 0.25)
+
+  private fun routeOf(vararg waypoints: Knot) =
+    Route.plan(waypoints.toList(), ShortestPathRouter(graph.withRoutePoints(waypoints.toList())))
+
+  @Test
+  fun `starting from a route point`() {
+    // 500 m to 12, then 12, 7, 45 (3500 m) beats 1500 m to 30, then 3000 m to 45.
+    val route = routeOf(home, knot45)
+
+    assertEquals(RouteSummary.Complete(listOf(home, knot12, knot7, knot45), 4000), route.summary)
+  }
+
+  @Test
+  fun `ending at a route point`() {
+    val route = routeOf(knot45, home)
+
+    assertEquals(RouteSummary.Complete(listOf(knot45, knot7, knot12, home), 4000), route.summary)
+  }
+
+  @Test
+  fun `two route points on one connection`() {
+    val other = TestNetwork.pointOn(knot12, knot30, 0.75)
+
+    assertEquals(RouteSummary.Complete(listOf(home, other), 1000), routeOf(home, other).summary)
+  }
+
+  @Test
+  fun `passing a route point that is not on this leg`() {
+    // 12 → 30 through the point would be as long as the connection itself.
+    val route = routeOf(home, knot12, knot30)
+
+    assertEquals(listOf(knot12, knot30), route.legs.last().path?.knots)
+    assertEquals(RouteSummary.Complete(listOf(home, knot12, knot30), 2500), route.summary)
+  }
+
+  @Test
+  fun `length with a way to the network`() {
+    val away = TestNetwork.pointOn(knot12, knot30, 0.25, wayMeters = 320)
+
+    val summary = assertIs<RouteSummary.Complete>(routeOf(away, knot12).summary)
+    assertEquals(500 + 320, summary.lengthMeters, "once")
+    val there = assertIs<RouteSummary.Complete>(routeOf(knot12, away, knot12).summary)
+    assertEquals(2 * (500 + 320), there.lengthMeters, "each time the way is ridden")
+  }
+
+  // Requirement: Route points as waypoints
+
+  @Test
+  fun `moving a route point`() {
+    val route = routeOf(home, knot30, knot45).moveWaypoint(0, 1)
+
+    assertEquals(listOf(knot30, home, knot45), route.waypoints)
+  }
+
+  @Test
+  fun `a stop on the route's own course`() {
+    val stop = TestNetwork.pointOn(knot12, knot30, 0.5)
+    val route =
+      Route.plan(listOf(knot12, knot30), ShortestPathRouter(graph.withRoutePoints(listOf(stop))))
+
+    val withStop = route.insertStop(stop)
+
+    assertEquals(listOf(knot12, stop, knot30), withStop.waypoints)
+    val summary = assertIs<RouteSummary.Complete>(withStop.summary)
+    assertEquals(listOf(knot12, knot30), summary.knots.filterNot { it.isRoutePoint })
+    assertEquals(2000, summary.lengthMeters)
+  }
+
+  @Test
+  fun `a stop as a detour`() {
+    val stop = TestNetwork.pointOn(knot12, knot30, 0.5, wayMeters = 320)
+    val route =
+      Route.plan(listOf(knot12, knot30), ShortestPathRouter(graph.withRoutePoints(listOf(stop))))
+
+    val summary = assertIs<RouteSummary.Complete>(route.insertStop(stop).summary)
+
+    assertEquals(2000 + 640, summary.lengthMeters)
+  }
+
+  @Test
+  fun `several route points`() {
+    val second = TestNetwork.pointOn(knot30, knot45, 0.5)
+    val third = TestNetwork.pointOn(knot7, knot45, 0.5)
+    val route = routeOf(home, knot12, second, third, knot45)
+
+    assertEquals(listOf(home, knot12, second, third, knot45), route.waypoints)
+    val knots = assertIs<RouteSummary.Complete>(route.summary).knots
+    // The waypoints come in order, with the knots between them, e.g. 45 before and after the third.
+    var searchFrom = 0
+    for (waypoint in route.waypoints) {
+      val found = knots.subList(searchFrom, knots.size).indexOf(waypoint)
+      assertTrue(found >= 0, "$waypoint after position $searchFrom")
+      searchFrom += found
+    }
+    assertEquals(route.legs.map { it.from }, route.waypoints.dropLast(1))
   }
 }

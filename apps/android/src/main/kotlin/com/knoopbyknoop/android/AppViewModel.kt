@@ -30,20 +30,27 @@ import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.KnotLocator
 import com.knoopbyknoop.core.Language
 import com.knoopbyknoop.core.MapFeatures
+import com.knoopbyknoop.core.MapTap
 import com.knoopbyknoop.core.NetworkCatalog
 import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkStatus
 import com.knoopbyknoop.core.NewKnots
 import com.knoopbyknoop.core.PathDataStatus
 import com.knoopbyknoop.core.PathDownloader
+import com.knoopbyknoop.core.PathRouter
 import com.knoopbyknoop.core.PathSquares
 import com.knoopbyknoop.core.PlaceHit
 import com.knoopbyknoop.core.PlaceSearch
 import com.knoopbyknoop.core.PlanningSession
 import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteKnot
+import com.knoopbyknoop.core.RoutePointWays
 import com.knoopbyknoop.core.RouteSnapshot
 import com.knoopbyknoop.core.RouteSummary
+import com.knoopbyknoop.core.hasStraightLines
+import com.knoopbyknoop.core.reattached
+import com.knoopbyknoop.core.routePointFor
+import com.knoopbyknoop.core.tapAt
 import java.util.Locale
 import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
@@ -59,6 +66,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 
@@ -69,6 +78,8 @@ data class MapLayers(
   val route: String,
   val routeKnots: String,
   val routeKnotList: List<RouteKnot>,
+  /** The ways of the route points, see `map-planning` "The line on the map". */
+  val routePointWays: String,
   val refs: Set<String>,
   /** Whether [connections] follow their course, or are straight lines without geometry. */
   val hasCourses: Boolean,
@@ -80,6 +91,19 @@ data class MapLayers(
  * @property network the selected network type
  * @property online whether the device has network access, for the note while courses are loading
  */
+/**
+ * A tapped place offered as a route point, see `map-planning` "Choose a route point on the map".
+ * [x] and [y] are where it was tapped on the map, in pixels, to show the choices there.
+ */
+data class PlaceOffer(val offer: MapTap.Offer, val x: Float, val y: Float)
+
+/** What to make of an offered place, see `map-planning` "What a chosen route point does". */
+enum class PlaceChoice {
+  START,
+  STOP,
+  END,
+}
+
 /** A [knot] to show on the map; [request] counts the taps, so the same knot can be shown again. */
 data class ShownKnot(val knot: Knot, val request: Int)
 
@@ -137,6 +161,10 @@ data class AppState(
    * The coming knot last tapped, shown on the map, see `knot-navigation` "Showing a coming knot".
    */
   val shownKnot: ShownKnot? = null,
+  /**
+   * A tapped place whose choices are shown, see `map-planning` "Choose a route point on the map".
+   */
+  val offer: PlaceOffer? = null,
 ) {
   val status: NetworkStatus
     get() = catalog.status(network)
@@ -280,6 +308,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         job.ensureActive()
         val bytes = withContext(Dispatchers.IO) { paths.installedBytes() }
         state = state.copy(pathData = status, pathDataDate = paths.dataDate, pathDataBytes = bytes)
+        // The squares around a straight line may have arrived, see "While the path data loads".
+        if (status == PathDataStatus.READY) findWays()
       }
   }
 
@@ -287,7 +317,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   private fun plannedCourse(): List<GeoPoint>? {
     val network = loaded?.takeIf { it.hasGeometry } ?: return null
     val route = state.session?.route ?: return null
-    return if (route.summary is RouteSummary.Complete) network.geometry.courseOf(route) else null
+    return if (route.summary is RouteSummary.Complete) {
+      network.geometry.withRoutePoints(state.session!!.routeGraph).courseOf(route)
+    } else {
+      null
+    }
   }
 
   /**
@@ -317,8 +351,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
       getApplication(),
       NavigationRoute(
         knots,
-        session.graph,
-        network.geometry.takeIf { network.hasGeometry },
+        session.routeGraph,
+        network.geometry.takeIf { network.hasGeometry }?.withRoutePoints(session.routeGraph),
         (state.description as? RouteDescription.Complete)?.stopPositions ?: setOf(),
       ),
     )
@@ -557,11 +591,82 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   }
 
   /** Handles a tap on the map; [radiusMeters] is the touch target at the current zoom level. */
-  fun tap(latitude: Double, longitude: Double, radiusMeters: Double) {
+  fun tap(latitude: Double, longitude: Double, radiusMeters: Double, x: Float, y: Float) {
+    // A tap beside the choices closes them, see `map-planning` "Offer and dismiss".
+    if (state.offer != null) {
+      state = state.copy(offer = null)
+      return
+    }
     val session = state.session ?: return
+    val network = loaded ?: return
     // Any badge of a knot, see `map-planning` "Knots signposted at several places".
-    val knot = loaded?.locator?.nearestAtAnyNode(latitude, longitude, radiusMeters) ?: return
-    update(session.tap(knot, state.newKnots))
+    val knot = network.locator.nearestAtAnyNode(latitude, longitude, radiusMeters)
+    val place = GeoPoint(latitude, longitude)
+    when (val tapped = session.tapAt(place, radiusMeters, knot, network.geometry)) {
+      is MapTap.OnKnot -> update(session.tap(tapped.knot, state.newKnots))
+      is MapTap.OnRoutePoint -> {}
+      is MapTap.Offer -> if (!state.navigating) state = state.copy(offer = PlaceOffer(tapped, x, y))
+    }
+  }
+
+  /** Keeps the offered place's choices at its flag while the map moves. */
+  fun offerMoved(x: Float, y: Float) {
+    val offer = state.offer ?: return
+    if (offer.x != x || offer.y != y) state = state.copy(offer = offer.copy(x = x, y = y))
+  }
+
+  fun dismissOffer() {
+    state = state.copy(offer = null)
+  }
+
+  /** Makes the offered place a route point, see `map-planning` "What a chosen route point does". */
+  fun choose(choice: PlaceChoice) {
+    val offer = state.offer?.offer ?: return
+    state = state.copy(offer = null)
+    val session = state.session ?: return
+    val point = session.routePointFor(offer, loaded?.geometry ?: return) ?: return
+    update(
+      when (choice) {
+        PlaceChoice.START -> session.startAt(point)
+        PlaceChoice.STOP -> if (session.route != null) session.addStopAt(point) else return
+        PlaceChoice.END -> session.endAt(point)
+      }
+    )
+    findWays()
+  }
+
+  /** Finds ways along paths in one place at a time, as the router is not thread safe. */
+  private val wayFinding = Mutex()
+  private val pathRouter by lazy { PathRouter(paths) }
+  private var pathRouterVersion = -1
+
+  /**
+   * Replaces the straight lines of the route points by ways along paths where the installed path
+   * data has them, off the main thread, see `map-planning` "A route point away from the network".
+   */
+  private fun findWays() {
+    val session = state.session ?: return
+    if (!session.hasStraightLines || state.navigating) return
+    val geometry = loaded?.takeIf { it.hasGeometry }?.geometry ?: return
+    viewModelScope.launch {
+      val found = wayFinding.withLock {
+        withContext(Dispatchers.IO) {
+          // Squares arrived since: the router read them as missing, see "While the path data
+          // loads".
+          if (pathRouterVersion != paths.version) {
+            pathRouter.forgetSquares()
+            pathRouterVersion = paths.version
+          }
+          val ways = RoutePointWays(pathRouter, geometry)
+          session.routePoints.filter { it.routePoint?.straight == true }.mapNotNull(ways::wayFor)
+        }
+      }
+      // Onto the session as it is now: the route may have changed meanwhile.
+      val current = state.session ?: return@launch
+      if (found.isEmpty() || state.navigating) return@launch
+      val updated = found.fold(current) { next, point -> next.withRoutePoint(point) }
+      if (updated !== current) update(updated)
+    }
   }
 
   fun moveWaypoint(from: Int, to: Int) {
@@ -580,7 +685,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     get() {
       val route = state.session?.route ?: return null
       val network = loaded?.takeIf { it.hasGeometry && !state.navigating } ?: return null
-      return network.geometry.courseOf(route)?.takeIf { Gpx.canExport(route, it) }
+      return network.geometry.withRoutePoints(state.session!!.routeGraph).courseOf(route)?.takeIf {
+        Gpx.canExport(route, it)
+      }
     }
 
   /** Whether the planned route can be exported as GPX. */
@@ -725,7 +832,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     // Another network or newer data may have been loaded meanwhile.
     if (loaded !== withoutCourses) return
     loaded = withCourses
-    state.session?.let { state = state.copy(layers = layersFor(it)) }
+    state.session?.let { session ->
+      // Route points whose connection went away join the courses anew, see "Connection gone".
+      val reattached = session.reattached(withCourses.geometry)
+      if (reattached !== session) update(reattached)
+      else state = state.copy(layers = layersFor(session))
+    }
+    findWays()
   }
 
   private fun layersFor(session: PlanningSession): MapLayers {
@@ -736,6 +849,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
       route = MapFeatures.route(session, network.geometry),
       routeKnots = MapFeatures.routeKnotsLayer(session),
       routeKnotList = MapFeatures.routeKnotMarkers(session),
+      routePointWays = MapFeatures.routePointWays(session),
       refs = network.refs,
       hasCourses = network.hasGeometry,
     )
