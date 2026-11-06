@@ -387,7 +387,7 @@ The planner panel SHALL show Navigate, and Stop while navigating, as the most pr
 - **THEN** the labels of Navigate and Stop have a contrast of at least 4.5:1 to their fill, and the icons of the icon buttons and of the menu entries at least 3:1 to their background
 
 ### Requirement: Light and dark appearance
-The app SHALL follow the appearance chosen in the info sheet, by default the system's light or dark appearance: the base map, the planner panel and the controls over the map SHALL all be light or all be dark. The dark base map SHALL show the same details as the light one, with water in blue and paths and roads visible against the land. Switching the appearance while the app is open SHALL switch the app without moving the map or changing the route, and without interrupting navigation. The knots, the route and the highlighted knots SHALL stay distinguishable on the dark map.
+The app SHALL follow the appearance chosen in the info sheet, by default the system's light or dark appearance: the base map, the planner panel and the controls over the map SHALL all be light or all be dark. The dark base map SHALL show the same details as the light one, with water in blue and paths and roads visible against the land. Switching the appearance while the app is open SHALL switch the app without moving the map or changing the route, and without interrupting navigation. On Android, an appearance chosen in the info sheet SHALL reach the base map when the sheet closes, so the sheet's own switch stays smooth. The knots, the route and the highlighted knots SHALL stay distinguishable on the dark map.
 
 #### Scenario: Dark mode
 - **WHEN** the system is set to dark mode and the user opens the app
@@ -448,6 +448,10 @@ The app SHALL follow the appearance chosen in the info sheet, by default the sys
 #### Scenario: Off route in dark mode
 - **WHEN** the rider is off route in dark mode
 - **THEN** "Off route, next", the arrow towards the next knot and the rider's dot on the strip are a clear red, readable on the dark panel, not pink
+
+#### Scenario: Choosing the appearance in the info sheet
+- **WHEN** the user opens the info sheet on Android and switches between Light and Dark several times
+- **THEN** the sheet turns light or dark at once without stalling, and the base map follows the last choice when the sheet closes, showing the same area and route
 
 ### Requirement: Show my position
 While planning, the map SHALL offer a round button below the zoom buttons that centers the map on the rider's current position, at least at the zoom where knots are shown, and marks it with a dot that does not follow the rider. Location access SHALL be asked for on the first tap, and on the very first start of the app, when there is neither a saved map position nor a route. The position SHALL be found once per request, without updates afterwards.

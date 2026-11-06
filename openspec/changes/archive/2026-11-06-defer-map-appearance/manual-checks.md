@@ -25,4 +25,4 @@ The remaining slow frames include the app's start and the one map reload when th
 
 | Check | Pixel | Notes |
 |---|---|---|
-| Does switching in the info sheet feel smooth now? | ⏳ | And does the map following on close feel right? |
+| Does switching in the info sheet feel smooth now? | ✅ | Checked by the maintainer on the Pixel, 2026-11-06 |
