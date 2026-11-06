@@ -12,4 +12,4 @@ Checked 2026-11-06 on the Android emulator `Medium_Phone_API_37.0`, Android 17, 
 
 | Check | Pixel | Notes |
 |---|---|---|
-| Search in landscape | ⏳ | The panel steps aside while typing and comes back after |
+| Search in landscape | – | Not possible on the Pixel, its rotation sensor is broken; the maintainer accepted the emulator recording instead (2026-11-06) |
