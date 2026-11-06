@@ -35,6 +35,7 @@ import com.knoopbyknoop.core.GeoBounds
 import com.knoopbyknoop.core.GeoPoint
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.MapFeatures
+import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkGraph
 import com.knoopbyknoop.core.PlaceHit
 import com.knoopbyknoop.core.RiddenTrack
@@ -49,9 +50,11 @@ import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
 import org.maplibre.android.style.expressions.Expression
 import org.maplibre.android.style.layers.CircleLayer
+import org.maplibre.android.style.layers.Layer
 import org.maplibre.android.style.layers.LineLayer
 import org.maplibre.android.style.layers.Property
 import org.maplibre.android.style.layers.PropertyFactory
+import org.maplibre.android.style.layers.PropertyValue
 import org.maplibre.android.style.layers.SymbolLayer
 import org.maplibre.android.style.sources.GeoJsonSource
 
@@ -96,6 +99,32 @@ private const val SEARCH_HIT_ZOOM = 14.0
 /** The zoom when navigation begins: close enough to see the next knot and the way to it. */
 private const val NAVIGATION_ZOOM = 15.0
 private const val ROUTE_WIDTH = 5f
+
+/** How opaque the copies of the base map's bridges over the route are, see "Route and bridges". */
+private const val BRIDGE_OPACITY = 0.6f
+
+private const val BRIDGE_COPY_SUFFIX = "-over"
+
+/** The edges of a bridge along the route where it runs on one, see "Bridge edges on the route". */
+private const val BRIDGE_EDGES_SUFFIX = "-bridge-edges"
+private const val BRIDGE_EDGE_LIGHT = "#37474F"
+private const val BRIDGE_EDGE_DARK = "#CFD8DC"
+private const val BRIDGE_EDGE_OPACITY = 0.45f
+private const val BRIDGE_EDGE_WIDTH = 1.5f
+
+/** Our line layers and their copies drawn on top of the bridges for the stretches on a bridge. */
+private val BRIDGE_LINES =
+  listOf(
+    "connections" to "connections-bridge",
+    "route" to "route-bridge",
+    "route-ahead" to "route-ahead-bridge",
+  )
+
+/** Whether [layer] is one of the base map's bridges, road, path or railway, with outlines. */
+internal fun isBaseMapBridge(layer: Layer) = isBaseMapBridgeId(layer.id)
+
+internal fun isBaseMapBridgeId(id: String) = id.startsWith("bridge_")
+
 private const val ROUTE_WIDTH_CALM = 3f
 private const val ROUTE_WIDTH_AHEAD = 7f
 private const val TRACK_WIDTH = 3f
@@ -321,7 +350,9 @@ fun NetworkMap(
     holder.showNavigation(position, nextKnot, wayToRoute, direction, guidedWay)
   }
   LaunchedEffect(track) { holder.showTrack(track) }
-  LaunchedEffect(navigating, courseAhead) { holder.showLegAhead(navigating, courseAhead) }
+  LaunchedEffect(navigating, courseAhead, layers?.geometry) {
+    holder.showLegAhead(navigating, courseAhead, layers?.geometry)
+  }
   LaunchedEffect(topControlsBottom, topControlsStart) {
     holder.compassTop = topControlsBottom
     holder.compassStart = topControlsStart
@@ -541,6 +572,96 @@ private class MapHolder {
     update()
   }
 
+  /**
+   * Adds the bridges over the route when the shown geometry has bridge stretches, and takes them
+   * away when it has none, see `map-planning` "Route and bridges": semi-transparent copies of the
+   * base map's bridge layers, then the stretches of the lines that run on a bridge on top of them,
+   * all below the ridden track, which stays visible on a bridge. The offline style has no bridge
+   * layers, so nothing is copied there.
+   */
+  private fun updateBridges(style: Style) {
+    val wanted = layers?.geometry?.hasBridges == true
+    val present = style.getLayer(BRIDGE_LINES.first().second) != null
+    if (wanted == present) return
+    if (!wanted) {
+      style.layers
+        .filter {
+          it.id.endsWith(BRIDGE_COPY_SUFFIX) ||
+            it.id.endsWith(BRIDGE_EDGES_SUFFIX) ||
+            BRIDGE_LINES.any { (_, id) -> id == it.id }
+        }
+        .forEach { style.removeLayer(it) }
+      return
+    }
+    val bridges = style.layers.filter(::isBaseMapBridge).filterIsInstance<LineLayer>()
+    if (bridges.isEmpty()) return
+    for (bridge in bridges) {
+      style.addLayerBelow(
+        copyOf(bridge, bridge.id + BRIDGE_COPY_SUFFIX, bridge.sourceId, bridge.sourceLayer).apply {
+          bridge.filter?.let { setFilter(it) }
+          setProperties(PropertyFactory.lineOpacity(BRIDGE_OPACITY))
+        },
+        "ridden-track",
+      )
+    }
+    // The edges of a bridge where the route runs on one, see `map-planning` "Bridge edges on the
+    // route".
+    for ((original, width) in listOf("route" to ROUTE_WIDTH, "route-ahead" to ROUTE_WIDTH_AHEAD)) {
+      val line = style.getLayerAs<LineLayer>(original) ?: continue
+      val onBridge = Expression.eq(Expression.get("bridge"), true)
+      style.addLayerBelow(
+        LineLayer(original + BRIDGE_EDGES_SUFFIX, line.sourceId).apply {
+          setFilter(line.filter?.let { Expression.all(it, onBridge) } ?: onBridge)
+          setProperties(
+            PropertyFactory.lineColor(
+              if (styleDark == true) BRIDGE_EDGE_DARK else BRIDGE_EDGE_LIGHT
+            ),
+            PropertyFactory.lineOpacity(BRIDGE_EDGE_OPACITY),
+            PropertyFactory.lineWidth(BRIDGE_EDGE_WIDTH),
+            PropertyFactory.lineGapWidth(width + 2f),
+            PropertyFactory.lineOffset(ROUTE_OFFSET),
+          )
+        },
+        "ridden-track",
+      )
+    }
+    for ((original, id) in BRIDGE_LINES) {
+      val line = style.getLayerAs<LineLayer>(original) ?: continue
+      val onBridge = Expression.eq(Expression.get("bridge"), true)
+      style.addLayerBelow(
+        copyOf(line, id, line.sourceId, null).apply {
+          setFilter(line.filter?.let { Expression.all(it, onBridge) } ?: onBridge)
+        },
+        "ridden-track",
+      )
+    }
+  }
+
+  /** A line layer drawn like [layer], from the same source, with the id [id]. */
+  private fun copyOf(layer: LineLayer, id: String, sourceId: String, sourceLayer: String?) =
+    LineLayer(id, sourceId).apply {
+      sourceLayer?.let { withSourceLayer(it) }
+      minZoom = layer.minZoom
+      maxZoom = layer.maxZoom
+      val properties =
+        listOf(
+            layer.lineColor,
+            layer.lineWidth,
+            layer.lineGapWidth,
+            layer.lineOffset,
+            layer.lineOpacity,
+            layer.lineDasharray,
+            layer.lineCap,
+            layer.lineJoin,
+          )
+          .filter { !it.isNull }
+          .map { value ->
+            if (value.isExpression) PropertyValue(value.name, value.expression)
+            else PropertyValue(value.name, value.value)
+          }
+      setProperties(*properties.toTypedArray())
+    }
+
   var onMove: (CameraPlace, GeoBounds?) -> Unit = { _, _ -> }
   private var marker: PlaceHit? = null
   var onOfferMoved: (Float, Float) -> Unit = { _, _ -> }
@@ -739,18 +860,31 @@ private class MapHolder {
   private var navigating = false
   private var courseAhead: List<GeoPoint>? = null
 
-  fun showLegAhead(newNavigating: Boolean, newCourseAhead: List<GeoPoint>?) {
+  private var geometryAhead: NetworkGeometry? = null
+
+  fun showLegAhead(
+    newNavigating: Boolean,
+    newCourseAhead: List<GeoPoint>?,
+    geometry: NetworkGeometry?,
+  ) {
     navigating = newNavigating
     courseAhead = newCourseAhead
+    geometryAhead = geometry
     style?.let { updateLegAhead(it) }
   }
 
   /** While navigating, the leg ahead stands out and the rest of the route is calm. */
   private fun updateLegAhead(style: Style) {
-    style.getSourceAs<GeoJsonSource>("route-ahead")?.setGeoJson(MapFeatures.legAhead(courseAhead))
     style
-      .getLayer("route")
-      ?.setProperties(PropertyFactory.lineWidth(if (navigating) ROUTE_WIDTH_CALM else ROUTE_WIDTH))
+      .getSourceAs<GeoJsonSource>("route-ahead")
+      ?.setGeoJson(MapFeatures.legAhead(courseAhead, geometryAhead))
+    listOf("route", "route-bridge").forEach {
+      style
+        .getLayer(it)
+        ?.setProperties(
+          PropertyFactory.lineWidth(if (navigating) ROUTE_WIDTH_CALM else ROUTE_WIDTH)
+        )
+    }
     style
       .getLayer("route-direction")
       ?.setProperties(
@@ -866,6 +1000,7 @@ private class MapHolder {
   private fun update() {
     val style = style ?: return
     val layers = layers ?: return
+    updateBridges(style)
     val previous = shownLayers
     if (
       previous == null ||

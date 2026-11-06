@@ -188,12 +188,39 @@ object MapFeatures {
       }
     }
 
-  /** One line per connection along its course. */
+  /**
+   * One line per connection along its course, split where it runs on a bridge, with the property
+   * `bridge`, see `map-planning` "Route and bridges".
+   */
   fun connections(geometry: NetworkGeometry): String =
-    featureCollection(geometry.courses) { course ->
-      lineString(course)
-      properties {}
+    featureCollection(geometry.courses.flatMap { pieces(it, geometry) }) { (line, bridge) ->
+      lineString(line)
+      properties { property("bridge", bridge.toString()) }
     }
+
+  /**
+   * [line] in pieces that each run entirely on a bridge or entirely off one, according to
+   * [geometry]; the whole line off a bridge without bridge stretches.
+   */
+  internal fun pieces(
+    line: List<GeoPoint>,
+    geometry: NetworkGeometry?,
+  ): List<Pair<List<GeoPoint>, Boolean>> {
+    if (geometry == null || !geometry.hasBridges || line.size < 2) return listOf(line to false)
+    val pieces = mutableListOf<Pair<List<GeoPoint>, Boolean>>()
+    var start = 0
+    var onBridge = geometry.isOnBridge(line[0], line[1])
+    for (index in 1 until line.lastIndex) {
+      val next = geometry.isOnBridge(line[index], line[index + 1])
+      if (next != onBridge) {
+        pieces += line.subList(start, index + 1) to onBridge
+        start = index
+        onBridge = next
+      }
+    }
+    pieces += line.subList(start, line.size) to onBridge
+    return pieces
+  }
 
   /**
    * One line per leg of the route along its course, with the property `reachable`. Unreachable legs
@@ -203,9 +230,18 @@ object MapFeatures {
     val legs = session.route?.legs.orEmpty()
     // With the route points' courses, see `route-planning` "Route from waypoints".
     val courses = legCourses(legs.map { it.path }, geometry.withRoutePoints(session.routeGraph))
-    return featureCollection(legs.withIndex().toList()) { (index, leg) ->
-      lineString(courses[index] ?: listOf(leg.from, leg.to).map(::pointOf))
-      properties { property("reachable", leg.isReachable.toString()) }
+    val pieces =
+      legs.withIndex().flatMap { (index, leg) ->
+        val line = courses[index]
+        if (line == null) listOf(Triple(listOf(leg.from, leg.to).map(::pointOf), false, leg))
+        else pieces(line, geometry).map { (piece, bridge) -> Triple(piece, bridge, leg) }
+      }
+    return featureCollection(pieces) { (line, bridge, leg) ->
+      lineString(line)
+      properties {
+        property("reachable", leg.isReachable.toString())
+        property("bridge", bridge.toString())
+      }
     }
   }
 
@@ -253,11 +289,14 @@ object MapFeatures {
       properties { property("straight", routePoint.straight.toString()) }
     }
 
-  /** The line of [course], the leg ahead while navigating, or none. */
-  fun legAhead(course: List<GeoPoint>?): String =
-    featureCollection(listOfNotNull(course)) { line ->
+  /**
+   * The line of [course], the leg ahead while navigating, or none, split where it runs on a bridge
+   * of [geometry], with the property `bridge`.
+   */
+  fun legAhead(course: List<GeoPoint>?, geometry: NetworkGeometry? = null): String =
+    featureCollection(course?.let { pieces(it, geometry) }.orEmpty()) { (line, bridge) ->
       lineString(line)
-      properties {}
+      properties { property("bridge", bridge.toString()) }
     }
 
   /**

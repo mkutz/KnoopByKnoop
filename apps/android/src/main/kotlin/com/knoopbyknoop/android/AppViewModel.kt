@@ -87,6 +87,8 @@ data class MapLayers(
   val refs: Set<String>,
   /** Whether [connections] follow their course, or are straight lines without geometry. */
   val hasCourses: Boolean,
+  /** The installed geometry, to split lines at bridges; `null` without courses. */
+  val geometry: NetworkGeometry? = null,
 )
 
 /**
@@ -879,6 +881,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
       routePointWays = MapFeatures.routePointWays(session),
       refs = network.refs,
       hasCourses = network.hasGeometry,
+      geometry = network.geometry.takeIf { network.hasGeometry },
     )
   }
 

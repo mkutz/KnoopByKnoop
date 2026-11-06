@@ -36,3 +36,4 @@ Covered by tests only: "Connection gone", "Older route", "Starting away from the
 | Ride it and listen to the notices at the stop and the end | ⏳ | ⏳ | "On to the stop", "The end ahead" |
 | Dynamic Island with a route point next | – | ⏳ | A flag where the number would be |
 | GPX export of a route with route points | ⏳ | ⏳ | "Start", "Stop", "End" in the file |
+| Hiking far from the network: a tap at home | ⏳ | ⏳ | "No hiking knots within 5 km", no offer (7.1; the emulator showed it on 2026-11-06) |

@@ -76,6 +76,49 @@ private constructor(
   val installed: NetworkGeometry
     get() = base ?: this
 
+  /** Whether any course or signpost course has a stretch on a bridge, see `map-planning`. */
+  val hasBridges: Boolean
+    get() = installed.bridgeEnds.isNotEmpty()
+
+  /**
+   * The segments of all courses on a bridge, from each end to the other ends. A segment is found by
+   * its points, whichever course, direction or join it is part of.
+   */
+  private val bridgeEnds: Map<GeoPoint, List<GeoPoint>> by lazy {
+    val ends = HashMap<GeoPoint, MutableList<GeoPoint>>()
+    fun addStretches(course: List<GeoPoint>, stretches: List<Stretch>) {
+      for (stretch in stretches) {
+        for (index in stretch.first until stretch.last.coerceAtMost(course.lastIndex)) {
+          val from = course[index]
+          val to = course[index + 1]
+          ends.getOrPut(from) { mutableListOf() }.add(to)
+          ends.getOrPut(to) { mutableListOf() }.add(from)
+        }
+      }
+    }
+    bridges.forEach { (index, stretches) ->
+      courses.getOrNull(index)?.let { addStretches(it, stretches) }
+    }
+    signpostCourses.values.flatten().forEach { addStretches(it.course, it.bridges) }
+    ends
+  }
+
+  /**
+   * Whether the segment from [from] to [to] of a line drawn from the courses runs on a bridge. A
+   * segment cut at a route point or at the rider's position counts by its remaining end and the cut
+   * point lying on a bridge segment.
+   */
+  fun isOnBridge(from: GeoPoint, to: GeoPoint): Boolean {
+    val ends = installed.bridgeEnds
+    if (ends.isEmpty()) return false
+    fun reaches(end: GeoPoint, other: GeoPoint) =
+      ends[end]?.any { it == other || onSegment(other, end, it) } == true
+    return reaches(to, from) || reaches(from, to)
+  }
+
+  private fun onSegment(point: GeoPoint, from: GeoPoint, to: GeoPoint) =
+    distanceToLine(point.latitude, point.longitude, from, to) <= ON_BRIDGE_SEGMENT_METERS
+
   /** Each course's bounds as south, west, north, east, to find places quickly. */
   private val bounds: List<DoubleArray> by lazy {
     courses.map { course ->
@@ -423,6 +466,9 @@ private constructor(
 
     /** A course passes a signpost this close: published courses are simplified to within 5 m. */
     private const val ON_SIGNPOST_METERS = 10.0
+
+    /** A cut point this close to a bridge segment lies on it; cuts are made on the segment. */
+    private const val ON_BRIDGE_SEGMENT_METERS = 1.0
 
     /** How far along a course a signpost is looked for, in straight distances to it. */
     private const val MAX_DETOUR_TO_SIGNPOST = 3.0

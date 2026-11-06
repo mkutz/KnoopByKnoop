@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Bridges over your route: where the route passes under a bridge, the bridge is drawn semi-transparent across it, and where the route runs over a bridge, it gets the bridge's edges, so you see at a glance whether you go under or onto it. The ridden track stays visible on bridges. Shows once the weekly network data includes the bridges
+- A tap far from the network no longer offers to start or end there: more than 20 km from the cycling network or 5 km from the hiking network, the app says there are no knots that close instead of planning a long straight line
+
 ## 0.10.0
 
 - Start, stop and end anywhere: tap a place on the map that is no knot and choose "Start here", "Add stop here" or "End here". The place gets a flag, and on a cycling route a way along suitable paths to the network, found on your phone from the downloaded ways; until those are in, and on a hiking route, a straight line. Navigation names it as the start, stop or end

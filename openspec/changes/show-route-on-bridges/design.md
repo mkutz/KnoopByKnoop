@@ -40,7 +40,7 @@
 - **Alternative:** mapping boundaries to the nearest kept point after simplifying can move a boundary by up to a whole long segment, beyond 5 m.
 
 ### The core hands out lines already split, with a property
-- `NetworkGeometry` carries the stretches through `courseOf` (reversal, joining courses, signpost courses).
+- `NetworkGeometry` turns the stretches into a set of bridge segments, found by their two points. Any line drawn from the courses is checked segment by segment, so reversal, joined courses, signpost courses and route point overlays need no extra handling. A segment cut at a route point or at the rider's position counts by its remaining end and the cut point lying on a bridge segment. (Changed during implementation from carrying point indexes through `courseOf`, which every cut and join would have had to update.)
 - `MapFeatures` emits each course as alternating LineString features with `"bridge": true/false`. That applies to `connections`, `route` and the line ahead.
 - Each app adds one more layer per line kind, with the same paint and a filter on `bridge`, above the bridge copies. The existing layers filter to `bridge: false`.
 - `MapFeatures` exposes whether the installed geometry has any bridge stretches. Without them, no copies are added and the existing layers draw all lines, so the map looks as it does today.
@@ -58,14 +58,20 @@
   - A hand-written bridge style in the app would drift from Liberty and from the dark style.
   - Changing the base style's own layer order is not possible: our sources are added after it.
 
+### Bridge edges where the route runs on a bridge
+- **Why:** with only the copies, a route over a bridge covers that bridge and looks like any other stretch. The maintainer wanted to see at a glance where the route climbs onto a bridge it passed under before (checked on the Pixel at the Sieg bridges near Siegburg, 2026-11-06).
+- **How:** one more line layer each for the route and the line ahead, filtered to `bridge: true`, drawn with a gap as wide as the route plus 2, so two thin lines run along both sides. 1.5 wide at 45 % opacity; dark grey on the light map, light grey on the dark map.
+- **Patents:** the edges mark where the route runs on a bridge, which is visible, not where it is hidden. The route's own colour, width and opacity don't change anywhere.
+- **Not for connections:** the network's lines are thin and many; edges on them would clutter the map.
+
 ### Final layer order (bottom to top)
 1. Base map
 2. `connections`, `marker`
 3. `route`, `route-unreachable`, `route-direction`
 4. `route-ahead`, `route-ahead-direction`
-5. `ridden-track`
-6. **Bridge copies**
-7. **`connections-bridge`, `route-bridge`, `route-ahead-bridge`**
+5. **Bridge copies**
+6. **`connections-bridge`, `route-bridge`, `route-ahead-bridge`, and the bridge edges of the route and the line ahead**
+7. `ridden-track`, on top of the bridges, so the ridden part stays visible on a bridge
 8. `knots`, `way-to-route`, `guided-way`, `my-position`, `next-knot`, `route-knots`, `position`, `position-arrow`
 
 ## Risks / Trade-offs

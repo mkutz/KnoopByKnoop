@@ -40,6 +40,22 @@ private let routeWidthAhead: CGFloat = 7
 private let trackWidth: CGFloat = 3
 private let routeOffset: CGFloat = 4
 
+/// How opaque the copies of the base map's bridges over the route are, see `map-planning` "Route
+/// and bridges".
+private let bridgeOpacity = 0.6
+private let bridgeCopySuffix = "-over"
+/// Our line layers and their copies drawn on top of the bridges for the stretches on a bridge.
+private let bridgeLines = [
+  ("connections", "connections-bridge"), ("route", "route-bridge"), ("route-ahead", "route-ahead-bridge"),
+]
+/// The edges of a bridge along the route where it runs on one, see "Bridge edges on the route".
+private let bridgeEdgesSuffix = "-bridge-edges"
+private let bridgeEdgeOpacity = 0.45
+private let bridgeEdgeWidth: CGFloat = 1.5
+
+/// Whether a layer of the base map is one of its bridges, road, path or railway, with outlines.
+func isBaseMapBridge(_ identifier: String) -> Bool { identifier.hasPrefix("bridge_") }
+
 /// Knots are drawn and can be tapped from this zoom level on.
 private let knotMinimumZoom = 10.0
 /// How close the position button goes.
@@ -278,7 +294,7 @@ struct NetworkMapView: UIViewRepresentable {
     context.coordinator.showNavigation(
       position: position, nextKnot: nextKnot, wayToRoute: wayToRoute, guidedWay: guidedWay, direction: direction, on: mapView)
     context.coordinator.showTrack(track)
-    context.coordinator.showLegAhead(navigating: navigating, courseAhead: courseAhead)
+    context.coordinator.showLegAhead(navigating: navigating, courseAhead: courseAhead, geometry: layers?.geometry)
     context.coordinator.showKnot(shownKnot, on: mapView)
     context.coordinator.onLocate = onLocate
     context.coordinator.showLocating(locating, available: onLocate != nil)
@@ -465,8 +481,14 @@ struct NetworkMapView: UIViewRepresentable {
     private var navigating = false
     private var courseAhead: [GeoPoint]?
 
-    func showLegAhead(navigating newNavigating: Bool, courseAhead newCourseAhead: [GeoPoint]?) {
-      guard newNavigating != navigating || newCourseAhead != courseAhead else { return }
+    private var geometryAhead: NetworkGeometry?
+
+    func showLegAhead(
+      navigating newNavigating: Bool, courseAhead newCourseAhead: [GeoPoint]?, geometry: NetworkGeometry?
+    ) {
+      guard newNavigating != navigating || newCourseAhead != courseAhead || geometry !== geometryAhead
+      else { return }
+      geometryAhead = geometry
       navigating = newNavigating
       courseAhead = newCourseAhead
       updateLegAhead()
@@ -476,9 +498,11 @@ struct NetworkMapView: UIViewRepresentable {
     private func updateLegAhead() {
       guard let style else { return }
       (style.source(withIdentifier: "route-ahead") as? MLNShapeSource)?.shape =
-        shape(MapFeatures.shared.legAhead(course: courseAhead))
-      (style.layer(withIdentifier: "route") as? MLNLineStyleLayer)?.lineWidth =
-        NSExpression(forConstantValue: navigating ? routeWidthCalm : routeWidth)
+        shape(MapFeatures.shared.legAhead(course: courseAhead, geometry: geometryAhead))
+      for identifier in ["route", "route-bridge"] {
+        (style.layer(withIdentifier: identifier) as? MLNLineStyleLayer)?.lineWidth =
+          NSExpression(forConstantValue: navigating ? routeWidthCalm : routeWidth)
+      }
       style.layer(withIdentifier: "route-direction")?.isVisible = !navigating
     }
 
@@ -767,6 +791,7 @@ struct NetworkMapView: UIViewRepresentable {
 
     private func update() {
       guard let style, let layers else { return }
+      updateBridges(on: style)
       if shownNetwork != layers.connections {
         for ref in layers.refs where style.image(forName: KnotBadges.name(nil, ref)) == nil {
           style.setImage(KnotBadges.image(nil, ref), forName: KnotBadges.name(nil, ref))
@@ -849,6 +874,82 @@ struct NetworkMapView: UIViewRepresentable {
 
     private func shape(_ geoJson: String) -> MLNShape? {
       try? MLNShape(data: Data(geoJson.utf8), encoding: String.Encoding.utf8.rawValue)
+    }
+
+    /// Adds the bridges over the route when the shown geometry has bridge stretches, and takes them
+    /// away when it has none, see `map-planning` "Route and bridges" and "Bridge edges on the
+    /// route": semi-transparent copies of the base map's bridge layers, then the stretches of the
+    /// lines that run on a bridge on top of them, and the edges of a bridge along the route, all
+    /// below the ridden track, which stays visible on a bridge. The offline style has no bridge
+    /// layers, so nothing is copied there.
+    private func updateBridges(on style: MLNStyle) {
+      let wanted = layers?.geometry?.hasBridges == true
+      let present = style.layer(withIdentifier: "connections-bridge") != nil
+      guard wanted != present, let track = style.layer(withIdentifier: "ridden-track") else { return }
+      guard wanted else {
+        for layer in style.layers
+        where layer.identifier.hasSuffix(bridgeCopySuffix) || layer.identifier.hasSuffix(bridgeEdgesSuffix)
+          || bridgeLines.contains(where: { $0.1 == layer.identifier })
+        {
+          style.removeLayer(layer)
+        }
+        return
+      }
+      let bridges = style.layers.compactMap { $0 as? MLNLineStyleLayer }.filter { isBaseMapBridge($0.identifier) }
+      guard !bridges.isEmpty else { return }
+      for bridge in bridges {
+        guard let copy = copyOf(bridge, identifier: bridge.identifier + bridgeCopySuffix, in: style) else { continue }
+        copy.sourceLayerIdentifier = bridge.sourceLayerIdentifier
+        copy.predicate = bridge.predicate
+        copy.lineOpacity = NSExpression(forConstantValue: bridgeOpacity)
+        style.insertLayer(copy, below: track)
+      }
+      let bridgePredicate = NSPredicate(format: "bridge == YES")
+      func onBridge(_ layer: MLNLineStyleLayer) -> NSPredicate {
+        layer.predicate.map { NSCompoundPredicate(andPredicateWithSubpredicates: [$0, bridgePredicate]) }
+          ?? bridgePredicate
+      }
+      for (original, identifier) in bridgeLines {
+        guard let line = style.layer(withIdentifier: original) as? MLNLineStyleLayer,
+          let copy = copyOf(line, identifier: identifier, in: style)
+        else { continue }
+        copy.predicate = onBridge(line)
+        style.insertLayer(copy, below: track)
+      }
+      for (original, width) in [("route", routeWidth), ("route-ahead", routeWidthAhead)] {
+        guard let line = style.layer(withIdentifier: original) as? MLNLineStyleLayer,
+          let sourceIdentifier = line.sourceIdentifier, let source = style.source(withIdentifier: sourceIdentifier)
+        else { continue }
+        let edges = MLNLineStyleLayer(identifier: original + bridgeEdgesSuffix, source: source)
+        edges.predicate = onBridge(line)
+        edges.lineColor = NSExpression(
+          forConstantValue: styleDark == true
+            ? UIColor(red: 0xCF / 255, green: 0xD8 / 255, blue: 0xDC / 255, alpha: 1)
+            : UIColor(red: 0x37 / 255, green: 0x47 / 255, blue: 0x4F / 255, alpha: 1))
+        edges.lineOpacity = NSExpression(forConstantValue: bridgeEdgeOpacity)
+        edges.lineWidth = NSExpression(forConstantValue: bridgeEdgeWidth)
+        edges.lineGapWidth = NSExpression(forConstantValue: width + 2)
+        edges.lineOffset = NSExpression(forConstantValue: routeOffset)
+        style.insertLayer(edges, below: track)
+      }
+    }
+
+    /// A line layer drawn like `layer`, from the same source, with the identifier `identifier`.
+    private func copyOf(_ layer: MLNLineStyleLayer, identifier: String, in style: MLNStyle) -> MLNLineStyleLayer? {
+      guard let sourceIdentifier = layer.sourceIdentifier, let source = style.source(withIdentifier: sourceIdentifier)
+      else { return nil }
+      let copy = MLNLineStyleLayer(identifier: identifier, source: source)
+      copy.minimumZoomLevel = layer.minimumZoomLevel
+      copy.maximumZoomLevel = layer.maximumZoomLevel
+      copy.lineColor = layer.lineColor
+      copy.lineWidth = layer.lineWidth
+      copy.lineGapWidth = layer.lineGapWidth
+      copy.lineOffset = layer.lineOffset
+      copy.lineOpacity = layer.lineOpacity
+      copy.lineDashPattern = layer.lineDashPattern
+      copy.lineCap = layer.lineCap
+      copy.lineJoin = layer.lineJoin
+      return copy
     }
 
     private func addLayers(to style: MLNStyle) {

@@ -15,6 +15,8 @@ struct MapLayers {
   let refs: Set<String>
   /// Whether `connections` follow their course, or are straight lines without geometry.
   let hasCourses: Bool
+  /// The installed geometry, to split lines at bridges; `nil` without courses.
+  let geometry: NetworkGeometry?
 }
 
 /// The installed data of one network, prepared for planning and drawing.
@@ -392,7 +394,8 @@ final class AppModel: ObservableObject {
         routeKnotList: prepared.routeKnotMarkers,
         routePointWays: prepared.routePointWays,
         refs: loaded.refs,
-        hasCourses: loaded.hasGeometry)
+        hasCourses: loaded.hasGeometry,
+        geometry: loaded.hasGeometry ? loaded.geometry : nil)
     }
     loadPathData()
   }
