@@ -82,7 +82,7 @@ The notification while navigating (Android), the Live Activity (iOS), the screen
 - **THEN** the system prompt shows the app's reason in French
 
 ### Requirement: Language setting
-The info sheet SHALL offer the app's language: System, the default, which follows the phone as in "Language of the texts", and English, Deutsch, Nederlands and Français, each named in its own language. Choosing one SHALL switch the app's texts right away without restarting the app, SHALL be kept until changed, and the spoken notices SHALL follow it as in "Spoken notices in the language".
+The info sheet SHALL offer the app's language: System, the default, which follows the phone as in "Language of the texts", and English, Deutsch, Nederlands and Français, each named in its own language. Choosing one SHALL switch the app's texts right away without restarting the app, and on iOS and on Android 13 and later without rebuilding the map, keeping the map's area, the route and a running navigation as they are, SHALL be kept until changed, and the spoken notices SHALL follow it as in "Spoken notices in the language".
 
 #### Scenario: Choosing German on an English phone
 - **WHEN** the phone's language is English and the rider chooses Deutsch in the info sheet
@@ -111,6 +111,10 @@ The info sheet SHALL offer the app's language: System, the default, which follow
 #### Scenario: Names of the languages
 - **WHEN** the rider opens the info sheet in any language
 - **THEN** the choices read "English", "Deutsch", "Nederlands" and "Français", and "System" in the app's language
+
+#### Scenario: Switching without a pause
+- **WHEN** a route is planned, the map shows part of it, and the rider chooses another language in the info sheet on Android 13 or later
+- **THEN** the texts change without the screen freezing, the info sheet stays open, and the map keeps its area, its knots and the route without loading them again
 
 ### Requirement: Language change while navigating
 When the app's language changes while navigating, navigation's texts SHALL follow at once, without restarting navigation, and later notices SHALL be spoken in the new language where the phone has a voice for it, otherwise in English. The route, the progress and the pace SHALL stay as they were, and the change itself SHALL NOT be spoken.
