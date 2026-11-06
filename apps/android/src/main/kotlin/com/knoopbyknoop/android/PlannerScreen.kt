@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
@@ -120,7 +121,7 @@ private val WAYPOINT_ROW_HEIGHT = 48.dp
  * `map-planning` and `network-sync`. In portrait, the waypoints are a sheet over the map; in
  * landscape, they are shown next to it.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: SnackbarHostState) {
   // The display stays on while navigating with the app open, see `knot-navigation` "Display on
@@ -157,25 +158,31 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
     }
   }
 
+  // While typing in the search, only a strip is left above the keyboard: the map, the field and
+  // its hits get all of it, see `map-planning` "Typing in the search in landscape".
+  val typing = WindowInsets.isImeVisible
   if (landscape) {
     Box(modifier = Modifier.fillMaxSize()) {
       Row(modifier = Modifier.fillMaxSize()) {
         mapArea(state, Modifier.weight(1f).fillMaxHeight())
-        VerticalDivider()
-        // The panel's background reaches behind the navigation bar; its content keeps its width
-        // clear of it, so the header stays one row, see `map-planning` "Clear of the system bars".
-        Surface(modifier = Modifier.fillMaxHeight()) {
-          Column(
-            modifier =
-              Modifier.windowInsetsPadding(
-                  WindowInsets.safeDrawing.only(
-                    WindowInsetsSides.Top + WindowInsetsSides.End + WindowInsetsSides.Bottom
+        if (!typing) {
+          VerticalDivider()
+          // The panel's background reaches behind the navigation bar; its content keeps its width
+          // clear of it, so the header stays one row, see `map-planning` "Clear of the system
+          // bars".
+          Surface(modifier = Modifier.fillMaxHeight()) {
+            Column(
+              modifier =
+                Modifier.windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(
+                      WindowInsetsSides.Top + WindowInsetsSides.End + WindowInsetsSides.Bottom
+                    )
                   )
-                )
-                .width(360.dp)
-                .padding(top = 16.dp)
-          ) {
-            WaypointSheet(state, viewModel, onShowKnot = viewModel::showOnMap)
+                  .width(360.dp)
+                  .padding(top = 16.dp)
+            ) {
+              WaypointSheet(state, viewModel, onShowKnot = viewModel::showOnMap)
+            }
           }
         }
       }

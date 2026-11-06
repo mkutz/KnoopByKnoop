@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Android, landscape: while you type in the search, the route panel steps aside, so the field and the places found use the whole width above the keyboard
 - Start, stop and end anywhere: tap a place on the map that is no knot and choose "Start here", "Add stop here" or "End here". The place gets a flag, and on a cycling route a way along suitable paths to the network, found on your phone from the downloaded ways; until those are in, and on a hiking route, a straight line. Navigation names it as the start, stop or end
 - Off route on a cycling route, the app guides you back along suitable paths, also without a connection. It downloads the ways around your planned route, 1 to 6 MB for most routes, so GitHub can see the rough area of the route, but never where you are. The info sheet shows the downloaded ways with their size and a button to delete them
 - Android: locking the phone while navigating with the app open keeps the navigation over the lock screen; stopping there takes holding the button, which fills up as you hold
