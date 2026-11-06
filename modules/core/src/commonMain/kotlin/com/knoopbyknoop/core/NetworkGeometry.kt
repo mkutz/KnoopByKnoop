@@ -11,19 +11,42 @@ data class GeoPoint(val latitude: Double, val longitude: Double)
  * @property toPosition the position in [Knot.positions] of the connection's `to` knot
  * @property course from that node of the `from` knot to that node of the `to` knot
  * @property bridges the stretches of [course] on a bridge
+ * @property back the course from that node of the `to` knot back to that node of the `from` knot,
+ *   where it is not [course] reversed, see `network-data` "Courses to each signpost in each
+ *   direction"
+ * @property oneWay the only direction it can be ridden in, if only one
  */
 data class SignpostCourse(
   val fromPosition: Int,
   val toPosition: Int,
   val course: List<GeoPoint>,
   val bridges: List<Stretch> = listOf(),
+  val back: CourseBack? = null,
+  val oneWay: OneWay? = null,
 )
+
+/**
+ * The only direction a course to a signpost can be ridden in, where the route's ways lead there in
+ * one direction only, see `network-data` "Courses to each signpost in each direction".
+ */
+enum class OneWay {
+  /** From the connection's `from` knot to its `to` knot only. */
+  THERE,
+  /** From the connection's `to` knot back to its `from` knot only. */
+  BACK,
+}
 
 /**
  * A stretch of a course from the point at [first] to the point at [last], e.g. on a bridge, see
  * `network-data` "Bridge stretches of courses".
  */
 data class Stretch(val first: Int, val last: Int)
+
+/**
+ * The course of a connection from its `to` knot back to its `from` knot, where it is not the course
+ * reversed, with its own [bridges].
+ */
+data class CourseBack(val course: List<GeoPoint>, val bridges: List<Stretch> = listOf())
 
 /**
  * The course of every connection of a [NetworkGraph], as published in geometry files.
@@ -37,6 +60,9 @@ data class Stretch(val first: Int, val last: Int)
  *   reaching their knots at several of them
  * @property bridges per index into [courses], the stretches of the course on a bridge, see
  *   `network-data` "Bridge stretches of courses"
+ * @property coursesBack per index into [courses], the course from the connection's `to` knot back
+ *   to its `from` knot where it is not the course reversed, see `network-data` "Course in each
+ *   riding direction"
  */
 class NetworkGeometry
 private constructor(
@@ -44,6 +70,7 @@ private constructor(
   val courses: List<List<GeoPoint>>,
   val signpostCourses: Map<Int, List<SignpostCourse>>,
   val bridges: Map<Int, List<Stretch>>,
+  val coursesBack: Map<Int, CourseBack>,
   /** The installed geometry this one adds route points to, see [withRoutePoints]. */
   private val base: NetworkGeometry?,
 ) {
@@ -53,7 +80,8 @@ private constructor(
     courses: List<List<GeoPoint>>,
     signpostCourses: Map<Int, List<SignpostCourse>> = mapOf(),
     bridges: Map<Int, List<Stretch>> = mapOf(),
-  ) : this(graph, courses, signpostCourses, bridges, null)
+    coursesBack: Map<Int, CourseBack> = mapOf(),
+  ) : this(graph, courses, signpostCourses, bridges, coursesBack, null)
 
   init {
     require(courses.size == graph.connections.size) {
@@ -99,7 +127,11 @@ private constructor(
     bridges.forEach { (index, stretches) ->
       courses.getOrNull(index)?.let { addStretches(it, stretches) }
     }
-    signpostCourses.values.flatten().forEach { addStretches(it.course, it.bridges) }
+    signpostCourses.values.flatten().forEach {
+      addStretches(it.course, it.bridges)
+      it.back?.let { back -> addStretches(back.course, back.bridges) }
+    }
+    coursesBack.values.forEach { addStretches(it.course, it.bridges) }
     ends
   }
 
@@ -193,6 +225,7 @@ private constructor(
       if (addedSignposts.isEmpty()) installed.signpostCourses
       else installed.signpostCourses + addedSignposts,
       installed.bridges,
+      installed.coursesBack,
       installed,
     )
   }
@@ -245,12 +278,18 @@ private constructor(
       }
       ?: listOf(routePoint.place, routePoint.place)
 
-  /** The course from [from] to [to] along their direct connection, or `null` if there is none. */
+  /**
+   * The course from [from] to [to] along their direct connection, or `null` if there is none: the
+   * course back where the connection has one, see `network-data` "Course in each riding direction",
+   * otherwise the course reversed.
+   */
   fun courseOf(from: Knot, to: Knot): List<GeoPoint>? {
     courseIndexByKnotIds[from.id to to.id]?.let {
       return courses[it]
     }
-    return courseIndexByKnotIds[to.id to from.id]?.let { courses[it].asReversed() }
+    return courseIndexByKnotIds[to.id to from.id]?.let {
+      coursesBack[it]?.course ?: courses[it].asReversed()
+    }
   }
 
   /**
@@ -310,10 +349,15 @@ private constructor(
    */
   fun signpostCoursesOf(from: Knot, to: Knot): List<List<GeoPoint>> =
     courseIndexByKnotIds[from.id to to.id]?.let { index ->
-      signpostCourses[index].orEmpty().map { it.course }
+      signpostCourses[index].orEmpty().filter { it.oneWay != OneWay.BACK }.map { it.course }
     }
       ?: courseIndexByKnotIds[to.id to from.id]?.let { index ->
-        signpostCourses[index].orEmpty().map { it.course.asReversed() }
+        signpostCourses[index]
+          .orEmpty()
+          .filter { it.oneWay != OneWay.THERE }
+          .map {
+            it.back?.course ?: it.course.asReversed()
+          }
       }
       ?: listOf()
 
@@ -330,15 +374,21 @@ private constructor(
       }
     val forward =
       courseIndexByKnotIds[from.id to to.id]?.let { index ->
-        signpostCourses[index].orEmpty().map {
-          LegOption(it.fromPosition, it.toPosition, it.course)
-        }
+        signpostCourses[index]
+          .orEmpty()
+          .filter { it.oneWay != OneWay.BACK }
+          .map {
+            LegOption(it.fromPosition, it.toPosition, it.course)
+          }
       }
     val backward =
       courseIndexByKnotIds[to.id to from.id]?.let { index ->
-        signpostCourses[index].orEmpty().map {
-          LegOption(it.toPosition, it.fromPosition, it.course.asReversed())
-        }
+        signpostCourses[index]
+          .orEmpty()
+          .filter { it.oneWay != OneWay.THERE }
+          .map {
+            LegOption(it.toPosition, it.fromPosition, it.back?.course ?: it.course.asReversed())
+          }
       }
     return fromMain + (forward ?: backward).orEmpty()
   }
@@ -449,7 +499,60 @@ private constructor(
       writer.varint(position.toLong())
       writeStretches(writer, stretches)
     }
+    // After the bridge sections, see `network-data` "Course in each riding direction". Each course
+    // back is coded from the connection's `to` knot, where it starts.
+    val sortedBack = coursesBack.entries.sortedBy { it.key }
+    writer.varint(sortedBack.size.toLong())
+    previousIndex = 0
+    for ((index, back) in sortedBack) {
+      writer.varint((index - previousIndex).toLong())
+      writePoints(writer, graph.knots.getValue(graph.connections[index].toId), back.course)
+      writeStretches(writer, back.bridges)
+      previousIndex = index
+    }
+    // Then the signpost courses back, see "Courses to each signpost in each direction".
+    // Each entry: the kind, 0 for a course back, 1 for "there only", 2 for "back only".
+    val signpostBacks =
+      signpostCourses.entries
+        .sortedBy { it.key }
+        .flatMap { (index, pairs) ->
+          pairs
+            .withIndex()
+            .filter { it.value.back != null || it.value.oneWay != null }
+            .map {
+              Triple(index, it.index, it.value)
+            }
+        }
+    writer.varint(signpostBacks.size.toLong())
+    for ((index, position, pair) in signpostBacks) {
+      writer.varint(index.toLong())
+      writer.varint(position.toLong())
+      val back = pair.back
+      when {
+        back != null -> {
+          writer.varint(0)
+          writePoints(writer, graph.knots.getValue(graph.connections[index].toId), back.course)
+          writeStretches(writer, back.bridges)
+        }
+        pair.oneWay == OneWay.THERE -> writer.varint(1)
+        else -> writer.varint(2)
+      }
+    }
     return writer.toByteArray()
+  }
+
+  private fun writePoints(writer: ByteWriter, start: Knot, points: List<GeoPoint>) {
+    var previousLatitude = toMicrodegrees(start.latitude)
+    var previousLongitude = toMicrodegrees(start.longitude)
+    writer.varint(points.size.toLong())
+    for (point in points) {
+      val latitude = toMicrodegrees(point.latitude)
+      val longitude = toMicrodegrees(point.longitude)
+      writer.varint(zigzag(latitude - previousLatitude))
+      writer.varint(zigzag(longitude - previousLongitude))
+      previousLatitude = latitude
+      previousLongitude = longitude
+    }
   }
 
   private fun writeStretches(writer: ByteWriter, stretches: List<Stretch>) {
@@ -532,7 +635,57 @@ private constructor(
           signpostBridges[courseIndex to position]?.let { pair.copy(bridges = it) } ?: pair
         }
       }
-      return NetworkGeometry(graph, courses, signpostsWithBridges, bridges)
+      if (!reader.hasMore()) return NetworkGeometry(graph, courses, signpostsWithBridges, bridges)
+      var backIndex = 0
+      val coursesBack =
+        List(reader.count()) {
+            backIndex += reader.count()
+            val to = graph.knots.getValue(graph.connections[backIndex].toId)
+            var latitude = toMicrodegrees(to.latitude)
+            var longitude = toMicrodegrees(to.longitude)
+            val points =
+              List(reader.count()) {
+                latitude += unzigzag(reader.varint())
+                longitude += unzigzag(reader.varint())
+                GeoPoint(fromMicrodegrees(latitude), fromMicrodegrees(longitude))
+              }
+            backIndex to CourseBack(points, readStretches(reader))
+          }
+          .toMap()
+      if (!reader.hasMore()) {
+        return NetworkGeometry(graph, courses, signpostsWithBridges, bridges, coursesBack)
+      }
+      val signpostBacks =
+        List(reader.count()) {
+            val index = reader.count()
+            val position = reader.count()
+            val change: (SignpostCourse) -> SignpostCourse =
+              when (reader.count()) {
+                0 -> {
+                  val to = graph.knots.getValue(graph.connections[index].toId)
+                  var latitude = toMicrodegrees(to.latitude)
+                  var longitude = toMicrodegrees(to.longitude)
+                  val points =
+                    List(reader.count()) {
+                      latitude += unzigzag(reader.varint())
+                      longitude += unzigzag(reader.varint())
+                      GeoPoint(fromMicrodegrees(latitude), fromMicrodegrees(longitude))
+                    }
+                  val back = CourseBack(points, readStretches(reader))
+                  ({ it.copy(back = back) })
+                }
+                1 -> ({ it.copy(oneWay = OneWay.THERE) })
+                else -> ({ it.copy(oneWay = OneWay.BACK) })
+              }
+            (index to position) to change
+          }
+          .toMap()
+      val signpostsBothWays = signpostsWithBridges.mapValues { (index, pairs) ->
+        pairs.mapIndexed { position, pair ->
+          signpostBacks[index to position]?.invoke(pair) ?: pair
+        }
+      }
+      return NetworkGeometry(graph, courses, signpostsBothWays, bridges, coursesBack)
     }
 
     /** Stretches as written by `writeStretches`: each one's start after the last one's end. */

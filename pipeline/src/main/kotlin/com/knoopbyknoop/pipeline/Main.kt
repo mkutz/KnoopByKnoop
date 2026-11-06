@@ -1,5 +1,6 @@
 package com.knoopbyknoop.pipeline
 
+import com.knoopbyknoop.core.CourseBack
 import com.knoopbyknoop.core.GraphFile
 import com.knoopbyknoop.core.IndexedFileKind
 import com.knoopbyknoop.core.IndexedNetworkType
@@ -95,6 +96,21 @@ fun build(area: String, outputDirectory: Path, extracts: List<Path>) {
         .withIndex()
         .filter { (_, simplified) -> simplified.second.isNotEmpty() }
         .associate { (index, simplified) -> index to simplified.second }
+    // Only where the simplified course back is not the course there reversed, see `network-data`
+    // "Course in each riding direction".
+    val networkCoursesBack = result.coursesBack[network].orEmpty()
+    val coursesBack =
+      graph.connections
+        .withIndex()
+        .mapNotNull { (index, connection) ->
+          networkCoursesBack[connection]?.let { (course, stretches) ->
+            val (simplified, simplifiedStretches) =
+              simplifyKeeping(course, COURSE_TOLERANCE_METERS, stretches)
+            if (simplified == courses[index].asReversed()) null
+            else index to CourseBack(simplified, simplifiedStretches)
+          }
+        }
+        .toMap()
     val geometryFile = outputDirectory.resolve(geometryFileName(IndexedNetworkType.of(network)))
     val networkSignpostCourses = result.signpostCourses[network].orEmpty()
     val signpostCourses =
@@ -106,13 +122,23 @@ fun build(area: String, outputDirectory: Path, extracts: List<Path>) {
               pairs.map {
                 val (course, stretches) =
                   simplifyKeeping(it.course, COURSE_TOLERANCE_METERS, it.bridges)
-                it.copy(course = course, bridges = stretches)
+                // Only where the simplified course back is not the course reversed.
+                val back =
+                  it.back?.let { back ->
+                    val (backCourse, backStretches) =
+                      simplifyKeeping(back.course, COURSE_TOLERANCE_METERS, back.bridges)
+                    CourseBack(backCourse, backStretches).takeUnless {
+                      backCourse == course.asReversed()
+                    }
+                  }
+                it.copy(course = course, bridges = stretches, back = back)
               }
           }
         }
         .toMap()
     geometryFile.writeBytes(
-      NetworkGeometry(graph, courses, signpostCourses, bridges).toBytes(sha256Hex(graphBytes))
+      NetworkGeometry(graph, courses, signpostCourses, bridges, coursesBack)
+        .toBytes(sha256Hex(graphBytes))
     )
     val lengths = graph.connections.map { it.lengthMeters }.sorted()
     val connectedKnotIds = graph.connections.flatMap { listOf(it.fromId, it.toId) }.toSet()
@@ -131,7 +157,8 @@ fun build(area: String, outputDirectory: Path, extracts: List<Path>) {
       "${geometryFile.name}: ${signpostCourses.size} of ${graph.connections.size} connections " +
         "with courses to several signposts, " +
         "${signpostCourses.values.sumOf { pairs -> pairs.sumOf { it.course.size } }} points, " +
-        "${bridges.values.sumOf { it.size }} bridge stretches on ${bridges.size} connections"
+        "${bridges.values.sumOf { it.size }} bridge stretches on ${bridges.size} connections, " +
+        "${coursesBack.size} courses back with ${coursesBack.values.sumOf { it.course.size }} points"
     )
     // How much OpenStreetMap knows about the ferries, see `show-ferry-schedules`.
     val ferries = graph.ferries.values

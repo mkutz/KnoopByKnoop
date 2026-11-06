@@ -143,12 +143,20 @@ class PbfExtract(private val path: Path) {
     fun toOsmRelation(relation: Osmformat.Relation): OsmRelation {
       var memberId = 0L
       val memberWayIds = mutableListOf<Long>()
+      val memberRoles = mutableListOf<String>()
       for (index in 0 until relation.memidsCount) {
         memberId += relation.getMemids(index)
-        if (relation.getTypes(index) == Osmformat.Relation.MemberType.WAY)
+        if (relation.getTypes(index) == Osmformat.Relation.MemberType.WAY) {
           memberWayIds.add(memberId)
+          memberRoles.add(getStringById(relation.getRolesSid(index)))
+        }
       }
-      return OsmRelation(relation.id, tags(relation.keysList, relation.valsList), memberWayIds)
+      return OsmRelation(
+        relation.id,
+        tags(relation.keysList, relation.valsList),
+        memberWayIds,
+        memberRoles,
+      )
     }
 
     fun toOsmWay(way: Osmformat.Way): OsmWay {

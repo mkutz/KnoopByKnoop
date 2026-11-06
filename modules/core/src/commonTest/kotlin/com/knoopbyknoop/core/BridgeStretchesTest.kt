@@ -57,8 +57,9 @@ class BridgeStretchesTest {
     }
     val bytes = NetworkGeometry(graph, courses, withoutStretches).toBytes(graphSha256)
 
-    // A file of 0.9.0 ends right after the signpost courses, before the two bridge counts.
-    val read = NetworkGeometry.read(bytes.copyOf(bytes.size - 2), graph, graphSha256)
+    // A file of 0.9.0 ends right after the signpost courses, before the two bridge counts and the
+    // counts of both kinds of courses back.
+    val read = NetworkGeometry.read(bytes.copyOf(bytes.size - 4), graph, graphSha256)
 
     assertEquals(mapOf(), read.bridges)
     assertEquals(courses.size, read.courses.size)

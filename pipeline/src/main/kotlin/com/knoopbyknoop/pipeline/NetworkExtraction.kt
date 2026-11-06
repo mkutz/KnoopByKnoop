@@ -1,11 +1,13 @@
 package com.knoopbyknoop.pipeline
 
 import com.knoopbyknoop.core.Connection
+import com.knoopbyknoop.core.CourseBack
 import com.knoopbyknoop.core.Ferry
 import com.knoopbyknoop.core.GeoPoint
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.NetworkGraph
 import com.knoopbyknoop.core.NetworkType
+import com.knoopbyknoop.core.OneWay
 import com.knoopbyknoop.core.SignpostCourse
 import com.knoopbyknoop.core.Stretch
 import java.util.PriorityQueue
@@ -73,6 +75,7 @@ class NetworkExtraction {
         relation.memberWayIds,
         isFerry,
         if (isFerry) ferryTagsOf(relation.tags) else mapOf(),
+        relation.memberRoles,
       )
   }
 
@@ -142,6 +145,15 @@ class NetworkExtraction {
         .filter { kept -> kept.bridges.isNotEmpty() }
         .associate { kept -> kept.connection to kept.bridges }
     }
+    val coursesBack = networks.associateWith {
+      connections
+        .getValue(it)
+        .values
+        .mapNotNull { kept ->
+          kept.courseBack?.let { back -> kept.connection to back }
+        }
+        .toMap()
+    }
     val signpostCourses = networks.associateWith {
       connections
         .getValue(it)
@@ -149,7 +161,7 @@ class NetworkExtraction {
         .filter { kept -> kept.signpostCourses.isNotEmpty() }
         .associate { kept -> kept.connection to kept.signpostCourses }
     }
-    return ExtractionResult(graphs, courses, skippedRoutes, signpostCourses, bridges)
+    return ExtractionResult(graphs, courses, skippedRoutes, signpostCourses, bridges, coursesBack)
   }
 
   /**
@@ -231,28 +243,77 @@ class NetworkExtraction {
     val (start, end) = routeKnots
     val startNodeIds = knotNodeIds.filter { knotsByNodeId[it] == start }
     val endNodeIds = knotNodeIds.filter { knotsByNodeId[it] == end }.toSet()
+    // Each direction on the ways the route marks for it, see `network-data` "Course in each riding
+    // direction"; without a way in one direction, the other reversed; without either, both ways.
+    val directed = directedNeighbors(route)
+    val there = shortestPath(directed, startNodeIds, endNodeIds)
+    val back = shortestPath(directed, endNodeIds, startNodeIds.toSet())
     val (length, nodeIds) =
-      shortestPath(neighbors, startNodeIds, endNodeIds)
+      there
+        ?: back?.let { (backLength, backNodeIds) -> backLength to backNodeIds.asReversed() }
+        ?: shortestPath(neighbors, startNodeIds, endNodeIds)
         ?: return RouteOutcome.Skipped(SkipReason.KNOTS_NOT_CONNECTED)
-    // A merged junction has its position at its representative node, so the course is extended to
-    // it, see `network-data` "Course of every connection". The node IDs go along, to find bridges.
-    val coursePoints = buildList {
-      add(start.id to GeoPoint(start.latitude, start.longitude))
-      addAll(wayToPosition(route.network, nodeIds.first(), start).asReversed())
-      addAll(nodeIds.mapNotNull { id -> coordinates.pointOf(id)?.let { id to it } })
-      addAll(wayToPosition(route.network, nodeIds.last(), end))
-      add(end.id to GeoPoint(end.latitude, end.longitude))
-    }
-    val distinct = coursePoints.filterIndexed { index, (_, point) ->
-      index == 0 || point != coursePoints[index - 1].second
-    }
+    val course = courseThrough(route.network, nodeIds, start, end)
+    val courseBack =
+      back
+        ?.takeIf { there != null }
+        ?.let { (_, backNodeIds) -> courseThrough(route.network, backNodeIds, end, start) }
+        ?.takeIf {
+          it.map { (_, point) -> point } != course.map { (_, point) -> point }.asReversed()
+        }
     return RouteOutcome.Connected(
       Connection(start.id, end.id, length.roundToInt()),
-      distinct.map { it.second },
+      course.map { it.second },
       if (route.includesFerry) ferryOf(route) else null,
-      signpostCourses(neighbors, start, startNodeIds, end, endNodeIds),
-      bridgesAlong(distinct.map { it.first }),
+      signpostCourses(neighbors, directed, start, startNodeIds, end, endNodeIds),
+      bridgesAlong(course.map { it.first }),
+      courseBack?.let { points ->
+        points.map { it.second } to bridgesAlong(points.map { it.first })
+      },
     )
+  }
+
+  /**
+   * The course along [nodeIds] from [from] to [to], with the node ID of each point. A merged
+   * junction has its position at its representative node, so the course is extended to it, see
+   * `network-data` "Course of every connection". The node IDs go along, to find bridges.
+   */
+  private fun courseThrough(
+    network: NetworkType,
+    nodeIds: List<Long>,
+    from: Knot,
+    to: Knot,
+  ): List<Pair<Long, GeoPoint>> {
+    val points = buildList {
+      add(from.id to GeoPoint(from.latitude, from.longitude))
+      addAll(wayToPosition(network, nodeIds.first(), from).asReversed())
+      addAll(nodeIds.mapNotNull { id -> coordinates.pointOf(id)?.let { id to it } })
+      addAll(wayToPosition(network, nodeIds.last(), to))
+      add(to.id to GeoPoint(to.latitude, to.longitude))
+    }
+    return points.filterIndexed { index, (_, point) ->
+      index == 0 || point != points[index - 1].second
+    }
+  }
+
+  /**
+   * The nodes next to each other on [route]'s ways in the directions the route uses them: a way
+   * with the role `forward` only in its own direction, `backward` only against it, others both.
+   */
+  private fun directedNeighbors(route: NetworkRoute): Map<Long, List<Pair<Long, Double>>> {
+    val neighbors = HashMap<Long, MutableList<Pair<Long, Double>>>()
+    for ((index, wayId) in route.wayIds.withIndex()) {
+      val nodeIds = wayNodeIds[wayId] ?: continue
+      val role = route.roles.getOrNull(index).orEmpty()
+      for (node in 1 until nodeIds.size) {
+        val from = nodeIds[node - 1]
+        val to = nodeIds[node]
+        val distance = coordinates.distanceMeters(from, to) ?: continue
+        if (role != "backward") neighbors.getOrPut(from) { mutableListOf() }.add(to to distance)
+        if (role != "forward") neighbors.getOrPut(to) { mutableListOf() }.add(from to distance)
+      }
+    }
+    return neighbors
   }
 
   /**
@@ -262,27 +323,53 @@ class NetworkExtraction {
    */
   private fun signpostCourses(
     neighbors: Map<Long, List<Pair<Long, Double>>>,
+    directed: Map<Long, List<Pair<Long, Double>>>,
     start: Knot,
     startNodeIds: Collection<Long>,
     end: Knot,
     endNodeIds: Set<Long>,
   ): List<SignpostCourse> {
     if (startNodeIds.size == 1 && endNodeIds.size == 1) return listOf()
-    val knotNodeIds = startNodeIds + endNodeIds
+    val knotNodeIds = (startNodeIds + endNodeIds).toSet()
+    fun path(ways: Map<Long, List<Pair<Long, Double>>>, from: Long, to: Long) =
+      shortestPath(ways, listOf(from), setOf(to), avoid = knotNodeIds - from - to)?.second
+    fun located(nodeIds: List<Long>) = nodeIds.mapNotNull { id ->
+      coordinates.pointOf(id)?.let { id to it }
+    }
     val courses = startNodeIds.flatMap { from ->
       endNodeIds.mapNotNull { to ->
-        val (_, nodeIds) =
-          shortestPath(neighbors, listOf(from), setOf(to), avoid = knotNodeIds.toSet() - from - to)
-            ?: return@mapNotNull null
+        // In each riding direction like the connection's course, see `network-data` "Courses to
+        // each signpost in each direction".
+        val there = path(directed, from, to)
+        val back = path(directed, to, from)
+        val nodeIds =
+          there ?: back?.asReversed() ?: path(neighbors, from, to) ?: return@mapNotNull null
         val fromPosition = start.positions.indexOf(coordinates.pointOf(from))
         val toPosition = end.positions.indexOf(coordinates.pointOf(to))
         if (fromPosition < 0 || toPosition < 0) return@mapNotNull null
-        val located = nodeIds.mapNotNull { id -> coordinates.pointOf(id)?.let { id to it } }
+        val course = located(nodeIds)
+        val courseBack =
+          back
+            ?.takeIf { there != null }
+            ?.let(::located)
+            ?.takeIf {
+              it.map { (_, point) -> point } != course.map { (_, point) -> point }.asReversed()
+            }
         SignpostCourse(
           fromPosition,
           toPosition,
-          located.map { it.second },
-          bridgesAlong(located.map { it.first }),
+          course.map { it.second },
+          bridgesAlong(course.map { it.first }),
+          courseBack?.let { points ->
+            CourseBack(points.map { it.second }, bridgesAlong(points.map { it.first }))
+          },
+          // Unlike a connection's course, a signpost course without a way in one direction is not
+          // used in that direction: the knot's other signposts are.
+          when {
+            there != null && back == null -> OneWay.THERE
+            there == null && back != null -> OneWay.BACK
+            else -> null
+          },
         )
       }
     }
@@ -411,6 +498,10 @@ class NetworkExtraction {
       val signpostCourses: List<SignpostCourse>,
       /** The stretches of [course] on a bridge. */
       val bridges: List<Stretch>,
+      /**
+       * The course from `to` back to `from` with its bridge stretches, if not [course] reversed.
+       */
+      val courseBack: Pair<List<GeoPoint>, List<Stretch>>? = null,
     ) : RouteOutcome
 
     data class Skipped(val reason: SkipReason) : RouteOutcome
@@ -423,6 +514,8 @@ class NetworkExtraction {
     val isFerry: Boolean,
     /** The route's own [FERRY_TAGS] if it is a ferry route. */
     val ferryTags: Map<String, String>,
+    /** The role of each of [wayIds], e.g. `forward`. */
+    val roles: List<String> = listOf(),
   )
 
   companion object {
@@ -459,6 +552,11 @@ data class ExtractionResult(
   val signpostCourses: Map<NetworkType, Map<Connection, List<SignpostCourse>>> = mapOf(),
   /** Per network type, the stretches of each connection's course on a bridge, if it has any. */
   val bridges: Map<NetworkType, Map<Connection, List<Stretch>>> = mapOf(),
+  /**
+   * Per network type, the course from `to` back to `from` with its bridge stretches, for each
+   * connection where it is not the course reversed, unsimplified.
+   */
+  val coursesBack: Map<NetworkType, Map<Connection, Pair<List<GeoPoint>, List<Stretch>>>> = mapOf(),
 )
 
 /** Why a node network route could not become a connection. */
