@@ -111,35 +111,16 @@ While planning, the map SHALL offer an info sheet, opened with a round info butt
 - **WHEN** the user opens the info sheet
 - **THEN** it shows the appearance with System, Light and Dark, the current choice selected, System by default
 
-### Requirement: Turning on guidance away from the route
-Guidance away from the route SHALL be off until the user turns it on with a switch in the info sheet. The switch SHALL explain that the app then requests path data from GitHub by area, so GitHub can see the rough area of a planned route, and never where the rider is. While it's off, the app SHALL NOT request any path data.
-
-#### Scenario: Off by default
-- **WHEN** the user installs or updates the app and hasn't turned the switch on
-- **THEN** the app requests no path data, also when an index lists it, and off route works without a guided way
-
-#### Scenario: Reading the explanation
-- **WHEN** the user opens the info sheet
-- **THEN** the switch and its explanation are shown, in the app's language
-
-#### Scenario: Turning it on with a route
-- **WHEN** the user turns the switch on while a complete cycling route is planned, with network access
-- **THEN** the squares around that route are downloaded
-
-#### Scenario: Turning it off
-- **WHEN** the user turns the switch off
-- **THEN** running downloads stop, the installed squares are removed, and the app requests no more path data
-
-#### Scenario: Kept across starts
-- **WHEN** the user turned the switch on and restarts the app
-- **THEN** it's still on
-
 ### Requirement: Path data around the route
-While guidance away from the route is turned on and a cycling route is complete, the app SHALL download the squares of path data within 5 km of its course without the user doing anything else. The squares requested SHALL depend only on the route, and never on the rider's position.
+While a cycling route is complete, the app SHALL download the squares of path data within 5 km of its course without the user doing anything else. The squares requested SHALL depend only on the route, and never on the rider's position.
 
 #### Scenario: Route planned at home
-- **WHEN** guidance away from the route is on, and the user completes a cycling route with network access and stops changing it for a moment
+- **WHEN** the user completes a cycling route with network access and stops changing it for a moment
 - **THEN** the squares around it are downloaded, and navigating it later needs no network access for them
+
+#### Scenario: First start
+- **WHEN** the user installs or updates the app and completes a cycling route, without changing any setting
+- **THEN** the squares around it are downloaded
 
 #### Scenario: Changing the route
 - **WHEN** the user keeps adding knots to a route
@@ -166,7 +147,7 @@ While guidance away from the route is turned on and a cycling route is complete,
 - **THEN** planning and navigating work as before, and the download is tried again when network access is back
 
 ### Requirement: Path data ready for the ride
-While planning a complete cycling route with guidance away from the route turned on, the panel SHALL show whether the path data for it is installed, so the rider knows before leaving. With the switch off, or on a hiking route, it SHALL show nothing about path data.
+While planning a complete cycling route, the panel SHALL show whether the path data for it is installed, so the rider knows before leaving. On a hiking route, it SHALL show nothing about path data.
 
 #### Scenario: Still downloading
 - **WHEN** squares of the route are still being downloaded
@@ -207,8 +188,28 @@ Installed squares SHALL stay usable until a newer version of them is downloaded.
 - **THEN** the squares unused for the longest are removed, and those of the current route stay
 
 ### Requirement: Path data in the info sheet
-The info sheet SHALL show the data date of the installed path data.
+The info sheet SHALL show the ways as a third entry, after the cycling and the hiking network: the data date and the space the installed squares take, or that none are installed. It SHALL explain in a short text that the ways guide the rider back to the route along suitable paths, also without a connection, and that they are downloaded from GitHub around planned cycling routes, so GitHub can see the rough area of a route, but never where the rider is. While squares are installed, the entry SHALL offer a button to delete them. Deleting SHALL remove all installed squares, without asking again, and the squares SHALL be downloaded again only for a route completed or changed afterwards, or when navigation starts.
 
 #### Scenario: Opening the info sheet with path data
-- **WHEN** squares are installed and the user opens the info sheet
-- **THEN** it shows their data date
+- **WHEN** squares taking 4.2 MB are installed and the user opens the info sheet
+- **THEN** it shows the ways after the cycling and hiking networks, with their data date, 4.2 MB, and a delete button
+
+#### Scenario: No path data installed
+- **WHEN** no squares are installed and the user opens the info sheet
+- **THEN** the ways' entry says that none are downloaded, and shows no delete button
+
+#### Scenario: Explanation
+- **WHEN** the user opens the info sheet, in English, German, Dutch or French
+- **THEN** the ways' entry explains what they are for and what GitHub can see, in the app's language
+
+#### Scenario: Deleting the ways
+- **WHEN** the user taps the delete button
+- **THEN** all squares are removed, the entry says that none are downloaded, and the cycling and hiking networks stay installed
+
+#### Scenario: Deleting with a route planned
+- **WHEN** a cycling route is planned with its squares installed and the user deletes the ways
+- **THEN** no squares are requested and the panel shows nothing about path data until the route is changed or navigation starts, and then the squares of that route are downloaded
+
+#### Scenario: Delete button with a screen reader
+- **WHEN** a screen reader (TalkBack, VoiceOver) reaches the delete button
+- **THEN** it announces that it deletes the downloaded ways, as a button

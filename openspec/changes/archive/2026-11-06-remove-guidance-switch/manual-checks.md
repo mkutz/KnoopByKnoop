@@ -22,5 +22,5 @@ Not checked by hand, covered by tests: "Changing the route", "Starting away from
 
 | Check | Pixel | iPhone | Notes |
 |---|---|---|---|
-| Install this build over the one with the switch, with a cycling route planned | ⏳ | ⏳ | The info sheet has no switch; the panel says the ways are loading, then loaded, also where the switch was off before |
-| The info sheet's new entry, Delete, and the panel afterwards | ⏳ | ⏳ | Does "Ways for guidance" read well next to the networks? |
+| Install this build over the one with the switch, with a cycling route planned | ✅ | ✅ | The info sheet has no switch; the panel says the ways are loading, then loaded, also where the switch was off before |
+| The info sheet's new entry, Delete, and the panel afterwards | ✅ | ✅ | Does "Ways for guidance" read well next to the networks? |
