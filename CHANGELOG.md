@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.10.0
 
 - Android: choosing another language in the info sheet switches the texts at once, without rebuilding the screen and the map (Android 13 and later); messages also follow the chosen language on older versions
 - Android: switching between light and dark in the info sheet no longer stutters; the map follows when you close the sheet
