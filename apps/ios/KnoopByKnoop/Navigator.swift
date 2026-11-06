@@ -14,7 +14,7 @@ struct NavigationState {
   var track = RiddenTrack(points: [])
   /// The riding direction from the most recent movement, or `nil` when standing.
   var direction: Double? = nil
-  /// The way back to the route, see `knot-navigation` "Guided way while off route".
+  /// The way back to the route, see `knot-navigation` "Guided way back to the route".
   var guidedWay: GuidedWay? = nil
 }
 
@@ -63,7 +63,7 @@ final class Navigator: NSObject, ObservableObject {
   private var activity: Activity<NavigationActivityAttributes>?
   /// Set after arriving: navigation ends once "You've arrived" was spoken.
   private var stopping = false
-  /// The way back to the route, see `knot-navigation` "Guided way while off route".
+  /// The way back to the route, see `knot-navigation` "Guided way back to the route".
   private let wayGuide = WayGuide()
   private var guidedWay: GuidedWay? { wayGuide.way }
   /// Finds ways one at a time, off the main thread; only used on this queue.

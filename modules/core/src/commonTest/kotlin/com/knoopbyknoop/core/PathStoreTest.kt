@@ -94,20 +94,34 @@ class PathStoreTest {
     listOf(at(fromKilometer), at(toKilometer))
 
   @Test
-  fun `Off by default no course is loaded`() {
+  fun `A cycling route is loaded without any setting`() {
     val course = course(0.0, 1.0)
-    assertNull(PathSquares.courseToLoad(false, NetworkType.CYCLING, course))
-    assertEquals(course, PathSquares.courseToLoad(true, NetworkType.CYCLING, course))
+    assertEquals(course, PathSquares.courseToLoad(NetworkType.CYCLING, course))
   }
 
   @Test
   fun `A hiking route loads nothing`() {
-    assertNull(PathSquares.courseToLoad(true, NetworkType.HIKING, course(0.0, 1.0)))
+    assertNull(PathSquares.courseToLoad(NetworkType.HIKING, course(0.0, 1.0)))
   }
 
   @Test
   fun `An incomplete route loads nothing`() {
-    assertNull(PathSquares.courseToLoad(true, NetworkType.CYCLING, null))
+    assertNull(PathSquares.courseToLoad(NetworkType.CYCLING, null))
+  }
+
+  @Test
+  fun `After deleting the ways the same route loads nothing`() {
+    val course = course(0.0, 1.0)
+    assertNull(PathSquares.courseToLoad(NetworkType.CYCLING, course, deletedFor = course(0.0, 1.0)))
+  }
+
+  @Test
+  fun `After deleting the ways a changed route loads again`() {
+    val changed = course(0.0, 2.0)
+    assertEquals(
+      changed,
+      PathSquares.courseToLoad(NetworkType.CYCLING, changed, deletedFor = course(0.0, 1.0)),
+    )
   }
 
   @Test
@@ -290,13 +304,32 @@ class PathStoreTest {
   }
 
   @Test
-  fun `Turning it off removes everything`() {
+  fun `The installed size is that of the squares and the directory`() {
     val source = FakeOrigin(fileOf(10))
     PathDownloader(store, source).load(course(0.0, 2.0), 1)
-    assertTrue(files.files.size > 2)
+    assertTrue(store.installed.size >= 2)
+    val directory = assertNotNull(files.read("directory")).size
+    assertEquals(
+      store.installed.sumOf { it.size.toLong() } + directory,
+      store.installedBytes(),
+    )
+  }
+
+  @Test
+  fun `Without path data the installed size is zero`() {
+    assertEquals(0, store.installedBytes())
+  }
+
+  @Test
+  fun `Deleting the ways removes everything and nothing else`() {
+    files.write("cycling.graph", byteArrayOf(1))
+    val source = FakeOrigin(fileOf(10))
+    PathDownloader(store, source).load(course(0.0, 2.0), 1)
+    assertTrue(files.files.size > 3)
     store.clear()
     assertEquals(listOf(), store.installed)
-    assertEquals(setOf("squares.json"), files.files.keys)
+    assertEquals(0, store.installedBytes())
+    assertEquals(setOf("squares.json", "cycling.graph"), files.files.keys)
     assertNull(store.dataDate)
     assertNull(PathRouter(store).way(at(0.5), at(1.5)))
   }

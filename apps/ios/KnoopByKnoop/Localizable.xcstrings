@@ -246,6 +246,50 @@
         }
       }
     },
+    "Delete": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Löschen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwijderen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer"
+          }
+        }
+      }
+    },
+    "Delete downloaded ways": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heruntergeladene Wege löschen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gedownloade paden verwijderen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer les chemins téléchargés"
+          }
+        }
+      }
+    },
     "Done": {
       "localizations": {
         "de": {
@@ -264,6 +308,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "OK"
+          }
+        }
+      }
+    },
+    "Downloaded data": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heruntergeladene Daten"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gedownloade gegevens"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Données téléchargées"
           }
         }
       }
@@ -330,6 +396,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bac %@"
+          }
+        }
+      }
+    },
+    "Guides you back to the route along suitable paths, also without a connection. The app downloads the ways around planned cycling routes from GitHub, so GitHub can see the rough area of a route, but never where you are.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Führt dich auf geeigneten Wegen zurück zur Route, auch ohne Verbindung. Die App lädt die Wege rund um geplante Radrouten von GitHub. GitHub sieht so ungefähr, wo eine Route liegt, aber nie, wo du bist."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leidt je over geschikte paden terug naar de route, ook zonder verbinding. De app downloadt de paden rond geplande fietsroutes van GitHub. GitHub kan zo ongeveer zien waar een route ligt, maar nooit waar jij bent."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous ramène à l'itinéraire par des chemins adaptés, même sans connexion. L'app télécharge les chemins autour des itinéraires vélo planifiés depuis GitHub. GitHub peut ainsi voir la zone approximative d'un itinéraire, mais jamais où vous êtes."
           }
         }
       }
@@ -440,28 +528,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Réseau de points-nœuds"
-          }
-        }
-      }
-    },
-    "Knot network data": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Knotenpunktnetze"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Knooppuntnetwerken"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Réseaux de points-nœuds"
           }
         }
       }
@@ -770,6 +836,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pas d'itinéraire pour %@"
+          }
+        }
+      }
+    },
+    "None downloaded": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine heruntergeladen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niets gedownload"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun téléchargé"
           }
         }
       }
@@ -1434,6 +1522,28 @@
         }
       }
     },
+    "Ways for guidance": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wege für die Führung"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paden voor begeleiding"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chemins pour le guidage"
+          }
+        }
+      }
+    },
     "Website": {
       "localizations": {
         "de": {
@@ -1831,50 +1941,6 @@
     },
     "⛴ %@": {
       "shouldTranslate": false
-    },
-    "Guidance away from the route": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Führung abseits der Route"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Begeleiding buiten de route"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Guidage hors itinéraire"
-          }
-        }
-      }
-    },
-    "Guides you back to the route along suitable paths, also without a connection. For this, the app downloads the ways around a planned route from GitHub, so GitHub can see the rough area of your route, but never where you are.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Führt dich auf geeigneten Wegen zurück zur Route, auch ohne Verbindung. Dafür lädt die App die Wege rund um eine geplante Route von GitHub. GitHub sieht so ungefähr, wo deine Route liegt, aber nie, wo du bist."
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Leidt je over geschikte paden terug naar de route, ook zonder verbinding. Daarvoor downloadt de app de paden rond een geplande route van GitHub. GitHub kan zo ongeveer zien waar je route ligt, maar nooit waar jij bent."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vous ramène à l'itinéraire par des chemins adaptés, même sans connexion. Pour cela, l'app télécharge les chemins autour d'un itinéraire planifié depuis GitHub. GitHub peut ainsi voir la zone approximative de votre itinéraire, mais jamais où vous êtes."
-          }
-        }
-      }
     },
     "Loading ways for this route…": {
       "localizations": {

@@ -102,7 +102,7 @@ class WayGuide {
     /** See "Leaving the guided way". */
     const val SEARCH_INTERVAL_MILLIS = 10_000L
 
-    /** See "Guided way while off route": further away, the straight line has to do. */
+    /** See "Guided way back to the route": further away, the straight line has to do. */
     private const val MAX_METERS = 20_000.0
   }
 }

@@ -27,7 +27,7 @@ data class GuidedWayView(val turn: String, val street: String?, val remaining: S
 data class GuidedWayUpdate(val way: GuidedWay, val notice: Notice?, val left: Boolean)
 
 /**
- * Following a [PathWay] back to the route, see `knot-navigation` "Guided way while off route".
+ * Following a [PathWay] back to the route, see `knot-navigation` "Guided way back to the route".
  * Immutable: every fix returns a new one.
  *
  * @property place how far along the way the rider is

@@ -48,7 +48,7 @@
   <string name="appearance_system">System</string>
   <string name="appearance_light">Hell</string>
   <string name="appearance_dark">Dunkel</string>
-  <string name="knot_network_data">Knotenpunktnetze</string>
+  <string name="downloaded_data">Heruntergeladene Daten</string>
   <string name="retry">Erneut versuchen</string>
   <string name="needs_app_update">Neuere Netzdaten brauchen eine neuere Version der App. Bitte aktualisiere sie.</string>
   <string name="odbl_attribution">Knotenpunktdaten © OpenStreetMap-Mitwirkende, verfügbar unter der Open Database License (ODbL 1.0), openstreetmap.org/copyright</string>
@@ -88,8 +88,11 @@
   <string name="clear_search">Suche löschen</string>
   <string name="language">Sprache</string>
   <string name="language_system">System</string>
-  <string name="guidance">Führung abseits der Route</string>
-  <string name="guidance_explanation">Führt dich auf geeigneten Wegen zurück zur Route, auch ohne Verbindung. Dafür lädt die App die Wege rund um eine geplante Route von GitHub. GitHub sieht so ungefähr, wo deine Route liegt, aber nie, wo du bist.</string>
+  <string name="ways">Wege für die Führung</string>
+  <string name="ways_none">Keine heruntergeladen</string>
+  <string name="ways_delete">Löschen</string>
+  <string name="ways_delete_description">Heruntergeladene Wege löschen</string>
+  <string name="ways_explanation">Führt dich auf geeigneten Wegen zurück zur Route, auch ohne Verbindung. Die App lädt die Wege rund um geplante Radrouten von GitHub. GitHub sieht so ungefähr, wo eine Route liegt, aber nie, wo du bist.</string>
   <string name="path_data_loading">Wege für diese Route werden geladen…</string>
   <string name="path_data_ready">Wege für diese Route sind geladen</string>
   <string name="path_data_unavailable">Wege für diese Route konnten nicht geladen werden</string>

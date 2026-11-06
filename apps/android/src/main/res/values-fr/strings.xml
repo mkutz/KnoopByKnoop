@@ -48,7 +48,7 @@
   <string name="appearance_system">Système</string>
   <string name="appearance_light">Clair</string>
   <string name="appearance_dark">Sombre</string>
-  <string name="knot_network_data">Réseaux de points-nœuds</string>
+  <string name="downloaded_data">Données téléchargées</string>
   <string name="retry">Réessayer</string>
   <string name="needs_app_update">Les données plus récentes nécessitent une version plus récente de l\'app. Veuillez la mettre à jour.</string>
   <string name="odbl_attribution">Données des points-nœuds © contributeurs OpenStreetMap, disponibles sous la licence Open Database License (ODbL 1.0), openstreetmap.org/copyright</string>
@@ -88,8 +88,11 @@
   <string name="clear_search">Effacer la recherche</string>
   <string name="language">Langue</string>
   <string name="language_system">Système</string>
-  <string name="guidance">Guidage hors itinéraire</string>
-  <string name="guidance_explanation">Vous ramène à l\'itinéraire par des chemins adaptés, même sans connexion. Pour cela, l\'app télécharge les chemins autour d\'un itinéraire planifié depuis GitHub. GitHub peut ainsi voir la zone approximative de votre itinéraire, mais jamais où vous êtes.</string>
+  <string name="ways">Chemins pour le guidage</string>
+  <string name="ways_none">Aucun téléchargé</string>
+  <string name="ways_delete">Supprimer</string>
+  <string name="ways_delete_description">Supprimer les chemins téléchargés</string>
+  <string name="ways_explanation">Vous ramène à l\'itinéraire par des chemins adaptés, même sans connexion. L\'app télécharge les chemins autour des itinéraires vélo planifiés depuis GitHub. GitHub peut ainsi voir la zone approximative d\'un itinéraire, mais jamais où vous êtes.</string>
   <string name="path_data_loading">Chargement des chemins de cet itinéraire…</string>
   <string name="path_data_ready">Les chemins de cet itinéraire sont chargés</string>
   <string name="path_data_unavailable">Les chemins de cet itinéraire n\'ont pas pu être chargés</string>

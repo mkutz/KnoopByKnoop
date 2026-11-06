@@ -155,7 +155,7 @@ class NavigationService : Service() {
   private var precision: Precision? = null
   private var stopping = false
 
-  /** The way back to the route, see `knot-navigation` "Guided way while off route". */
+  /** The way back to the route, see `knot-navigation` "Guided way back to the route". */
   private val wayGuide = WayGuide()
   private val guidedWay: GuidedWay?
     get() = wayGuide.way

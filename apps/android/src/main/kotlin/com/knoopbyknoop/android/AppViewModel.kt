@@ -120,12 +120,17 @@ data class AppState(
   val newKnots: NewKnots = NewKnots.STOP,
   /** The appearance chosen in the info sheet, see `map-planning` "Light and dark appearance". */
   val appearance: Appearance = Appearance.SYSTEM,
-  /** Whether guidance away from the route is on, see `network-sync`, off until the user chooses. */
-  val guidance: Boolean = false,
   /** How far the path data for the planned route is ready, `null` if none is wanted. */
   val pathData: PathDataStatus? = null,
   /** The data date of the installed path data. */
   val pathDataDate: String? = null,
+  /** The space the installed path data takes, in bytes, see `network-sync`. */
+  val pathDataBytes: Long = 0,
+  /**
+   * The course of the route planned when the ways were deleted, until the route changes or
+   * navigation starts, see `network-sync` "Deleting with a route planned".
+   */
+  val pathDataDeletedFor: List<GeoPoint>? = null,
   /** The navigation, or `null` when not navigating, see `knot-navigation`. */
   val navigation: NavigationState? = null,
   /**
@@ -208,7 +213,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
           settings.getString(KEY_APPEARANCE, null)?.let { saved ->
             Appearance.entries.firstOrNull { it.name == saved }
           } ?: Appearance.SYSTEM,
-        guidance = settings.getBoolean(KEY_GUIDANCE, false),
         pathDataDate = paths.dataDate,
         initialPlace = camera,
         askLocationOnStart = camera == null && storage.route()?.waypoints.isNullOrEmpty(),
@@ -241,24 +245,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   /**
    * Keeps the squares around the planned route on the device, see `network-sync` "Path data around
    * the route": requests start 2 seconds after the route last changed, and start over with a new
-   * route, the switch or network access coming back. A download running when navigation starts goes
-   * on, as only the route decides what is requested.
+   * route, after deleting the ways, or with network access coming back. A download running when
+   * navigation starts goes on, as only the route decides what is requested.
    */
   private suspend fun loadPathData() {
-    snapshotFlow { listOf(state.guidance, state.online, state.session, state.layers) }
+    state = state.copy(pathDataBytes = withContext(Dispatchers.IO) { paths.installedBytes() })
+    snapshotFlow { listOf(state.online, state.session, state.layers, state.pathDataDeletedFor) }
       .distinctUntilChanged()
       .collectLatest {
-        val network = loaded?.takeIf { it.hasGeometry }
-        val route = state.session?.route
         val course =
           PathSquares.courseToLoad(
-            state.guidance,
             state.session?.network,
-            if (route?.summary is RouteSummary.Complete && network != null) {
-              network.geometry.courseOf(route)
-            } else {
-              null
-            },
+            plannedCourse(),
+            state.pathDataDeletedFor,
           )
         if (course == null) {
           state = state.copy(pathData = null)
@@ -279,18 +278,32 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
               )
           }
         job.ensureActive()
-        state = state.copy(pathData = status, pathDataDate = paths.dataDate)
+        val bytes = withContext(Dispatchers.IO) { paths.installedBytes() }
+        state = state.copy(pathData = status, pathDataDate = paths.dataDate, pathDataBytes = bytes)
       }
   }
 
-  /** Turns guidance away from the route on or off, see `network-sync`. */
-  fun chooseGuidance(on: Boolean) {
-    settings.edit().putBoolean(KEY_GUIDANCE, on).apply()
-    state = state.copy(guidance = on)
-    if (!on) {
-      state = state.copy(pathData = null, pathDataDate = null)
-      viewModelScope.launch(Dispatchers.IO) { paths.clear() }
-    }
+  /** The course of the complete planned route, `null` without one or without courses. */
+  private fun plannedCourse(): List<GeoPoint>? {
+    val network = loaded?.takeIf { it.hasGeometry } ?: return null
+    val route = state.session?.route ?: return null
+    return if (route.summary is RouteSummary.Complete) network.geometry.courseOf(route) else null
+  }
+
+  /**
+   * Deletes the downloaded ways; the planned route's squares come again once it changes or
+   * navigation starts, see `network-sync` "Path data in the info sheet".
+   */
+  fun deletePathData() {
+    // Changing the deleted-for course restarts the flow in loadPathData, cancelling a download.
+    state =
+      state.copy(
+        pathData = null,
+        pathDataDate = null,
+        pathDataBytes = 0,
+        pathDataDeletedFor = plannedCourse() ?: listOf(),
+      )
+    viewModelScope.launch(Dispatchers.IO) { paths.clear() }
   }
 
   /** Starts navigating the planned route; location access must be granted. */
@@ -298,6 +311,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val session = state.session ?: return
     val knots = (session.route?.summary as? RouteSummary.Complete)?.knots ?: return
     val network = loaded ?: return
+    // The route's squares are wanted again, see `network-sync` "Deleting with a route planned".
+    state = state.copy(pathDataDeletedFor = null)
     NavigationService.start(
       getApplication(),
       NavigationRoute(
@@ -765,7 +780,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 private const val LOCATE_TIMEOUT_MILLIS = 15_000L
 
 private const val KEY_APPEARANCE = "appearance"
-private const val KEY_GUIDANCE = "guidance"
 private const val PATH_DATA_DELAY_MILLIS = 2000L
 
 private const val KEY_NEW_KNOTS = "new_knots"

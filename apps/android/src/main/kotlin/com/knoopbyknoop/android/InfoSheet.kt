@@ -4,11 +4,8 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -20,7 +17,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -30,8 +26,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import com.knoopbyknoop.core.NetworkState
@@ -63,8 +61,7 @@ fun InfoSheet(state: AppState, viewModel: AppViewModel, onDismiss: () -> Unit) {
       // The app's language, see `app-languages` "Language setting".
       Text(stringResource(R.string.language), style = MaterialTheme.typography.titleLarge)
       LanguageChoice(modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 16.dp))
-      GuidanceSwitch(state, viewModel)
-      Text(stringResource(R.string.knot_network_data), style = MaterialTheme.typography.titleLarge)
+      Text(stringResource(R.string.downloaded_data), style = MaterialTheme.typography.titleLarge)
       state.catalog.networks.forEach { status ->
         Row(
           modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
@@ -81,6 +78,7 @@ fun InfoSheet(state: AppState, viewModel: AppViewModel, onDismiss: () -> Unit) {
             TextButton(onClick = viewModel::retrySync) { Text(stringResource(R.string.retry)) }
         }
       }
+      WaysEntry(state, viewModel)
       if (state.needsAppUpdate) {
         Text(
           stringResource(R.string.needs_app_update),
@@ -102,39 +100,52 @@ fun InfoSheet(state: AppState, viewModel: AppViewModel, onDismiss: () -> Unit) {
   }
 }
 
-/** Guidance away from the route, off until chosen here, see `network-sync`. */
+/**
+ * The downloaded ways, after the networks, with their size and a button to delete them, see
+ * `network-sync` "Path data in the info sheet".
+ */
 @Composable
-private fun GuidanceSwitch(state: AppState, viewModel: AppViewModel) {
+private fun WaysEntry(state: AppState, viewModel: AppViewModel) {
+  val date = state.pathDataDate
   Row(
+    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
     verticalAlignment = Alignment.CenterVertically,
-    modifier =
-      Modifier.fillMaxWidth()
-        .toggleable(
-          value = state.guidance,
-          role = Role.Switch,
-          onValueChange = viewModel::chooseGuidance,
-        ),
   ) {
-    Text(
-      stringResource(R.string.guidance),
-      style = MaterialTheme.typography.titleLarge,
-      modifier = Modifier.weight(1f),
-    )
-    Switch(checked = state.guidance, onCheckedChange = null)
+    Column(modifier = Modifier.weight(1f)) {
+      Text(stringResource(R.string.ways), style = MaterialTheme.typography.titleMedium)
+      Text(
+        if (date != null && state.pathDataBytes > 0) {
+          stringResource(R.string.data_of, date) + " · " + megabytes(state.pathDataBytes)
+        } else {
+          stringResource(R.string.ways_none)
+        },
+        style = MaterialTheme.typography.bodyMedium,
+      )
+    }
+    if (date != null && state.pathDataBytes > 0) {
+      val description = stringResource(R.string.ways_delete_description)
+      TextButton(onClick = viewModel::deletePathData) {
+        // The button reads its words alone, so they say what is deleted, see "Delete button with
+        // a screen reader".
+        Text(
+          stringResource(R.string.ways_delete),
+          modifier = Modifier.clearAndSetSemantics { contentDescription = description },
+        )
+      }
+    }
   }
   Text(
-    stringResource(R.string.guidance_explanation),
+    stringResource(R.string.ways_explanation),
     style = MaterialTheme.typography.bodyMedium,
     modifier = Modifier.padding(top = 8.dp),
   )
-  state.pathDataDate?.let {
-    Text(
-      stringResource(R.string.data_of, it),
-      style = MaterialTheme.typography.bodyMedium,
-      modifier = Modifier.padding(top = 4.dp),
-    )
-  }
-  Spacer(Modifier.height(16.dp))
+}
+
+/** [bytes] in MB with one decimal, in the format of the app's language. */
+@Composable
+private fun megabytes(bytes: Long): String {
+  val locale = LocalConfiguration.current.locales[0]
+  return String.format(locale, "%.1f MB", bytes / 1_000_000.0)
 }
 
 /** The languages to choose, by language tag; the empty tag follows the phone. */

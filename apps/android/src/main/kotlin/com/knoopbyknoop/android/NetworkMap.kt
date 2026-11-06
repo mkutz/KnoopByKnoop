@@ -182,7 +182,7 @@ fun NetworkMap(
    * the map"; `null` on the route.
    */
   wayToRoute: GeoPoint? = null,
-  /** Off route, the way along paths, see `knot-navigation` "Guided way while off route". */
+  /** Off route, the way along paths, see `knot-navigation` "Guided way back to the route". */
   guidedWay: List<GeoPoint>? = null,
   /** The position found on request while planning, see `map-planning` "Show my position". */
   myPosition: Fix? = null,

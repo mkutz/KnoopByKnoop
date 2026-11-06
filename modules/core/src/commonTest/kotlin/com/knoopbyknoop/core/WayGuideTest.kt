@@ -95,7 +95,7 @@ class WayGuideTest {
     time += WayGuide.SEARCH_INTERVAL_MILLIS
   }
 
-  // Requirement: Guided way while off route
+  // Requirement: Guided way back to the route
 
   @Test
   fun `Starting away from the route looks for a way to the first knot`() {

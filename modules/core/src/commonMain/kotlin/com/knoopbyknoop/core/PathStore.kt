@@ -61,13 +61,20 @@ object PathSquares {
   private const val STEP_METERS = 2000.0
 
   /**
-   * The course to download squares for, or `null` if nothing is to be downloaded: with the switch
-   * off, on a hiking route or without a complete route. It never depends on the rider's position.
+   * The course to download squares for, or `null` if nothing is to be downloaded: on a hiking
+   * route, without a complete route, or for the course the ways were just deleted for, see
+   * `network-sync` "Path data in the info sheet". It never depends on the rider's position.
+   *
+   * @param deletedFor the course of the route planned when the ways were deleted, until the route
+   *   changes or navigation starts
    */
-  fun courseToLoad(enabled: Boolean, network: NetworkType?, course: List<GeoPoint>?) =
-    course?.takeIf {
-      enabled && network == NetworkType.CYCLING && it.isNotEmpty()
-    }
+  fun courseToLoad(
+    network: NetworkType?,
+    course: List<GeoPoint>?,
+    deletedFor: List<GeoPoint>? = null,
+  ) = course?.takeIf {
+    network == NetworkType.CYCLING && it.isNotEmpty() && it != deletedFor
+  }
 
   /** The squares within [AROUND_METERS] of [course]. */
   fun near(course: List<GeoPoint>): Set<PathSquare> {
@@ -133,7 +140,15 @@ class PathStore(private val files: PathStoreFiles) : PathSquareSource {
     return PathFile.decode(bytes, entry.rawSize)
   }
 
-  /** Removes everything, see "Turning it off". */
+  /**
+   * The space the installed squares and the cached directory take, in bytes, see `network-sync`
+   * "Path data in the info sheet".
+   */
+  fun installedBytes(): Long =
+    if (squares.isEmpty()) 0
+    else squares.sumOf { it.size.toLong() } + (files.read(DIRECTORY_FILE)?.size ?: 0)
+
+  /** Removes everything, see `network-sync` "Deleting the ways". */
   fun clear() {
     squares.forEach { files.delete(fileOf(it.square)) }
     files.delete(DIRECTORY_FILE)

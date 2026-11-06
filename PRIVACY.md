@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Last updated: 5 November 2026
+Last updated: 6 November 2026
 
 This policy covers the Knoop by Knoop apps for Android and iOS.
 
@@ -10,7 +10,7 @@ This policy covers the Knoop by Knoop apps for Android and iOS.
 Knoop by Knoop has no accounts, no ads, no analytics and no crash reporting.
 Your location and your routes stay on your device.
 The app only talks to three services to download network data, show the base map and search for places.
-If you turn on guidance away from the route, which is off until you do, GitHub can also see the rough area of the routes you plan, but never where you are.
+When you plan a cycling route, GitHub can also see its rough area, as the ways around it are downloaded from there, but never where you are.
 
 
 ## Who is responsible
@@ -35,11 +35,11 @@ The app sends no identifiers of its own.
 
 | Service | Purpose | What it receives |
 |---|---|---|
-| [GitHub](https://github.com) (GitHub, Inc., USA) | Downloading the knooppunt networks, on first start and at most once a day, and, only with guidance away from the route turned on, the ways around a planned route | IP address, with that feature on also the rough area of planned routes |
+| [GitHub](https://github.com) (GitHub, Inc., USA) | Downloading the knooppunt networks, on first start and at most once a day, and the ways around a planned cycling route | IP address, the rough area of planned cycling routes |
 | [OpenFreeMap](https://openfreemap.org) | Base map tiles while the map is shown | IP address, the map area being shown |
 | [Photon](https://photon.komoot.io) by komoot (komoot GmbH, Germany) | Place search | IP address, the text you type into the search field, the centre of the network area |
 
-**Guidance away from the route.** This feature is off until you turn it on in the info sheet. While it is on, the app downloads the ways within about 5 km of a cycling route you planned, in squares of about 7 by 4 km, from GitHub. The squares requested show GitHub the rough area of that route, along with your IP address, and may be downloaded while you navigate if they weren't complete before. They are chosen from the route alone: your position is never used to choose them and never sent. The way back to the route is worked out on your device. Turning the feature off stops the downloads and removes the downloaded ways.
+**Guidance away from the route.** The app downloads the ways within about 5 km of a cycling route you planned, in squares of about 7 by 4 km, from GitHub. The squares requested show GitHub the rough area of that route, along with your IP address, and may be downloaded while you navigate if they weren't complete before. They are chosen from the route alone: your position is never used to choose them and never sent. The way back to the route is worked out on your device. You can delete the downloaded ways in the info sheet; they are downloaded again for the next route you plan.
 
 These services process the data under their own privacy policies:
 [GitHub](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement),

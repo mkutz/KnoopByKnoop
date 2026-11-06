@@ -49,7 +49,7 @@
   <string name="appearance_system">System</string>
   <string name="appearance_light">Light</string>
   <string name="appearance_dark">Dark</string>
-  <string name="knot_network_data">Knot network data</string>
+  <string name="downloaded_data">Downloaded data</string>
   <string name="retry">Retry</string>
   <string name="needs_app_update">Newer network data needs a newer version of the app. Please update it.</string>
   <string name="odbl_attribution">Knot network data © OpenStreetMap contributors, available under the Open Database License (ODbL 1.0), openstreetmap.org/copyright</string>
@@ -94,8 +94,11 @@
   <string name="language_de" translatable="false">Deutsch</string>
   <string name="language_nl" translatable="false">Nederlands</string>
   <string name="language_fr" translatable="false">Français</string>
-  <string name="guidance">Guidance away from the route</string>
-  <string name="guidance_explanation">Guides you back to the route along suitable paths, also without a connection. For this, the app downloads the ways around a planned route from GitHub, so GitHub can see the rough area of your route, but never where you are.</string>
+  <string name="ways">Ways for guidance</string>
+  <string name="ways_none">None downloaded</string>
+  <string name="ways_delete">Delete</string>
+  <string name="ways_delete_description">Delete downloaded ways</string>
+  <string name="ways_explanation">Guides you back to the route along suitable paths, also without a connection. The app downloads the ways around planned cycling routes from GitHub, so GitHub can see the rough area of a route, but never where you are.</string>
   <string name="path_data_loading">Loading ways for this route…</string>
   <string name="path_data_ready">Ways for this route are loaded</string>
   <string name="path_data_unavailable">Ways for this route couldn\'t be loaded</string>

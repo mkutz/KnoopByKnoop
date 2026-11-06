@@ -24,7 +24,7 @@ data class NavigationState(
   val position: Fix?,
   val track: RiddenTrack = RiddenTrack(),
   val direction: Double? = null,
-  /** The way back to the route, see `knot-navigation` "Guided way while off route". */
+  /** The way back to the route, see `knot-navigation` "Guided way back to the route". */
   val guidedWay: GuidedWay? = null,
 )
 

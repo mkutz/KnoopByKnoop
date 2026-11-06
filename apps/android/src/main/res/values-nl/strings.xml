@@ -48,7 +48,7 @@
   <string name="appearance_system">Systeem</string>
   <string name="appearance_light">Licht</string>
   <string name="appearance_dark">Donker</string>
-  <string name="knot_network_data">Knooppuntnetwerken</string>
+  <string name="downloaded_data">Gedownloade gegevens</string>
   <string name="retry">Opnieuw</string>
   <string name="needs_app_update">Nieuwere netwerkgegevens hebben een nieuwere versie van de app nodig. Werk de app bij.</string>
   <string name="odbl_attribution">Knooppuntgegevens © OpenStreetMap-bijdragers, beschikbaar onder de Open Database License (ODbL 1.0), openstreetmap.org/copyright</string>
@@ -88,8 +88,11 @@
   <string name="clear_search">Zoekopdracht wissen</string>
   <string name="language">Taal</string>
   <string name="language_system">Systeem</string>
-  <string name="guidance">Begeleiding buiten de route</string>
-  <string name="guidance_explanation">Leidt je over geschikte paden terug naar de route, ook zonder verbinding. Daarvoor downloadt de app de paden rond een geplande route van GitHub. GitHub kan zo ongeveer zien waar je route ligt, maar nooit waar jij bent.</string>
+  <string name="ways">Paden voor begeleiding</string>
+  <string name="ways_none">Niets gedownload</string>
+  <string name="ways_delete">Verwijderen</string>
+  <string name="ways_delete_description">Gedownloade paden verwijderen</string>
+  <string name="ways_explanation">Leidt je over geschikte paden terug naar de route, ook zonder verbinding. De app downloadt de paden rond geplande fietsroutes van GitHub. GitHub kan zo ongeveer zien waar een route ligt, maar nooit waar jij bent.</string>
   <string name="path_data_loading">Paden voor deze route worden geladen…</string>
   <string name="path_data_ready">Paden voor deze route zijn geladen</string>
   <string name="path_data_unavailable">Paden voor deze route konden niet worden geladen</string>

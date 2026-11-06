@@ -89,7 +89,7 @@ struct NetworkMapView: UIViewRepresentable {
   /// Off route, where the line back to the route ends, see `knot-navigation` "Way to the route on
   /// the map"; `nil` on the route.
   var wayToRoute: GeoPoint? = nil
-  /// Off route, the way along paths, see `knot-navigation` "Guided way while off route".
+  /// Off route, the way along paths, see `knot-navigation` "Guided way back to the route".
   var guidedWay: [GeoPoint]? = nil
   /// The track ridden while navigating, see `knot-navigation` "Ridden track".
   var track: RiddenTrack? = nil

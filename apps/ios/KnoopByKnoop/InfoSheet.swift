@@ -34,20 +34,7 @@ struct InfoSheet: View {
           }
           .pickerStyle(.menu)
         }
-        // Off until chosen here, see `network-sync` "Turning on guidance away from the route".
         Section {
-          Toggle("Guidance away from the route", isOn: $model.guidance)
-          if let date = model.pathDataDate {
-            Text(String(localized: "Data of \(date)", bundle: AppLanguage.bundle))
-              .font(.subheadline)
-              .foregroundStyle(.secondary)
-          }
-        } footer: {
-          Text(
-            "Guides you back to the route along suitable paths, also without a connection. For this, the app downloads the ways around a planned route from GitHub, so GitHub can see the rough area of your route, but never where you are."
-          )
-        }
-        Section("Knot network data") {
           ForEach(model.catalog.networks, id: \.network) { status in
             HStack {
               VStack(alignment: .leading) {
@@ -58,10 +45,28 @@ struct InfoSheet: View {
               if status.lastAttemptFailed { Button("Retry") { model.retrySync() } }
             }
           }
+          // The downloaded ways, see `network-sync` "Path data in the info sheet".
+          HStack {
+            VStack(alignment: .leading) {
+              Text("Ways for guidance").font(.headline)
+              Text(waysDescription).font(.subheadline).foregroundStyle(.secondary)
+            }
+            Spacer()
+            if model.pathDataDate != nil, model.pathDataBytes > 0 {
+              Button("Delete") { model.deletePathData() }
+                .accessibilityLabel(Text("Delete downloaded ways"))
+            }
+          }
           if model.needsAppUpdate {
             Text("Newer network data needs a newer version of the app. Please update it.")
               .foregroundStyle(.red)
           }
+        } header: {
+          Text("Downloaded data")
+        } footer: {
+          Text(
+            "Guides you back to the route along suitable paths, also without a connection. The app downloads the ways around planned cycling routes from GitHub, so GitHub can see the rough area of a route, but never where you are."
+          )
         }
         Section {
           Text(
@@ -80,6 +85,16 @@ struct InfoSheet: View {
     }
     // The navigation bar keeps its title until rebuilt, so it follows a new language too.
     .id(language)
+  }
+
+  /// The ways' data date and size in MB with one decimal, or that none are downloaded.
+  private var waysDescription: String {
+    guard let date = model.pathDataDate, model.pathDataBytes > 0 else {
+      return String(localized: "None downloaded", bundle: AppLanguage.bundle)
+    }
+    let megabytes = (Double(model.pathDataBytes) / 1_000_000).formatted(
+      .number.precision(.fractionLength(1)).locale(AppLanguage.locale))
+    return String(localized: "Data of \(date)", bundle: AppLanguage.bundle) + " · \(megabytes) MB"
   }
 
   private func describe(_ status: NetworkStatus) -> String {

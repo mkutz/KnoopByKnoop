@@ -79,21 +79,15 @@ final class AppModel: ObservableObject {
   {
     didSet { UserDefaults.standard.set(newKnots == .end ? "end" : "stop", forKey: "newKnots") }
   }
-  /// Whether guidance away from the route is on, see `network-sync`, off until the user chooses.
-  @Published var guidance = UserDefaults.standard.bool(forKey: "guidance") {
-    didSet {
-      UserDefaults.standard.set(guidance, forKey: "guidance")
-      if !guidance {
-        pathDataDate = nil
-        PathData.queue.async { PathData.store.clear() }
-      }
-      loadPathData()
-    }
-  }
   /// How far the path data for the planned route is ready, `nil` if none is wanted.
   @Published private(set) var pathData: PathDataStatus?
   /// The data date of the installed path data.
   @Published private(set) var pathDataDate: String? = PathData.store.dataDate
+  /// The space the installed path data takes, in bytes, see `network-sync`.
+  @Published private(set) var pathDataBytes: Int64 = PathData.store.installedBytes()
+  /// The course of the route planned when the ways were deleted, until the route changes or
+  /// navigation starts, see `network-sync` "Deleting with a route planned".
+  private var pathDataDeletedFor: [GeoPoint]?
   private var pathDataLoad: (task: Task<Void, Never>, cancellation: PathDataCancellation, course: [GeoPoint], online: Bool)?
   @Published var message: String?
   /// Whether the `message` offers to open the app's settings, e.g. to allow location access.
@@ -175,6 +169,11 @@ final class AppModel: ObservableObject {
       let knots = (session.route?.summary as? RouteSummaryComplete)?.knots,
       let description = routeDescription as? RouteDescriptionComplete
     else { return }
+    // The route's squares are wanted again, see `network-sync` "Deleting with a route planned".
+    if pathDataDeletedFor != nil {
+      pathDataDeletedFor = nil
+      loadPathData()
+    }
     Navigator.shared.onDenied = { [weak self] in
       self?.message = String(localized: "Knoop by Knoop needs location access to navigate. You can allow it in Settings.", bundle: AppLanguage.bundle)
     }
@@ -301,14 +300,13 @@ final class AppModel: ObservableObject {
 
   /// Keeps the squares around the planned route on the device, see `network-sync` "Path data around
   /// the route": requests start 2 seconds after the route last changed, and start over with a new
-  /// route, the switch or network access coming back. A download running when navigation starts
-  /// goes on, as only the route decides what is requested.
+  /// route, after deleting the ways, or with network access coming back. A download running when
+  /// navigation starts goes on, as only the route decides what is requested.
   private func loadPathData() {
-    var course: [GeoPoint]?
-    if let route = session?.route, route.summary is RouteSummaryComplete, let loaded, loaded.hasGeometry {
-      course = loaded.geometry.courseOf(route: route)
-    }
-    guard let wanted = PathSquares.shared.courseToLoad(enabled: guidance, network: session?.network, course: course) else {
+    guard
+      let wanted = PathSquares.shared.courseToLoad(
+        network: session?.network, course: plannedCourse(), deletedFor: pathDataDeletedFor)
+    else {
       pathDataLoad?.cancellation.cancel()
       pathDataLoad?.task.cancel()
       pathDataLoad = nil
@@ -344,8 +342,26 @@ final class AppModel: ObservableObject {
       guard !cancellation.isCancelled else { return }
       self?.pathData = status
       self?.pathDataDate = PathData.store.dataDate
+      self?.pathDataBytes = PathData.store.installedBytes()
     }
     pathDataLoad = (task, cancellation, wanted, online)
+  }
+
+  /// The course of the complete planned route, `nil` without one or without courses.
+  private func plannedCourse() -> [GeoPoint]? {
+    guard let route = session?.route, route.summary is RouteSummaryComplete, let loaded, loaded.hasGeometry
+    else { return nil }
+    return loaded.geometry.courseOf(route: route)
+  }
+
+  /// Deletes the downloaded ways; the planned route's squares come again once it changes or
+  /// navigation starts, see `network-sync` "Path data in the info sheet".
+  func deletePathData() {
+    pathDataDeletedFor = plannedCourse() ?? []
+    loadPathData()
+    pathDataDate = nil
+    pathDataBytes = 0
+    PathData.queue.async { PathData.store.clear() }
   }
 
   private func restoreRoute() async {
