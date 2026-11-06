@@ -254,7 +254,10 @@ struct PlannerView: View {
   /// the network switch give way, so the hits can reach the top of the map.
   @ViewBuilder private func searchOverlay(landscape: Bool, keyboardShown: Bool, screen: GeometryProxy) -> some View {
     let fullHeight = screen.size.height + screen.safeAreaInsets.top + screen.safeAreaInsets.bottom
-    let sheetUp = !landscape && !keyboardShown && sheetHeight > fullHeight * 0.6
+    // At its smallest while planning, the sheet is not pulled up, however high large text makes it:
+    // it cannot go lower, and the search must stay reachable.
+    let atSmallestWhilePlanning = navigator.state == nil && detent == planningDetent
+    let sheetUp = !landscape && !keyboardShown && sheetHeight > fullHeight * 0.6 && !atSmallestWhilePlanning
     let typingInLandscape = landscape && keyboardShown
     // This view ends at the bottom safe area, the sheet's height is measured from the screen's
     // bottom. While typing, the keyboard's safe area already lifts this view above it; with a
@@ -269,6 +272,8 @@ struct PlannerView: View {
           if !typingInLandscape {
             Text("© OpenStreetMap contributors")
               .font(.caption2)
+              // Like the network switch, so large text leaves the credit in full, on one line.
+              .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
               .padding(.horizontal, 6)
               .padding(.vertical, 2)
               .floatingBackground(in: Capsule())
@@ -382,7 +387,10 @@ private struct WaypointSheet: View {
                   summary.frame(maxWidth: .infinity, alignment: .leading)
                   actions
                 }
+                summaryAboveStackedActions
               }
+            } else if dynamicTypeSize.isAccessibilitySize {
+              summaryAboveStackedActions
             } else {
               HStack(alignment: .center) {
                 summary
@@ -534,8 +542,11 @@ private struct WaypointSheet: View {
         choices.fixedSize()
       }
       VStack(alignment: .leading, spacing: 4) {
-        Text(label).font(.callout)
-        choices
+        Text(label).font(.callout).fixedSize(horizontal: false, vertical: true)
+        // Sideways where even alone it is wider than the panel, like the route's knots, rather than
+        // widening the panel beyond the screen.
+        ScrollView(.horizontal, showsIndicators: false) { choices }
+          .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
       }
     }
   }
@@ -560,45 +571,66 @@ private struct WaypointSheet: View {
   /// Side by side with the summary where they fit, so the header stays one row and the badges fit
   /// into the smallest sheet; the less frequent actions in a menu, see `map-planning` "Clear actions
   /// in the planner panel".
-  @ViewBuilder private var actions: some View {
+  private var actions: some View {
     HStack(alignment: .center) {
-      if session.canReturnToStart || model.canExportGpx {
-        Menu {
-          if session.canReturnToStart {
-            Button("Back to start", systemImage: "arrow.uturn.backward") {
-              model.returnToStart()
-            }
-          }
-          if model.canExportGpx {
-            Button("Export GPX", systemImage: "square.and.arrow.up") {
-              exportedGpx = model.exportGpx()
-            }
-          }
-        } label: {
-          Label("More actions", systemImage: "ellipsis")
-        }
-        .labelStyle(.iconOnly)
-        .buttonStyle(.bordered)
-        .buttonBorderShape(.circle)
-        .tint(.actionIconGreen)
-      }
-      if !session.waypoints.isEmpty {
-        IconAction(title: "Clear", systemImage: "trash") { model.clear() }
-      }
-      if model.canNavigate {
-        ProminentAction(title: "Navigate", systemImage: "location.north.fill") {
-          model.startNavigation()
-        }
-      }
-      // In place of asking to tap a knot, see `map-planning` "Nearest knots".
-      if model.noKnotsInView && session.waypoints.isEmpty {
-        ProminentAction(title: "Show the nearest knots", systemImage: "signpost.right") {
-          model.showNearestKnots()
-        }
-      }
+      lesserActions
+      mainAction
     }
     // Never squeezed: the summary and the spacer give way, or the actions move below them.
     .fixedSize(horizontal: true, vertical: false)
+  }
+
+  /// Where even the actions alone are wider than the panel, the main action gets its own line, and
+  /// wraps its words if it has to, so nothing widens the panel beyond the screen, see `map-planning`
+  /// "Route summary at large text sizes".
+  private var summaryAboveStackedActions: some View {
+    VStack(alignment: .trailing, spacing: 8) {
+      summary.frame(maxWidth: .infinity, alignment: .leading)
+      if !session.waypoints.isEmpty || session.canReturnToStart || model.canExportGpx {
+        HStack(alignment: .center) { lesserActions }
+      }
+      mainAction
+    }
+  }
+
+  @ViewBuilder private var lesserActions: some View {
+    if session.canReturnToStart || model.canExportGpx {
+      Menu {
+        if session.canReturnToStart {
+          Button("Back to start", systemImage: "arrow.uturn.backward") {
+            model.returnToStart()
+          }
+        }
+        if model.canExportGpx {
+          Button("Export GPX", systemImage: "square.and.arrow.up") {
+            exportedGpx = model.exportGpx()
+          }
+        }
+      } label: {
+        Label("More actions", systemImage: "ellipsis")
+      }
+      .labelStyle(.iconOnly)
+      .buttonStyle(.bordered)
+      .buttonBorderShape(.circle)
+      .tint(.actionIconGreen)
+    }
+    if !session.waypoints.isEmpty {
+      IconAction(title: "Clear", systemImage: "trash") { model.clear() }
+    }
+  }
+
+  @ViewBuilder private var mainAction: some View {
+    if model.canNavigate {
+      ProminentAction(title: "Navigate", systemImage: "location.north.fill") {
+        model.startNavigation()
+      }
+    }
+    // In place of asking to tap a knot, see `map-planning` "Nearest knots".
+    if model.noKnotsInView && session.waypoints.isEmpty {
+      ProminentAction(title: "Show the nearest knots", systemImage: "signpost.right") {
+        model.showNearestKnots()
+      }
+    }
   }
 
   @ViewBuilder private var summary: some View {
@@ -664,27 +696,15 @@ private struct NavigationHeader: View {
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
   var body: some View {
-    if let navigation = state.navigation, dynamicTypeSize.isAccessibilitySize,
-      navigation.display.offRoute || navigation.display.wrongWay
-        || (navigation.display.follow != nil && !navigation.display.close)
-    {
-      // At accessibility sizes, Stop next to the off-route header or the next knot leaves them no
-      // room: Stop goes above them, see `knot-navigation` "Number to follow at large text sizes".
+    if let navigation = state.navigation, dynamicTypeSize.isAccessibilitySize {
+      // At accessibility sizes, Stop next to the header leaves neither of them room: Stop goes above
+      // it, see `knot-navigation` "Number to follow at large text sizes".
       VStack(alignment: .leading, spacing: 8) {
         HStack {
           Spacer()
           stop
         }
-        let display = navigation.display
-        let next = Int(navigation.nextIndex)
-        if display.wrongWay {
-          offRouteHeader(display.next, at: next, guidance: nil, wrongWay: true)
-        } else if let follow = display.follow, !display.offRoute {
-          nextKnotHeader(display.next, at: next, follow: follow)
-        } else {
-          offRouteHeader(
-            display.next, at: next, guidance: state.position.flatMap { navigation.guidance(fix: $0) })
-        }
+        knotHeader(navigation)
       }
     } else {
       header
@@ -698,34 +718,44 @@ private struct NavigationHeader: View {
   private var header: some View {
     HStack(alignment: .center) {
       if let navigation = state.navigation {
-        let display = navigation.display
-        let next = Int(navigation.nextIndex)
-        if display.offRoute {
-          offRouteHeader(display.next, at: next, guidance: state.position.flatMap { navigation.guidance(fix: $0) })
-        } else if display.wrongWay {
-          offRouteHeader(display.next, at: next, guidance: nil, wrongWay: true)
-        } else if let follow = display.follow, !display.close {
-          nextKnotHeader(display.next, at: next, follow: follow)
-        } else {
-          // The distance moves below the number to follow where it does not fit next to it, see
-          // `knot-navigation` "Number to follow at large text sizes".
-          ViewThatFits(in: .horizontal) {
-            HStack(alignment: .center, spacing: 8) {
-              numberToFollow(display, at: next)
-              distance
-            }
-            VStack(alignment: .leading, spacing: 2) {
-              HStack(alignment: .center, spacing: 8) { numberToFollow(display, at: next) }
-              distance
-            }
-          }
-          .minimumScaleFactor(0.8)
-        }
+        knotHeader(navigation)
       } else {
         Text("Waiting for your position…").font(.headline)
       }
       Spacer()
       stop
+    }
+  }
+
+  /// What the rider needs to know now, without Stop.
+  @ViewBuilder private func knotHeader(_ navigation: Navigation) -> some View {
+    let display = navigation.display
+    let next = Int(navigation.nextIndex)
+    if display.offRoute {
+      offRouteHeader(display.next, at: next, guidance: state.position.flatMap { navigation.guidance(fix: $0) })
+    } else if display.wrongWay {
+      offRouteHeader(display.next, at: next, guidance: nil, wrongWay: true)
+    } else if let follow = display.follow, !display.close {
+      nextKnotHeader(display.next, at: next, follow: follow)
+    } else {
+      // The distance moves below the number to follow where it does not fit next to it, and the
+      // number to follow goes to two lines where it does not fit in one, see `knot-navigation`
+      // "Number to follow at large text sizes".
+      ViewThatFits(in: .horizontal) {
+        HStack(alignment: .center, spacing: 8) {
+          numberToFollow(display, at: next)
+          distance
+        }
+        VStack(alignment: .leading, spacing: 2) {
+          HStack(alignment: .center, spacing: 8) { numberToFollow(display, at: next) }
+          distance
+        }
+        VStack(alignment: .leading, spacing: 2) {
+          numberToFollowInTwoLines(display, at: next)
+          distance
+        }
+      }
+      .minimumScaleFactor(0.8)
     }
   }
 
@@ -735,6 +765,22 @@ private struct NavigationHeader: View {
       badge(display.next, at: next, scale: 1.3)
       Text("follow").font(.title2)
       badge(follow, at: next + 1, scale: 1.8)
+    } else {
+      badge(display.next, at: next, scale: 1.3)
+      Text("is the end").font(.title2)
+    }
+  }
+
+  @ViewBuilder private func numberToFollowInTwoLines(_ display: NavigationDisplay, at next: Int) -> some View {
+    if let follow = display.follow {
+      HStack(alignment: .center, spacing: 8) {
+        Text("At").font(.title2)
+        badge(display.next, at: next, scale: 1.3)
+      }
+      HStack(alignment: .center, spacing: 8) {
+        Text("follow").font(.title2)
+        badge(follow, at: next + 1, scale: 1.8)
+      }
     } else {
       badge(display.next, at: next, scale: 1.3)
       Text("is the end").font(.title2)

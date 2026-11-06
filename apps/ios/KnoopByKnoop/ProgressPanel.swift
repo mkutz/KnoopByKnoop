@@ -41,6 +41,8 @@ private struct ProgressStripView: View {
   /// text, see `knot-navigation` "Strip labels at large text sizes".
   @ScaledMetric(relativeTo: .callout) private var labelWidth: CGFloat = 70
   @ScaledMetric(relativeTo: .callout) private var labelHeight: CGFloat = 40
+  /// How much of `labelWidth` the longest words of a label take, e.g. `130 km`, with a gap.
+  private static let labelWordsShare: CGFloat = 0.85
   /// The rider's color, as their position on the map.
   private static let riderBlue = Color(red: 0x1A / 255, green: 0x73 / 255, blue: 0xE8 / 255)
 
@@ -52,6 +54,10 @@ private struct ProgressStripView: View {
       let riderX = inset + lineWidth * CGFloat(strip.rider)
       let badges = Self.shown(strip.marks, lineWidth: lineWidth, space: Self.badgeSpace) {
         $0.kind != .knot
+      }
+      // Centered below the mark, but within the strip at both ends.
+      let labelCenter = { (mark: ProgressMark) in
+        min(max(inset + lineWidth * CGFloat(mark.fraction), labelWidth / 2), geometry.size.width - labelWidth / 2)
       }
       ZStack(alignment: .topLeading) {
         // For screen readers, the strip is one element, except the ferries, which are buttons.
@@ -82,14 +88,15 @@ private struct ProgressStripView: View {
           badge(mark)
             .position(x: inset + lineWidth * CGFloat(mark.fraction), y: y)
         }
-        let labeled = Self.shown(badges, lineWidth: lineWidth, space: labelWidth) {
+        // A label at an end moves inwards, closer to its neighbor than their marks are, so the words
+        // must also stay apart where they end up, see "Strip labels at large text sizes".
+        let labeled = Self.shown(
+          badges, lineWidth: lineWidth, space: labelWidth,
+          apart: { abs(labelCenter($0) - labelCenter($1)) >= labelWidth * Self.labelWordsShare }
+        ) {
           $0.distance != nil
         }
         ForEach(Array(labeled.enumerated()), id: \.offset) { _, mark in
-          // Centered below the mark, but within the strip at both ends.
-          let x = min(
-            max(inset + lineWidth * CGFloat(mark.fraction), labelWidth / 2),
-            geometry.size.width - labelWidth / 2)
           VStack(spacing: 0) {
             Text(mark.distance ?? "").font(.callout.bold())
             if let arrival = mark.arrival {
@@ -100,7 +107,7 @@ private struct ProgressStripView: View {
           }
           .lineLimit(1)
           .frame(width: labelWidth)
-          .position(x: x, y: Self.height + labelHeight / 2)
+          .position(x: labelCenter(mark), y: Self.height + labelHeight / 2)
           .accessibilityHidden(true)
         }
         // Above the badges, so the rider stays visible at a labeled knot.
@@ -169,13 +176,15 @@ private struct ProgressStripView: View {
     }
   }
 
-  /// The marks that pass `include` and fit with `space` around them, the more important ones first.
+  /// The marks that pass `include` and fit with `space` around them and are `apart`, the more
+  /// important ones first.
   private static func shown(
-    _ marks: [ProgressMark], lineWidth: CGFloat, space: CGFloat, include: (ProgressMark) -> Bool
+    _ marks: [ProgressMark], lineWidth: CGFloat, space: CGFloat,
+    apart: (ProgressMark, ProgressMark) -> Bool = { _, _ in true }, include: (ProgressMark) -> Bool
   ) -> [ProgressMark] {
     var shown: [ProgressMark] = []
     for mark in marks.filter(include).sorted(by: { rank($0) < rank($1) }) {
-      if shown.allSatisfy({ lineWidth * abs(CGFloat($0.fraction - mark.fraction)) >= space }) {
+      if shown.allSatisfy({ lineWidth * abs(CGFloat($0.fraction - mark.fraction)) >= space && apart($0, mark) }) {
         shown.append(mark)
       }
     }

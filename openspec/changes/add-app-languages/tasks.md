@@ -14,6 +14,9 @@
 
 - [x] 3.1 String Catalogs for the app, the widget and the location reason, `knownRegions` in `project.yml`, the core called with the app's language, the voice by language. Verify the project builds with `xcodebuild`, install it on the maintainer's iPhone, and write the steps for every scenario in `openspec/changes/add-app-languages/manual-checks.md`
 
+- [x] 3.2 Fix the layouts found at large text on iOS, see "Found and fixed" in `manual-checks.md`. Verify in the simulator at the default size, AX2 and AX5 in German, and at AX5 in Dutch and French, in the app and in the Live Activity on the lock screen: "Large text in German"
+- [x] 3.3 Fix the layouts found at large text on Android, see "Android at large text" in `manual-checks.md`. Verify on the emulator at font scale 1.0 and 2.0 in German and at 2.0 in Dutch: "Large text in German"
+
 ## 4. Wrap-up
 
 - [ ] 4.1 Ask native speakers among the testers to review the Dutch and French texts; record it in `manual-checks.md`

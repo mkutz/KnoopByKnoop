@@ -82,6 +82,9 @@ private val STRIP_HEIGHT = 44.dp
 private val LABEL_WIDTH = 64.dp
 private val LABEL_HEIGHT = 40.dp
 
+/** How much of [LABEL_WIDTH] the longest words of a label take, e.g. `130 km`, with a gap. */
+private const val LABEL_WORDS_SHARE = 0.75f
+
 /** How important a mark is where its badge or its distance would overlap another's: lower first. */
 private fun rank(mark: ProgressMark): Int =
   when {
@@ -166,10 +169,25 @@ private fun ProgressStripView(
         }
       }
     }
-    val labeled = shown(badges, lineWidth, labelWidth) { it.distance != null }
+    // Centered below the mark, but within the strip at both ends.
+    fun labelStart(mark: ProgressMark): Dp =
+      (xOf(mark.fraction) - labelWidth / 2).coerceIn(0.dp, maxWidth - labelWidth)
+    // A label at an end moves inwards, closer to its neighbor than their marks are, so the words
+    // must also stay apart where they end up, see `knot-navigation` "Strip labels at large text
+    // sizes".
+    val labeled =
+      shown(
+        badges,
+        lineWidth,
+        labelWidth,
+        apart = { one, other ->
+          abs((labelStart(one) - labelStart(other)).value) >= (labelWidth * LABEL_WORDS_SHARE).value
+        },
+      ) {
+        it.distance != null
+      }
     for (mark in labeled) {
-      // Centered below the mark, but within the strip at both ends.
-      val x = (xOf(mark.fraction) - labelWidth / 2).coerceIn(0.dp, maxWidth - labelWidth)
+      val x = labelStart(mark)
       Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier =
@@ -307,18 +325,25 @@ private fun roleOf(kind: ProgressMarkKind): KnotRole =
   }
 
 /**
- * The marks that pass [include] and fit with [space] around them, the more important ones first; in
- * the strip's order.
+ * The marks that pass [include] and fit with [space] around them and are [apart], the more
+ * important ones first; in the strip's order.
  */
 private fun shown(
   marks: List<ProgressMark>,
   lineWidth: Dp,
   space: Dp,
+  apart: (ProgressMark, ProgressMark) -> Boolean = { _, _ -> true },
   include: (ProgressMark) -> Boolean,
 ): List<ProgressMark> {
   val shown = mutableListOf<ProgressMark>()
   for (mark in marks.filter(include).sortedBy(::rank)) {
-    if (shown.none { lineWidth * abs(it.fraction - mark.fraction).toFloat() < space }) shown += mark
+    if (
+      shown.all {
+        lineWidth * abs(it.fraction - mark.fraction).toFloat() >= space && apart(it, mark)
+      }
+    ) {
+      shown += mark
+    }
   }
   return shown.sortedBy { it.fraction }
 }

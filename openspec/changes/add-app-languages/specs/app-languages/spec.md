@@ -29,6 +29,10 @@ The apps SHALL show all their own texts in the language chosen for the app on th
 - **WHEN** the system language is English and the app's own language is set to German in the system settings
 - **THEN** the apps show their texts in German
 
+#### Scenario: Large text in German
+- **WHEN** the phone's language is German, the system text size is at its largest, and the rider plans a route and navigates it
+- **THEN** the number to follow, the distance to the next knot, Stop, the route's distance and time, Navigate and the search field are shown completely, and nothing is clipped at the sides of the panel
+
 #### Scenario: Place names stay
 - **WHEN** the phone's language is German and the rider searches "Arnhem Centraal"
 - **THEN** the hit is shown as "Arnhem Centraal", as the place search returns it

@@ -614,7 +614,9 @@ private fun NewKnotsSwitch(selected: NewKnots, onChoose: (NewKnots) -> Unit) {
     itemVerticalAlignment = Alignment.CenterVertically,
   ) {
     Text(stringResource(R.string.new_knots), style = MaterialTheme.typography.bodyMedium)
-    SingleChoiceSegmentedButtonRow {
+    // Sideways where it does not fit, as both parts are as wide as the longer one, and a part with
+    // less room would cut its word off.
+    SingleChoiceSegmentedButtonRow(Modifier.horizontalScroll(rememberScrollState())) {
       NewKnots.entries.forEachIndexed { index, newKnots ->
         SegmentedButton(
           selected = selected == newKnots,
@@ -1145,19 +1147,26 @@ private fun OffRouteHeader(
     guidance
       ?.takeIf { guidedWay == null }
       ?.let {
-        Row(
-          verticalAlignment = Alignment.CenterVertically,
+        // The direction goes below the distance where both do not fit in one line, rather than
+        // breaking within its word.
+        FlowRow(
+          itemVerticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(6.dp),
           modifier = Modifier.padding(top = 2.dp),
         ) {
-          Text(it.distance, style = MaterialTheme.typography.titleMedium)
-          Icon(
-            painterResource(R.drawable.ic_action_navigate),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.error,
-            modifier =
-              Modifier.size(22.dp).rotate((it.bearing - (ridingDirection ?: 0.0)).toFloat()),
-          )
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+          ) {
+            Text(it.distance, style = MaterialTheme.typography.titleMedium)
+            Icon(
+              painterResource(R.drawable.ic_action_navigate),
+              contentDescription = null,
+              tint = MaterialTheme.colorScheme.error,
+              modifier =
+                Modifier.size(22.dp).rotate((it.bearing - (ridingDirection ?: 0.0)).toFloat()),
+            )
+          }
           Text(
             it.direction,
             style = MaterialTheme.typography.titleMedium,

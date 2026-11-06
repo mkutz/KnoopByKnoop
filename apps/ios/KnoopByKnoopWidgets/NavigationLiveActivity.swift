@@ -185,26 +185,49 @@ private struct NextKnot: View {
     } else if let follow = state.follow, !state.close {
       VStack(alignment: .leading, spacing: 4) {
         HStack(spacing: 8) {
-          Text(String(localized: "Next", bundle: state.words)).font(.title3)
+          Text(String(localized: "Next", bundle: state.words)).font(.title3).fixedSize()
           Badge(ref: state.next, role: state.nextRole, scale: prominent)
         }
         HStack(spacing: 6) {
-          Text(String(localized: "then", bundle: state.words)).font(.subheadline)
+          Text(String(localized: "then", bundle: state.words)).font(.subheadline).fixedSize()
           Badge(ref: follow, role: state.followRole, scale: 1)
         }
       }
+    } else if let follow = state.follow, oneLine {
+      // The island puts the region below the camera if this is too wide.
+      atFollowInOneLine(follow)
     } else if let follow = state.follow {
-      HStack(spacing: 8) {
-        Text(String(localized: "At", bundle: state.words)).font(.title3)
-        Badge(ref: state.next, role: state.nextRole, scale: 1.3)
-        Text(String(localized: "follow", bundle: state.words)).font(.title3)
-        Badge(ref: follow, role: state.followRole, scale: prominent)
+      // At large text sizes "Bei 94 folge 41" does not fit beside Stop, and squeezed into one line
+      // the words broke apart; then "Bei 94" and "folge 41" in two lines.
+      ViewThatFits(in: .horizontal) {
+        atFollowInOneLine(follow)
+        VStack(alignment: .leading, spacing: 4) {
+          HStack(spacing: 8) {
+            Text(String(localized: "At", bundle: state.words)).font(.title3).fixedSize()
+            Badge(ref: state.next, role: state.nextRole, scale: 1.3)
+          }
+          HStack(spacing: 8) {
+            Text(String(localized: "follow", bundle: state.words)).font(.title3).fixedSize()
+            Badge(ref: follow, role: state.followRole, scale: prominent)
+          }
+        }
       }
     } else {
       HStack(spacing: 8) {
         Badge(ref: state.next, role: state.nextRole, scale: prominent)
+        // Breaks between words, never inside one.
         Text(String(localized: "is the end", bundle: state.words)).font(.title3)
+          .fixedSize(horizontal: false, vertical: true)
       }
+    }
+  }
+
+  private func atFollowInOneLine(_ follow: String) -> some View {
+    HStack(spacing: 8) {
+      Text(String(localized: "At", bundle: state.words)).font(.title3).fixedSize()
+      Badge(ref: state.next, role: state.nextRole, scale: 1.3)
+      Text(String(localized: "follow", bundle: state.words)).font(.title3).fixedSize()
+      Badge(ref: follow, role: state.followRole, scale: prominent)
     }
   }
 }

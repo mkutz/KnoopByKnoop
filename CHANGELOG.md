@@ -7,6 +7,10 @@
 - Android: the display no longer stays on after navigation ended, when you had left the app and come back during the ride
 - iPhone: the Dynamic Island shows "At 16 follow 17" and the off-route header in full, and on the lock screen the distance and the bar use the whole width
 - iPhone: the words on the lock screen and in the Dynamic Island follow the language chosen in the app
+- iPhone: at the largest text sizes, the number to follow, Stop, Navigate and the search field are shown in full, and the panel is no longer clipped at its sides
+- The distances on the progress strip no longer run into each other at large text sizes
+- iPhone: on the lock screen, "At 94 follow 41" no longer breaks inside words at large text sizes; it takes two lines where one is too narrow
+- Android: at the largest text size, the words of the "Add knots" switch and the direction off route are no longer cut or broken
 
 ## 0.9.0
 
