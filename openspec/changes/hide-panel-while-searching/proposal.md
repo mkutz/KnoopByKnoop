@@ -6,7 +6,7 @@ An Android tester searched for "Amsterdam" in landscape on 2026-11-05. With the 
 
 ## What Changes
 
-- **Android, landscape:** while the on-screen keyboard is open for the search, the side panel is hidden, and the map with the search field and its hits uses the whole width. When the keyboard closes, the panel is back as it was, with the route unchanged.
+- **Android, landscape:** while the on-screen keyboard is open for the search, the side panel slides aside, and the map with the search field and its hits uses the whole width. A chip with the route's start, end and distance stays on the map, so the route is clearly still there; tapping it closes the keyboard. When the keyboard closes, the panel slides back, with the route unchanged.
 
 ## Out of Scope
 

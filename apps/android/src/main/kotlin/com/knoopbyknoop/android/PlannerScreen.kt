@@ -8,6 +8,11 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
@@ -38,6 +43,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
@@ -88,6 +94,8 @@ import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -165,26 +173,47 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
     Box(modifier = Modifier.fillMaxSize()) {
       Row(modifier = Modifier.fillMaxSize()) {
         mapArea(state, Modifier.weight(1f).fillMaxHeight())
-        if (!typing) {
-          VerticalDivider()
-          // The panel's background reaches behind the navigation bar; its content keeps its width
-          // clear of it, so the header stays one row, see `map-planning` "Clear of the system
-          // bars".
-          Surface(modifier = Modifier.fillMaxHeight()) {
-            Column(
-              modifier =
-                Modifier.windowInsetsPadding(
-                    WindowInsets.safeDrawing.only(
-                      WindowInsetsSides.Top + WindowInsetsSides.End + WindowInsetsSides.Bottom
+        // Slides aside instead of vanishing, so the route is clearly still there.
+        AnimatedVisibility(
+          visible = !typing,
+          enter = expandHorizontally(expandFrom = Alignment.Start),
+          exit = shrinkHorizontally(shrinkTowards = Alignment.Start),
+        ) {
+          Row {
+            VerticalDivider()
+            // The panel's background reaches behind the navigation bar; its content keeps its width
+            // clear of it, so the header stays one row, see `map-planning` "Clear of the system
+            // bars".
+            Surface(modifier = Modifier.fillMaxHeight()) {
+              Column(
+                modifier =
+                  Modifier.windowInsetsPadding(
+                      WindowInsets.safeDrawing.only(
+                        WindowInsetsSides.Top + WindowInsetsSides.End + WindowInsetsSides.Bottom
+                      )
                     )
-                  )
-                  .width(360.dp)
-                  .padding(top = 16.dp)
-            ) {
-              WaypointSheet(state, viewModel, onShowKnot = viewModel::showOnMap)
+                    .width(360.dp)
+                    .padding(top = 16.dp)
+              ) {
+                WaypointSheet(state, viewModel, onShowKnot = viewModel::showOnMap)
+              }
             }
           }
         }
+      }
+      // While the panel is aside, the route's ends and distance at the map's edge; a tap closes the
+      // keyboard and brings the panel back, see "Typing in the search in landscape".
+      val complete = state.description as? RouteDescription.Complete
+      AnimatedVisibility(
+        visible = typing && complete != null,
+        enter = fadeIn(),
+        exit = fadeOut(),
+        modifier =
+          Modifier.align(Alignment.TopEnd)
+            .windowInsetsPadding(topInsets)
+            .padding(top = 12.dp, end = 12.dp),
+      ) {
+        complete?.let { RouteChip(it) }
       }
       SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
     }
@@ -1243,6 +1272,37 @@ private fun PlaceOfferMenu(offer: PlaceOffer, viewModel: AppViewModel) {
         text = { Text(stringResource(R.string.end_here)) },
         onClick = { viewModel.choose(PlaceChoice.END) },
       )
+    }
+  }
+}
+
+/**
+ * The route's start, end and distance while the panel is aside in landscape; a tap closes the
+ * keyboard, which brings the panel back, see `map-planning` "Typing in the search in landscape".
+ */
+@Composable
+private fun RouteChip(route: RouteDescription.Complete) {
+  val focusManager = LocalFocusManager.current
+  val keyboard = LocalSoftwareKeyboardController.current
+  val description = stringResource(R.string.route_chip, route.distance)
+  Surface(
+    onClick = {
+      keyboard?.hide()
+      focusManager.clearFocus()
+    },
+    shape = RoundedCornerShape(24.dp),
+    shadowElevation = 4.dp,
+    modifier = Modifier.semantics { contentDescription = description },
+  ) {
+    Row(
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(6.dp),
+      modifier = Modifier.clearAndSetSemantics {}.padding(horizontal = 10.dp, vertical = 6.dp),
+    ) {
+      route.knots.first().let { KnotBadge(it.knot.ref, it.role) }
+      Text("→", style = MaterialTheme.typography.titleMedium)
+      route.knots.last().let { KnotBadge(it.knot.ref, it.role) }
+      Text(route.distance, style = MaterialTheme.typography.titleMedium)
     }
   }
 }

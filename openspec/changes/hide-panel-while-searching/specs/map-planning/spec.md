@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Landscape layout
-In landscape, the app SHALL show the map and the waypoint list side by side, so both can be seen and used at the same time. On Android, while the on-screen keyboard is open for the search, the waypoint list SHALL be hidden, so the map, the search field and its hits get the whole width. In portrait, the waypoint list SHALL stay a sheet over the map.
+In landscape, the app SHALL show the map and the waypoint list side by side, so both can be seen and used at the same time. On Android, while the on-screen keyboard is open for the search, the waypoint list SHALL slide aside, so the map, the search field and its hits get the whole width, and a chip with the route's start, end and distance SHALL show on the map; tapping it SHALL close the keyboard and bring the list back. In portrait, the waypoint list SHALL stay a sheet over the map.
 
 #### Scenario: Planning in landscape
 - **WHEN** the device is in landscape and the user taps knots 12 and 45 on the map
@@ -17,4 +17,4 @@ In landscape, the app SHALL show the map and the waypoint list side by side, so 
 
 #### Scenario: Typing in the search in landscape
 - **WHEN** an Android device is in landscape with a route planned, and the user types "Amsterdam" in the search with the on-screen keyboard
-- **THEN** the waypoint list's panel is hidden and the map, the field and the hits use the whole width; when the keyboard closes, the panel is back with the same route
+- **THEN** the waypoint list's panel slides aside, the map, the field and the hits use the whole width, and a chip shows 02 → 80 and the distance; tapping the chip, or closing the keyboard, brings the panel back with the same route

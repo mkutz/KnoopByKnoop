@@ -4,7 +4,7 @@ Checked 2026-11-06 on the Android emulator `Medium_Phone_API_37.0`, Android 17, 
 
 | Scenario | Android | Notes |
 |---|---|---|
-| Typing in the search in landscape | ✅ | Before: the panel's 13 km, Navigate and badges stayed in the strip above the keyboard. Now the map, the field and the first hit use the whole width; after closing the keyboard the panel is back with 13 km and 02 → 80 |
+| Typing in the search in landscape | ✅ | Before: the panel's 13 km, Navigate and badges stayed in the strip above the keyboard. Now the panel slides aside and a chip "02 → 80, 13 km" shows at the top right; tapping the chip closed the keyboard and the panel slid back with 13 km and 02 → 80. Screen reader: "Route of 13 km, closes the keyboard". Recorded as a GIF for the maintainer, who approved it |
 | Planning in landscape | ✅ | Map and panel side by side as before |
 | Map controls in landscape | ✅ | Zoom and position buttons visible next to the hits once the keyboard is closed |
 

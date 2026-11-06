@@ -17,6 +17,7 @@
   <string name="start_here">Partir d\'ici</string>
   <string name="add_stop_here">Ajouter une étape ici</string>
   <string name="end_here">Arriver ici</string>
+  <string name="route_chip">Itinéraire de %1$s, ferme le clavier</string>
   <string name="start_point_set_end">Départ choisi, touchez un point-nœud pour l\'arrivée</string>
   <string name="end_point_set_start">Arrivée choisie, touchez un point-nœud pour le départ</string>
   <string name="straight_ways">Le chemin vers un lieu choisi n\'est encore qu\'une ligne droite, sa longueur aussi</string>
