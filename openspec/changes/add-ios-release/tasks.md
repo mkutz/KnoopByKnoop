@@ -7,8 +7,8 @@
 
 ## 2. Apple setup (manual, once the Apple Developer Program membership exists)
 
-- [ ] 2.1 Create the app `com.knoopbyknoop` in App Store Connect, the App ID for the widget extension `com.knoopbyknoop.widgets`, and an App Store Connect API key with the Admin role
-- [ ] 2.2 Store the App Store Connect secrets as repository secrets and document their names in CONTRIBUTING.md
+- [x] 2.1 Create the app `com.knoopbyknoop` in App Store Connect, the App ID for the widget extension `com.knoopbyknoop.widgets`, and an App Store Connect API key with the Admin role
+- [x] 2.2 Store the App Store Connect secrets as repository secrets and document their names in CONTRIBUTING.md
 
 ## 3. First iOS releases
 

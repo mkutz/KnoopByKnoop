@@ -48,6 +48,10 @@ The release workflows need these repository secrets:
 | `ANDROID_UPLOAD_KEY_ALIAS` | Alias of the upload key in the keystore |
 | `ANDROID_UPLOAD_KEY_PASSWORD` | Password of the upload key |
 | `PLAY_SERVICE_ACCOUNT_JSON` | JSON key of the Google Play service account allowed to release |
+| `APP_STORE_CONNECT_API_KEY` | Content of the App Store Connect API key file (`.p8`), a team key with the Admin role |
+| `APP_STORE_CONNECT_API_KEY_ID` | The key's ID, shown with the key in App Store Connect |
+| `APP_STORE_CONNECT_API_ISSUER_ID` | The Issuer ID shown above the keys in App Store Connect |
+| `APPLE_TEAM_ID` | The Apple Developer team ID, in the membership details |
 
 Only the release workflows may use secrets; a check in the Build workflow fails otherwise.
 Without the keystore variables, local release builds are signed with the debug key.
