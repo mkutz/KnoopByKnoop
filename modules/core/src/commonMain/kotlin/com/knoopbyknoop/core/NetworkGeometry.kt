@@ -10,8 +10,20 @@ data class GeoPoint(val latitude: Double, val longitude: Double)
  * @property fromPosition the position in [Knot.positions] of the connection's `from` knot
  * @property toPosition the position in [Knot.positions] of the connection's `to` knot
  * @property course from that node of the `from` knot to that node of the `to` knot
+ * @property bridges the stretches of [course] on a bridge
  */
-data class SignpostCourse(val fromPosition: Int, val toPosition: Int, val course: List<GeoPoint>)
+data class SignpostCourse(
+  val fromPosition: Int,
+  val toPosition: Int,
+  val course: List<GeoPoint>,
+  val bridges: List<Stretch> = listOf(),
+)
+
+/**
+ * A stretch of a course from the point at [first] to the point at [last], e.g. on a bridge, see
+ * `network-data` "Bridge stretches of courses".
+ */
+data class Stretch(val first: Int, val last: Int)
 
 /**
  * The course of every connection of a [NetworkGraph], as published in geometry files.
@@ -23,12 +35,15 @@ data class SignpostCourse(val fromPosition: Int, val toPosition: Int, val course
  *   connection's `from` knot to its `to` knot
  * @property signpostCourses per index into [courses], the courses to each signpost, for connections
  *   reaching their knots at several of them
+ * @property bridges per index into [courses], the stretches of the course on a bridge, see
+ *   `network-data` "Bridge stretches of courses"
  */
 class NetworkGeometry
 private constructor(
   val graph: NetworkGraph,
   val courses: List<List<GeoPoint>>,
   val signpostCourses: Map<Int, List<SignpostCourse>>,
+  val bridges: Map<Int, List<Stretch>>,
   /** The installed geometry this one adds route points to, see [withRoutePoints]. */
   private val base: NetworkGeometry?,
 ) {
@@ -37,7 +52,8 @@ private constructor(
     graph: NetworkGraph,
     courses: List<List<GeoPoint>>,
     signpostCourses: Map<Int, List<SignpostCourse>> = mapOf(),
-  ) : this(graph, courses, signpostCourses, null)
+    bridges: Map<Int, List<Stretch>> = mapOf(),
+  ) : this(graph, courses, signpostCourses, bridges, null)
 
   init {
     require(courses.size == graph.connections.size) {
@@ -133,6 +149,7 @@ private constructor(
       installed.courses + addedCourses,
       if (addedSignposts.isEmpty()) installed.signpostCourses
       else installed.signpostCourses + addedSignposts,
+      installed.bridges,
       installed,
     )
   }
@@ -364,7 +381,42 @@ private constructor(
         }
       }
     }
+    // After the signpost courses, so apps since 0.7.0 read the file as before, see `network-data`
+    // "Released apps".
+    val sortedBridges = bridges.entries.filter { it.value.isNotEmpty() }.sortedBy { it.key }
+    writer.varint(sortedBridges.size.toLong())
+    var previousIndex = 0
+    for ((index, stretches) in sortedBridges) {
+      writer.varint((index - previousIndex).toLong())
+      writeStretches(writer, stretches)
+      previousIndex = index
+    }
+    val signpostBridges =
+      signpostCourses.entries
+        .sortedBy { it.key }
+        .flatMap { (index, pairs) ->
+          pairs
+            .withIndex()
+            .filter { it.value.bridges.isNotEmpty() }
+            .map { Triple(index, it.index, it.value.bridges) }
+        }
+    writer.varint(signpostBridges.size.toLong())
+    for ((index, position, stretches) in signpostBridges) {
+      writer.varint(index.toLong())
+      writer.varint(position.toLong())
+      writeStretches(writer, stretches)
+    }
     return writer.toByteArray()
+  }
+
+  private fun writeStretches(writer: ByteWriter, stretches: List<Stretch>) {
+    writer.varint(stretches.size.toLong())
+    var previousLast = 0
+    for (stretch in stretches) {
+      writer.varint((stretch.first - previousLast).toLong())
+      writer.varint((stretch.last - stretch.first).toLong())
+      previousLast = stretch.last
+    }
   }
 
   companion object {
@@ -418,7 +470,34 @@ private constructor(
             GeoPoint(fromMicrodegrees(latitude), fromMicrodegrees(longitude))
           }
         }
-      return NetworkGeometry(graph, courses, readSignpostCourses(reader, graph))
+      val signpostCourses = readSignpostCourses(reader, graph)
+      if (!reader.hasMore()) return NetworkGeometry(graph, courses, signpostCourses)
+      var index = 0
+      val bridges =
+        List(reader.count()) {
+            index += reader.count()
+            index to readStretches(reader)
+          }
+          .toMap()
+      val signpostBridges =
+        List(reader.count()) { (reader.count() to reader.count()) to readStretches(reader) }.toMap()
+      val signpostsWithBridges = signpostCourses.mapValues { (courseIndex, pairs) ->
+        pairs.mapIndexed { position, pair ->
+          signpostBridges[courseIndex to position]?.let { pair.copy(bridges = it) } ?: pair
+        }
+      }
+      return NetworkGeometry(graph, courses, signpostsWithBridges, bridges)
+    }
+
+    /** Stretches as written by `writeStretches`: each one's start after the last one's end. */
+    private fun readStretches(reader: ByteReader): List<Stretch> {
+      var previousLast = 0
+      return List(reader.count()) {
+        val first = previousLast + reader.count()
+        val last = first + reader.count()
+        previousLast = last
+        Stretch(first, last)
+      }
     }
 
     /** The optional section after the courses, missing in older files. */

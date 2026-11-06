@@ -2,11 +2,11 @@
 
 ## 1. Data
 
-- [ ] 1.1 Pipeline:
+- [x] 1.1 Pipeline:
   - `NetworkExtraction` keeps the `bridge` tag of route ways and marks the bridge segments of each course and signpost course.
   - The simplification is cut at stretch boundaries.
   - Tests on small fixtures: "Course over a bridge", "Course under a bridge", "Several ways of one bridge", "Bridge tagged no", "Stretch kept through simplification", "Signpost course over a bridge".
-- [ ] 1.2 Core: `NetworkGeometry` writes and reads both bridge sections after the signpost courses.
+- [x] 1.2 Core: `NetworkGeometry` writes and reads both bridge sections after the signpost courses.
   - Tests: a written file reads back with the same stretches; a file without the sections reads with none.
   - "Released apps": a file with the sections, read by a copy of the 0.9.0 reader's rules, gives the same courses and signpost courses.
 - [ ] 1.3 Build the cycling and hiking geometry for the whole area locally, without publishing.

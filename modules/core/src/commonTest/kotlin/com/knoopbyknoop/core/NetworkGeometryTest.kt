@@ -275,8 +275,9 @@ class NetworkGeometryTest {
     val sha = sha256Hex(graphBytes)
     val bytes = NetworkGeometry(branches, branchGeometry.courses).toBytes(sha)
 
-    // A file of an earlier version ends right after the courses, before the section's count.
-    val read = NetworkGeometry.read(bytes.copyOf(bytes.size - 1), branches, sha)
+    // A file of an earlier version ends right after the courses, before the section's count. The
+    // last three bytes are the counts of the signpost courses and both bridge sections, all zero.
+    val read = NetworkGeometry.read(bytes.copyOf(bytes.size - 3), branches, sha)
 
     assertEquals(branches.connections.size, read.courses.size)
     assertEquals(mapOf(), read.signpostCourses)

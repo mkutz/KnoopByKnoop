@@ -78,8 +78,23 @@ fun build(area: String, outputDirectory: Path, extracts: List<Path>) {
     val graphBytes = GraphFile(network, area, dataDate.toString(), ATTRIBUTION, graph).toBytes()
     file.writeBytes(graphBytes)
     val networkCourses = result.courses.getValue(network)
-    val courses =
-      graph.connections.map { simplify(networkCourses.getValue(it), COURSE_TOLERANCE_METERS) }
+    val networkBridges = result.bridges[network].orEmpty()
+    // Simplified with the bridges' ends kept, see `network-data` "Stretch kept through
+    // simplification".
+    val simplifiedCourses =
+      graph.connections.map {
+        simplifyKeeping(
+          networkCourses.getValue(it),
+          COURSE_TOLERANCE_METERS,
+          networkBridges[it].orEmpty(),
+        )
+      }
+    val courses = simplifiedCourses.map { it.first }
+    val bridges =
+      simplifiedCourses
+        .withIndex()
+        .filter { (_, simplified) -> simplified.second.isNotEmpty() }
+        .associate { (index, simplified) -> index to simplified.second }
     val geometryFile = outputDirectory.resolve(geometryFileName(IndexedNetworkType.of(network)))
     val networkSignpostCourses = result.signpostCourses[network].orEmpty()
     val signpostCourses =
@@ -87,12 +102,17 @@ fun build(area: String, outputDirectory: Path, extracts: List<Path>) {
         .withIndex()
         .mapNotNull { (index, connection) ->
           networkSignpostCourses[connection]?.let { pairs ->
-            index to pairs.map { it.copy(course = simplify(it.course, COURSE_TOLERANCE_METERS)) }
+            index to
+              pairs.map {
+                val (course, stretches) =
+                  simplifyKeeping(it.course, COURSE_TOLERANCE_METERS, it.bridges)
+                it.copy(course = course, bridges = stretches)
+              }
           }
         }
         .toMap()
     geometryFile.writeBytes(
-      NetworkGeometry(graph, courses, signpostCourses).toBytes(sha256Hex(graphBytes))
+      NetworkGeometry(graph, courses, signpostCourses, bridges).toBytes(sha256Hex(graphBytes))
     )
     val lengths = graph.connections.map { it.lengthMeters }.sorted()
     val connectedKnotIds = graph.connections.flatMap { listOf(it.fromId, it.toId) }.toSet()
@@ -110,7 +130,8 @@ fun build(area: String, outputDirectory: Path, extracts: List<Path>) {
     println(
       "${geometryFile.name}: ${signpostCourses.size} of ${graph.connections.size} connections " +
         "with courses to several signposts, " +
-        "${signpostCourses.values.sumOf { pairs -> pairs.sumOf { it.course.size } }} points"
+        "${signpostCourses.values.sumOf { pairs -> pairs.sumOf { it.course.size } }} points, " +
+        "${bridges.values.sumOf { it.size }} bridge stretches on ${bridges.size} connections"
     )
     // How much OpenStreetMap knows about the ferries, see `show-ferry-schedules`.
     val ferries = graph.ferries.values

@@ -1,6 +1,7 @@
 package com.knoopbyknoop.pipeline
 
 import com.knoopbyknoop.core.GeoPoint
+import com.knoopbyknoop.core.Stretch
 import kotlin.math.cos
 import kotlin.math.hypot
 
@@ -67,4 +68,32 @@ private fun distanceToSegment(
         1.0,
       )
   return hypot(pointX - (startX + fraction * segmentX), pointY - (startY + fraction * segmentY))
+}
+
+/**
+ * [simplify] with the points where [stretches] start and end kept exactly: the course is cut there,
+ * each piece simplified on its own, and the stretches renumbered, see `network-data` "Stretch kept
+ * through simplification".
+ */
+fun simplifyKeeping(
+  points: List<GeoPoint>,
+  toleranceMeters: Double,
+  stretches: List<Stretch>,
+): Pair<List<GeoPoint>, List<Stretch>> {
+  if (stretches.isEmpty()) return simplify(points, toleranceMeters) to listOf()
+  val cuts =
+    (stretches.flatMap { listOf(it.first, it.last) } + 0 + points.lastIndex)
+      .filter { it in points.indices }
+      .toSortedSet()
+      .toList()
+  val simplified = mutableListOf<GeoPoint>()
+  val newIndexOf = HashMap<Int, Int>()
+  newIndexOf[cuts.first()] = 0
+  simplified += points[cuts.first()]
+  for ((from, to) in cuts.zipWithNext()) {
+    simplified += simplify(points.subList(from, to + 1), toleranceMeters).drop(1)
+    newIndexOf[to] = simplified.lastIndex
+  }
+  return simplified to
+    stretches.map { Stretch(newIndexOf.getValue(it.first), newIndexOf.getValue(it.last)) }
 }
