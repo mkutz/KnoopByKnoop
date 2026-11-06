@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Android: choosing another language in the info sheet switches the texts at once, without rebuilding the screen and the map (Android 13 and later); messages also follow the chosen language on older versions
 - Android: switching between light and dark in the info sheet no longer stutters; the map follows when you close the sheet
 - Android, landscape: while you type in the search, the route panel slides aside, so the field and the places found use the whole width above the keyboard; a chip with the route's start, end and distance stays, and tapping it brings the panel back
 - Start, stop and end anywhere: tap a place on the map that is no knot and choose "Start here", "Add stop here" or "End here". The place gets a flag, and on a cycling route a way along suitable paths to the network, found on your phone from the downloaded ways; until those are in, and on a hiking route, a straight line. Navigation names it as the start, stop or end

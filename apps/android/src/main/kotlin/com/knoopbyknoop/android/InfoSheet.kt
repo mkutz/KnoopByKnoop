@@ -1,5 +1,7 @@
 package com.knoopbyknoop.android
 
+import android.os.Build
+import androidx.activity.compose.LocalActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -184,14 +186,20 @@ private fun LanguageChoice(modifier: Modifier = Modifier) {
       modifier =
         Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
     )
+    val activity = LocalActivity.current
     ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
       languages.forEach { (tag, name) ->
         DropdownMenuItem(
           text = { Text(stringResource(name)) },
           onClick = {
             expanded = false
-            if (tag != chosen)
+            if (tag != chosen) {
               AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
+              // From Android 13 the system switches the language in place, see `app-languages`
+              // "Switching without a pause". Before, AppCompat applies it only to a new activity,
+              // and doesn't make one as the activity handles `locale` itself.
+              if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) activity?.recreate()
+            }
           },
         )
       }

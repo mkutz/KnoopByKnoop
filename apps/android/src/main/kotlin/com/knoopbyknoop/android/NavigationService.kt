@@ -184,21 +184,7 @@ class NavigationService : Service() {
     super.onCreate()
     locations = LocationServices.getFusedLocationProviderClient(this)
     speaker = Speaker(this)
-    val manager = getSystemService(NotificationManager::class.java)
-    manager.createNotificationChannel(
-      // Default importance, so it is shown on the lock screen and with its Stop button; silent,
-      // as the notices are spoken.
-      NotificationChannel(
-          CHANNEL,
-          getString(R.string.channel_navigation),
-          NotificationManager.IMPORTANCE_DEFAULT,
-        )
-        .apply {
-          description = getString(R.string.channel_description)
-          setSound(null, null)
-          enableVibration(false)
-        }
-    )
+    createChannel()
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -266,9 +252,32 @@ class NavigationService : Service() {
     apply(update, fix)
   }
 
+  /**
+   * The channel of the navigation's notification, named in the app's language; created again when
+   * the language changes, which renames it, see `app-languages` "Language setting".
+   */
+  private fun createChannel() {
+    val manager = getSystemService(NotificationManager::class.java)
+    manager.createNotificationChannel(
+      // Default importance, so it is shown on the lock screen and with its Stop button; silent,
+      // as the notices are spoken.
+      NotificationChannel(
+          CHANNEL,
+          getString(R.string.channel_navigation),
+          NotificationManager.IMPORTANCE_DEFAULT,
+        )
+        .apply {
+          description = getString(R.string.channel_description)
+          setSound(null, null)
+          enableVibration(false)
+        }
+    )
+  }
+
   /** Navigation follows the language at once, see `app-languages`. */
   override fun onConfigurationChanged(newConfig: Configuration) {
     super.onConfigurationChanged(newConfig)
+    createChannel()
     val current = navigation ?: return
     val locale = newConfig.locales[0]
     val language = Language.of(locale.language)

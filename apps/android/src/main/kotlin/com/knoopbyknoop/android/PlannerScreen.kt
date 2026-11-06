@@ -147,7 +147,7 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
     }
     onDispose { window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
   }
-  // Kept when the activity is recreated, e.g. in another language chosen in the info sheet.
+  // Kept when the activity is recreated, e.g. after the system ended the app in the background.
   var showInfo by rememberSaveable { mutableStateOf(false) }
   if (showInfo) InfoSheet(state, viewModel, onDismiss = { showInfo = false })
   var pendingNetwork by remember { mutableStateOf<IndexedNetworkType?>(null) }
