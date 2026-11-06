@@ -51,6 +51,8 @@ targets:
         # openspec/changes/add-knot-navigation/spike.md: `audio` is needed to speak while locked.
         UIBackgroundModes: [location, audio]
         NSSupportsLiveActivities: true
+        # Only standard HTTPS, which is exempt: Apple then doesn't ask about encryption per build.
+        ITSAppUsesNonExemptEncryption: false
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.knoopbyknoop

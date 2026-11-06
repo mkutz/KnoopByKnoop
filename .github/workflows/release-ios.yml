@@ -98,20 +98,49 @@ jobs:
           -authenticationKeyID "$API_KEY_ID"
           -authenticationKeyIssuerID "$API_ISSUER_ID"
 
-      # `pilot` sets "What to Test", which `xcrun altool` cannot.
+      # `pilot` sets "What to Test", which `xcrun altool` cannot. Given per language, as the plain
+      # changelog didn't reach the build's English entry for 0.10.0 (24); the lane then lists what
+      # Apple stored, see `release-delivery` "Release notes from the changelog".
       - name: Upload to TestFlight
         env:
           RELEASE_NOTES: ${{ inputs.release-notes }}
+          BUILD_NUMBER: ${{ inputs.build-number }}
         run: |
           jq --null-input \
             --arg key_id "$API_KEY_ID" \
             --arg issuer_id "$API_ISSUER_ID" \
             --rawfile key "$API_KEY_PATH" \
             '{key_id: $key_id, issuer_id: $issuer_id, key: $key}' > "$RUNNER_TEMP/api-key.json"
-          fastlane pilot upload \
-            --api_key_path "$RUNNER_TEMP/api-key.json" \
-            --ipa "$(ls "$EXPORT_PATH"/*.ipa)" \
-            --changelog "$RELEASE_NOTES"
+          export IPA_PATH="$(ls "$EXPORT_PATH"/*.ipa)"
+          mkdir -p "$RUNNER_TEMP/fastlane"
+          cat > "$RUNNER_TEMP/fastlane/Fastfile" <<'FASTFILE'
+          lane :testflight_upload do
+            app_store_connect_api_key(
+              key_id: ENV["API_KEY_ID"],
+              issuer_id: ENV["API_ISSUER_ID"],
+              key_filepath: ENV["API_KEY_PATH"],
+            )
+            notes = ENV["RELEASE_NOTES"]
+            upload_to_testflight(
+              ipa: ENV["IPA_PATH"],
+              changelog: notes,
+              localized_build_info: { "en-US" => { whats_new: notes } },
+            )
+            # What Apple stored, for the log; never fails the release.
+            begin
+              app = Spaceship::ConnectAPI::App.find("com.knoopbyknoop")
+              build = Spaceship::ConnectAPI.get_builds(
+                filter: { app: app.id, version: ENV["BUILD_NUMBER"] }
+              ).first
+              Spaceship::ConnectAPI.get_beta_build_localizations(filter: { build: build.id }).each do |l|
+                UI.message("What to Test, #{l.locale}: #{(l.whats_new || "").length} characters")
+              end
+            rescue => error
+              UI.important("Could not list What to Test: #{error.message}")
+            end
+          end
+          FASTFILE
+          cd "$RUNNER_TEMP" && fastlane testflight_upload
 
       - name: Remove keys
         if: always()
