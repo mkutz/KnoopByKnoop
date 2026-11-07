@@ -307,6 +307,22 @@ private constructor(
   }
 
   /**
+   * What navigation shows outside the app with the rider at [fix], see `knot-navigation`
+   * "Navigation with the screen off"; the parameters as for [header].
+   */
+  fun outside(
+    fix: Fix,
+    ridingDirection: Double? = null,
+    guidedWay: GuidedWay? = null,
+    network: NetworkGeometry? = null,
+  ): OutsideView =
+    header(fix, ridingDirection, guidedWay, network).outside(endArrival(fix, guidedWay))
+
+  /** When the rider gets to the end at their pace, e.g. `19:05`, where the local time is known. */
+  fun endArrival(fix: Fix, guidedWay: GuidedWay? = null): String? =
+    progress(fix, guidedWay).strip.marks.lastOrNull { it.kind == ProgressMarkKind.END }?.arrival
+
+  /**
    * The badge of the knot at [index] in the header: filled as at the knot itself, or with [sign] as
    * on the arrow signs pointing to it, which are white in the Netherlands, see `knot-navigation`
    * "Number to follow".

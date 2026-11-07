@@ -33,6 +33,43 @@ struct NavigationActivityAttributes: ActivityAttributes {
     var wrongWay = false
     /// The app's language, e.g. `de`, for the words the extension shows itself.
     var language: String? = nil
+    /// The header's row without words, see `knot-navigation` "Navigation with the screen off";
+    /// `nil` while starting, when `text` is shown.
+    var row: HeaderRowState? = nil
+  }
+
+  /// A knot of the header as its signs show it.
+  struct HeaderKnotState: Codable, Hashable {
+    var ref: String
+    /// The plate colour as RGB.
+    var colour: UInt32
+    var innerRing: Bool
+    /// Filled as at the knot, or white with a ring as on the Dutch arrow signs.
+    var filled: Bool
+    var role: BadgeRole?
+  }
+
+  /// The header's row, plain values so the extension does not link the core.
+  struct HeaderRowState: Codable, Hashable {
+    enum Kind: String, Codable { case close, far, end, wrongWay, toRoute }
+    var kind: Kind
+    /// The next knot; off route only while the rider is on a path of the network.
+    var next: HeaderKnotState?
+    /// The number to follow: on its sign plate close to the knot, small far from it.
+    var follow: HeaderKnotState?
+    var distance: String
+    /// Off route: where the route lies, clockwise from the riding direction.
+    var arrowDegrees: Double = 0
+    /// On a guided way: the turn's angle from straight ahead, its distance and the distance left.
+    var turnDegrees: Double? = nil
+    var turnDistance: String? = nil
+    var remaining: String? = nil
+    /// Off route or riding the wrong way: the card takes the opposite appearance.
+    var inverted = false
+    /// Off route, as opposed to on the way to the route after starting elsewhere.
+    var offRoute = false
+    /// The arrival at the end, e.g. `19:05`.
+    var endArrival: String? = nil
   }
 
   /// A stop or ferry on the bar along the route.

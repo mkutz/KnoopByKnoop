@@ -1,0 +1,46 @@
+# Manual checks
+
+## How it was checked
+
+Checked on 2026-11-07 with the locally built cycling data with sign regions, on the route Troisdorf 25 → 32 → 29:
+
+- **Android:** the emulator (`Medium_Phone_API_37.0`, Android 16 QPR2 with Live Updates) with the debug build. The notification shade and the status bar were captured with `adb`.
+- **iOS:** the simulator runs headless here, so it can't be locked, and its screenshots don't show the Dynamic Island. The Live Activity's real views (the lock screen card, the compact and the minimal Dynamic Island) were rendered in the app for sample states by temporary code, removed again before committing ([views](screenshots/ios-live-activity-views.png)).
+- **Afterwards:** both devices got their own data back.
+
+## Scenarios
+
+| Scenario | Android | iOS | Notes |
+|---|---|---|---|
+| Far from the next knot in German | unit test | unit test | `NavigationTest`: the same title in German |
+| Lock screen | ✅ | ✅ views | Android "32 → 25", "172 m · ■ 16:55" with the 25 plate as large icon ([close](screenshots/android-close.png)); iOS card A |
+| Far from the next knot outside the app | ✅ | ✅ views | "32 · 4.4 km › 25", "■ 17:05", 32 as large icon ([far](screenshots/android-far.png)); iOS card B |
+| Dynamic Island | — | ✅ views | Compact: 32 → plate 25 and "150 m" |
+| Dynamic Island with room for one number | — | ✅ views | Minimal: the 25 plate close, 32 far, the light tile off route |
+| Off route outside the app | ✅ | ✅ views | Android: guided title "↗ 80 m · 600 m", the symbol on a dark disc ([off route](screenshots/android-off-route.png)); iOS card C inverted, light on the dark system |
+| Off route in the Dynamic Island | — | ✅ views | The arrow on a light tile, › 02 and "1.7 km" |
+| On the way to the route outside the app | ✅ | ✅ views | "↰ 340 m · 2.0 km" with the symbol on a light disc ([on the way](screenshots/android-on-the-way.png)); iOS card D in its usual appearance |
+| Stop from the lock screen | open | open | Unchanged code paths; the iOS Stop is an icon now |
+| Progress outside the app | ✅ | ✅ views | |
+| Distance on the way | ✅ | — | The title follows the rounded distance |
+| Live Update | ✅ | — | Chip "32" far from 32; stops as points in their plate colour |
+| Chip off route | ✅ | — | The to-the-route symbol and "↩500 m" on the guided way ([chip](screenshots/android-chip-off-route.png)); `NavigationTest` for "←300 m" |
+| Progress bar in the Live Activity | — | ✅ views | The end arrival beside the bar, the ✕ dot off route, a ferry at risk dark |
+| Live Activity in light and dark mode | — | ✅ views | Light and dark cards, inverted off route and riding the wrong way |
+| Live Update turned off | open | — | |
+| Older Android | open | — | |
+| Lock screen off route | ✅ | ✅ views | No compass word |
+| Updated on the way | unit test | unit test | `NavigationTest` "updated when the arrow turns" |
+| Back on route outside the app | open | open | |
+| On the lock screen (guided way) | ✅ | — | `NavigationTest` "guided way on the lock screen" for "↰ 120 m · 1.9 km" |
+| Wrong direction outside the app | unit test | ✅ views | `NavigationTest`: "↩ 45 · 700 m", chip "↩45"; iOS card inverted with the U-turn |
+
+TalkBack on the notification: not checked yet. The title is made of arrow characters, so how TalkBack reads it is open.
+
+## For the maintainer
+
+1. **With the screen off on a ride,** look at the lock screen far from a knot, close to one (the sign plate as the large icon on the Pixel, on the card on the iPhone), off route, and riding the wrong way.
+2. **On the iPhone, use another app while navigating:** the Dynamic Island's compact and, with a screen recording, minimal views.
+3. **On the Pixel, the status bar chip:** "→12" close to a knot, the next knot far from it.
+4. **TalkBack once on the notification:** note how the title is read.
+5. **Stop from the lock screen** on both phones.

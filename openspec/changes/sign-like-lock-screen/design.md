@@ -47,6 +47,11 @@
 
 **Why:** the title is the only place Android shows text prominently. Building it in the core makes it testable once for both platforms, and identical in every language.
 
+**As built (2026-11-07):**
+- **The outside texts are an `OutsideView`** from `Navigation.outside(fix, …)`, built from the header row plus the end arrival (`Navigation.endArrival`). The iOS minimal element is chosen in the app from the row's kind.
+- **The titles change with the rounded distance and the arrow's 45° sector,** so they update at least as often as the spec asks.
+- **`NavigationDisplay.text` and its `Texts` stay in the core,** see task 1.3.
+
 ### iOS: the content state carries the row, the view draws it
 
 **Choice:** `ContentState` replaces `text` with:

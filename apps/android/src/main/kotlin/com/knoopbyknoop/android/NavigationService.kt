@@ -21,6 +21,7 @@ import android.os.IBinder
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
+import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.ServiceCompat
@@ -33,17 +34,21 @@ import com.google.android.gms.location.Priority
 import com.knoopbyknoop.core.FerryArrivalState
 import com.knoopbyknoop.core.Fix
 import com.knoopbyknoop.core.GuidedWay
+import com.knoopbyknoop.core.HeaderBadge
+import com.knoopbyknoop.core.HeaderRow
 import com.knoopbyknoop.core.KnotPlate
 import com.knoopbyknoop.core.KnotRole
 import com.knoopbyknoop.core.Language
 import com.knoopbyknoop.core.Navigation
 import com.knoopbyknoop.core.NavigationUpdate
+import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.PathRouter
 import com.knoopbyknoop.core.Precision
 import com.knoopbyknoop.core.ProgressMarkKind
 import com.knoopbyknoop.core.RiddenTrack
 import com.knoopbyknoop.core.WayGuide
 import com.knoopbyknoop.core.WaySearch
+import com.knoopbyknoop.core.outside
 import java.time.Instant
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
@@ -61,10 +66,22 @@ import kotlinx.coroutines.withContext
  * speaks the notices and shows the number to follow in an ongoing notification.
  */
 /**
+ * The notification's large icon, see `knot-navigation` "Navigation with the screen off": the knot
+ * to look for, on its sign plate close to it, or a symbol on a disc off route, on the way to the
+ * route and riding the wrong way.
+ */
+private sealed class LargeIcon {
+  data class Knot(val badge: HeaderBadge, val onPlate: Boolean) : LargeIcon()
+
+  data class Symbol(@DrawableRes val icon: Int, val dark: Boolean) : LargeIcon()
+}
+
+/**
  * What the notification shows, compared to notify only on a change.
  *
- * @property knot the knot to look for: the next one, close to it the number to follow there
- * @property knotPosition its position on the route
+ * @property title numbers, arrow characters and distances, the same in every language
+ * @property text the second line: the distance close to a knot and the end arrival
+ * @property chip the status chip's text, at most 7 characters
  * @property place the rider's place on the bar, from 0 to [PROGRESS_SCALE], in steps of 1%
  * @property marks the stops and ferries ahead on the bar, each its place and color
  * @property end the number of the route's end
@@ -72,40 +89,27 @@ import kotlinx.coroutines.withContext
 private data class NotificationContent(
   val title: String,
   val text: String,
-  val knot: String,
-  val knotPosition: Int,
+  val chip: String,
+  @DrawableRes val smallIcon: Int,
+  val largeIcon: LargeIcon,
   val place: Int,
   val offRoute: Boolean,
   val marks: List<Pair<Int, Int>>,
   val end: String,
 ) {
 
-  fun knotRole(route: NavigationRoute?): KnotRole? {
-    val knots = route?.knots ?: return null
-    return when {
-      knotPosition == knots.lastIndex -> KnotRole.END
-      knotPosition in route.stops -> KnotRole.STOP
-      else -> KnotRole.PASSED
-    }
-  }
-
-  /** The plate of the knot to look for, see `map-planning` "Route knots stand out". */
-  fun knotPlate(route: NavigationRoute?): KnotPlate =
-    KnotPlate.of(route?.knots?.getOrNull(knotPosition)?.signRegion)
-
   companion object {
 
-    fun of(navigation: Navigation, fix: Fix, guidedWay: GuidedWay?): NotificationContent {
-      val display = navigation.display
+    fun of(
+      navigation: Navigation,
+      fix: Fix,
+      guidedWay: GuidedWay?,
+      direction: Double?,
+      geometry: NetworkGeometry?,
+    ): NotificationContent {
       val strip = navigation.progress(fix, guidedWay).strip
-      // A route point has no signs to follow, see `knot-navigation` "Navigating with route points".
-      val toFollow =
-        display.close &&
-          !display.offRoute &&
-          !display.wrongWay &&
-          display.follow != null &&
-          display.nextRole == null &&
-          display.followRole == null
+      val row = navigation.header(fix, direction, guidedWay, geometry)
+      val outside = row.outside(navigation.endArrival(fix, guidedWay))
       fun onBar(fraction: Double) = (fraction * PROGRESS_SCALE).roundToInt()
       val ranked =
         strip.marks.mapNotNull { mark ->
@@ -121,13 +125,24 @@ private data class NotificationContent(
             else -> null
           }
         }
+      val (smallIcon, largeIcon) =
+        when (row) {
+          is HeaderRow.Close -> R.drawable.ic_navigation to LargeIcon.Knot(row.follow, true)
+          is HeaderRow.Far -> R.drawable.ic_navigation to LargeIcon.Knot(row.next, false)
+          is HeaderRow.End -> R.drawable.ic_navigation to LargeIcon.Knot(row.next, false)
+          is HeaderRow.WrongWay ->
+            R.drawable.ic_u_turn to LargeIcon.Symbol(R.drawable.ic_u_turn, dark = true)
+          is HeaderRow.ToRoute ->
+            R.drawable.ic_to_route to LargeIcon.Symbol(R.drawable.ic_to_route, dark = row.offRoute)
+        }
       return NotificationContent(
-        title = if (display.offRoute) display.offRouteText else display.text,
-        text = guidedWay?.view(navigation.language)?.line ?: navigation.progressLine,
-        knot = if (toFollow) display.follow.orEmpty() else display.next,
-        knotPosition = navigation.nextIndex + if (toFollow) 1 else 0,
+        title = outside.title,
+        text = outside.line,
+        chip = outside.chip,
+        smallIcon = smallIcon,
+        largeIcon = largeIcon,
         place = onBar(strip.rider) / (PROGRESS_SCALE / 100) * (PROGRESS_SCALE / 100),
-        offRoute = display.offRoute || display.wrongWay,
+        offRoute = navigation.offRoute || navigation.wrongWay,
         marks = ranked.sortedBy { it.first }.take(MAX_MARKS).map { it.second to it.third },
         end = navigation.knots.last().ref,
       )
@@ -389,7 +404,8 @@ class NavigationService : Service() {
   }
 
   private fun notifyOfChange(newNavigation: Navigation, fix: Fix) {
-    val content = NotificationContent.of(newNavigation, fix, guidedWay)
+    val content =
+      NotificationContent.of(newNavigation, fix, guidedWay, track.directionAt(fix), route?.geometry)
     // Only on a change: the position comes every second while the app is visible.
     if (content != notified) {
       notified = content
@@ -452,13 +468,24 @@ class NavigationService : Service() {
     return Notification.Builder(this, CHANNEL)
       .also { builder ->
         content?.let {
-          builder.setLargeIcon(
-            Icon.createWithBitmap(badgeBitmap(it.knotRole(route), it.knot, it.knotPlate(route)))
-          )
+          val large =
+            when (val icon = it.largeIcon) {
+              is LargeIcon.Knot ->
+                if (icon.onPlate) signPlateBitmap(icon.badge)
+                else
+                  badgeBitmap(
+                    icon.badge.role,
+                    icon.badge.ref,
+                    icon.badge.plate,
+                    filled = icon.badge.filled,
+                  )
+              is LargeIcon.Symbol -> symbolDiscBitmap(this, icon.icon, icon.dark)
+            }
+          builder.setLargeIcon(Icon.createWithBitmap(large))
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) liveUpdate(builder, it)
         }
       }
-      .setSmallIcon(R.drawable.ic_navigation)
+      .setSmallIcon(content?.smallIcon ?: R.drawable.ic_navigation)
       .setContentTitle(title)
       .setContentText(text)
       .setContentIntent(open)
@@ -475,7 +502,7 @@ class NavigationService : Service() {
   private fun liveUpdate(builder: Notification.Builder, content: NotificationContent) {
     // Promotion and the chip came with Android 16 QPR2, after the progress style.
     if (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1) {
-      builder.setRequestPromotedOngoing(true).setShortCriticalText(content.knot)
+      builder.setRequestPromotedOngoing(true).setShortCriticalText(content.chip)
     }
     builder.setStyle(
       Notification.ProgressStyle()

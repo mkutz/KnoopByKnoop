@@ -117,8 +117,9 @@ fun badgeBitmap(
   ref: String,
   plate: KnotPlate = KnotPlate.NONE,
   dark: Boolean = false,
+  filled: Boolean? = null,
 ): Bitmap {
-  val style = styleOf(role, plate, dark)
+  val style = styleOf(role, plate, dark, filled)
   val plateSize = if (style.large) 72 else 56
   val size = plateSize + 2 * CORNER_ROOM
   val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
@@ -414,4 +415,84 @@ private fun CornerSymbol(role: KnotRole, size: androidx.compose.ui.unit.Dp, modi
       drawPath(path.asComposePath(), Color.White)
     }
   }
+}
+
+/**
+ * The number to follow on its sign plate, for the notification's large icon, see `knot-navigation`
+ * "Navigation with the screen off".
+ */
+fun signPlateBitmap(badge: com.knoopbyknoop.core.HeaderBadge): Bitmap {
+  val badgeImage = badgeBitmap(badge.role, badge.ref, badge.plate, filled = badge.filled)
+  val width = badgeImage.width + 40
+  val height = badgeImage.height
+  val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+  val canvas = Canvas(bitmap)
+  val plate = badge.plate.color.toArgb()
+  val dutch = !badge.filled
+  val rect = RectF(4f, 8f, width - 4f, height - 8f)
+  canvas.drawRoundRect(
+    rect,
+    10f,
+    10f,
+    Paint(Paint.ANTI_ALIAS_FLAG).apply {
+      color = if (dutch) android.graphics.Color.WHITE else plate
+    },
+  )
+  if (dutch) {
+    canvas.drawRoundRect(
+      rect,
+      10f,
+      10f,
+      Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = plate
+        style = Paint.Style.STROKE
+        strokeWidth = 5f
+      },
+    )
+  }
+  canvas.drawBitmap(badgeImage, 0f, 0f, null)
+  val arrow =
+    Paint(Paint.ANTI_ALIAS_FLAG).apply {
+      color = if (dutch) plate else android.graphics.Color.WHITE
+      style = Paint.Style.STROKE
+      strokeWidth = 6f
+      strokeCap = Paint.Cap.ROUND
+      strokeJoin = Paint.Join.ROUND
+    }
+  val y = height / 2f
+  val left = badgeImage.width - 2f
+  canvas.drawLine(left, y, left + 28f, y, arrow)
+  canvas.drawPath(
+    Path().apply {
+      moveTo(left + 18f, y - 10f)
+      lineTo(left + 28f, y)
+      lineTo(left + 18f, y + 10f)
+    },
+    arrow,
+  )
+  return bitmap
+}
+
+/**
+ * A symbol on a disc for the notification's large icon: the to-the-route symbol, dark off route and
+ * light on the way to the route, or the U-turn of riding the wrong way.
+ */
+fun symbolDiscBitmap(context: android.content.Context, icon: Int, dark: Boolean): Bitmap {
+  val size = 96
+  val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+  val canvas = Canvas(bitmap)
+  canvas.drawCircle(
+    size / 2f,
+    size / 2f,
+    size / 2f - 2,
+    Paint(Paint.ANTI_ALIAS_FLAG).apply {
+      color = if (dark) Ink.toArgb() else 0xFFE3E7E3.toInt()
+    },
+  )
+  context.getDrawable(icon)?.let { drawable ->
+    drawable.setTint(if (dark) android.graphics.Color.WHITE else Ink.toArgb())
+    drawable.setBounds(20, 20, size - 20, size - 20)
+    drawable.draw(canvas)
+  }
+  return bitmap
 }

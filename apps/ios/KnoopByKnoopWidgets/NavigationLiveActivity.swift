@@ -8,8 +8,8 @@ struct KnoopByKnoopWidgets: WidgetBundle {
   var body: some Widget { NavigationLiveActivity() }
 }
 
-/// The number to follow at the next knot on the lock screen and in the Dynamic Island, with Stop,
-/// see `knot-navigation` "Navigation with the screen off".
+/// What to look for on the signs on the lock screen and in the Dynamic Island, without words, with
+/// Stop, see `knot-navigation` "Navigation with the screen off".
 struct NavigationLiveActivity: Widget {
 
   var body: some WidgetConfiguration {
@@ -17,10 +17,8 @@ struct NavigationLiveActivity: Widget {
       LockScreenCard(state: context.state)
     } dynamicIsland: { context in
       DynamicIsland {
-        // The first to get room, and below the camera if it needs more: by default this region is too
-        // narrow for "At 16 follow 17", which squeezed the words to nothing.
         DynamicIslandExpandedRegion(.leading, priority: 1) {
-          NextKnot(state: context.state, prominent: 1.5, textColor: .white, oneLine: true)
+          RowView(state: context.state, color: .white, scale: 0.85)
             .padding(.leading, 4)
             .dynamicIsland(verticalPlacement: .belowIfTooWide)
         }
@@ -28,72 +26,208 @@ struct NavigationLiveActivity: Widget {
           StopButton(words: context.state.words)
         }
         DynamicIslandExpandedRegion(.bottom) {
-          VStack(alignment: .leading, spacing: 6) {
-            if let progress = context.state.progress {
-              Text(progress).font(.caption).foregroundStyle(Color(white: 0.8))
-            }
-            // In from the sides, where the island's rounded corners cut off the bar's ends.
-            RouteBar(state: context.state, track: Color(white: 0.35)).padding(.horizontal, 8)
-          }
+          // In from the sides, where the island's rounded corners cut off the bar's ends.
+          BarWithArrival(state: context.state, track: Color(white: 0.35), color: .white)
+            .padding(.horizontal, 8)
         }
       } compactLeading: {
-        // Room for about three characters: "31 →" and "97" for at 31 follow 97, "97" and a flag at
-        // the end, a warning sign and the next knot off route.
-        if context.state.offRoute || context.state.wrongWay {
-          Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
-        } else if context.state.follow != nil {
-          HStack(spacing: 2) {
-            NumberOrFlag(ref: context.state.next).bold()
-            Image(systemName: "arrow.right").font(.caption2.bold())
-          }
-        } else {
-          NumberOrFlag(ref: context.state.next).bold()
-        }
+        CompactLeading(state: context.state)
       } compactTrailing: {
-        if context.state.offRoute || context.state.wrongWay {
-          NumberOrFlag(ref: context.state.next).bold()
-        } else if let follow = context.state.follow {
-          NumberOrFlag(ref: follow).bold().foregroundStyle(Color.knoopGreen)
-        } else {
-          Image(systemName: "flag.checkered")
+        if let row = context.state.row {
+          Text(row.remaining ?? row.distance).font(.subheadline.bold()).lineLimit(1)
         }
       } minimal: {
-        // The one number left when the island is shared: the knot the app shows largest.
-        NumberOrFlag(ref: context.state.close && !context.state.offRoute && !context.state.wrongWay ? context.state.follow ?? context.state.next : context.state.next)
-          .bold()
-          .foregroundStyle(Color.knoopGreen)
+        Minimal(state: context.state)
       }
     }
   }
 }
 
-/// The card on the lock screen, light or dark like the system, see `map-planning` "Lock screen in
-/// dark mode". It draws its own background and only opaque colors, chosen together by the system's
-/// mode as the app reports it: on the lock screen, `colorScheme` is dark also when the system is
-/// light, and iOS showed a light card for `activityBackgroundTint` with content for dark.
+/// The card on the lock screen, light or dark like the system, opposite while off route or riding
+/// the wrong way, see `knot-navigation` "Navigation with the screen off". It draws its own
+/// background and only opaque colors: on the lock screen, `colorScheme` is dark also when the system
+/// is light, and a per-state `activityBackgroundTint` is reported to update unreliably.
 private struct LockScreenCard: View {
 
   let state: NavigationActivityAttributes.ContentState
 
   var body: some View {
-    let dark = state.dark
-    // Stop only beside the knots, so the distance and the bar have the card's whole width.
-    VStack(alignment: .leading, spacing: 6) {
-      HStack(alignment: .center, spacing: 16) {
-        NextKnot(state: state, prominent: 1.8, textColor: dark ? .white : .knoopDark)
+    let dark = state.dark != (state.row?.inverted ?? false)
+    let color: Color = dark ? .white : .knoopDark
+    // Stop only beside the knots, so the bar has the card's whole width.
+    VStack(alignment: .leading, spacing: 8) {
+      HStack(alignment: .center, spacing: 12) {
+        RowView(state: state, color: color, scale: 1)
         Spacer(minLength: 0)
         StopButton(words: state.words)
       }
-      if let progress = state.progress {
-        Text(progress).font(.caption).foregroundStyle(Color(white: dark ? 0.8 : 0.35))
-      }
-      RouteBar(state: state, track: Color(white: dark ? 0.35 : 0.8))
+      BarWithArrival(state: state, track: Color(white: dark ? 0.35 : 0.8), color: color)
     }
     .padding()
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .background(dark ? Color(white: 0.11) : Color.white)
-    .activityBackgroundTint(dark ? Color(white: 0.11) : Color.white)
+    .activityBackgroundTint(state.dark ? Color(white: 0.11) : Color.white)
     .activitySystemActionForegroundColor(.knoopGreen)
+  }
+}
+
+/// The header's row: badges, arrows and distances, as in the app.
+private struct RowView: View {
+
+  let state: NavigationActivityAttributes.ContentState
+  let color: Color
+  let scale: CGFloat
+
+  var body: some View {
+    Group {
+      if let row = state.row {
+        HStack(alignment: .center, spacing: 8 * scale) { content(row) }
+      } else {
+        Text(state.text).font(.title3.bold())
+      }
+    }
+    .foregroundStyle(color)
+    .lineLimit(1)
+    .minimumScaleFactor(0.7)
+  }
+
+  @ViewBuilder private func content(_ row: NavigationActivityAttributes.HeaderRowState) -> some View {
+    switch row.kind {
+    case .close:
+      if let next = row.next { SignKnot(knot: next, side: 30 * scale) }
+      Text(row.distance).font(.callout.weight(.semibold))
+      Image(systemName: "arrow.right").font(.headline.bold())
+      if let follow = row.follow { SignPlateView(knot: follow, side: 40 * scale) }
+    case .far:
+      if let next = row.next { SignKnot(knot: next, side: 44 * scale) }
+      Text(row.distance).font(.title2.bold())
+      if let follow = row.follow {
+        Image(systemName: "chevron.right").font(.caption.bold()).opacity(0.7)
+        SignKnot(knot: follow, side: 26 * scale)
+      }
+    case .end:
+      if let next = row.next { SignKnot(knot: next, side: 44 * scale) }
+      Text(row.distance).font(.title2.bold())
+    case .wrongWay:
+      Image(systemName: "arrow.uturn.down").font(.title2.bold())
+      if let next = row.next { SignKnot(knot: next, side: 36 * scale) }
+      Text(row.distance).font(.title2.bold())
+    case .toRoute:
+      ToRouteGlyph(awayFromRoute: row.offRoute, dashes: color, side: 32 * scale)
+      if let turn = row.turnDegrees {
+        Image(systemName: "location.north.fill").font(.title3).rotationEffect(.degrees(turn))
+        if let distance = row.turnDistance { Text(distance).font(.callout) }
+        Text(row.remaining ?? row.distance).font(.title2.bold())
+      } else {
+        Image(systemName: "location.north.fill").font(.title2).rotationEffect(.degrees(row.arrowDegrees))
+        Text(row.distance).font(.title2.bold())
+      }
+      if let next = row.next {
+        Image(systemName: "chevron.right").font(.caption.bold()).opacity(0.7)
+        SignKnot(knot: next, side: 26 * scale)
+      }
+    }
+  }
+}
+
+/// The bar along the route with the arrival at the end beside it.
+private struct BarWithArrival: View {
+  let state: NavigationActivityAttributes.ContentState
+  let track: Color
+  let color: Color
+
+  var body: some View {
+    HStack(spacing: 8) {
+      RouteBar(state: state, track: track)
+      if let arrival = state.row?.endArrival {
+        Text(arrival).font(.subheadline.bold()).foregroundStyle(color).fixedSize()
+      }
+    }
+  }
+}
+
+/// The Dynamic Island's leading side: the row in miniature, see `knot-navigation` "Navigation with
+/// the screen off".
+private struct CompactLeading: View {
+  let state: NavigationActivityAttributes.ContentState
+
+  var body: some View {
+    if let row = state.row {
+      switch row.kind {
+      case .close:
+        HStack(spacing: 2) {
+          if let next = row.next { SignKnot(knot: next, side: 18) }
+          Image(systemName: "arrow.right").font(.system(size: 9, weight: .bold))
+          if let follow = row.follow { SignPlateView(knot: follow, side: 18) }
+        }
+      case .far:
+        HStack(spacing: 2) {
+          if let next = row.next { SignKnot(knot: next, side: 22) }
+          Image(systemName: "chevron.right").font(.system(size: 9, weight: .bold)).opacity(0.7)
+          if let follow = row.follow { SignKnot(knot: follow, side: 16) }
+        }
+      case .end:
+        if let next = row.next { SignKnot(knot: next, side: 22) }
+      case .wrongWay, .toRoute:
+        HStack(spacing: 2) {
+          WarningTile(row: row, side: 24)
+          if row.kind == .toRoute, let next = row.next {
+            Image(systemName: "chevron.right").font(.system(size: 9, weight: .bold)).opacity(0.7)
+            SignKnot(knot: next, side: 16)
+          }
+        }
+      }
+    } else {
+      NumberOrFlag(ref: state.next).bold()
+    }
+  }
+}
+
+/// One element when the island is shared: the plate close to a knot, the next knot far from it, and
+/// the arrow off route, see "Dynamic Island with room for one number".
+private struct Minimal: View {
+  let state: NavigationActivityAttributes.ContentState
+
+  var body: some View {
+    if let row = state.row {
+      switch row.kind {
+      case .close:
+        if let follow = row.follow {
+          SignKnot(knot: follow, side: 18)
+            .padding(2)
+            .background(
+              RoundedRectangle(cornerRadius: 4).fill(follow.filled ? follow.plateColor : .white))
+        }
+      case .far, .end:
+        if let next = row.next { SignKnot(knot: next, side: 24) }
+      case .wrongWay, .toRoute:
+        WarningTile(row: row, side: 24)
+      }
+    } else {
+      NumberOrFlag(ref: state.next).bold()
+    }
+  }
+}
+
+/// Off route and riding the wrong way, the arrow or the U-turn on a light tile, as the island is
+/// black; on the way to the route the plain arrow.
+private struct WarningTile: View {
+  let row: NavigationActivityAttributes.HeaderRowState
+  let side: CGFloat
+
+  var body: some View {
+    let symbol =
+      Image(systemName: row.kind == .wrongWay ? "arrow.uturn.down" : "location.north.fill")
+      .font(.system(size: side * 0.55, weight: .bold))
+      .rotationEffect(.degrees(row.kind == .wrongWay ? 0 : row.turnDegrees ?? row.arrowDegrees))
+    if row.inverted {
+      symbol
+        .foregroundStyle(Color.knoopDark)
+        .frame(width: side, height: side)
+        .background(RoundedRectangle(cornerRadius: side * 0.3).fill(Color(white: 0.95)))
+    } else {
+      symbol.foregroundStyle(.white).frame(width: side, height: side)
+    }
   }
 }
 
@@ -119,9 +253,17 @@ private struct RouteBar: View {
           Circle().fill(Color.knoopDark).overlay(Circle().strokeBorder(.white, lineWidth: 1))
             .frame(width: 10, height: 10)
             .offset(x: width - 10)
-          Circle().fill(state.offRoute || state.wrongWay ? Color.red : Color.blue)
-            .overlay(Circle().strokeBorder(.white, lineWidth: 2))
-            .frame(width: 12, height: 12)
+          // Off route a ring with ✕, not red, see `knot-navigation` "Progress strip".
+          Group {
+            if state.offRoute || state.wrongWay {
+              Circle().fill(.white)
+                .overlay(Circle().strokeBorder(Color.knoopDark, lineWidth: 2))
+                .overlay(Image(systemName: "xmark").font(.system(size: 6, weight: .black)).foregroundStyle(Color.knoopDark))
+            } else {
+              Circle().fill(Color.blue).overlay(Circle().strokeBorder(.white, lineWidth: 2))
+            }
+          }
+          .frame(width: 12, height: 12)
             .offset(x: max(0, min(width - 12, width * rider - 6)))
         }
         .frame(maxHeight: .infinity)
@@ -135,99 +277,8 @@ private struct RouteBar: View {
     switch mark.kind {
     case .stop: .knoopOrange
     case .ferry: .blue
-    case .closedFerry: .red
-    }
-  }
-}
-
-/// "At 45 follow 12" with the knots as badges like on the map, 12 the largest, and far from the
-/// knot "Next 45" and "then 12", 45 the largest, see `knot-navigation` "Number to follow"; off
-/// route, at the end of the route and while starting, the text with the next knot's badge.
-private struct NextKnot: View {
-
-  let state: NavigationActivityAttributes.ContentState
-  /// How much larger than on the map the number to follow is.
-  let prominent: CGFloat
-  /// Dark on the light lock screen card, light on the dark one and in the black Dynamic Island.
-  let textColor: Color
-  /// For the Dynamic Island, where more height pushes the bar into the rounded corners: far from a
-  /// knot, "Next" and "then" in one line, and off route no more lines than fit.
-  var oneLine = false
-
-  var body: some View {
-    content.foregroundStyle(textColor)
-  }
-
-  @ViewBuilder private var content: some View {
-    if state.next.isEmpty {
-      Text(state.text).font(.title3.bold())
-    } else if state.offRoute || state.wrongWay {
-      HStack(spacing: 8) {
-        Text(
-          state.wrongWay
-            ? String(localized: "Wrong direction, next", bundle: state.words)
-            : String(localized: "Off route, next", bundle: state.words)
-        )
-        .font(.title3.bold())
-        .foregroundStyle(.red)
-        // On the lock screen, as many lines as it takes; in the Dynamic Island, more than two would
-        // push the bar into its rounded corners, so the end is cut off there.
-        .fixedSize(horizontal: false, vertical: !oneLine)
-        Badge(ref: state.next, role: state.nextRole, scale: 1.3)
-      }
-    } else if let follow = state.follow, !state.close, oneLine {
-      HStack(spacing: 8) {
-        Text(String(localized: "Next", bundle: state.words)).font(.title3).fixedSize()
-        Badge(ref: state.next, role: state.nextRole, scale: prominent)
-        Text(String(localized: "then", bundle: state.words)).font(.subheadline).fixedSize()
-        Badge(ref: follow, role: state.followRole, scale: 1)
-      }
-    } else if let follow = state.follow, !state.close {
-      VStack(alignment: .leading, spacing: 4) {
-        HStack(spacing: 8) {
-          Text(String(localized: "Next", bundle: state.words)).font(.title3).fixedSize()
-          Badge(ref: state.next, role: state.nextRole, scale: prominent)
-        }
-        HStack(spacing: 6) {
-          Text(String(localized: "then", bundle: state.words)).font(.subheadline).fixedSize()
-          Badge(ref: follow, role: state.followRole, scale: 1)
-        }
-      }
-    } else if let follow = state.follow, oneLine {
-      // The island puts the region below the camera if this is too wide.
-      atFollowInOneLine(follow)
-    } else if let follow = state.follow {
-      // At large text sizes "Bei 94 folge 41" does not fit beside Stop, and squeezed into one line
-      // the words broke apart; then "Bei 94" and "folge 41" in two lines.
-      ViewThatFits(in: .horizontal) {
-        atFollowInOneLine(follow)
-        VStack(alignment: .leading, spacing: 4) {
-          HStack(spacing: 8) {
-            Text(String(localized: "At", bundle: state.words)).font(.title3).fixedSize()
-            Badge(ref: state.next, role: state.nextRole, scale: 1.3)
-          }
-          HStack(spacing: 8) {
-            Text(String(localized: "follow", bundle: state.words)).font(.title3).fixedSize()
-            Badge(ref: follow, role: state.followRole, scale: prominent)
-          }
-        }
-      }
-    } else {
-      HStack(spacing: 8) {
-        Badge(ref: state.next, role: state.nextRole, scale: prominent)
-        // Breaks between words, never inside one.
-        Text(String(localized: "is the end", bundle: state.words)).font(.title3)
-          .fixedSize(horizontal: false, vertical: true)
-      }
-    }
-  }
-
-  private func atFollowInOneLine(_ follow: String) -> some View {
-    HStack(spacing: 8) {
-      Text(String(localized: "At", bundle: state.words)).font(.title3).fixedSize()
-      Badge(ref: state.next, role: state.nextRole, scale: 1.3)
-      Text(String(localized: "follow", bundle: state.words)).font(.title3).fixedSize()
-      Badge(ref: follow, role: state.followRole, scale: prominent)
+    // Dark, not red, so it never reads like a German knot.
+    case .closedFerry: .knoopDark
     }
   }
 }
@@ -247,15 +298,16 @@ private struct StopButton: View {
   let words: Bundle
 
   var body: some View {
+    // An icon of the same size in every language, read as "Stop" by VoiceOver.
     Button(intent: StopNavigationIntent()) {
-      Label(String(localized: "Stop", bundle: words), systemImage: "stop.fill")
-        .font(.subheadline.bold())
+      Image(systemName: "stop.fill")
+        .font(.system(size: 16, weight: .bold))
         .foregroundStyle(.white)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(Color.actionRed, in: Capsule())
+        .frame(width: 40, height: 40)
+        .background(Color.actionRed, in: Circle())
     }
     .buttonStyle(.plain)
+    .accessibilityLabel(Text(String(localized: "Stop", bundle: words)))
   }
 }
 

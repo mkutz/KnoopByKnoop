@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The notification icon off route: the to-the-route symbol, a rider arrow, dashes and the route. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+  android:width="24dp"
+  android:height="24dp"
+  android:viewportWidth="24"
+  android:viewportHeight="24">
+  <path
+    android:strokeColor="#FFFFFFFF"
+    android:strokeWidth="3"
+    android:strokeLineCap="round"
+    android:pathData="M9,2.5C12,7 15,11 21.5,13" />
+  <path
+    android:fillColor="#FFFFFFFF"
+    android:pathData="M12.2,9.6a1.2,1.2 0,1 0,0.001 0zM9.6,12.9a1.2,1.2 0,1 0,0.001 0z" />
+  <path
+    android:fillColor="#FFFFFFFF"
+    android:pathData="M6.2,14.5L9.5,22L6.2,20.2L2.9,22Z" />
+</vector>

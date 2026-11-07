@@ -2,18 +2,18 @@
 
 ## 1. Core
 
-- [ ] 1.1 Add `HeaderRow.notificationTitle`, `notificationLine`, `chipText` and `minimal`, with the eight-way direction characters, the guided turn characters and ↩. Tests in `NavigationTest`:
+- [x] 1.1 Add `HeaderRow.notificationTitle`, `notificationLine`, `chipText` and `minimal`, with the eight-way direction characters, the guided turn characters and ↩. Tests in `NavigationTest`:
   - "Far from the next knot in German": the same title in German and English.
   - "Far from the next knot outside the app", "Progress outside the app", "Off route outside the app", "On the way to the route outside the app" and the guided "On the lock screen", for the titles and lines.
   - "Live Update" and "Chip off route", for the chip texts, each at most 7 characters.
   - "Wrong direction outside the app": title and chip.
   - "Dynamic Island with room for one number": `minimal` per state.
-- [ ] 1.2 Update when the off-route arrow turns by 45° or the distance changes by 100 m. Tests in `NavigationTest`: "Updated on the way", and a turn of 50° without getting closer gives an update.
-- [ ] 1.3 Remove `NavigationDisplay.text`, `offRouteText` and their `Texts` entries once nothing outside the app uses them. `./gradlew :modules:core:jvmTest` passes.
+- [x] 1.2 Update when the off-route arrow turns by 45° or the distance changes by 100 m. Tests in `NavigationTest`: "Updated on the way", and a turn of 50° without getting closer gives an update.
+- [x] 1.3 Stop using `NavigationDisplay.text` and `offRouteText` outside the app. They stay in the core: their `Texts` entries also build the screen reader texts of the header, and the route point naming tests check them, so removing them would only move those tests. `./gradlew :modules:core:jvmTest` passes.
 
 ## 2. Android
 
-- [ ] 2.1 `NavigationService.kt`, covering:
+- [x] 2.1 `NavigationService.kt`, covering:
   - the title and line from `HeaderRow`
   - large icons per state (plate, badge, symbol on dark or light disc, U-turn)
   - small icons for the to-the-route symbol and the U-turn
@@ -26,7 +26,7 @@
 
 ## 3. iOS
 
-- [ ] 3.1 `ContentState` with `row` and `inverted`, and `Shared/Badges.swift` on the plate scheme. `NavigationLiveActivity.swift` draws:
+- [x] 3.1 `ContentState` with `row` and `inverted`, and `Shared/Badges.swift` on the plate scheme. `NavigationLiveActivity.swift` draws:
   - the lock screen card with its own background
   - the expanded island
   - the compact and minimal island per state
@@ -36,7 +36,7 @@
 
 ## 4. Wrap-up
 
-- [ ] 4.1 `manual-checks.md` lists every scenario with how it was checked, plus the maintainer's ride steps on the Pixel and the iPhone:
+- [x] 4.1 `manual-checks.md` lists every scenario with how it was checked, plus the maintainer's ride steps on the Pixel and the iPhone:
   - lock screen and island in each state
   - the chip
   - a wrong turn and a start from home

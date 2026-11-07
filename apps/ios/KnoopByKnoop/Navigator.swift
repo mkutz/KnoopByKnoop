@@ -236,10 +236,14 @@ final class Navigator: NSObject, ObservableObject {
   }
 
   private func showActivity(_ navigation: Navigation, fix: Fix) {
+    let row = navigation.header(
+      fix: fix, ridingDirection: track.directionAt(fix: fix), guidedWay: guidedWay,
+      network: route?.geometry)
     updateActivity(
       navigation.display, nextIndex: Int(navigation.nextIndex),
       progress: guidedWay?.view(language: navigation.language).line ?? navigation.progressLine,
-      strip: navigation.progress(fix: fix, guidedWay: guidedWay).strip)
+      strip: navigation.progress(fix: fix, guidedWay: guidedWay).strip,
+      row: Self.rowState(row, endArrival: navigation.endArrival(fix: fix, guidedWay: guidedWay)))
   }
 
   /// Looks for a way off the main thread, see `WayGuide`.
@@ -372,13 +376,14 @@ final class Navigator: NSObject, ObservableObject {
   }
 
   private func updateActivity(
-    _ display: NavigationDisplay, nextIndex: Int, progress: String? = nil, strip: ProgressStrip
+    _ display: NavigationDisplay, nextIndex: Int, progress: String? = nil, strip: ProgressStrip,
+    row: NavigationActivityAttributes.HeaderRowState? = nil
   ) {
     let roles = route?.roles ?? []
     // The bar moves with the line, about every 100 m, not with every fix.
     let current = activity?.content.state
     let renewBar = current?.progress != progress || current?.offRoute != display.offRoute
-      || current?.wrongWay != display.wrongWay
+      || current?.wrongWay != display.wrongWay || current?.row?.kind != row?.kind
     let state = NavigationActivityAttributes.ContentState(
       next: display.next, follow: display.follow, offRoute: display.offRoute,
       nextRole: roles.indices.contains(nextIndex) ? roles[nextIndex] : nil,
@@ -391,7 +396,8 @@ final class Navigator: NSObject, ObservableObject {
       marks: renewBar ? Self.barMarks(of: strip) : current?.marks ?? [],
       dark: Self.systemIsDark,
       wrongWay: display.wrongWay,
-      language: AppLanguage.code)
+      language: AppLanguage.code,
+      row: row)
     guard let activity else {
       // Live Activities end after about 8 hours; opening the app starts a new one.
       if visible { startActivity() }
@@ -403,6 +409,58 @@ final class Navigator: NSObject, ObservableObject {
 }
 
 extension Navigator {
+
+  /// The header's row for the Live Activity, see `knot-navigation` "Navigation with the screen off".
+  fileprivate static func rowState(_ row: HeaderRow, endArrival: String?)
+    -> NavigationActivityAttributes.HeaderRowState
+  {
+    func knot(_ badge: HeaderBadge?) -> NavigationActivityAttributes.HeaderKnotState? {
+      guard let badge else { return nil }
+      return .init(
+        ref: badge.ref, colour: UInt32(truncatingIfNeeded: badge.plate.colour) & 0xFFFFFF,
+        innerRing: badge.plate.innerRing, filled: badge.filled,
+        role: badge.role == .passed ? nil : BadgeRole(badge.role))
+    }
+    if let close = row as? HeaderRow.Close {
+      return .init(
+        kind: .close, next: knot(close.next), follow: knot(close.follow), distance: close.distance,
+        endArrival: endArrival)
+    }
+    if let far = row as? HeaderRow.Far {
+      return .init(
+        kind: .far, next: knot(far.next), follow: knot(far.follow), distance: far.distance,
+        endArrival: endArrival)
+    }
+    if let end = row as? HeaderRow.End {
+      return .init(kind: .end, next: knot(end.next), distance: end.distance, endArrival: endArrival)
+    }
+    if let wrongWay = row as? HeaderRow.WrongWay {
+      return .init(
+        kind: .wrongWay, next: knot(wrongWay.next), distance: wrongWay.distance, inverted: true,
+        endArrival: endArrival)
+    }
+    let toRoute = row as! HeaderRow.ToRoute
+    return .init(
+      kind: .toRoute, next: knot(toRoute.next), distance: toRoute.distance,
+      arrowDegrees: toRoute.arrowDegrees,
+      turnDegrees: toRoute.guided.map { Self.turnDegrees($0.turn) },
+      turnDistance: toRoute.guided?.turnDistance, remaining: toRoute.guided?.remaining,
+      inverted: toRoute.offRoute, offRoute: toRoute.offRoute, endArrival: endArrival)
+  }
+
+  /// The angle a turn on the guided way turns the arrow, from straight ahead.
+  private static func turnDegrees(_ turn: TurnDirection?) -> Double {
+    switch turn {
+    case .slightLeft?: -45
+    case .left?: -90
+    case .sharpLeft?: -135
+    case .slightRight?: 45
+    case .right?: 90
+    case .sharpRight?: 135
+    case .back?: 180
+    default: 0
+    }
+  }
 
   /// Whether the system is in dark mode, from the screen, as the app's windows follow the appearance
   /// chosen in Info, see `map-planning` "Light and dark appearance".

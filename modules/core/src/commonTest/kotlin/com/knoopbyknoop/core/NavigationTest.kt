@@ -1596,6 +1596,108 @@ class NavigationTest {
     )
   }
 
+  // Requirement: Navigation with the screen off, without words
+
+  @Test
+  fun `far from the next knot outside the app without words`() {
+    val navigation = start(east = 0.0).navigation
+    val fix = fix(100.0)
+
+    val outside = navigation.update(fix).navigation.outside(fix)
+
+    assertEquals("45 · 900 m › 12", outside.title)
+    assertEquals("45", outside.chip)
+    assertFalse(outside.inverted)
+  }
+
+  @Test
+  fun `far from the next knot outside the app in German`() {
+    val german = start(east = 0.0).navigation.inLanguage(Language.DE, Language.DE, fix(0.0))
+    val fix = fix(100.0)
+
+    assertEquals("45 · 900 m › 12", german.update(fix).navigation.outside(fix).title)
+  }
+
+  @Test
+  fun `lock screen close to a knot`() {
+    val (navigation, fix) = closeTo45()
+
+    val outside = navigation.outside(fix)
+
+    assertEquals("45 → 12", outside.title)
+    assertEquals("150 m", outside.line, "no end arrival without the local time")
+    assertEquals("→12", outside.chip)
+  }
+
+  @Test
+  fun `off route outside the app`() {
+    val (navigation, fix) = offRouteSouth()
+
+    val outside = navigation.outside(fix, ridingDirection = 90.0)
+
+    assertEquals("← 300 m", outside.title)
+    assertEquals("←300 m", outside.chip)
+    assertTrue(outside.inverted)
+  }
+
+  @Test
+  fun `on the way to the route outside the app`() {
+    val navigation = start(east = 1000.0, north = -2000.0).navigation
+
+    val outside = navigation.outside(fix(1000.0, north = -2000.0), ridingDirection = null)
+
+    assertEquals("↖ 2.2 km", outside.title)
+    assertFalse(outside.inverted, "no mistake")
+  }
+
+  @Test
+  fun `wrong direction outside the app`() {
+    val (navigation, _) = ridingBack()
+    val fix = fix(300.0)
+    val (riding, _) = navigation.ride(fix)
+
+    val outside = riding.outside(fix)
+
+    assertEquals("↩ 45 · 700 m", outside.title)
+    assertEquals("↩45", outside.chip)
+    assertTrue(outside.inverted)
+  }
+
+  @Test
+  fun `updated when the arrow turns`() {
+    val (navigation, fix) = offRouteSouth()
+
+    val riding = navigation.outside(fix, ridingDirection = 90.0)
+    val turned = navigation.outside(fix, ridingDirection = 140.0)
+
+    assertEquals("←", riding.chip.take(1))
+    assertEquals("↙", turned.chip.take(1), "turned by 50°, so the arrow changes")
+  }
+
+  @Test
+  fun `chips fit 7 characters`() {
+    val (close, closeFix) = closeTo45()
+    val (off, offFix) = offRouteSouth()
+    listOf(close.outside(closeFix), off.outside(offFix, ridingDirection = 90.0)).forEach {
+      assertTrue(it.chip.length <= 7, it.chip)
+    }
+  }
+
+  @Test
+  fun `guided way on the lock screen`() {
+    val row =
+      HeaderRow.ToRoute(
+        offRoute = true,
+        arrowDegrees = 0.0,
+        distance = "800 m",
+        next = null,
+        guided = GuidedHeader(TurnDirection.LEFT, "120 m", "Weierstraße", "1.9 km", ""),
+        spoken = "",
+      )
+
+    assertEquals("↰ 120 m · 1.9 km", row.outside(null).title)
+  }
+
   private companion object {
     const val ORIGIN_LATITUDE = 52.0
     const val ORIGIN_LONGITUDE = 5.0
