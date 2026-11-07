@@ -5,6 +5,7 @@
 - Bridges over your route: where the route passes under a bridge, the bridge is drawn semi-transparent across it, and where the route runs over a bridge, it gets the bridge's edges, so you see at a glance whether you go under or onto it. The ridden track stays visible on bridges. Shows once the weekly network data includes the bridges
 - Routes follow the side of the road meant for your direction where the network marks its ways for one direction, e.g. a cycle path on each side or a one-way street: about 7 % of the cycling network. Shows once the weekly network data includes the directions
 - The ridden track no longer zigzags where the position is unsure, e.g. between buildings or with the screen off: points come only once you have clearly moved, and single jumps to the side are left out
+- iPhone: a message while planning, e.g. that your position could not be found, no longer makes the route panel disappear until the app is restarted
 - A tap far from the network no longer offers to start or end there: more than 20 km from the cycling network or 5 km from the hiking network, the app says there are no knots that close instead of planning a long straight line
 
 ## 0.10.0

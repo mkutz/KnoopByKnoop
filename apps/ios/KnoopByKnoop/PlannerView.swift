@@ -69,6 +69,8 @@ struct PlannerView: View {
             .background(Color(.systemBackground))
         }
       }
+      // Without the sheet, the messages are shown from here.
+      .modifier(MessageAlert(model: model, active: landscape))
       // Presented from here, outside the switch between map and loading view: a sheet attached to
       // a view that is replaced, e.g. while the other knot network loads, is dismissed for good.
       .sheet(isPresented: .constant(!landscape)) {
@@ -88,6 +90,9 @@ struct PlannerView: View {
           .interactiveDismissDisabled()
           // A sheet keeps the system's appearance unless told otherwise.
           .appAppearance()
+          // From the sheet while it is shown: presented from below it, the dialog dismissed the
+          // sheet for good, as the sheet is never presented again.
+          .modifier(MessageAlert(model: model, active: !landscape))
       }
       // The keyboard covers the smallest sheet, but not a higher one, which would hide the field.
       .onChange(of: keyboardShown) { _, shown in
@@ -972,6 +977,32 @@ private struct PlaceOfferMenu: View {
   private func item(_ title: LocalizedStringKey, _ choice: PlaceChoice) -> some View {
     Button { choose(choice) } label: {
       Text(title).frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).padding(.horizontal, 16)
+    }
+  }
+}
+
+/// The app's messages, e.g. "Your position could not be found", as a dialog shown from the view on
+/// top when `active`: a dialog presented from below the planner's sheet dismisses the sheet.
+private struct MessageAlert: ViewModifier {
+  @ObservedObject var model: AppModel
+  let active: Bool
+
+  func body(content: Content) -> some View {
+    content.alert(
+      model.message ?? "",
+      isPresented: Binding(get: { active && model.message != nil }, set: { if !$0 { model.message = nil } })
+    ) {
+      if model.messageOpensSettings {
+        Button("Settings") {
+          model.message = nil
+          model.messageOpensSettings = false
+          if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+        }
+      }
+      Button("OK") {
+        model.message = nil
+        model.messageOpensSettings = false
+      }
     }
   }
 }

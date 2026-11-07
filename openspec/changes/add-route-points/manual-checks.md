@@ -32,8 +32,8 @@ Covered by tests only: "Connection gone", "Older route", "Starting away from the
 
 | Check | Pixel | iPhone | Notes |
 |---|---|---|---|
-| Plan from home: Start here, a stop off the network, back to the start | ⏳ | ⏳ | Does the way from home look right, and is the menu or dialog in the way while planning? |
+| Plan from home: Start here, a stop off the network, back to the start | ⏳ | ⏳ | Does the way from home look right, and is the menu or dialog in the way while planning? Partly on the iPhone on 2026-11-06 (TestFlight 0.10.0): Start here at home → 02 → 01, planned and walked. 2026-11-07, iPhone: start at home, a stop on the Michaelsberg, 02, end near home; the way from home along the streets, the stop's way only straight (the paths up there are not for bikes). The menu can cover a nearby flag; the maintainer finds it fine, it closes with a tap beside it. Pixel: menu good and "Back to the start" works, as the maintainer reported. Riding it still to do |
 | Ride it and listen to the notices at the stop and the end | ⏳ | ⏳ | "On to the stop", "The end ahead" |
 | Dynamic Island with a route point next | – | ⏳ | A flag where the number would be |
-| GPX export of a route with route points | ⏳ | ⏳ | "Start", "Stop", "End" in the file |
-| Hiking far from the network: a tap at home | ⏳ | ⏳ | "No hiking knots within 5 km", no offer (7.1; the emulator showed it on 2026-11-06) |
+| GPX export of a route with route points | ✅ | ✅ | 2026-11-07, both phones: waypoints "Start", "Stop" and "02" with the types start, stop and end, and the track via the stop's straight way. Consecutive repeated points where a way joins a course; harmless |
+| Hiking far from the network: a tap at home | ✅ | ✅ | 2026-11-07 at home: Pixel (German) a bar "Keine Wanderknotenpunkte im Umkreis von 5 km", iPhone (English) a dialog "No hiking knots within 5 km" with OK; no offer on either |

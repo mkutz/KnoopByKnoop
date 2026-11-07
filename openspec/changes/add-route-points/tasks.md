@@ -35,7 +35,9 @@
 
 ## 7. Found on the maintainer's walk
 
-- [ ] 7.1 No offer far from the network (hiking route from home ran 70 km out to the Eifel and back, 141 km): `tapAt` answers `MapTap.TooFar` beyond 20 km (cycling) or 5 km (hiking) from every course, and both apps say so in all four languages. Tests for "Too far from the network"; checked on the emulator and in the simulator.
+- [x] 7.1 No offer far from the network (hiking route from home ran 70 km out to the Eifel and back, 141 km): `tapAt` answers `MapTap.TooFar` beyond 20 km (cycling) or 5 km (hiking) from every course, and both apps say so in all four languages. Tests for "Too far from the network"; checked on the emulator, and on both phones on 2026-11-07.
+
+- [x] 7.2 iOS: a message while the planner's sheet was up (first seen with the far-from-network hint, but any message, e.g. "Your position could not be found") dismissed the sheet for good. Messages are now shown from the view on top: the sheet, or the planner in landscape (`MessageAlert`). Checked on the maintainer's iPhone on 2026-11-07 with a screencast: the dialog over the sheet, the sheet still there after OK.
 
 ## Workflow follow-up
 

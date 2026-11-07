@@ -20,21 +20,7 @@ struct KnoopByKnoopApp: App {
       // Light or dark as chosen in the info sheet, also the status bar.
       .appAppearance()
       .onAppear { appDelegate.downloads = model.downloads }
-      .alert(
-        model.message ?? "", isPresented: Binding(get: { model.message != nil }, set: { if !$0 { model.message = nil } })
-      ) {
-        if model.messageOpensSettings {
-          Button("Settings") {
-            model.message = nil
-            model.messageOpensSettings = false
-            if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
-          }
-        }
-        Button("OK") {
-          model.message = nil
-          model.messageOpensSettings = false
-        }
-      }
+      // The app's messages are shown by `PlannerView`, from the view on top, see `MessageAlert`.
       // The language chosen in the info sheet applies right away, see `app-languages` "Language
       // setting".
       .onChange(of: language) {
