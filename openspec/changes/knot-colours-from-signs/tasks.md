@@ -37,7 +37,7 @@
   - "Knots on the dark map"
   - the waypoint list showing the same badges
 - [ ] 3.2 `NetworkMap.kt`: the way-to-route line, the guided way, the unreachable leg and the search-hit marker change from red to dark, in light and dark mode. Screenshot check of "Off route on the map" with a simulated off-route position on the emulator.
-- [ ] 3.3 Panel: off route, the header area turns dark (light in dark mode) and the strip dot becomes a ring with ✕ (`ProgressPanel.kt`). A ferry warning gets the clock badge and a bold arrival (`ProgressPanel.kt`, `RouteFerries.kt`). Extend `FerryArrivalClockTest` for the arrival's style per state. Check on the emulator: "Off route in light mode", "Off route in dark mode", "Off route on the strip", "Warning in the ferry list" and "Closed at the renewed estimate", with a ferry route and a time set past its closing.
+- [ ] 3.3 Panel: off route and riding the wrong way, the header area turns dark (light in dark mode) and the strip dot becomes a ring with ✕ (`ProgressPanel.kt`). A ferry warning gets the clock badge and a bold arrival (`ProgressPanel.kt`, `RouteFerries.kt`). Extend `FerryArrivalClockTest` for the arrival's style per state. Check on the emulator: "Off route in light mode", "Wrong direction in the panel", "Off route in dark mode", "Off route on the strip", "Warning in the ferry list" and "Closed at the renewed estimate", with a ferry route and a time set past its closing.
 
 ## 4. iOS
 

@@ -85,8 +85,8 @@ The colours are values from the maintainer's photos and the mockups. Keeping the
 - the search-hit marker: a `#263238` circle with a white stroke
 
 **Panel:**
-- **Off route:** the header area takes `#1B1F1C` with white text and arrow in light mode, and `#E6E8E6` with dark text in dark mode. Knot badges in it keep their plates.
-- **Strip, off route:** the rider dot becomes a white disc with a dark ring and ✕.
+- **Off route and wrong way:** the header area takes `#1B1F1C` with white text and arrow in light mode, and `#E6E8E6` with dark text in dark mode. Knot badges in it keep their plates.
+- **Strip, off route and wrong way:** the rider dot becomes a white disc with a dark ring and ✕.
 - **Strip, ferry warning:** a dark clock badge at the top-right corner of the ferry mark, with the arrival in bold.
 - Popover and ferry detail texts stay red, since they are words, not marks.
 

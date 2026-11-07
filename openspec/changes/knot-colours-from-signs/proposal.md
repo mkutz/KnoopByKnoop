@@ -14,7 +14,7 @@ Riders look for the knot numbers on the signposts, and the signposts look differ
   - Grey ring and number for a knot not on the route.
   - A small dark corner symbol tells start ▶, stop (flag), end ■ and round trip (circular arrow) apart. **BREAKING** for the look: today's green start, orange stops and passed knots, and dark end go away.
 - **Red stops meaning a problem**, wherever it would sit next to red German knots:
-  - The off-route header turns dark (light in dark mode) instead of red.
+  - The off-route and wrong-way headers turn dark (light in dark mode) instead of red.
   - The rider's dot on the strip off route becomes a ring with ✕.
   - A ferry the rider may miss gets a dark clock badge on its mark instead of a red ring.
   - The map's way-to-route and guided-way lines, the unreachable leg and the search-hit marker change from red to dark.
@@ -40,7 +40,7 @@ None.
 
 - `network-data`: a new requirement that cycling knots carry their sign region in graph files, with old apps and old files unaffected.
 - `map-planning`: "Route knots stand out" now names the plate colour and the fill-by-role scheme. "Light and dark appearance" changes its off-route scenario from red to the dark header.
-- `knot-navigation`: "Ferry warning" swaps the red ring and red arrival for a clock badge. "Progress strip" says how the off-route dot looks.
+- `knot-navigation`: "Ferry warning" swaps the red ring and red arrival for a clock badge. "Progress strip" says how the off-route dot looks. "Riding the wrong way" loses its red in the panel.
 
 ## Impact
 
