@@ -424,7 +424,7 @@ extension Navigator {
     if let close = row as? HeaderRow.Close {
       return .init(
         kind: .close, next: knot(close.next), follow: knot(close.follow), distance: close.distance,
-        endArrival: endArrival)
+        turnDegrees: close.turn.map { Self.turnDegrees($0) }, endArrival: endArrival)
     }
     if let far = row as? HeaderRow.Far {
       return .init(

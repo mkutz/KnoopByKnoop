@@ -43,12 +43,16 @@ data class GuidedHeader(
 sealed class HeaderRow {
   abstract val spoken: String
 
-  /** Close to [next], with [follow] on its sign plate. */
+  /**
+   * Close to [next], with [follow] on its sign plate, whose arrow shows the [turn] the route makes
+   * at [next], or a plain → where it cannot be told, see `knot-navigation` "Turn at the next knot".
+   */
   data class Close(
     val next: HeaderBadge,
     val distance: String,
     val follow: HeaderBadge,
     override val spoken: String,
+    val turn: TurnDirection? = null,
   ) : HeaderRow()
 
   /** Farther from [next], with [follow] small after it. */

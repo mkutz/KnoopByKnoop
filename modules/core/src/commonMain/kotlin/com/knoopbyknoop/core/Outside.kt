@@ -27,7 +27,7 @@ fun HeaderRow.outside(endArrival: String?): OutsideView {
   return when (this) {
     is HeaderRow.Close ->
       OutsideView(
-        "${next.label} → ${follow.label}",
+        "${next.label} → ${turn?.let(::turnCharacter).orEmpty()}${follow.label}",
         listOfNotNull(distance, end).joinToString(" · "),
         "→${follow.label}",
         inverted = false,

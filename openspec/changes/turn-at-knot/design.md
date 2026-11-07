@@ -29,6 +29,8 @@ Then take the bearing from the point 40 m before it to it, and from it (the outg
 
 **Alternative:** the bearing between the neighbouring knots. That is wrong on winding legs, where the knots can lie in a different direction from the way out of the junction.
 
+**As built (2026-11-07):** `Navigation.turnAt(index)` computes the turn on demand when the header needs it, from the drawn courses. That's a few points of geometry per position, so no cache. Turning back shows the U-turn on the plate, not a ↓.
+
 ### Computed with the route geometry, cached on the route
 
 The turns are computed when the route's line is built, the same time the strip's distances are, and kept as `List<TurnDirection?>` by route knot index. Navigation only looks them up, so battery use doesn't change. `null` means unknown:

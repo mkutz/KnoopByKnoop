@@ -1576,7 +1576,7 @@ class NavigationTest {
   fun `close to the next knot with a screen reader`() {
     val (navigation, fix) = closeTo45()
 
-    assertEquals("At 45 follow 12, 150 m", navigation.header(fix).spoken)
+    assertEquals("At 45 follow 12 straight on, 150 m", navigation.header(fix).spoken)
   }
 
   @Test
@@ -1624,7 +1624,7 @@ class NavigationTest {
 
     val outside = navigation.outside(fix)
 
-    assertEquals("45 → 12", outside.title)
+    assertEquals("45 → ↑12", outside.title, "straight on at 45")
     assertEquals("150 m", outside.line, "no end arrival without the local time")
     assertEquals("→12", outside.chip)
   }
@@ -1696,6 +1696,94 @@ class NavigationTest {
       )
 
     assertEquals("↰ 120 m · 1.9 km", row.outside(null).title)
+  }
+
+  // Requirement: Turn at the next knot. Routes 24 → 45 → a third knot, riding east to 150 m
+  // before 45 at 1000 m.
+
+  private fun turnAt45(vararg after: Knot, geometry: Boolean = true): HeaderRow.Close {
+    val knots = listOf(knot24, knot45) + after
+    val turnGraph =
+      NetworkGraph(
+        knots.distinct(),
+        knots.zipWithNext { from, to -> Connection(from.id, to.id, 1000) },
+      )
+    val started =
+      assertNotNull(
+        Navigation.start(
+          knots,
+          turnGraph,
+          if (geometry) NetworkGeometry.straightLines(turnGraph) else null,
+          fix(0.0),
+        )
+      )
+    val (navigation, _) = ride(started.navigation, from = 40.0, to = 840.0)
+    return navigation.header(fix(850.0)) as HeaderRow.Close
+  }
+
+  @Test
+  fun `right turn at a knot`() {
+    val close = turnAt45(knot(60, "60", east = 1000.0, north = -1000.0))
+
+    assertEquals(TurnDirection.RIGHT, close.turn)
+    assertEquals("45 → ↱60", close.outside(null).title)
+  }
+
+  @Test
+  fun `straight on at a knot`() {
+    assertEquals(TurnDirection.STRAIGHT, turnAt45(knot12).turn)
+  }
+
+  @Test
+  fun `slight left at a knot`() {
+    val angle = 40 * PI / 180
+    val close =
+      turnAt45(
+        knot(61, "61", east = 1000.0 + 1000 * cos(angle), north = 1000 * kotlin.math.sin(angle))
+      )
+
+    assertEquals(TurnDirection.SLIGHT_LEFT, close.turn)
+  }
+
+  @Test
+  fun `turning back at an out-and-back knot`() {
+    assertEquals(TurnDirection.BACK, turnAt45(knot24).turn)
+  }
+
+  @Test
+  fun `knot right after the next one turns across it`() {
+    // 46 is 10 m after 45, and the route turns right there.
+    val close =
+      turnAt45(knot(46, "46", east = 1010.0), knot(62, "62", east = 1010.0, north = -1000.0))
+
+    assertEquals(TurnDirection.RIGHT, close.turn, "measured over the 40 m after 45, across 46")
+  }
+
+  @Test
+  fun `without courses no turn`() {
+    assertNull(turnAt45(knot(60, "60", east = 1000.0, north = -1000.0), geometry = false).turn)
+  }
+
+  @Test
+  fun `start knot without a turn`() {
+    val started = start(east = -150.0)
+
+    assertNull(started.navigation.turnAt(0))
+  }
+
+  @Test
+  fun `far from the knot no turn`() {
+    val navigation = start(east = 0.0).navigation
+    val fix = fix(100.0)
+
+    assertTrue(navigation.update(fix).navigation.header(fix) is HeaderRow.Far, "no plate, no turn")
+  }
+
+  @Test
+  fun `turn with a screen reader`() {
+    val close = turnAt45(knot(60, "60", east = 1000.0, north = -1000.0))
+
+    assertEquals("At 45 follow 60 to the right, 150 m", close.spoken)
   }
 
   private companion object {

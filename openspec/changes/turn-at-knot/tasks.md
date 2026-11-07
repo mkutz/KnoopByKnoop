@@ -2,14 +2,14 @@
 
 ## 1. Core
 
-- [ ] 1.1 Extract `directionOf` from `PathRouter` into a shared function with the same limits. `PathRouterTest` still passes unchanged.
-- [ ] 1.2 Compute the turn per route knot from the route line, 40 m either side, across knots and between the signposts of a merged knot, and cache it with the route geometry. Tests in `NetworkGeometryTest`:
+- [x] 1.1 Extract `directionOf` from `PathRouter` into a shared function with the same limits. `PathRouterTest` still passes unchanged.
+- [x] 1.2 Compute the turn per route knot from the route line, 40 m either side, across knots and between the signposts of a merged knot, and cache it with the route geometry. Tests in `NetworkGeometryTest`:
   - "Right turn at a knot", "Straight on" and "Slight left".
   - "Turning back at an out-and-back knot".
   - "Knot right after the next one" (46 10 m after 45).
   - "Knot with several signposts" (02 by the river and near the L 16).
   - "Without courses" and "Start knot", both `null`.
-- [ ] 1.3 Put `turn` on `HeaderRow.Close`, the turn character in `notificationTitle`, and the turn words in the spoken screen reader text. Tests in `NavigationTest`: "Far from the knot" (no turn on the far row), "Turn on the lock screen" (title "45 → ↱12") and "Turn with a screen reader".
+- [x] 1.3 Put `turn` on `HeaderRow.Close`, the turn character in `notificationTitle`, and the turn words in the spoken screen reader text. Tests in `NavigationTest`: "Far from the knot" (no turn on the far row), "Turn on the lock screen" (title "45 → ↱12") and "Turn with a screen reader".
 
 ## 2. Android
 
@@ -21,7 +21,7 @@
 
 ## 4. Wrap-up
 
-- [ ] 4.1 `manual-checks.md` lists every scenario with how it was checked, plus ride steps for the maintainer: compare the plate's arrow with the real signpost at five knots, including a roundabout or offset junction if the ride passes one. `./gradlew check` and `npx @fission-ai/openspec validate --all` pass. A CHANGELOG entry goes under Unreleased (create the section if missing).
+- [x] 4.1 `manual-checks.md` lists every scenario with how it was checked, plus ride steps for the maintainer: compare the plate's arrow with the real signpost at five knots, including a roundabout or offset junction if the ride passes one. `./gradlew check` and `npx @fission-ai/openspec validate --all` pass. A CHANGELOG entry goes under Unreleased (create the section if missing).
 
 ## Workflow follow-up
 

@@ -386,15 +386,8 @@ class PathRouter(private val file: PathSquareSource) {
   }
 
   private fun directionOf(angle: Double, realTurns: Int): TurnDirection? {
-    val size = abs(angle)
-    return when {
-      size < STRAIGHT_DEGREES -> if (realTurns >= 2) TurnDirection.STRAIGHT else null
-      size < SLIGHT_DEGREES ->
-        if (angle < 0) TurnDirection.SLIGHT_LEFT else TurnDirection.SLIGHT_RIGHT
-      size < TURN_DEGREES -> if (angle < 0) TurnDirection.LEFT else TurnDirection.RIGHT
-      size < SHARP_DEGREES -> if (angle < 0) TurnDirection.SHARP_LEFT else TurnDirection.SHARP_RIGHT
-      else -> TurnDirection.BACK
-    }
+    val direction = turnOf(angle)
+    return if (direction == TurnDirection.STRAIGHT && realTurns < 2) null else direction
   }
 
   /** The way from [start] to [target] when both lie on one segment in the right order. */
@@ -636,7 +629,7 @@ class PathRouter(private val file: PathSquareSource) {
     }
   }
 
-  private companion object {
+  internal companion object {
     const val CONNECT_METERS = 200.0
 
     /** Paths this much further away than the closest one are only used if it leads nowhere. */
@@ -673,6 +666,23 @@ class PathRouter(private val file: PathSquareSource) {
 
     /** A bend is plain when all other ways turn this much more. */
     const val CLEAR_CHOICE_DEGREES = 30.0
+  }
+}
+
+/**
+ * The turn of [angle] degrees, negative to the left, with the limits of the guided way's turns, see
+ * `knot-navigation` "Turn notices on the guided way" and "Turn at the next knot".
+ */
+internal fun turnOf(angle: Double): TurnDirection {
+  val size = abs(angle)
+  return when {
+    size < PathRouter.STRAIGHT_DEGREES -> TurnDirection.STRAIGHT
+    size < PathRouter.SLIGHT_DEGREES ->
+      if (angle < 0) TurnDirection.SLIGHT_LEFT else TurnDirection.SLIGHT_RIGHT
+    size < PathRouter.TURN_DEGREES -> if (angle < 0) TurnDirection.LEFT else TurnDirection.RIGHT
+    size < PathRouter.SHARP_DEGREES ->
+      if (angle < 0) TurnDirection.SHARP_LEFT else TurnDirection.SHARP_RIGHT
+    else -> TurnDirection.BACK
   }
 }
 

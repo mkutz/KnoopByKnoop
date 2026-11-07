@@ -102,6 +102,9 @@ internal interface Texts {
    */
   fun nextAt(next: String, distance: String, after: String): String
 
+  /** For screen readers, which way the route turns at a knot, e.g. `to the right`. */
+  fun towards(turn: TurnDirection): String
+
   /** E.g. `45 ahead, then 12`, or `45 ahead, the end`. */
   fun ahead(next: String, after: String?): String
 
@@ -306,6 +309,18 @@ internal object EnglishTexts : Texts {
 
   override fun nextAt(next: String, distance: String, after: String) =
     "Next $next, $distance, then $after"
+
+  override fun towards(turn: TurnDirection) =
+    when (turn) {
+      TurnDirection.STRAIGHT -> "straight on"
+      TurnDirection.SLIGHT_LEFT -> "slightly to the left"
+      TurnDirection.LEFT -> "to the left"
+      TurnDirection.SHARP_LEFT -> "sharply to the left"
+      TurnDirection.SLIGHT_RIGHT -> "slightly to the right"
+      TurnDirection.RIGHT -> "to the right"
+      TurnDirection.SHARP_RIGHT -> "sharply to the right"
+      TurnDirection.BACK -> "back"
+    }
 
   override fun ahead(next: String, after: String?) =
     if (after != null) "$next ahead, then $after" else "$next ahead, the end"
@@ -524,6 +539,18 @@ internal object GermanTexts : Texts {
 
   override fun nextAt(next: String, distance: String, after: String) =
     "Nächster $next, $distance, dann $after"
+
+  override fun towards(turn: TurnDirection) =
+    when (turn) {
+      TurnDirection.STRAIGHT -> "geradeaus"
+      TurnDirection.SLIGHT_LEFT -> "leicht links"
+      TurnDirection.LEFT -> "links"
+      TurnDirection.SHARP_LEFT -> "scharf links"
+      TurnDirection.SLIGHT_RIGHT -> "leicht rechts"
+      TurnDirection.RIGHT -> "rechts"
+      TurnDirection.SHARP_RIGHT -> "scharf rechts"
+      TurnDirection.BACK -> "zurück"
+    }
 
   override fun ahead(next: String, after: String?) =
     if (after != null) "$next voraus, dann $after" else "$next voraus, das Ende"
@@ -762,6 +789,18 @@ internal object DutchTexts : Texts {
   override fun nextAt(next: String, distance: String, after: String) =
     "Volgende $next, $distance, dan $after"
 
+  override fun towards(turn: TurnDirection) =
+    when (turn) {
+      TurnDirection.STRAIGHT -> "rechtdoor"
+      TurnDirection.SLIGHT_LEFT -> "licht naar links"
+      TurnDirection.LEFT -> "naar links"
+      TurnDirection.SHARP_LEFT -> "scherp naar links"
+      TurnDirection.SLIGHT_RIGHT -> "licht naar rechts"
+      TurnDirection.RIGHT -> "naar rechts"
+      TurnDirection.SHARP_RIGHT -> "scherp naar rechts"
+      TurnDirection.BACK -> "terug"
+    }
+
   override fun ahead(next: String, after: String?) =
     if (after != null) "$next komt eraan, dan $after" else "$next komt eraan, het einde"
 
@@ -994,6 +1033,18 @@ internal object FrenchTexts : Texts {
 
   override fun nextAt(next: String, distance: String, after: String) =
     "Prochain $next, $distance, puis $after"
+
+  override fun towards(turn: TurnDirection) =
+    when (turn) {
+      TurnDirection.STRAIGHT -> "tout droit"
+      TurnDirection.SLIGHT_LEFT -> "légèrement à gauche"
+      TurnDirection.LEFT -> "à gauche"
+      TurnDirection.SHARP_LEFT -> "fortement à gauche"
+      TurnDirection.SLIGHT_RIGHT -> "légèrement à droite"
+      TurnDirection.RIGHT -> "à droite"
+      TurnDirection.SHARP_RIGHT -> "fortement à droite"
+      TurnDirection.BACK -> "en arrière"
+    }
 
   override fun ahead(next: String, after: String?) =
     if (after != null) "$next approche, puis $after" else "$next approche, l'arrivée"

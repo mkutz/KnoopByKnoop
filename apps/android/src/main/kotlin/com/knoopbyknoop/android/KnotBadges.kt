@@ -421,7 +421,11 @@ private fun CornerSymbol(role: KnotRole, size: androidx.compose.ui.unit.Dp, modi
  * The number to follow on its sign plate, for the notification's large icon, see `knot-navigation`
  * "Navigation with the screen off".
  */
-fun signPlateBitmap(badge: com.knoopbyknoop.core.HeaderBadge): Bitmap {
+fun signPlateBitmap(
+  badge: com.knoopbyknoop.core.HeaderBadge,
+  turnDegrees: Float? = null,
+  uTurn: android.graphics.drawable.Drawable? = null,
+): Bitmap {
   val badgeImage = badgeBitmap(badge.role, badge.ref, badge.plate, filled = badge.filled)
   val width = badgeImage.width + 40
   val height = badgeImage.height
@@ -461,6 +465,16 @@ fun signPlateBitmap(badge: com.knoopbyknoop.core.HeaderBadge): Bitmap {
     }
   val y = height / 2f
   val left = badgeImage.width - 2f
+  if (uTurn != null) {
+    // Turning back at the knot: the U-turn, see `knot-navigation` "Turn at the next knot".
+    uTurn.setTint(arrow.color)
+    uTurn.setBounds(left.toInt() - 4, (y - 18).toInt(), left.toInt() + 32, (y + 18).toInt())
+    uTurn.draw(canvas)
+    return bitmap
+  }
+  // The turn the route makes at the knot, or a plain → where it cannot be told.
+  canvas.save()
+  canvas.rotate(turnDegrees?.let { it - 90f } ?: 0f, left + 14f, y)
   canvas.drawLine(left, y, left + 28f, y, arrow)
   canvas.drawPath(
     Path().apply {
@@ -470,6 +484,7 @@ fun signPlateBitmap(badge: com.knoopbyknoop.core.HeaderBadge): Bitmap {
     },
     arrow,
   )
+  canvas.restore()
   return bitmap
 }
 

@@ -62,15 +62,19 @@ struct SignKnot: View {
 struct SignPlateView: View {
   let knot: NavigationActivityAttributes.HeaderKnotState
   var side: CGFloat = 40
+  /// The turn at the knot from straight ahead, 180 for back; `nil` for a plain →, see
+  /// `knot-navigation` "Turn at the next knot".
+  var turnDegrees: Double? = nil
 
   var body: some View {
     let plate = knot.plateColor
     let dutch = !knot.filled
     HStack(spacing: side * 0.04) {
       SignKnot(knot: knot, side: side)
-      Image(systemName: "arrow.right")
+      Image(systemName: turnDegrees == nil ? "arrow.right" : turnDegrees == 180 ? "arrow.uturn.down" : "arrow.up")
         .font(.system(size: side * 0.42, weight: .bold))
         .foregroundStyle(dutch ? plate : .white)
+        .rotationEffect(.degrees(turnDegrees == nil || turnDegrees == 180 ? 0 : turnDegrees!))
     }
     .padding(.leading, side * 0.18)
     .padding(.trailing, side * 0.1)

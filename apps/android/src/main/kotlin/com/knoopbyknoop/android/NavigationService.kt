@@ -46,6 +46,7 @@ import com.knoopbyknoop.core.PathRouter
 import com.knoopbyknoop.core.Precision
 import com.knoopbyknoop.core.ProgressMarkKind
 import com.knoopbyknoop.core.RiddenTrack
+import com.knoopbyknoop.core.TurnDirection
 import com.knoopbyknoop.core.WayGuide
 import com.knoopbyknoop.core.WaySearch
 import com.knoopbyknoop.core.outside
@@ -71,7 +72,8 @@ import kotlinx.coroutines.withContext
  * route and riding the wrong way.
  */
 private sealed class LargeIcon {
-  data class Knot(val badge: HeaderBadge, val onPlate: Boolean) : LargeIcon()
+  data class Knot(val badge: HeaderBadge, val onPlate: Boolean, val turn: TurnDirection? = null) :
+    LargeIcon()
 
   data class Symbol(@DrawableRes val icon: Int, val dark: Boolean) : LargeIcon()
 }
@@ -127,7 +129,8 @@ private data class NotificationContent(
         }
       val (smallIcon, largeIcon) =
         when (row) {
-          is HeaderRow.Close -> R.drawable.ic_navigation to LargeIcon.Knot(row.follow, true)
+          is HeaderRow.Close ->
+            R.drawable.ic_navigation to LargeIcon.Knot(row.follow, true, row.turn)
           is HeaderRow.Far -> R.drawable.ic_navigation to LargeIcon.Knot(row.next, false)
           is HeaderRow.End -> R.drawable.ic_navigation to LargeIcon.Knot(row.next, false)
           is HeaderRow.WrongWay ->
@@ -471,7 +474,13 @@ class NavigationService : Service() {
           val large =
             when (val icon = it.largeIcon) {
               is LargeIcon.Knot ->
-                if (icon.onPlate) signPlateBitmap(icon.badge)
+                if (icon.onPlate)
+                  signPlateBitmap(
+                    icon.badge,
+                    icon.turn?.let { turnDegrees(it) },
+                    if (icon.turn == TurnDirection.BACK) getDrawable(R.drawable.ic_u_turn)
+                    else null,
+                  )
                 else
                   badgeBitmap(
                     icon.badge.role,

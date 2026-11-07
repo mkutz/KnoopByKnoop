@@ -289,13 +289,17 @@ private constructor(
       after == null || arrived ->
         HeaderRow.End(badge(nextIndex), distance, "${texts.isTheEnd(next)}, $distance")
       // A route point has no signs to follow, so it is shown as before the reminder.
-      display.close && next.role == null && after.role == null ->
+      display.close && next.role == null && after.role == null -> {
+        val turn = turnAt(nextIndex)
+        val follow = texts.follow(next, after)
         HeaderRow.Close(
           badge(nextIndex),
           distance,
           badge(nextIndex + 1, sign = true, onPlate = true),
-          "${texts.follow(next, after)}, $distance",
+          if (turn == null) "$follow, $distance" else "$follow ${texts.towards(turn)}, $distance",
+          turn,
         )
+      }
       else ->
         HeaderRow.Far(
           badge(nextIndex),
@@ -321,6 +325,34 @@ private constructor(
   /** When the rider gets to the end at their pace, e.g. `19:05`, where the local time is known. */
   fun endArrival(fix: Fix, guidedWay: GuidedWay? = null): String? =
     progress(fix, guidedWay).strip.marks.lastOrNull { it.kind == ProgressMarkKind.END }?.arrival
+
+  /**
+   * The turn the route makes at the knot at [index], comparing its direction over the [TURN_METERS]
+   * before the knot with the [TURN_METERS] after it, along the drawn courses and across knots
+   * within them, see `knot-navigation` "Turn at the next knot"; `null` at the start, at the end,
+   * without courses, or where a leg is too short to tell.
+   */
+  internal fun turnAt(index: Int): TurnDirection? {
+    if (courses == null || index <= 0 || index >= knots.lastIndex) return null
+    val arrivedAt = drawnCourses[index - 1].lastOrNull() ?: return null
+    val leavesFrom = drawnCourses[index].firstOrNull() ?: return null
+    val before =
+      pointAlong(
+        (index - 1 downTo 0).asSequence().flatMap { drawnCourses[it].asReversed() },
+        TURN_METERS,
+      ) ?: return null
+    val after =
+      pointAlong(
+        (index..drawnCourses.lastIndex).asSequence().flatMap { drawnCourses[it] },
+        TURN_METERS,
+      ) ?: return null
+    if (
+      meters(before, arrivedAt) < TURN_MIN_METERS || meters(leavesFrom, after) < TURN_MIN_METERS
+    ) {
+      return null
+    }
+    return turnOf(signedAngle(heading(before, arrivedAt), heading(leavesFrom, after)))
+  }
 
   /**
    * The badge of the knot at [index] in the header: filled as at the knot itself, or with [sign] as
@@ -934,6 +966,12 @@ private constructor(
      */
     const val ON_NETWORK_METERS = 30.0
 
+    /** How far before and after a knot its turn is measured, see "Turn at the next knot". */
+    const val TURN_METERS = 40.0
+
+    /** Shorter than this before or after a knot, its turn cannot be told. */
+    const val TURN_MIN_METERS = 2.0
+
     /** A knot counts as passed within this distance, see `knot-navigation` "Passing a knot". */
     const val PASS_RADIUS_METERS = 30.0
 
@@ -1235,3 +1273,27 @@ private fun wayTo(fix: Fix, point: GeoPoint, language: Language): Guidance {
  */
 private val Knot.reachPositions: List<GeoPoint>
   get() = positions + listOfNotNull(routePoint?.wayEnd)
+
+private fun meters(from: GeoPoint, to: GeoPoint): Double =
+  distanceMeters(from.latitude, from.longitude, to.latitude, to.longitude)
+
+/** The point [meters] along [points], or the last one if they are shorter, `null` without any. */
+private fun pointAlong(points: Sequence<GeoPoint>, meters: Double): GeoPoint? {
+  var previous: GeoPoint? = null
+  var left = meters
+  for (point in points) {
+    val from = previous
+    previous = point
+    if (from == null) continue
+    val step = meters(from, point)
+    if (step >= left && step > 0) {
+      val share = left / step
+      return GeoPoint(
+        from.latitude + (point.latitude - from.latitude) * share,
+        from.longitude + (point.longitude - from.longitude) * share,
+      )
+    }
+    left -= step
+  }
+  return previous
+}

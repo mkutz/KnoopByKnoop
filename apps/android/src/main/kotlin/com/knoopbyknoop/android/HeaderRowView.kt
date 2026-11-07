@@ -68,7 +68,7 @@ fun HeaderRowView(row: HeaderRow, modifier: Modifier = Modifier) {
         }
         Text(row.distance, style = secondary, maxLines = 1)
         Arrow(28.dp)
-        SignPlate(row.follow)
+        SignPlate(row.follow, row.turn)
       }
       is HeaderRow.Far -> {
         HeaderKnot(row.next, scale = 2f)
@@ -137,7 +137,7 @@ private fun HeaderKnot(badge: HeaderBadge, scale: Float) {
  * arrow signs, see `knot-navigation` "Number to follow".
  */
 @Composable
-private fun SignPlate(badge: HeaderBadge) {
+private fun SignPlate(badge: HeaderBadge, turn: TurnDirection?) {
   val plate = badge.plate.color
   val dutch = !badge.filled
   Row(
@@ -149,12 +149,16 @@ private fun SignPlate(badge: HeaderBadge) {
         .padding(start = 8.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
   ) {
     HeaderKnot(badge, scale = 2f)
-    Arrow(26.dp, color = if (dutch) plate else Color.White)
+    // The turn the route makes at the knot, or a plain → where it cannot be told, see
+    // `knot-navigation` "Turn at the next knot".
+    val arrowColor = if (dutch) plate else Color.White
+    if (turn == TurnDirection.BACK) UTurn(26.dp, arrowColor)
+    else Arrow(26.dp, color = arrowColor, degrees = turn?.let { turnDegrees(it) })
   }
 }
 
 /** The angle a turn on the guided way turns the arrow, from straight ahead. */
-private fun turnDegrees(turn: TurnDirection?): Float =
+internal fun turnDegrees(turn: TurnDirection?): Float =
   when (turn) {
     null,
     TurnDirection.STRAIGHT -> 0f
@@ -169,8 +173,9 @@ private fun turnDegrees(turn: TurnDirection?): Float =
 
 /** A plain → between the knot and the number to follow, until it shows the turn. */
 @Composable
-private fun Arrow(size: Dp, color: Color = LocalContentColor.current) {
-  Canvas(Modifier.size(size)) {
+private fun Arrow(size: Dp, color: Color = LocalContentColor.current, degrees: Float? = null) {
+  // Drawn pointing right; a turn points it up first, then turns it by [degrees].
+  Canvas(Modifier.size(size).rotate(degrees?.let { it - 90f } ?: 0f)) {
     val width = this.size.width
     val stroke = Stroke(width * 0.11f, cap = StrokeCap.Round, join = StrokeJoin.Round)
     drawLine(
@@ -212,8 +217,7 @@ private fun Chevron(size: Dp) {
 
 /** The U-turn of riding the wrong way, see `knot-navigation` "Riding the wrong way". */
 @Composable
-private fun UTurn(size: Dp) {
-  val color = LocalContentColor.current
+private fun UTurn(size: Dp, color: Color = LocalContentColor.current) {
   Canvas(Modifier.size(size)) {
     val width = this.size.width
     val stroke = Stroke(width * 0.1f, cap = StrokeCap.Round, join = StrokeJoin.Round)

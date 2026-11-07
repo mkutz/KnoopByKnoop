@@ -24,7 +24,7 @@ struct HeaderRowView: View {
       HeaderKnot(badge: close.next, scale: 1.4)
       Text(close.distance).font(.title3.weight(.semibold)).lineLimit(1)
       PlainArrow(size: 26)
-      SignPlate(badge: close.follow)
+      SignPlate(badge: close.follow, turn: close.turn)
     } else if let far = row as? HeaderRow.Far {
       HeaderKnot(badge: far.next, scale: 2)
       Text(far.distance).font(.title.weight(.bold)).lineLimit(1)
@@ -64,7 +64,7 @@ struct HeaderRowView: View {
   }
 
   /// The angle a turn on the guided way turns the arrow, from straight ahead.
-  private static func turnDegrees(_ turn: TurnDirection?) -> Double {
+  static func turnDegrees(_ turn: TurnDirection?) -> Double {
     switch turn {
     case .slightLeft?: -45
     case .left?: -90
@@ -92,13 +92,24 @@ private struct HeaderKnot: View {
 /// arrow signs, see `knot-navigation` "Number to follow".
 private struct SignPlate: View {
   let badge: HeaderBadge
+  /// The turn the route makes at the knot, or a plain → where it cannot be told, see
+  /// `knot-navigation` "Turn at the next knot".
+  let turn: TurnDirection?
 
   var body: some View {
     let plate = Color(badge.plate.uiColor)
     let dutch = !badge.filled
     HStack(spacing: 2) {
       HeaderKnot(badge: badge, scale: 1.9)
-      PlainArrow(size: 24, color: dutch ? plate : .white)
+      if let turn {
+        Image(systemName: turn == .back ? "arrow.uturn.down" : "arrow.up")
+          .font(.system(size: 18, weight: .bold))
+          .foregroundStyle(dutch ? plate : .white)
+          .rotationEffect(.degrees(turn == .back ? 0 : HeaderRowView.turnDegrees(turn)))
+          .frame(width: 24, height: 24)
+      } else {
+        PlainArrow(size: 24, color: dutch ? plate : .white)
+      }
     }
     .padding(.leading, 8)
     .padding(.trailing, 4)

@@ -97,7 +97,7 @@ private struct RowView: View {
       if let next = row.next { SignKnot(knot: next, side: 30 * scale) }
       Text(row.distance).font(.callout.weight(.semibold))
       Image(systemName: "arrow.right").font(.headline.bold())
-      if let follow = row.follow { SignPlateView(knot: follow, side: 40 * scale) }
+      if let follow = row.follow { SignPlateView(knot: follow, side: 40 * scale, turnDegrees: row.turnDegrees) }
     case .far:
       if let next = row.next { SignKnot(knot: next, side: 44 * scale) }
       Text(row.distance).font(.title2.bold())
@@ -158,7 +158,7 @@ private struct CompactLeading: View {
         HStack(spacing: 2) {
           if let next = row.next { SignKnot(knot: next, side: 18) }
           Image(systemName: "arrow.right").font(.system(size: 9, weight: .bold))
-          if let follow = row.follow { SignPlateView(knot: follow, side: 18) }
+          if let follow = row.follow { SignPlateView(knot: follow, side: 18, turnDegrees: row.turnDegrees) }
         }
       case .far:
         HStack(spacing: 2) {
