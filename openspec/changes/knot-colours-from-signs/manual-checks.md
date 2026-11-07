@@ -22,12 +22,12 @@ Checked on 2026-11-07:
 | Incomplete border | ✅ pipeline | ✅ pipeline | The first real run failed on the Dutch national relation, which holds the Caribbean islands, see the design. `NetworkExtractionTest` |
 | Apps without sign regions | unit test | unit test | `GraphFileTest`: the bytes before the new section are unchanged |
 | Graph files without sign regions | unit test | unit test | `GraphFileTest` |
-| Passed knots | ✅ | ✅ | [Android](screenshots/android-route-nrw.png), [iOS](screenshots/ios-route-nrw.png) |
-| Start, stop and end | ✅ | ✅ | ▶, flag and ■ at the corners, on the map and in the waypoint list |
+| Passed knots | ✅ | ✅ | Seen on the maintainer's iPhone with the published data, 2026-11-07. [Android](screenshots/android-route-nrw.png), [iOS](screenshots/ios-route-nrw.png) |
+| Start, stop and end | ✅ | ✅ | Seen on the maintainer's iPhone with the published data. ▶, flag and ■ at the corners, on the map and in the waypoint list |
 | Round trip on the map | ✅ | — | One 25 marker with a circular arrow ([Android, dark](screenshots/android-round-trip-dark.png)) |
-| Route in North Rhine-Westphalia | ✅ | ✅ | Troisdorf 25 → 32 → 29: red plates with a white ring, the passed 25 white with a red ring |
-| Route in the Netherlands | ✅ | ✅ | 16 near the border: a plain dark green disc |
-| Route in Belgium | ✅ | ✅ | 17 near the border: blue with a white ring |
+| Route in North Rhine-Westphalia | ✅ | ✅ | Siegburg red on the maintainer's iPhone with the published data. Troisdorf 25 → 32 → 29: red plates with a white ring, the passed 25 white with a red ring |
+| Route in the Netherlands | ✅ | ✅ | Seen on the maintainer's iPhone with the published data. 16 near the border: a plain dark green disc |
+| Route in Belgium | ✅ | ✅ | Seen on the maintainer's iPhone with the published data. 17 near the border: blue with a white ring |
 | Route across the border | ✅ | ✅ | 16 → 17 ([Android](screenshots/android-route-across-the-border.png), [iOS, dark](screenshots/ios-route-across-the-border-dark.png)) |
 | Knots not on the route | ✅ | ✅ | 24, 06, 28 grey around Troisdorf |
 | Knot without a region | ✅ | — | Hiking 73 → 74 near Aachen in the app's green ([Android](screenshots/android-hiking-without-region.png)) |
@@ -47,7 +47,7 @@ On iOS, navigation can't be started in the simulator without tapping Navigate, s
 
 After the next data publication with regions:
 
-1. **At Troisdorf, Siegburg and a Dutch knot:** compare the badges with the signs. Red with a white ring and white number in NRW, a plain dark green disc in the Netherlands.
+1. ✅ (iPhone, 2026-11-07, Dutch and Belgian knots too) **At Troisdorf, Siegburg and a Dutch knot:** compare the badges with the signs. Red with a white ring and white number in NRW, a plain dark green disc in the Netherlands.
 2. **Leave the route once:** the top of the panel turns dark, the dot on the strip becomes a ring with ✕, and the way back is dark on the map.
 3. **Ride back along the route for 150 m:** the wrong-direction header is dark, not red.
 4. **If a ferry route is at hand late in the day:** its badge on the strip shows a clock, and its arrival is bold.
