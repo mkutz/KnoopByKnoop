@@ -34,6 +34,7 @@ import com.knoopbyknoop.core.Fix
 import com.knoopbyknoop.core.GeoBounds
 import com.knoopbyknoop.core.GeoPoint
 import com.knoopbyknoop.core.Knot
+import com.knoopbyknoop.core.KnotPlate
 import com.knoopbyknoop.core.MapFeatures
 import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkGraph
@@ -140,7 +141,11 @@ private const val FOLLOW_MOVE_MILLIS = 1_000
 /** The zoom the map goes to at least for the position on request, with the knots shown. */
 private const val MY_POSITION_ZOOM = 14.0
 
-private const val MARKER_RED = "#D93025"
+/** Marks for problems and the search hit on the light map, see "Route knots stand out". */
+private const val PROBLEM_ON_LIGHT = "#263238"
+
+/** The same on the dark map. */
+private const val PROBLEM_ON_DARK = "#ECEFF1"
 
 /** The rider's position, in the blue maps commonly use for it. */
 private const val POSITION_BLUE = "#1A73E8"
@@ -1007,9 +1012,13 @@ private class MapHolder {
         previous.knots !== layers.knots ||
         previous.connections !== layers.connections
     ) {
+      // Grey on the light map, dark on the dark map; a new style comes with no images.
+      val knotsDark = styleDark == true
       layers.refs.forEach { ref ->
         val name = badgeName(null, ref)
-        if (style.getImage(name) == null) style.addImage(name, badgeBitmap(null, ref))
+        if (style.getImage(name) == null) {
+          style.addImage(name, badgeBitmap(null, ref, dark = knotsDark))
+        }
       }
       style.getSourceAs<GeoJsonSource>("knots")?.setGeoJson(layers.knots)
       style.getSourceAs<GeoJsonSource>("connections")?.setGeoJson(layers.connections)
@@ -1017,8 +1026,9 @@ private class MapHolder {
     }
     if (previous == null || previous.route !== layers.route) {
       layers.routeKnotList.forEach { (knot, role) ->
-        val name = badgeName(role, knot.ref)
-        if (style.getImage(name) == null) style.addImage(name, badgeBitmap(role, knot.ref))
+        val plate = KnotPlate.of(knot.signRegion)
+        val name = badgeName(role, knot.ref, plate)
+        if (style.getImage(name) == null) style.addImage(name, badgeBitmap(role, knot.ref, plate))
       }
       style.getSourceAs<GeoJsonSource>("route")?.setGeoJson(layers.route)
       style.getSourceAs<GeoJsonSource>("route-knots")?.setGeoJson(layers.routeKnots)
@@ -1055,6 +1065,11 @@ private class MapHolder {
   }
 
   private fun addLayers(style: Style) {
+    // Problems are dark on the light map and light on the dark map, never red, so they never read
+    // like a German knot, see `map-planning` "Route knots stand out".
+    val dark = styleDark == true
+    val problem = if (dark) PROBLEM_ON_DARK else PROBLEM_ON_LIGHT
+    val casing = if (dark) PROBLEM_ON_LIGHT else "#FFFFFF"
     listOf(
         "connections",
         "marker",
@@ -1084,8 +1099,8 @@ private class MapHolder {
       CircleLayer("marker", "marker")
         .withProperties(
           PropertyFactory.circleRadius(12f),
-          PropertyFactory.circleColor(MARKER_RED),
-          PropertyFactory.circleStrokeColor("#FFFFFF"),
+          PropertyFactory.circleColor(problem),
+          PropertyFactory.circleStrokeColor(casing),
           PropertyFactory.circleStrokeWidth(3f),
         )
     )
@@ -1114,7 +1129,7 @@ private class MapHolder {
       LineLayer("route-unreachable", "route")
         .withFilter(Expression.eq(Expression.get("reachable"), false))
         .withProperties(
-          PropertyFactory.lineColor("#D32F2F"),
+          PropertyFactory.lineColor(problem),
           PropertyFactory.lineWidth(4f),
           PropertyFactory.lineDasharray(arrayOf(2f, 2f)),
         )
@@ -1201,18 +1216,36 @@ private class MapHolder {
         .apply { minZoom = KNOT_MIN_ZOOM.toFloat() }
     )
     style.addLayer(
+      LineLayer("way-to-route-casing", "way-to-route")
+        .withProperties(
+          PropertyFactory.lineColor(casing),
+          PropertyFactory.lineWidth(7f),
+          PropertyFactory.lineDasharray(arrayOf(2f * 4 / 7, 2f * 4 / 7)),
+          PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+        )
+    )
+    style.addLayer(
       LineLayer("way-to-route", "way-to-route")
         .withProperties(
-          PropertyFactory.lineColor("#D32F2F"),
+          PropertyFactory.lineColor(problem),
           PropertyFactory.lineWidth(4f),
           PropertyFactory.lineDasharray(arrayOf(2f, 2f)),
           PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
         )
     )
     style.addLayer(
+      LineLayer("guided-way-casing", "guided-way")
+        .withProperties(
+          PropertyFactory.lineColor(casing),
+          PropertyFactory.lineWidth(8f),
+          PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+          PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+        )
+    )
+    style.addLayer(
       LineLayer("guided-way", "guided-way")
         .withProperties(
-          PropertyFactory.lineColor("#D32F2F"),
+          PropertyFactory.lineColor(problem),
           PropertyFactory.lineWidth(5f),
           PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
           PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
@@ -1247,6 +1280,8 @@ private class MapHolder {
             Expression.concat(
               Expression.literal("route-"),
               Expression.get("role"),
+              Expression.literal("-"),
+              Expression.get("plate"),
               Expression.literal("-"),
               Expression.get("ref"),
             )

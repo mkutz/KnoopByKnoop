@@ -510,6 +510,54 @@ class PlanningTest {
     )
   }
 
+  // Requirement: Route knots stand out, plates by sign region
+
+  private val dutchKnot =
+    Knot(101, "95", NetworkType.CYCLING, 51.32, 6.0, signRegion = SignRegion.NETHERLANDS)
+  private val belgianKnot =
+    Knot(102, "150", NetworkType.CYCLING, 51.31, 6.0, signRegion = SignRegion.BELGIUM)
+  private val unknownKnot = Knot(103, "12", NetworkType.CYCLING, 51.30, 6.0)
+  private val borderGraph =
+    NetworkGraph(
+      listOf(dutchKnot, belgianKnot, unknownKnot),
+      listOf(Connection(101, 102, 1200), Connection(102, 103, 1100)),
+    )
+
+  private fun platesOf(session: PlanningSession) =
+    features(MapFeatures.routeKnotsLayer(session)).map {
+      it.jsonObject.getValue("properties").jsonObject.getValue("plate").toString()
+    }
+
+  @Test
+  fun `route across the border`() {
+    val route = PlanningSession.start(borderGraph, listOf(dutchKnot, belgianKnot))
+
+    assertEquals(listOf("\"nl\"", "\"be\""), platesOf(route))
+  }
+
+  @Test
+  fun `data from before sign regions`() {
+    val withoutRegions =
+      NetworkGraph(
+        borderGraph.knots.values.map { it.copy(signRegion = null) },
+        borderGraph.connections,
+      )
+    val route =
+      PlanningSession.start(
+        withoutRegions,
+        listOf(withoutRegions.knots.getValue(101), withoutRegions.knots.getValue(103)),
+      )
+
+    assertEquals(listOf("\"none\"", "\"none\"", "\"none\""), platesOf(route))
+  }
+
+  @Test
+  fun `a round trip marker keeps its plate`() {
+    val roundTrip = PlanningSession.start(borderGraph, listOf(dutchKnot, belgianKnot, dutchKnot))
+
+    assertEquals(listOf("\"nl\"", "\"be\""), platesOf(roundTrip))
+  }
+
   // Requirement: Knots signposted at several places
 
   private val knot02 =

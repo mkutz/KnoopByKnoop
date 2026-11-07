@@ -2,6 +2,7 @@ package com.knoopbyknoop.android
 
 import com.knoopbyknoop.core.Connection
 import com.knoopbyknoop.core.Ferry
+import com.knoopbyknoop.core.FerryArrivalState
 import com.knoopbyknoop.core.Fix
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.Navigation
@@ -13,7 +14,9 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 /** Covers `knot-navigation` "Ferry arrival estimate": "Phone in another time zone". */
 class FerryArrivalClockTest {
@@ -49,5 +52,27 @@ class FerryArrivalClockTest {
       listOf("The ferry Veer Broekhuizen closes at 19:00, before you get there around 19:15"),
       started.notices.filter { it.kind == NoticeKind.FERRY }.map { it.text },
     )
+  }
+
+  // Requirement: Ferry warning, the arrival below a ferry on the strip.
+
+  @Test
+  fun `the arrival at a ferry that is closed then is bold`() {
+    assertEquals(ArrivalLook.WARNING, arrivalLook(FerryArrivalState.WARNING))
+    assertTrue(ArrivalLook.WARNING.bold)
+    assertFalse(ArrivalLook.WARNING.green)
+  }
+
+  @Test
+  fun `the arrival at a ferry that runs then is green`() {
+    assertEquals(ArrivalLook.OPEN, arrivalLook(FerryArrivalState.OPEN))
+    assertFalse(ArrivalLook.OPEN.bold)
+    assertTrue(ArrivalLook.OPEN.green)
+  }
+
+  @Test
+  fun `the arrival at a ferry without known times is plain`() {
+    assertEquals(ArrivalLook.PLAIN, arrivalLook(FerryArrivalState.UNKNOWN))
+    assertEquals(ArrivalLook.PLAIN, arrivalLook(null))
   }
 }

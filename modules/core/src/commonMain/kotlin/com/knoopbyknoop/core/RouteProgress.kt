@@ -43,6 +43,8 @@ data class ProgressMark(
   val state: FerryArrivalState? = null,
   /** Whether this is a route point, drawn with a flag in place of its empty [label]. */
   val routePoint: Boolean = false,
+  /** The plate of a knot's sign region, see `map-planning` "Route knots stand out". */
+  val plate: KnotPlate = KnotPlate.NONE,
 )
 
 /**
@@ -343,6 +345,7 @@ private constructor(
           knots[index].ref,
           fraction(offsets[index]),
           routePoint = knots[index].isRoutePoint,
+          plate = KnotPlate.of(knots[index].signRegion),
         )
       }
     val ferryMarks = ferryPositions.map { position ->

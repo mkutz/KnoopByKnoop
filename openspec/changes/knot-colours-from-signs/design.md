@@ -40,6 +40,8 @@ It builds their outer rings from the member ways and nodes, and tests each cycli
 - Ship a Natural Earth border file: not OSM, and too coarse at the border.
 - Read the `network` tag of the route relations: there is no reliable tag for sign style (see the 2026-11-03 findings, no `colour` or `osmc:symbol` on 217 relations).
 
+**Found on the real extracts (2026-11-07):** the Dutch national relation (2323309, `admin_level=2`) also holds the Caribbean islands, whose ways no European extract contains, so its rings never close. The Netherlands are therefore their twelve provinces (`admin_level=4`, `ISO3166-2` `NL-DR` … `NL-ZH`), which lie within the Dutch extract and together cover the same land. A test makes sure the national relation is not used. On the real data: 10,078 Dutch, 7,425 Belgian and 2,962 NRW cycling knots, 119 without a region (in the extracts' border buffers). The build took 123 s instead of 119 s, and `cycling.graph` grew from 492,918 to 558,361 bytes.
+
 ### `SignRegion` on `Knot`, as a section appended to the graph file
 
 **Core changes:**
@@ -70,7 +72,7 @@ The colours are values from the maintainer's photos and the mockups. Keeping the
 
 - Route markers become `route-<role>-<plate>-<ref>`, where `<plate>` is `nl`, `be`, `nrw` or `none`.
 - `MapFeatures` adds a `plate` property to the route marker points, and the symbol layers build the name from `role`, `plate` and `ref`.
-- Knots not on the route stay `knot-<ref>`, since they are grey everywhere. The cached knots layer and its image count don't change, only its colours. Bump the layer version in the cached knots file name, so old green images are not reused.
+- Knots not on the route stay `knot-<ref>`, since they are grey everywhere. The cached knots layer and its image count don't change, only its colours. No layer version bump is needed: the cached knots GeoJSON has no colours, and the images are drawn when a style loads, in its appearance (grey on the light map, dark on the dark map).
 
 ### Corner symbols drawn into the badge image
 
@@ -91,6 +93,10 @@ The colours are values from the maintainer's photos and the mockups. Keeping the
 - Popover and ferry detail texts stay red, since they are words, not marks.
 
 **Why:** the maintainer chose the inverted header and the clock badge on 2026-11-07 (Warnings board). Amber alone was judged not recognisable as a problem by newcomers.
+
+### Android notification follows the plates
+
+`NavigationService` draws its large icon and end icon with the same `badgeBitmap`, so they take the plate colours too. Its progress points also lose red: stops take their plate colour and a ferry warning is dark, as is the rider's dot off route. The iOS Live Activity keeps today's look, as planned.
 
 ### Shared iOS `BadgeStyle` split
 

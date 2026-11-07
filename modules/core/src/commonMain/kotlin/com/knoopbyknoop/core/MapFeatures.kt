@@ -356,8 +356,9 @@ object MapFeatures {
   }
 
   /**
-   * Points of the route's markers with the properties `ref` and `role` (lowercase), one at every
-   * place a knot is signposted, see `map-planning` "Knots signposted at several places".
+   * Points of the route's markers with the properties `ref`, `role` (lowercase) and `plate` (the
+   * [KnotPlate.key] of the knot's sign region), one at every place a knot is signposted, see
+   * `map-planning` "Knots signposted at several places" and "Route knots stand out".
    */
   fun routeKnotsLayer(session: PlanningSession): String =
     featureCollection(
@@ -369,6 +370,7 @@ object MapFeatures {
       properties {
         property("ref", quoted(routeKnot.knot.ref))
         property("role", quoted(routeKnot.role.name.lowercase()))
+        property("plate", quoted(KnotPlate.of(routeKnot.knot.signRegion).key))
         property("point", routeKnot.knot.isRoutePoint.toString())
       }
     }

@@ -793,8 +793,9 @@ struct NetworkMapView: UIViewRepresentable {
       guard let style, let layers else { return }
       updateBridges(on: style)
       if shownNetwork != layers.connections {
+        // Grey on the light map, dark on the dark map; a new style comes with no images.
         for ref in layers.refs where style.image(forName: KnotBadges.name(nil, ref)) == nil {
-          style.setImage(KnotBadges.image(nil, ref), forName: KnotBadges.name(nil, ref))
+          style.setImage(KnotBadges.image(nil, ref, dark: styleDark == true), forName: KnotBadges.name(nil, ref))
         }
         (style.source(withIdentifier: "knots") as? MLNShapeSource)?.url = layers.knots
         (style.source(withIdentifier: "connections") as? MLNShapeSource)?.url = layers.connections
@@ -804,8 +805,11 @@ struct NetworkMapView: UIViewRepresentable {
       if shownRoute != layers.route + layers.routeKnots + layers.routePointWays {
         // Route knots change without the route, e.g. when only the start is set.
         for routeKnot in layers.routeKnotList {
-          let name = KnotBadges.name(routeKnot.role, routeKnot.knot.ref)
-          if style.image(forName: name) == nil { style.setImage(KnotBadges.image(routeKnot.role, routeKnot.knot.ref), forName: name) }
+          let plate = KnotPlate.of(routeKnot.knot.signRegion)
+          let name = KnotBadges.name(routeKnot.role, routeKnot.knot.ref, plate)
+          if style.image(forName: name) == nil {
+            style.setImage(KnotBadges.image(routeKnot.role, routeKnot.knot.ref, plate), forName: name)
+          }
         }
         (style.source(withIdentifier: "route") as? MLNShapeSource)?.shape = shape(layers.route)
         (style.source(withIdentifier: "route-knots") as? MLNShapeSource)?.shape = shape(layers.routeKnots)
@@ -953,6 +957,13 @@ struct NetworkMapView: UIViewRepresentable {
     }
 
     private func addLayers(to style: MLNStyle) {
+      // Problems are dark on the light map and light on the dark map, never red, so they never read
+      // like a German knot, see `map-planning` "Route knots stand out".
+      let problem =
+        styleDark == true ? UIColor(red: 0xEC / 255, green: 0xEF / 255, blue: 0xF1 / 255, alpha: 1)
+        : UIColor(red: 0x26 / 255, green: 0x32 / 255, blue: 0x38 / 255, alpha: 1)
+      let casing =
+        styleDark == true ? UIColor(red: 0x26 / 255, green: 0x32 / 255, blue: 0x38 / 255, alpha: 1) : UIColor.white
       // Large network layers come from files, so the map parses them off the main thread.
       let sources = ["connections", "route", "route-knots", "knots"].map { MLNShapeSource(identifier: $0, shape: nil) }
       // Not "arrow": the base map's sprite has an image of that name for one-way streets.
@@ -964,8 +975,8 @@ struct NetworkMapView: UIViewRepresentable {
       style.addSource(markerSource)
       let markerLayer = MLNCircleStyleLayer(identifier: "marker", source: markerSource)
       markerLayer.circleRadius = NSExpression(forConstantValue: 12)
-      markerLayer.circleColor = NSExpression(forConstantValue: UIColor(red: 0.85, green: 0.19, blue: 0.15, alpha: 1))
-      markerLayer.circleStrokeColor = NSExpression(forConstantValue: UIColor.white)
+      markerLayer.circleColor = NSExpression(forConstantValue: problem)
+      markerLayer.circleStrokeColor = NSExpression(forConstantValue: casing)
       markerLayer.circleStrokeWidth = NSExpression(forConstantValue: 3)
       style.addLayer(markerLayer)
       updateMarker()
@@ -989,7 +1000,7 @@ struct NetworkMapView: UIViewRepresentable {
 
       let unreachable = MLNLineStyleLayer(identifier: "route-unreachable", source: sources[1])
       unreachable.predicate = NSPredicate(format: "reachable == NO")
-      unreachable.lineColor = NSExpression(forConstantValue: UIColor.systemRed)
+      unreachable.lineColor = NSExpression(forConstantValue: problem)
       unreachable.lineWidth = NSExpression(forConstantValue: 4)
       unreachable.lineDashPattern = NSExpression(forConstantValue: [2, 2])
       style.addLayer(unreachable)
@@ -1066,16 +1077,28 @@ struct NetworkMapView: UIViewRepresentable {
       // The next knot while navigating: a ring under its badge.
       let waySource = MLNShapeSource(identifier: "way-to-route", shape: nil)
       style.addSource(waySource)
+      let wayCasing = MLNLineStyleLayer(identifier: "way-to-route-casing", source: waySource)
+      wayCasing.lineColor = NSExpression(forConstantValue: casing)
+      wayCasing.lineWidth = NSExpression(forConstantValue: 7)
+      wayCasing.lineDashPattern = NSExpression(forConstantValue: [8.0 / 7, 8.0 / 7])
+      wayCasing.lineCap = NSExpression(forConstantValue: "round")
+      style.addLayer(wayCasing)
       let wayLayer = MLNLineStyleLayer(identifier: "way-to-route", source: waySource)
-      wayLayer.lineColor = NSExpression(forConstantValue: UIColor.systemRed)
+      wayLayer.lineColor = NSExpression(forConstantValue: problem)
       wayLayer.lineWidth = NSExpression(forConstantValue: 4)
       wayLayer.lineDashPattern = NSExpression(forConstantValue: [2, 2])
       wayLayer.lineCap = NSExpression(forConstantValue: "round")
       style.addLayer(wayLayer)
       let guidedSource = MLNShapeSource(identifier: "guided-way", shape: nil)
       style.addSource(guidedSource)
+      let guidedCasing = MLNLineStyleLayer(identifier: "guided-way-casing", source: guidedSource)
+      guidedCasing.lineColor = NSExpression(forConstantValue: casing)
+      guidedCasing.lineWidth = NSExpression(forConstantValue: 8)
+      guidedCasing.lineCap = NSExpression(forConstantValue: "round")
+      guidedCasing.lineJoin = NSExpression(forConstantValue: "round")
+      style.addLayer(guidedCasing)
       let guidedLayer = MLNLineStyleLayer(identifier: "guided-way", source: guidedSource)
-      guidedLayer.lineColor = NSExpression(forConstantValue: UIColor.systemRed)
+      guidedLayer.lineColor = NSExpression(forConstantValue: problem)
       guidedLayer.lineWidth = NSExpression(forConstantValue: 5)
       guidedLayer.lineCap = NSExpression(forConstantValue: "round")
       guidedLayer.lineJoin = NSExpression(forConstantValue: "round")
@@ -1091,7 +1114,7 @@ struct NetworkMapView: UIViewRepresentable {
 
       // Route knots are drawn above the network's knots, with a badge per role.
       let routeKnots = MLNSymbolStyleLayer(identifier: "route-knots", source: sources[2])
-      routeKnots.iconImageName = NSExpression(format: "mgl_join({'route-', role, '-', ref})")
+      routeKnots.iconImageName = NSExpression(format: "mgl_join({'route-', role, '-', plate, '-', ref})")
       routeKnots.iconAllowsOverlap = NSExpression(forConstantValue: true)
       routeKnots.iconIgnoresPlacement = NSExpression(forConstantValue: true)
       routeKnots.minimumZoomLevel = Float(knotMinimumZoom)

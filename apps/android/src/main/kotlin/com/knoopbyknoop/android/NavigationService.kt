@@ -33,6 +33,7 @@ import com.google.android.gms.location.Priority
 import com.knoopbyknoop.core.FerryArrivalState
 import com.knoopbyknoop.core.Fix
 import com.knoopbyknoop.core.GuidedWay
+import com.knoopbyknoop.core.KnotPlate
 import com.knoopbyknoop.core.KnotRole
 import com.knoopbyknoop.core.Language
 import com.knoopbyknoop.core.Navigation
@@ -88,6 +89,10 @@ private data class NotificationContent(
     }
   }
 
+  /** The plate of the knot to look for, see `map-planning` "Route knots stand out". */
+  fun knotPlate(route: NavigationRoute?): KnotPlate =
+    KnotPlate.of(route?.knots?.getOrNull(knotPosition)?.signRegion)
+
   companion object {
 
     fun of(navigation: Navigation, fix: Fix, guidedWay: GuidedWay?): NotificationContent {
@@ -107,8 +112,10 @@ private data class NotificationContent(
           when {
             mark.fraction <= strip.rider -> null
             mark.kind == ProgressMarkKind.FERRY && mark.state == FerryArrivalState.WARNING ->
-              Triple(0, onBar(mark.fraction), android.graphics.Color.RED)
-            mark.kind == ProgressMarkKind.STOP -> Triple(1, onBar(mark.fraction), Orange.toArgb())
+              // Dark, not red, so it never reads like a German knot.
+              Triple(0, onBar(mark.fraction), Ink.toArgb())
+            mark.kind == ProgressMarkKind.STOP ->
+              Triple(1, onBar(mark.fraction), mark.plate.color.toArgb())
             mark.kind == ProgressMarkKind.FERRY ->
               Triple(2, onBar(mark.fraction), android.graphics.Color.BLUE)
             else -> null
@@ -134,14 +141,14 @@ private const val PROGRESS_SCALE = 1000
 /** The most marks on the bar, the most important first: API 37 draws no more. */
 private const val MAX_MARKS = 4
 
-/** A dot for the rider on the notification's bar, red off route as on the strip. */
+/** A dot for the rider on the notification's bar, dark off route as on the strip. */
 private fun riderBitmap(offRoute: Boolean): Bitmap {
   val bitmap = Bitmap.createBitmap(48, 48, Bitmap.Config.ARGB_8888)
   val canvas = Canvas(bitmap)
   val paint = Paint(Paint.ANTI_ALIAS_FLAG)
   paint.color = android.graphics.Color.WHITE
   canvas.drawCircle(24f, 24f, 22f, paint)
-  paint.color = if (offRoute) android.graphics.Color.RED else 0xFF1E88E5.toInt()
+  paint.color = if (offRoute) Ink.toArgb() else 0xFF1E88E5.toInt()
   canvas.drawCircle(24f, 24f, 16f, paint)
   return bitmap
 }
@@ -445,7 +452,9 @@ class NavigationService : Service() {
     return Notification.Builder(this, CHANNEL)
       .also { builder ->
         content?.let {
-          builder.setLargeIcon(Icon.createWithBitmap(badgeBitmap(it.knotRole(route), it.knot)))
+          builder.setLargeIcon(
+            Icon.createWithBitmap(badgeBitmap(it.knotRole(route), it.knot, it.knotPlate(route)))
+          )
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) liveUpdate(builder, it)
         }
       }
@@ -481,7 +490,15 @@ class NavigationService : Service() {
         )
         .setProgress(content.place)
         .setProgressTrackerIcon(Icon.createWithBitmap(riderBitmap(content.offRoute)))
-        .setProgressEndIcon(Icon.createWithBitmap(badgeBitmap(KnotRole.END, content.end)))
+        .setProgressEndIcon(
+          Icon.createWithBitmap(
+            badgeBitmap(
+              KnotRole.END,
+              content.end,
+              KnotPlate.of(route?.knots?.lastOrNull()?.signRegion),
+            )
+          )
+        )
     )
   }
 

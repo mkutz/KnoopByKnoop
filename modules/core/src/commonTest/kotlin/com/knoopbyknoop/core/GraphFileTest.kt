@@ -57,10 +57,10 @@ class GraphFileTest {
 
   @Test
   fun `older graph files`() {
-    // A version 1 file is a version 2 file without the ferry count and the count of merged knots
-    // at the end.
+    // A version 1 file is a version 2 file without the ferry count and the counts of merged knots
+    // and of sign regions at the end.
     val written = graphFile.toBytes()
-    val version1 = written.copyOf(written.size - 2).also { it[4] = 1 }
+    val version1 = written.copyOf(written.size - 3).also { it[4] = 1 }
 
     val read = GraphFile.read(version1)
 
@@ -96,12 +96,83 @@ class GraphFileTest {
   fun `graph files without the positions of merged knots`() {
     // Written before the section: a version 2 file ending after the ferries.
     val written = graphFile.toBytes()
-    val beforeMergedKnots = written.copyOf(written.size - 1)
+    val beforeMergedKnots = written.copyOf(written.size - 2)
 
     val read = GraphFile.read(beforeMergedKnots)
 
     assertEquals(graphFile.graph.knots, read.graph.knots)
     assertEquals(graphFile.graph.connections.toSet(), read.graph.connections.toSet())
+  }
+
+  private val withRegions: GraphFile
+    get() {
+      val knots = TestNetwork.graph.knots.values.sortedBy { it.id }
+      val regions =
+        listOf(
+          SignRegion.NETHERLANDS,
+          SignRegion.BELGIUM,
+          SignRegion.NORTH_RHINE_WESTPHALIA,
+          null,
+        )
+      return GraphFile(
+        NetworkType.CYCLING,
+        "utrecht",
+        "2026-10-25",
+        "",
+        NetworkGraph(
+          knots.mapIndexed { index, knot -> knot.copy(signRegion = regions[index % regions.size]) },
+          TestNetwork.graph.connections,
+        ),
+      )
+    }
+
+  @Test
+  fun `sign regions read back the same`() {
+    val read = GraphFile.read(withRegions.toBytes())
+
+    assertEquals(withRegions.graph.knots, read.graph.knots)
+    assertEquals(
+      setOf(
+        SignRegion.NETHERLANDS,
+        SignRegion.BELGIUM,
+        SignRegion.NORTH_RHINE_WESTPHALIA,
+        null,
+      ),
+      read.graph.knots.values.map { it.signRegion }.toSet(),
+    )
+  }
+
+  @Test
+  fun `graph files without sign regions`() {
+    // Written before the section: a version 2 file ending after the merged knots.
+    val written = graphFile.toBytes()
+    val beforeRegions = written.copyOf(written.size - 1)
+
+    val read = GraphFile.read(beforeRegions)
+
+    assertEquals(graphFile.graph.knots, read.graph.knots)
+    assertEquals(setOf(null), read.graph.knots.values.map { it.signRegion }.toSet())
+  }
+
+  @Test
+  fun `apps without sign regions`() {
+    // Older readers stop after the merged knots, so everything up to there must stay the same.
+    val withoutRegions =
+      GraphFile(
+        NetworkType.CYCLING,
+        "utrecht",
+        "2026-10-25",
+        "",
+        NetworkGraph(
+          withRegions.graph.knots.values.map { it.copy(signRegion = null) },
+          TestNetwork.graph.connections,
+        ),
+      )
+    val before = withoutRegions.toBytes().let { it.copyOf(it.size - 1) }
+
+    val written = withRegions.toBytes()
+
+    assertEquals(before.toList(), written.copyOf(before.size).toList())
   }
 
   @Test

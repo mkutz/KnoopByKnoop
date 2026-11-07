@@ -13,11 +13,12 @@ struct ProgressPanel: View {
   var body: some View {
     ProgressStripView(strip: progress.strip, ferries: ferries, navigation: navigation)
   }
-  /// Red where a ferry is closed at the arrival, green where it runs, on the strip and in the list
-  /// of coming knots.
+  /// Never red, so a warning never reads like a German knot: bold next to the ferry's clock badge
+  /// where it is closed then, green where it runs, on the strip and in the list of coming knots, see
+  /// `knot-navigation` "Ferry warning".
   static func arrivalColor(_ state: FerryArrivalState?) -> Color {
     switch state {
-    case .warning: .red
+    case .warning: .primary
     case .open: .actionIconGreen
     default: .secondary
     }
@@ -103,6 +104,7 @@ private struct ProgressStripView: View {
               Text(arrival)
                 .font(mark.state != nil ? .callout.weight(.medium) : .callout)
                 .foregroundStyle(ProgressPanel.arrivalColor(mark.state))
+                .fontWeight(mark.state == .warning ? .bold : nil)
             }
           }
           .lineLimit(1)
@@ -111,10 +113,19 @@ private struct ProgressStripView: View {
           .accessibilityHidden(true)
         }
         // Above the badges, so the rider stays visible at a labeled knot.
-        Circle()
-          .fill(strip.offRoute ? Color.red : Self.riderBlue)
-          .overlay(Circle().stroke(.white, lineWidth: 2))
-          .frame(width: 14, height: 14)
+        // Off route, a ring with ✕, not red, see `knot-navigation` "Progress strip".
+        Group {
+          if strip.offRoute {
+            Circle().fill(.white)
+              .overlay(Circle().strokeBorder(Color.knoopInk, lineWidth: 2.5))
+              .overlay(Image(systemName: "xmark").font(.system(size: 7, weight: .black)).foregroundStyle(Color.knoopInk))
+              .frame(width: 16, height: 16)
+          } else {
+            Circle().fill(Self.riderBlue)
+              .overlay(Circle().stroke(.white, lineWidth: 2))
+              .frame(width: 14, height: 14)
+          }
+        }
           .position(x: riderX, y: y)
           .allowsHitTesting(false)
           .accessibilityHidden(true)
@@ -145,9 +156,9 @@ private struct ProgressStripView: View {
     } else {
       Group {
         switch mark.kind {
-        case .start: KnotBadge(ref: mark.label, role: .start)
-        case .stop: KnotBadge(ref: mark.label, role: .stop)
-        default: KnotBadge(ref: mark.label, role: .end)
+        case .start: KnotBadge(ref: mark.label, role: .start, plate: mark.plate)
+        case .stop: KnotBadge(ref: mark.label, role: .stop, plate: mark.plate)
+        default: KnotBadge(ref: mark.label, role: .end, plate: mark.plate)
         }
       }
       .accessibilityHidden(true)

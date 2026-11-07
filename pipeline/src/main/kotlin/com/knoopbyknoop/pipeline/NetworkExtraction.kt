@@ -8,6 +8,7 @@ import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.NetworkGraph
 import com.knoopbyknoop.core.NetworkType
 import com.knoopbyknoop.core.OneWay
+import com.knoopbyknoop.core.SignRegion
 import com.knoopbyknoop.core.SignpostCourse
 import com.knoopbyknoop.core.Stretch
 import java.util.PriorityQueue
@@ -21,8 +22,9 @@ import kotlin.math.sqrt
  * Extracts node networks from OpenStreetMap elements.
  *
  * Feed it all relations first, then all ways, then all nodes, like they are ordered in PBF files.
- * It keeps only the elements it needs: node network routes, their ways, and the nodes on them.
- * Elements fed more than once, e.g. from overlapping extracts, are used once.
+ * It keeps only the elements it needs: node network routes, their ways, and the nodes on them, and
+ * the borders of the sign regions, see `network-data` "Sign region of each knot". Elements fed more
+ * than once, e.g. from overlapping extracts, are used once.
  */
 class NetworkExtraction {
 
@@ -38,9 +40,17 @@ class NetworkExtraction {
    */
   private val bridgeEdges = HashSet<Pair<Long, Long>>()
   private val knots = NetworkType.entries.associateWith { HashMap<Long, Knot>() }
+  /** The boundary relations of the sign regions, by relation ID. */
+  private val borderRelations = LinkedHashMap<Long, BorderRelation>()
+  private val borderWayNodeIds = HashMap<Long, LongArray>()
 
   private val wantedWayIds by lazy { routes.values.flatMapTo(HashSet()) { it.wayIds } }
-  private val coordinates by lazy { NodeCoordinates(wayNodeIds.values) }
+  private val wantedBorderWayIds by lazy {
+    borderRelations.values.flatMapTo(HashSet()) { it.wayIds }
+  }
+  private val coordinates by lazy {
+    NodeCoordinates(wayNodeIds.values + borderWayNodeIds.values)
+  }
   /** The nodes next to each other on the ways of each network's routes, without ferries. */
   private val networkNeighbors by lazy {
     NetworkType.entries.associateWith { network ->
@@ -55,6 +65,16 @@ class NetworkExtraction {
   }
 
   fun acceptRelation(relation: OsmRelation) {
+    signRegionOfBorder(relation.tags)?.let { region ->
+      borderRelations[relation.id] =
+        BorderRelation(
+          relation.id,
+          relation.tags["name:en"] ?: relation.tags["name"] ?: region.name,
+          region,
+          relation.memberWayIds,
+        )
+      return
+    }
     if (relation.tags["type"] != "route") return
     val isFerry = relation.tags["route"] == "ferry"
     if (relation.tags["network:type"] != "node_network") {
@@ -80,6 +100,7 @@ class NetworkExtraction {
   }
 
   fun acceptWay(way: OsmWay) {
+    if (way.id in wantedBorderWayIds) borderWayNodeIds[way.id] = way.nodeIds.toLongArray()
     if (way.id !in wantedWayIds) return
     wayNodeIds[way.id] = way.nodeIds.toLongArray()
     if (way.tags["route"] == "ferry") ferryWayTags[way.id] = ferryTagsOf(way.tags)
@@ -122,8 +143,13 @@ class NetworkExtraction {
       }
     }
     val networks = NetworkType.entries.filter { knots.getValue(it).isNotEmpty() }
+    val borders = borders()
     val graphs = networks.associateWith {
-      val networkKnots = knotsByNodeId.getValue(it).values.distinct()
+      val networkKnots =
+        knotsByNodeId.getValue(it).values.distinct().map { knot ->
+          if (it == NetworkType.CYCLING) knot.copy(signRegion = signRegionAt(borders, knot))
+          else knot
+        }
       val kept = connections.getValue(it).values
       NetworkGraph(
         networkKnots,
@@ -163,6 +189,24 @@ class NetworkExtraction {
     }
     return ExtractionResult(graphs, courses, skippedRoutes, signpostCourses, bridges, coursesBack)
   }
+
+  /**
+   * The borders of the sign regions found in the extracts.
+   *
+   * @throws IncompleteBorderException if one cannot be closed from the ways in the extracts
+   */
+  private fun borders(): List<Border> =
+    borderRelations.values.map { relation ->
+      Border.of(relation, { borderWayNodeIds[it] }) { id ->
+        coordinates.pointOf(id)?.let { it.latitude to it.longitude }
+      }
+    }
+
+  /** The first region in [borders] whose border contains [knot]'s own position. */
+  private fun signRegionAt(borders: List<Border>, knot: Knot): SignRegion? =
+    SignRegion.entries.firstOrNull { region ->
+      borders.any { it.region == region && it.contains(knot.latitude, knot.longitude) }
+    }
 
   /**
    * Pairs of knot nodes with the same ref that a route with a ferry connects, e.g. on both banks of

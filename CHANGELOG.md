@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Knots look like their signposts: red with a white ring in North Rhine-Westphalia, dark green in the Netherlands, blue with a white ring in Belgium, from OpenStreetMap's borders. Your start, stops and end are filled plates with a small symbol at the corner (▶, flag, ■, a circular arrow for a round trip), knots the route passes are white with a coloured ring, and knots not on the route are grey. Hiking knots and knots outside these regions keep the app's green. Red no longer marks a problem: off route and riding the wrong way, the top of the panel turns dark, your dot on the strip becomes a ring with ✕, a ferry you may miss gets a clock, and the line back to the route is dark. Shows once the weekly network data includes the regions
 - Bridges over your route: where the route passes under a bridge, the bridge is drawn semi-transparent across it, and where the route runs over a bridge, it gets the bridge's edges, so you see at a glance whether you go under or onto it. The ridden track stays visible on bridges. Shows once the weekly network data includes the bridges
 - Routes follow the side of the road meant for your direction where the network marks its ways for one direction, e.g. a cycle path on each side or a one-way street: about 7 % of the cycling network. Shows once the weekly network data includes the directions
 - The ridden track no longer zigzags where the position is unsure, e.g. between buildings or with the screen off: points come only once you have clearly moved, and single jumps to the side are left out

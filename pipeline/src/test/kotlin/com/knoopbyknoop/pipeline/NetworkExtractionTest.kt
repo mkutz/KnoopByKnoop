@@ -4,9 +4,12 @@ import com.knoopbyknoop.core.Connection
 import com.knoopbyknoop.core.Ferry
 import com.knoopbyknoop.core.GeoPoint
 import com.knoopbyknoop.core.NetworkType
+import com.knoopbyknoop.core.SignRegion
 import kotlin.math.roundToInt
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 /** Covers the extraction scenarios of `openspec/changes/add-network-graph-pipeline`. */
 class NetworkExtractionTest {
@@ -484,5 +487,166 @@ class NetworkExtractionTest {
 
     assertEquals(1, result.graphs.getValue(NetworkType.CYCLING).connections.size)
     assertEquals(1, result.skippedRoutes.values.sum())
+  }
+
+  // Requirement: Sign region of each knot. Borders are squares from 4.99° to 5.01° longitude, one
+  // above the other: the Netherlands (as the province of Limburg) up to 52.001°, Belgium up to
+  // 52.003°, North Rhine-Westphalia
+  // up to 52.005°, each drawn as two ways that have to be joined.
+
+  private var nextBorderId = 1000L
+
+  private class BorderSquare(
+    val relation: OsmRelation,
+    val ways: List<OsmWay>,
+    val nodes: List<OsmNode>,
+  )
+
+  private fun borderSquare(
+    relationId: Long,
+    tags: Map<String, String>,
+    south: Double,
+    north: Double,
+  ): BorderSquare {
+    val corners =
+      listOf(south to 4.99, south to 5.01, north to 5.01, north to 4.99).map { (latitude, longitude)
+        ->
+        OsmNode(nextBorderId++, latitude, longitude)
+      }
+    val ids = corners.map { it.id }
+    // The second way runs backwards, so joining has to turn it around.
+    val ways =
+      listOf(
+        OsmWay(nextBorderId++, listOf(ids[0], ids[1], ids[2])),
+        OsmWay(nextBorderId++, listOf(ids[0], ids[3], ids[2])),
+      )
+    val relation =
+      OsmRelation(
+        relationId,
+        mapOf("type" to "boundary", "boundary" to "administrative", "name" to "Test") + tags,
+        ways.map { it.id },
+        ways.map { "outer" },
+      )
+    return BorderSquare(relation, ways, corners)
+  }
+
+  private val netherlands =
+    borderSquare(9001, mapOf("admin_level" to "4", "ISO3166-2" to "NL-LI"), 51.999, 52.001)
+  private val belgium =
+    borderSquare(9002, mapOf("admin_level" to "2", "ISO3166-1:alpha2" to "BE"), 52.001, 52.003)
+  private val northRhineWestphalia =
+    borderSquare(9003, mapOf("admin_level" to "4", "ISO3166-2" to "DE-NW"), 52.003, 52.005)
+  private val borders = listOf(netherlands, belgium, northRhineWestphalia)
+
+  private fun extractWithBorders(nodes: List<OsmNode>, times: Int = 1): ExtractionResult =
+    NetworkExtraction()
+      .apply {
+        repeat(times) { borders.forEach { acceptRelation(it.relation) } }
+        repeat(times) { borders.flatMap { it.ways }.forEach(::acceptWay) }
+        repeat(times) { (borders.flatMap { it.nodes } + nodes).forEach(::acceptNode) }
+      }
+      .result()
+
+  private fun regionOf(
+    result: ExtractionResult,
+    ref: String,
+    network: NetworkType = NetworkType.CYCLING,
+  ) = result.graphs.getValue(network).knots.values.single { it.ref == ref }.signRegion
+
+  @Test
+  fun `knots in each sign region`() {
+    val result =
+      extractWithBorders(
+        listOf(cyclingKnot(1, 0, "95"), cyclingKnot(2, 2, "150"), cyclingKnot(3, 4, "60"))
+      )
+
+    assertEquals(SignRegion.NETHERLANDS, regionOf(result, "95"), "knot in Limburg")
+    assertEquals(SignRegion.BELGIUM, regionOf(result, "150"), "knot in Flanders")
+    assertEquals(SignRegion.NORTH_RHINE_WESTPHALIA, regionOf(result, "60"))
+  }
+
+  @Test
+  fun `knot in another German state`() {
+    val result = extractWithBorders(listOf(cyclingKnot(1, 7, "12")))
+
+    assertNull(regionOf(result, "12"))
+  }
+
+  @Test
+  fun `knot near a border`() {
+    // 50 m north of the border between the Dutch and the Belgian square, read from two extracts.
+    val knot = OsmNode(1, 52.00145, 5.0, mapOf("rcn_ref" to "33", "network:type" to "node_network"))
+
+    val result = extractWithBorders(listOf(knot), times = 2)
+
+    assertEquals(SignRegion.BELGIUM, regionOf(result, "33"))
+  }
+
+  @Test
+  fun `hiking knots have no region`() {
+    val hikingKnot = node(1, 0, mapOf("rwn_ref" to "4", "network:type" to "node_network"))
+
+    val result = extractWithBorders(listOf(hikingKnot))
+
+    assertNull(regionOf(result, "4", NetworkType.HIKING))
+  }
+
+  @Test
+  fun `the Dutch national relation is not used`() {
+    // It also holds the Caribbean islands, whose ways no European extract contains.
+    val kingdom =
+      borderSquare(9004, mapOf("admin_level" to "2", "ISO3166-1" to "NL"), 51.999, 52.001)
+    val extraction = NetworkExtraction()
+    extraction.acceptRelation(kingdom.relation)
+    extraction.acceptWay(kingdom.ways[0])
+    (kingdom.nodes + cyclingKnot(1, 0, "95")).forEach(extraction::acceptNode)
+
+    val result = extraction.result()
+
+    assertNull(regionOf(result, "95"))
+  }
+
+  @Test
+  fun `incomplete border`() {
+    val extraction = NetworkExtraction()
+    borders.forEach { extraction.acceptRelation(it.relation) }
+    // The Belgian square's second way is missing from the extract.
+    borders.flatMap { it.ways }.filter { it != belgium.ways[1] }.forEach(extraction::acceptWay)
+    (borders.flatMap { it.nodes } + cyclingKnot(1, 0, "95")).forEach(extraction::acceptNode)
+
+    val exception = assertFailsWith<IncompleteBorderException> { extraction.result() }
+    assertEquals(
+      "The border of Test (relation 9002) is incomplete: way ${belgium.ways[1].id} is missing",
+      exception.message,
+    )
+  }
+
+  @Test
+  fun `a hole in a border is outside it`() {
+    // A Belgian enclave inside the Dutch square, like Baarle-Hertog in Baarle-Nassau.
+    val hole =
+      listOf(51.9995 to 4.999, 51.9995 to 5.001, 52.0005 to 5.001, 52.0005 to 4.999).map {
+        (latitude, longitude) ->
+        OsmNode(nextBorderId++, latitude, longitude)
+      }
+    val holeWay = OsmWay(nextBorderId++, hole.map { it.id } + hole.first().id)
+    val withHole =
+      netherlands.relation.copy(
+        memberWayIds = netherlands.relation.memberWayIds + holeWay.id,
+        memberRoles = netherlands.relation.memberRoles + "inner",
+      )
+    val extraction = NetworkExtraction()
+    extraction.acceptRelation(withHole)
+    (netherlands.ways + holeWay).forEach(extraction::acceptWay)
+    val outsideTheHole =
+      OsmNode(2, 51.9992, 5.0, mapOf("rcn_ref" to "8", "network:type" to "node_network"))
+    (netherlands.nodes + hole + cyclingKnot(1, 0, "7") + outsideTheHole).forEach(
+      extraction::acceptNode
+    )
+
+    val result = extraction.result()
+
+    assertNull(regionOf(result, "7"), "inside the hole")
+    assertEquals(SignRegion.NETHERLANDS, regionOf(result, "8"))
   }
 }

@@ -10,102 +10,249 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.knoopbyknoop.core.KnotPlate
 import com.knoopbyknoop.core.KnotRole
 
 /** The colors of the app icon, see `design/icon`. */
 val Green = Color(0xFF2E9E5B)
 val Orange = Color(0xFFF28C28)
-private val Dark = Color(0xFF263238)
 
 /**
- * How a knot is drawn, on the map and in the sheet alike, see the design of `improve-planner-map`.
- * `null` is a knot of the network that is not on the route.
+ * The dark of corner symbols and of marks for problems, see `map-planning` "Route knots stand out".
  */
-private class BadgeStyle(val fill: Color, val ring: Color, val text: Color, val large: Boolean)
+val Ink = Color(0xFF1B1F1C)
 
-private fun styleOf(role: KnotRole?): BadgeStyle =
+/**
+ * A knot that is not on the route: a grey ring and number, see `map-planning` "Route knots stand
+ * out".
+ */
+private val GreyRing = Color(0xFF9AA19C)
+private val GreyText = Color(0xFF6B736D)
+private val DarkDisc = Color(0xFF2A2C2A)
+private val DarkRing = Color(0xFF8A928C)
+private val DarkText = Color(0xFFC9CEC9)
+
+/** The colour of [plate] for drawing. */
+val KnotPlate.color: Color
+  get() = Color(colour.toInt())
+
+/**
+ * How a knot is drawn, on the map and in the sheet alike, see `map-planning` "Route knots stand
+ * out": a waypoint as a filled plate in its sign region's colour, a passed knot white with a ring
+ * in that colour, and a knot not on the route ([role] `null`) with a grey ring.
+ */
+private class BadgeStyle(
+  val fill: Color,
+  val ring: Color?,
+  val ringWidth: Float,
+  val innerRing: Boolean,
+  val text: Color,
+  val large: Boolean,
+)
+
+private fun styleOf(role: KnotRole?, plate: KnotPlate, dark: Boolean): BadgeStyle =
   when (role) {
-    null -> BadgeStyle(Color.White, Green, Green, large = false)
-    KnotRole.PASSED -> BadgeStyle(Color.White, Orange, Orange, large = false)
-    KnotRole.STOP -> BadgeStyle(Orange, Color.White, Color.White, large = false)
-    KnotRole.START -> BadgeStyle(Green, Color.White, Color.White, large = true)
-    KnotRole.END -> BadgeStyle(Dark, Color.White, Color.White, large = true)
-    // Drawn as two halves, start green and end dark, see badgeBitmap and KnotBadge.
-    KnotRole.ROUND_TRIP -> BadgeStyle(Green, Color.White, Color.White, large = true)
+    null ->
+      if (dark) BadgeStyle(DarkDisc, DarkRing, 4f, false, DarkText, large = false)
+      else BadgeStyle(Color.White, GreyRing, 4f, false, GreyText, large = false)
+    KnotRole.PASSED -> BadgeStyle(Color.White, plate.color, 5f, false, plate.color, large = false)
+    KnotRole.STOP -> BadgeStyle(plate.color, null, 0f, plate.innerRing, Color.White, large = false)
+    KnotRole.START,
+    KnotRole.END,
+    KnotRole.ROUND_TRIP ->
+      BadgeStyle(plate.color, null, 0f, plate.innerRing, Color.White, large = true)
   }
 
-/** The map image name of a badge; the map's symbol layers build the same names from GeoJSON. */
-fun badgeName(role: KnotRole?, ref: String) =
-  if (role == null) "knot-$ref" else "route-${role.name.lowercase()}-$ref"
+/**
+ * The map image name of a badge; the map's symbol layers build the same names from GeoJSON. Knots
+ * not on the route are grey everywhere, so only route knots carry their plate.
+ */
+fun badgeName(role: KnotRole?, ref: String, plate: KnotPlate = KnotPlate.NONE) =
+  if (role == null) "knot-$ref" else "route-${role.name.lowercase()}-${plate.key}-$ref"
 
-/** A round badge with the knot's number, drawn locally so numbers show without network access. */
-fun badgeBitmap(role: KnotRole?, ref: String): Bitmap {
-  val style = styleOf(role)
-  val size = if (style.large) 72 else 56
+/** Room around the plate for the corner symbol, on every side so the plate stays centred. */
+private const val CORNER_ROOM = 9
+
+/**
+ * The corner symbol's diameter, and how far its centre sits from the badge's, per badge diameter.
+ */
+private const val CORNER_SIZE = 0.5f
+private const val CORNER_OFFSET = 0.38f
+
+/**
+ * A round badge with the knot's number, drawn locally so numbers show without network access, with
+ * a waypoint's corner symbol.
+ */
+fun badgeBitmap(
+  role: KnotRole?,
+  ref: String,
+  plate: KnotPlate = KnotPlate.NONE,
+  dark: Boolean = false,
+): Bitmap {
+  val style = styleOf(role, plate, dark)
+  val plateSize = if (style.large) 72 else 56
+  val size = plateSize + 2 * CORNER_ROOM
   val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
   val canvas = Canvas(bitmap)
-  val radius = size / 2f - 4
+  val center = size / 2f
+  val radius = plateSize / 2f - 3
   canvas.drawCircle(
-    size / 2f,
-    size / 2f,
+    center,
+    center,
     radius,
     Paint(Paint.ANTI_ALIAS_FLAG).apply { color = style.fill.toArgb() },
   )
-  if (role == KnotRole.ROUND_TRIP) {
-    // The right half is the end's color: start and end of a round trip in one badge.
-    val circle =
-      RectF(size / 2f - radius, size / 2f - radius, size / 2f + radius, size / 2f + radius)
-    canvas.drawArc(
-      circle,
-      -90f,
-      180f,
-      true,
-      Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Dark.toArgb() },
+  style.ring?.let { ring ->
+    canvas.drawCircle(
+      center,
+      center,
+      radius - style.ringWidth / 2,
+      Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ring.toArgb()
+        this.style = Paint.Style.STROKE
+        strokeWidth = style.ringWidth
+      },
     )
   }
-  canvas.drawCircle(
-    size / 2f,
-    size / 2f,
-    radius,
-    Paint(Paint.ANTI_ALIAS_FLAG).apply {
-      color = style.ring.toArgb()
-      this.style = Paint.Style.STROKE
-      strokeWidth = if (role == KnotRole.PASSED) 7f else 5f
-    },
-  )
+  if (style.innerRing) {
+    canvas.drawCircle(
+      center,
+      center,
+      radius * 0.8f,
+      Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = android.graphics.Color.WHITE
+        this.style = Paint.Style.STROKE
+        strokeWidth = radius * 0.11f
+      },
+    )
+  }
   val text =
     Paint(Paint.ANTI_ALIAS_FLAG).apply {
       color = style.text.toArgb()
       textAlign = Paint.Align.CENTER
       typeface = Typeface.DEFAULT_BOLD
-      textSize = (if (ref.length > 2) 18f else 24f) * (if (style.large) 1.25f else 1f)
+      textSize = (if (ref.length > 2) 17f else 22f) * (if (style.large) 1.25f else 1f)
     }
   if (ref.isEmpty()) {
     // A route point has no number: a flag, see `map-planning` "Route points on the map and in the
     // list".
+    canvas.save()
+    canvas.translate(CORNER_ROOM.toFloat(), CORNER_ROOM.toFloat())
     canvas.drawPath(
-      flagPath(size.toFloat()),
+      flagPath(plateSize.toFloat()),
       Paint(Paint.ANTI_ALIAS_FLAG).apply { color = style.text.toArgb() },
     )
+    canvas.restore()
   } else {
-    canvas.drawText(ref, size / 2f, size / 2f - (text.descent() + text.ascent()) / 2, text)
+    canvas.drawText(ref, center, center - (text.descent() + text.ascent()) / 2, text)
+  }
+  role?.let {
+    val diameter = 2 * radius
+    drawCornerSymbol(
+      canvas,
+      it,
+      center + diameter * CORNER_OFFSET,
+      center - diameter * CORNER_OFFSET,
+      diameter * CORNER_SIZE / 2,
+    )
   }
   return bitmap
 }
+
+/**
+ * A waypoint's corner symbol: ▶ for the start, a flag for a stop, ■ for the end and a circular
+ * arrow for a round trip, white on a dark disc, see `map-planning` "Route knots stand out".
+ */
+private fun drawCornerSymbol(canvas: Canvas, role: KnotRole, x: Float, y: Float, radius: Float) {
+  val path = cornerSymbolPath(role, radius * 2) ?: return
+  canvas.drawCircle(x, y, radius, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Ink.toArgb() })
+  canvas.drawCircle(
+    x,
+    y,
+    radius,
+    Paint(Paint.ANTI_ALIAS_FLAG).apply {
+      color = android.graphics.Color.WHITE
+      style = Paint.Style.STROKE
+      strokeWidth = radius * 0.12f
+    },
+  )
+  canvas.save()
+  canvas.translate(x - radius, y - radius)
+  val roundTrip = role == KnotRole.ROUND_TRIP
+  canvas.drawPath(
+    path,
+    Paint(Paint.ANTI_ALIAS_FLAG).apply {
+      color = android.graphics.Color.WHITE
+      if (roundTrip) {
+        style = Paint.Style.STROKE
+        strokeWidth = radius * 0.26f
+        strokeCap = Paint.Cap.ROUND
+      }
+    },
+  )
+  if (roundTrip) {
+    canvas.drawPath(
+      roundTripHeadPath(radius * 2),
+      Paint(Paint.ANTI_ALIAS_FLAG).apply { color = android.graphics.Color.WHITE },
+    )
+  }
+  canvas.restore()
+}
+
+/** The glyph of a waypoint's corner symbol in a square of [size], `null` for passed knots. */
+fun cornerSymbolPath(role: KnotRole, size: Float): Path? =
+  when (role) {
+    KnotRole.PASSED -> null
+    KnotRole.START ->
+      Path().apply {
+        moveTo(size * 0.34f, size * 0.22f)
+        lineTo(size * 0.8f, size * 0.5f)
+        lineTo(size * 0.34f, size * 0.78f)
+        close()
+      }
+    KnotRole.END ->
+      Path().apply {
+        addRect(size * 0.27f, size * 0.27f, size * 0.73f, size * 0.73f, Path.Direction.CW)
+      }
+    KnotRole.STOP ->
+      Path().apply {
+        // A bolder flag than a route point's: a pole and a wide pennant.
+        addRect(size * 0.27f, size * 0.2f, size * 0.37f, size * 0.82f, Path.Direction.CW)
+        moveTo(size * 0.37f, size * 0.2f)
+        lineTo(size * 0.8f, size * 0.36f)
+        lineTo(size * 0.37f, size * 0.54f)
+        close()
+      }
+    KnotRole.ROUND_TRIP ->
+      Path().apply {
+        addArc(RectF(size * 0.26f, size * 0.26f, size * 0.74f, size * 0.74f), -60f, 280f)
+      }
+  }
+
+/** The arrowhead at the end of the round trip's circular arrow, in a square of [size]. */
+fun roundTripHeadPath(size: Float): Path =
+  Path().apply {
+    // The arc ends at 220°, just above the left; the head points on clockwise, upwards.
+    moveTo(size * 0.12f, size * 0.44f)
+    lineTo(size * 0.44f, size * 0.44f)
+    lineTo(size * 0.26f, size * 0.2f)
+    close()
+  }
 
 /** A flag for a route point, filling a badge of [size]: a pole and a pennant. */
 fun flagPath(size: Float): Path =
@@ -172,44 +319,84 @@ fun riderArrowBitmap(color: Int): Bitmap {
 
 /** The same badge as on the map, for the sheet; [scale] makes it larger, e.g. to stand out. */
 @Composable
-fun KnotBadge(ref: String, role: KnotRole?, modifier: Modifier = Modifier, scale: Float = 1f) {
-  val style = styleOf(role)
+fun KnotBadge(
+  ref: String,
+  role: KnotRole?,
+  modifier: Modifier = Modifier,
+  scale: Float = 1f,
+  plate: KnotPlate = KnotPlate.NONE,
+) {
+  val dark = isAppInDarkTheme()
+  val style = styleOf(role, plate, dark)
   val size = (if (style.large) 34.dp else 28.dp) * scale
-  Box(
-    contentAlignment = Alignment.Center,
-    modifier =
-      modifier
-        .size(size)
-        .background(
-          if (role == KnotRole.ROUND_TRIP) {
-            Brush.horizontalGradient(0.5f to Green, 0.5f to Dark)
-          } else {
-            SolidColor(style.fill)
-          },
-          CircleShape,
+  // Required, so a slot narrower than the badge, e.g. on the strip, can't squeeze it into an oval.
+  Box(contentAlignment = Alignment.Center, modifier = modifier.requiredSize(size)) {
+    Box(
+      contentAlignment = Alignment.Center,
+      modifier =
+        Modifier.requiredSize(size)
+          .background(style.fill, CircleShape)
+          .then(style.ring?.let { Modifier.border(2.dp * scale, it, CircleShape) } ?: Modifier)
+          .then(
+            if (style.innerRing)
+              Modifier.padding(size * 0.12f).border(size * 0.055f, Color.White, CircleShape)
+            else Modifier
+          ),
+    ) {
+      // In dp, so the number fits the badge at any text size, like on the map, see `map-planning`
+      // "Knot badges at large text sizes"; the line height too, which would push the number down.
+      val textSize =
+        with(LocalDensity.current) {
+          ((if (ref.length > 2) 10 else 12).dp * (if (style.large) 1.2f else 1f) * scale).toSp()
+        }
+      if (ref.isEmpty()) {
+        // A route point's flag, as on the map.
+        Canvas(Modifier.size(size)) {
+          drawPath(flagPath(this.size.width).asComposePath(), style.text)
+        }
+      } else {
+        Text(
+          ref,
+          color = style.text,
+          fontWeight = FontWeight.Bold,
+          fontSize = textSize,
+          lineHeight = textSize,
+          maxLines = 1,
         )
-        .border(if (role == KnotRole.PASSED) 3.dp else 2.dp, style.ring, CircleShape),
-  ) {
-    // In dp, so the number fits the badge at any text size, like on the map, see `map-planning`
-    // "Knot badges at large text sizes"; the line height too, which would push the number down.
-    val textSize =
-      with(LocalDensity.current) {
-        ((if (ref.length > 2) 10 else 12).dp * (if (style.large) 1.2f else 1f) * scale).toSp()
       }
-    if (ref.isEmpty()) {
-      // A route point's flag, as on the map.
-      Canvas(Modifier.size(size)) {
-        drawPath(flagPath(this.size.width).asComposePath(), style.text)
-      }
-    } else {
-      Text(
-        ref,
-        color = style.text,
-        fontWeight = FontWeight.Bold,
-        fontSize = textSize,
-        lineHeight = textSize,
-        maxLines = 1,
+    }
+    role?.let {
+      CornerSymbol(
+        it,
+        size * CORNER_SIZE,
+        Modifier.align(Alignment.Center)
+          .offset(x = size * CORNER_OFFSET, y = -size * CORNER_OFFSET),
       )
+    }
+  }
+}
+
+/** A waypoint's corner symbol in the sheet, as on the map's badges. */
+@Composable
+private fun CornerSymbol(role: KnotRole, size: androidx.compose.ui.unit.Dp, modifier: Modifier) {
+  if (role == KnotRole.PASSED) return
+  Canvas(
+    modifier
+      .requiredSize(size)
+      .background(Ink, CircleShape)
+      .border(size * 0.06f, Color.White, CircleShape)
+  ) {
+    val side = this.size.width
+    val path = cornerSymbolPath(role, side) ?: return@Canvas
+    if (role == KnotRole.ROUND_TRIP) {
+      drawPath(
+        path.asComposePath(),
+        Color.White,
+        style = androidx.compose.ui.graphics.drawscope.Stroke(width = side * 0.12f),
+      )
+      drawPath(roundTripHeadPath(side).asComposePath(), Color.White)
+    } else {
+      drawPath(path.asComposePath(), Color.White)
     }
   }
 }

@@ -388,7 +388,7 @@ private struct WaypointSheet: View {
       VStack(alignment: .leading, spacing: 8) {
         if let navigation = navigator.state {
           NavigationHeader(
-            state: navigation, roles: complete?.knots.map(\.role) ?? [],
+            state: navigation, routeKnots: complete?.knots ?? [],
             nextKnotDistance: progress?.nextKnotDistance
           ) { model.stopNavigation() }
         } else {
@@ -472,7 +472,7 @@ private struct WaypointSheet: View {
         }
         ForEach(Array((navigator.state == nil ? rows : []).enumerated()), id: \.element.id) { index, row in
           HStack(spacing: 12) {
-            KnotBadge(ref: row.knot.ref, role: role(index)).frame(width: 40)
+            KnotBadge(ref: row.knot.ref, role: role(index), plate: .of(row.knot.signRegion)).frame(width: 40)
             Text(Self.roleName(role(index))).font(.callout)
           }
           .deleteDisabled(!session.canRemoveWaypoints)
@@ -531,7 +531,9 @@ private struct WaypointSheet: View {
   @ViewBuilder private func comingArrival(_ coming: ComingKnot) -> some View {
     if let arrival = coming.arrival {
       let color: Color = ProgressPanel.arrivalColor(coming.state)
-      Text(arrival).fontWeight(coming.state == nil ? .regular : .medium).foregroundStyle(color)
+      Text(arrival)
+        .fontWeight(coming.state == .warning ? .bold : coming.state == nil ? .regular : .medium)
+        .foregroundStyle(color)
     }
   }
 
@@ -539,7 +541,7 @@ private struct WaypointSheet: View {
     if coming.knot == nil {
       FerryBadge(warning: coming.state == FerryArrivalState.warning)
     } else {
-      KnotBadge(ref: coming.label, role: Self.role(of: coming.kind))
+      KnotBadge(ref: coming.label, role: Self.role(of: coming.kind), plate: .of(coming.knot?.signRegion))
     }
   }
 
@@ -706,9 +708,12 @@ private struct RouteKnots: View {
     ScrollView(.horizontal, showsIndicators: false) {
       HStack(spacing: 4) {
         ForEach(Array(description.knots.enumerated()), id: \.offset) { position, routeKnot in
-          KnotBadge(ref: routeKnot.knot.ref, role: routeKnot.role)
+          KnotBadge(ref: routeKnot.knot.ref, role: routeKnot.role, plate: .of(routeKnot.knot.signRegion))
           if ferryPositions.contains(position) { FerryBadge() }
         }
+        // Room for the waypoints' corner symbols, which reach beyond their badges.
+        .padding(.vertical, 6)
+        .padding(.trailing, 6)
       }
       // Room for the larger badges of the waypoints and their rings.
       .padding(.vertical, 2)
@@ -721,13 +726,36 @@ private struct RouteKnots: View {
 private struct NavigationHeader: View {
 
   let state: NavigationState
-  /// How each knot of the route takes part in it, for the badges.
-  let roles: [KnotRole]
+  /// The route's knots with how each takes part in it, for the badges.
+  let routeKnots: [RouteKnot]
   let nextKnotDistance: String?
   let onStop: () -> Void
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
+  @Environment(\.colorScheme) private var colorScheme
+
+  /// Off route and riding the wrong way, the header turns dark, light in dark mode, instead of red,
+  /// see `map-planning` "Light and dark appearance".
+  private var inverted: Bool {
+    guard let display = state.navigation?.display else { return false }
+    return display.offRoute || display.wrongWay
+  }
+
   var body: some View {
+    if inverted {
+      content
+        .foregroundStyle(colorScheme == .dark ? Color.knoopInk : Color.white)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(
+          RoundedRectangle(cornerRadius: 12)
+            .fill(colorScheme == .dark ? Color(red: 0xE6 / 255, green: 0xE8 / 255, blue: 0xE6 / 255) : Color.knoopInk))
+    } else {
+      content
+    }
+  }
+
+  @ViewBuilder private var content: some View {
     if let navigation = state.navigation, dynamicTypeSize.isAccessibilitySize {
       // At accessibility sizes, Stop next to the header leaves neither of them room: Stop goes above
       // it, see `knot-navigation` "Number to follow at large text sizes".
@@ -923,16 +951,17 @@ private struct NavigationHeader: View {
   @ViewBuilder private func wayToNext(_ guidance: Guidance) -> some View {
     Text(guidance.distance).font(.title3)
     Image(systemName: "location.north.fill")
-      .foregroundStyle(.red)
       .rotationEffect(.degrees(guidance.bearing - (state.direction ?? 0)))
   }
 
   private func warningNext(_ wrongWay: Bool) -> some View {
-    Text(wrongWay ? "Wrong direction, next" : "Off route, next").font(.title2.bold()).foregroundStyle(.red)
+    Text(wrongWay ? "Wrong direction, next" : "Off route, next").font(.title2.bold())
   }
 
   private func badge(_ ref: String, at index: Int, scale: CGFloat) -> some View {
-    Badge(ref: ref, role: roles.indices.contains(index) ? BadgeRole(roles[index]) : nil, scale: scale)
+    let routeKnot = routeKnots.indices.contains(index) ? routeKnots[index] : nil
+    return KnotBadge(
+      ref: ref, role: routeKnot?.role, plate: .of(routeKnot?.knot.signRegion), scale: scale)
   }
 }
 

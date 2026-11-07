@@ -1,5 +1,6 @@
 package com.knoopbyknoop.android
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -24,7 +26,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -43,23 +48,44 @@ import java.time.Instant
 import kotlinx.coroutines.delay
 
 /**
- * Marks a ferry between two knots of the route summary, see `map-planning`; with a red ring when it
- * is closed at the rider's arrival, see `knot-navigation` "Ferry warning".
+ * Marks a ferry between two knots of the route summary, see `map-planning`; with a dark clock badge
+ * at its corner when it is closed at the rider's arrival, see `knot-navigation` "Ferry warning".
  */
 @Composable
 fun FerryBadge(warning: Boolean = false, modifier: Modifier = Modifier) {
-  Box(
-    contentAlignment = Alignment.Center,
-    modifier =
-      modifier
-        .size(28.dp)
-        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-        .then(
-          if (warning) Modifier.border(3.dp, MaterialTheme.colorScheme.error, CircleShape)
-          else Modifier
-        ),
-  ) {
-    Text("⛴", fontSize = 14.sp)
+  Box(modifier = modifier.size(28.dp)) {
+    Box(
+      contentAlignment = Alignment.Center,
+      modifier =
+        Modifier.size(28.dp)
+          .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+          .then(if (warning) Modifier.border(2.dp, Ink, CircleShape) else Modifier),
+    ) {
+      Text("⛴", fontSize = 14.sp)
+    }
+    if (warning) {
+      Canvas(
+        Modifier.align(Alignment.TopEnd)
+          .offset(x = 4.dp, y = (-4).dp)
+          .size(14.dp)
+          .background(Ink, CircleShape)
+          .border(1.dp, Color.White, CircleShape)
+      ) {
+        // A clock: a ring and two hands.
+        val center = Offset(size.width / 2, size.height / 2)
+        val radius = size.width * 0.32f
+        val width = size.width * 0.1f
+        drawCircle(Color.White, radius, center, style = Stroke(width))
+        drawLine(Color.White, center, center + Offset(0f, -radius * 0.7f), width, StrokeCap.Round)
+        drawLine(
+          Color.White,
+          center,
+          center + Offset(radius * 0.5f, radius * 0.3f),
+          width,
+          StrokeCap.Round,
+        )
+      }
+    }
   }
 }
 

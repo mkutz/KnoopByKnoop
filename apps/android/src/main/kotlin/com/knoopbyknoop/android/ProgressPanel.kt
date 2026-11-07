@@ -50,6 +50,7 @@ import androidx.compose.ui.window.PopupProperties
 import com.knoopbyknoop.core.ComingKnot
 import com.knoopbyknoop.core.FerryArrivalState
 import com.knoopbyknoop.core.Knot
+import com.knoopbyknoop.core.KnotPlate
 import com.knoopbyknoop.core.KnotRole
 import com.knoopbyknoop.core.Navigation
 import com.knoopbyknoop.core.ProgressMark
@@ -109,7 +110,7 @@ private fun ProgressStripView(
   val ridden = ActionColors.green
   val ahead = MaterialTheme.colorScheme.outlineVariant
   val tick = MaterialTheme.colorScheme.onSurfaceVariant
-  val rider = if (strip.offRoute) MaterialTheme.colorScheme.error else RiderBlue
+  val rider = RiderBlue
   // The route position of the ferry whose popover is open.
   var opened by remember { mutableStateOf<Int?>(null) }
   // The room for the labels grows with their text, see `knot-navigation` "Strip labels at large
@@ -164,7 +165,7 @@ private fun ProgressStripView(
           }
         } else {
           Box(modifier = Modifier.clearAndSetSemantics {}) {
-            KnotBadge(mark.label, roleOf(mark.kind))
+            KnotBadge(mark.label, roleOf(mark.kind), plate = mark.plate)
           }
         }
       }
@@ -204,7 +205,12 @@ private fun ProgressStripView(
             it,
             style = MaterialTheme.typography.bodyMedium,
             color = arrivalColor(mark.state),
-            fontWeight = if (mark.state != null) FontWeight.Medium else null,
+            fontWeight =
+              when {
+                arrivalLook(mark.state).bold -> FontWeight.Bold
+                mark.state != null -> FontWeight.Medium
+                else -> null
+              },
             maxLines = 1,
           )
         }
@@ -215,8 +221,20 @@ private fun ProgressStripView(
       val start = inset.toPx()
       val riderX = start + (size.width - 2 * start) * strip.rider.toFloat()
       val center = Offset(riderX, size.height / 2)
-      drawCircle(rider, 7.dp.toPx(), center)
-      drawCircle(Color.White, 7.dp.toPx(), center, style = Stroke(2.dp.toPx()))
+      if (strip.offRoute) {
+        // A ring with ✕, not red, see `knot-navigation` "Progress strip".
+        val radius = 8.dp.toPx()
+        drawCircle(Color.White, radius, center)
+        drawCircle(Ink, radius - 1.25.dp.toPx(), center, style = Stroke(2.5.dp.toPx()))
+        val arm = radius * 0.38f
+        listOf(Offset(-arm, -arm) to Offset(arm, arm), Offset(arm, -arm) to Offset(-arm, arm))
+          .forEach { (from, to) ->
+            drawLine(Ink, center + from, center + to, 2.dp.toPx(), StrokeCap.Round)
+          }
+      } else {
+        drawCircle(rider, 7.dp.toPx(), center)
+        drawCircle(Color.White, 7.dp.toPx(), center, style = Stroke(2.dp.toPx()))
+      }
     }
   }
 }
@@ -286,7 +304,7 @@ fun ComingKnots(
       ) {
         Box(modifier = Modifier.width(BADGE_SPACE + 10.dp), contentAlignment = Alignment.Center) {
           if (knot == null) FerryBadge(warning = item.state == FerryArrivalState.WARNING)
-          else KnotBadge(item.label, roleOf(item.kind))
+          else KnotBadge(item.label, roleOf(item.kind), plate = KnotPlate.of(knot.signRegion))
         }
         Text(
           item.distance,
@@ -299,7 +317,12 @@ fun ComingKnots(
             it,
             style = MaterialTheme.typography.bodyLarge,
             color = arrivalColor(item.state),
-            fontWeight = if (item.state != null) FontWeight.Medium else null,
+            fontWeight =
+              when {
+                arrivalLook(item.state).bold -> FontWeight.Bold
+                item.state != null -> FontWeight.Medium
+                else -> null
+              },
           )
         }
       }
@@ -307,13 +330,30 @@ fun ComingKnots(
   }
 }
 
-/** The arrival's color: red where a ferry is closed then, green where it runs, as on the strip. */
+/**
+ * How an arrival below a ferry looks, see `knot-navigation` "Ferry warning": bold where the ferry
+ * is closed then, next to its clock badge, green where it runs.
+ */
+internal enum class ArrivalLook(val bold: Boolean, val green: Boolean) {
+  PLAIN(bold = false, green = false),
+  OPEN(bold = false, green = true),
+  WARNING(bold = true, green = false),
+}
+
+internal fun arrivalLook(state: FerryArrivalState?): ArrivalLook =
+  when (state) {
+    FerryArrivalState.WARNING -> ArrivalLook.WARNING
+    FerryArrivalState.OPEN -> ArrivalLook.OPEN
+    else -> ArrivalLook.PLAIN
+  }
+
+/** The arrival's color: never red, so a warning never reads like a German knot. */
 @Composable
 private fun arrivalColor(state: FerryArrivalState?): Color =
-  when (state) {
-    FerryArrivalState.WARNING -> MaterialTheme.colorScheme.error
-    FerryArrivalState.OPEN -> ActionColors.iconGreen
-    else -> MaterialTheme.colorScheme.onSurfaceVariant
+  when (arrivalLook(state)) {
+    ArrivalLook.WARNING -> MaterialTheme.colorScheme.onSurface
+    ArrivalLook.OPEN -> ActionColors.iconGreen
+    ArrivalLook.PLAIN -> MaterialTheme.colorScheme.onSurfaceVariant
   }
 
 private fun roleOf(kind: ProgressMarkKind): KnotRole =

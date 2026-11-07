@@ -86,6 +86,15 @@ class GraphFile(
         writer.varint(zigzag(toMicrodegrees(node.longitude) - toMicrodegrees(knot.longitude)))
       }
     }
+
+    // Then the sign regions, by knot index, see `network-data` "Sign region of each knot". Readers
+    // from before stop after the merged knots.
+    val regions = knots.withIndex().filter { it.value.signRegion != null }
+    writer.varint(regions.size.toLong())
+    for ((index, knot) in regions) {
+      writer.varint(index.toLong())
+      writer.byte(knot.signRegion!!.code)
+    }
     return writer.toByteArray()
   }
 
@@ -196,6 +205,17 @@ class GraphFile(
             }
             .toMap()
         }
+      val signRegions =
+        if (formatVersion < 2 || !reader.hasMore()) {
+          mapOf()
+        } else {
+          List(reader.count()) {
+              val index = reader.count()
+              if (index !in knots.indices) throw GraphFormatException("Bad knot index")
+              index to SignRegion.ofCode(reader.byte())
+            }
+            .toMap()
+        }
       return GraphFile(
         network,
         area,
@@ -203,7 +223,10 @@ class GraphFile(
         attribution,
         NetworkGraph(
           knots.mapIndexed { index, knot ->
-            otherNodes[index]?.let { knot.copy(otherNodes = it) } ?: knot
+            knot.copy(
+              otherNodes = otherNodes[index] ?: knot.otherNodes,
+              signRegion = signRegions[index],
+            )
           },
           connections,
           ferries,

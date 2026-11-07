@@ -54,6 +54,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -69,6 +70,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -84,6 +86,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
@@ -111,11 +114,13 @@ import com.knoopbyknoop.core.Guidance
 import com.knoopbyknoop.core.GuidedWayView
 import com.knoopbyknoop.core.IndexedNetworkType
 import com.knoopbyknoop.core.Knot
+import com.knoopbyknoop.core.KnotPlate
 import com.knoopbyknoop.core.KnotRole
 import com.knoopbyknoop.core.NewKnots
 import com.knoopbyknoop.core.PathDataStatus
 import com.knoopbyknoop.core.ProgressView
 import com.knoopbyknoop.core.RouteDescription
+import com.knoopbyknoop.core.RouteKnot
 import com.knoopbyknoop.core.RouteSummary
 import com.knoopbyknoop.core.hasStraightLines
 import kotlin.math.ceil
@@ -521,7 +526,7 @@ private fun WaypointSheet(
       Column(modifier = Modifier.onSizeChanged { onNavigationHeight(it.height) }) {
         NavigationHeader(
           navigation,
-          complete?.knots?.map { it.role },
+          complete?.knots,
           progress,
           onStop = viewModel::stopNavigation,
         )
@@ -806,95 +811,120 @@ private fun NavigateButton(viewModel: AppViewModel) {
 @Composable
 private fun NavigationHeader(
   navigation: NavigationState,
-  roles: List<KnotRole>?,
+  routeKnots: List<RouteKnot>?,
   progress: ProgressView?,
   onStop: () -> Unit,
 ) {
-  Row(verticalAlignment = Alignment.CenterVertically) {
-    // The distance moves below the number to follow where it does not fit next to it, see
-    // `knot-navigation` "Number to follow at large text sizes".
-    FlowRow(
-      itemVerticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(6.dp),
-      modifier = Modifier.weight(1f),
+  // Off route and riding the wrong way, the header turns dark, light in dark mode, instead of red,
+  // see `map-planning` "Light and dark appearance".
+  val display = navigation.navigation?.display
+  val inverted = display != null && (display.offRoute || display.wrongWay)
+  val dark = isAppInDarkTheme()
+  val invertedBackground = if (dark) Color(0xFFE6E8E6) else Ink
+  val invertedContent = if (dark) Ink else Color.White
+  CompositionLocalProvider(
+    LocalContentColor provides if (inverted) invertedContent else LocalContentColor.current
+  ) {
+    Row(
+      verticalAlignment = Alignment.CenterVertically,
+      modifier =
+        if (inverted)
+          Modifier.background(invertedBackground, RoundedCornerShape(12.dp))
+            .padding(horizontal = 10.dp, vertical = 6.dp)
+        else Modifier,
     ) {
-      val current = navigation.navigation
-      val display = current?.display
-      val follow = display?.follow
-      fun roleAt(index: Int) = roles?.getOrNull(index)
-      val nextRole = current?.let { roleAt(it.nextIndex) }
-      val title = MaterialTheme.typography.titleLarge
-      when {
-        display == null ->
+      // The distance moves below the number to follow where it does not fit next to it, see
+      // `knot-navigation` "Number to follow at large text sizes".
+      FlowRow(
+        itemVerticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier.weight(1f),
+      ) {
+        val current = navigation.navigation
+        val display = current?.display
+        val follow = display?.follow
+        fun roleAt(index: Int) = routeKnots?.getOrNull(index)?.role
+        fun plateAt(index: Int) = KnotPlate.of(routeKnots?.getOrNull(index)?.knot?.signRegion)
+        val nextRole = current?.let { roleAt(it.nextIndex) }
+        val nextPlate = plateAt(current?.nextIndex ?: -1)
+        val followPlate = plateAt((current?.nextIndex ?: -2) + 1)
+        val title = MaterialTheme.typography.titleLarge
+        when {
+          display == null ->
+            Text(
+              stringResource(R.string.waiting_for_position),
+              style = MaterialTheme.typography.titleMedium,
+            )
+          display.offRoute -> {
+            val guidance = navigation.position?.let { current.guidance(it) }
+            OffRouteHeader(
+              display.next,
+              nextRole,
+              guidance,
+              navigation.direction,
+              guidedWay = navigation.guidedWay?.view(current.language),
+              plate = nextPlate,
+            )
+            return@FlowRow
+          }
+          // On the route the wrong way, so the distance along it follows, see `knot-navigation`
+          // "Riding the wrong way".
+          display.wrongWay ->
+            OffRouteHeader(
+              display.next,
+              nextRole,
+              guidance = null,
+              ridingDirection = null,
+              warning = stringResource(R.string.wrong_direction_next),
+              plate = nextPlate,
+            )
+          // A route point has no signs to follow, so it is named like before the reminder.
+          follow != null &&
+            (!display.close || display.nextRole != null || display.followRole != null) -> {
+            NextKnotHeader(
+              display.next,
+              nextRole,
+              follow,
+              roleAt(current.nextIndex + 1),
+              progress?.nextKnotDistance,
+              nextPlate,
+              followPlate,
+            )
+            return@FlowRow
+          }
+          follow != null -> {
+            Text(stringResource(R.string.at), style = title)
+            KnotBadge(display.next, nextRole, scale = 1.3f, plate = nextPlate)
+            Text(stringResource(R.string.follow), style = title)
+            KnotBadge(follow, roleAt(current.nextIndex + 1), scale = 1.8f, plate = followPlate)
+          }
+          else -> {
+            KnotBadge(display.next, nextRole, scale = 1.3f, plate = nextPlate)
+            Text(stringResource(R.string.is_the_end), style = title)
+          }
+        }
+        // The distance to the next knot in the same line, see `knot-navigation` "Number to follow".
+        progress?.let {
           Text(
-            stringResource(R.string.waiting_for_position),
+            it.nextKnotDistance,
             style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
           )
-        display.offRoute -> {
-          val guidance = navigation.position?.let { current.guidance(it) }
-          OffRouteHeader(
-            display.next,
-            nextRole,
-            guidance,
-            navigation.direction,
-            guidedWay = navigation.guidedWay?.view(current.language),
-          )
-          return@FlowRow
-        }
-        // On the route the wrong way, so the distance along it follows, see `knot-navigation`
-        // "Riding the wrong way".
-        display.wrongWay ->
-          OffRouteHeader(
-            display.next,
-            nextRole,
-            guidance = null,
-            ridingDirection = null,
-            warning = stringResource(R.string.wrong_direction_next),
-          )
-        // A route point has no signs to follow, so it is named like before the reminder.
-        follow != null &&
-          (!display.close || display.nextRole != null || display.followRole != null) -> {
-          NextKnotHeader(
-            display.next,
-            nextRole,
-            follow,
-            roleAt(current.nextIndex + 1),
-            progress?.nextKnotDistance,
-          )
-          return@FlowRow
-        }
-        follow != null -> {
-          Text(stringResource(R.string.at), style = title)
-          KnotBadge(display.next, nextRole, scale = 1.3f)
-          Text(stringResource(R.string.follow), style = title)
-          KnotBadge(follow, roleAt(current.nextIndex + 1), scale = 1.8f)
-        }
-        else -> {
-          KnotBadge(display.next, nextRole, scale = 1.3f)
-          Text(stringResource(R.string.is_the_end), style = title)
         }
       }
-      // The distance to the next knot in the same line, see `knot-navigation` "Number to follow".
-      progress?.let {
-        Text(
-          it.nextKnotDistance,
-          style = MaterialTheme.typography.titleMedium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-          maxLines = 1,
+      // Over the lock screen, a touch in the pocket shouldn't end the ride.
+      val overLockScreen by Navigating.overLockScreen.collectAsState()
+      if (overLockScreen)
+        HoldAction(stringResource(R.string.stop_hold), R.drawable.ic_action_stop, onStop)
+      else
+        ProminentAction(
+          stringResource(R.string.stop),
+          R.drawable.ic_action_stop,
+          onStop,
+          color = ActionColors.red,
         )
-      }
     }
-    // Over the lock screen, a touch in the pocket shouldn't end the ride.
-    val overLockScreen by Navigating.overLockScreen.collectAsState()
-    if (overLockScreen)
-      HoldAction(stringResource(R.string.stop_hold), R.drawable.ic_action_stop, onStop)
-    else
-      ProminentAction(
-        stringResource(R.string.stop),
-        R.drawable.ic_action_stop,
-        onStop,
-        color = ActionColors.red,
-      )
   }
 }
 
@@ -929,7 +959,7 @@ private fun RouteKnots(description: RouteDescription.Complete) {
       Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(vertical = 4.dp),
   ) {
     description.knots.forEachIndexed { position, (knot, role) ->
-      KnotBadge(knot.ref, role)
+      KnotBadge(knot.ref, role, plate = KnotPlate.of(knot.signRegion))
       if (position in ferryPositions) FerryBadge()
     }
   }
@@ -1069,7 +1099,7 @@ private fun WaypointList(
               },
         ) {
           Box(modifier = Modifier.width(44.dp), contentAlignment = Alignment.Center) {
-            KnotBadge(knot.ref, role)
+            KnotBadge(knot.ref, role, plate = KnotPlate.of(knot.signRegion))
           }
           Text(
             roleName,
@@ -1131,6 +1161,8 @@ private fun NextKnotHeader(
   follow: String,
   followRole: KnotRole?,
   distance: String?,
+  plate: KnotPlate,
+  followPlate: KnotPlate,
 ) {
   val nextText = stringResource(R.string.next)
   val thenText = stringResource(R.string.then)
@@ -1148,7 +1180,7 @@ private fun NextKnotHeader(
       horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
       Text(nextText, style = MaterialTheme.typography.titleLarge)
-      KnotBadge(next, role, scale = 1.8f)
+      KnotBadge(next, role, scale = 1.8f, plate = plate)
       distance?.let { Text(it, style = MaterialTheme.typography.titleLarge, maxLines = 1) }
     }
     Row(
@@ -1160,7 +1192,7 @@ private fun NextKnotHeader(
         style = MaterialTheme.typography.bodyLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
-      KnotBadge(follow, followRole)
+      KnotBadge(follow, followRole, plate = followPlate)
     }
   }
 }
@@ -1178,6 +1210,7 @@ private fun OffRouteHeader(
   ridingDirection: Double?,
   warning: String = stringResource(R.string.off_route_next),
   guidedWay: GuidedWayView? = null,
+  plate: KnotPlate = KnotPlate.NONE,
 ) {
   Column(
     modifier =
@@ -1196,9 +1229,8 @@ private fun OffRouteHeader(
       Text(
         warning,
         style = MaterialTheme.typography.titleLarge,
-        color = MaterialTheme.colorScheme.error,
       )
-      KnotBadge(next, role, scale = 1.3f)
+      KnotBadge(next, role, scale = 1.3f, plate = plate)
     }
     guidedWay?.let {
       Text(it.turn, style = MaterialTheme.typography.titleMedium)
@@ -1206,13 +1238,13 @@ private fun OffRouteHeader(
         Text(
           street,
           style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          color = LocalContentColor.current.copy(alpha = 0.8f),
         )
       }
       Text(
         it.remaining,
         style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        color = LocalContentColor.current.copy(alpha = 0.8f),
       )
     }
     guidance
@@ -1233,7 +1265,7 @@ private fun OffRouteHeader(
             Icon(
               painterResource(R.drawable.ic_action_navigate),
               contentDescription = null,
-              tint = MaterialTheme.colorScheme.error,
+              tint = LocalContentColor.current,
               modifier =
                 Modifier.size(22.dp).rotate((it.bearing - (ridingDirection ?: 0.0)).toFloat()),
             )
@@ -1241,7 +1273,7 @@ private fun OffRouteHeader(
           Text(
             it.direction,
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = LocalContentColor.current.copy(alpha = 0.8f),
           )
         }
       }
@@ -1304,9 +1336,13 @@ private fun RouteChip(route: RouteDescription.Complete) {
       horizontalArrangement = Arrangement.spacedBy(6.dp),
       modifier = Modifier.clearAndSetSemantics {}.padding(horizontal = 10.dp, vertical = 6.dp),
     ) {
-      route.knots.first().let { KnotBadge(it.knot.ref, it.role) }
+      route.knots.first().let {
+        KnotBadge(it.knot.ref, it.role, plate = KnotPlate.of(it.knot.signRegion))
+      }
       Text("→", style = MaterialTheme.typography.titleMedium)
-      route.knots.last().let { KnotBadge(it.knot.ref, it.role) }
+      route.knots.last().let {
+        KnotBadge(it.knot.ref, it.role, plate = KnotPlate.of(it.knot.signRegion))
+      }
       Text(route.distance, style = MaterialTheme.typography.titleMedium)
     }
   }

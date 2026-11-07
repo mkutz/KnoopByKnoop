@@ -4,7 +4,8 @@ import SwiftUI
 /// Marks a ferry between two knots of the route summary, see `map-planning`.
 struct FerryBadge: View {
 
-  /// Closed at the rider's arrival: a red ring, see `knot-navigation` "Ferry warning".
+  /// Closed at the rider's arrival: a dark clock badge at its corner, not red, see `knot-navigation`
+  /// "Ferry warning".
   var warning = false
 
   var body: some View {
@@ -14,7 +15,19 @@ struct FerryBadge: View {
       // Opaque like the knots' badges: the light tint on the background color, not on what is behind.
       .background(Circle().fill(Color.accentColor.opacity(0.2)))
       .background(Circle().fill(Color(uiColor: .systemBackground)))
-      .overlay(Circle().stroke(Color.red, lineWidth: warning ? 3 : 0))
+      .overlay(Circle().stroke(Color.knoopInk, lineWidth: warning ? 2 : 0))
+      .overlay(alignment: .topTrailing) {
+        if warning {
+          Image(systemName: "clock")
+            .font(.system(size: 8, weight: .bold))
+            .foregroundStyle(.white)
+            .frame(width: 14, height: 14)
+            .background(Circle().fill(Color.knoopInk))
+            .overlay(Circle().stroke(.white, lineWidth: 1))
+            .offset(x: 4, y: -4)
+            .accessibilityHidden(true)
+        }
+      }
   }
 }
 
