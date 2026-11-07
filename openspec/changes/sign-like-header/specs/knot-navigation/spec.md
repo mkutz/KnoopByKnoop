@@ -107,7 +107,7 @@ The header SHALL show no compass word. When the rider has not moved recently, th
 
 #### Scenario: Direction with a screen reader
 - **WHEN** a screen reader reaches the header while off route without a guided way, 1.7 km from the route to the north-east, with 02 as the next knot
-- **THEN** it announces "Off route, next 02, 1.7 km to the route, to the north-east"
+- **THEN** it announces "Off route, next 02, 1.7 km to the north-east"
 
 ### Requirement: Guided way in the header and outside the app
 On a guided way, the header, the Android notification and the iOS Live Activity SHALL show the next turn with its distance, and the distance left along the way, in place of the straight distance. The header SHALL show them without words, on its dark background: the to-the-route symbol, the turn as an arrow with its distance, the street name of the turn when known, and the distance left along the way.
@@ -141,7 +141,7 @@ In every app language and at large system text sizes, the header SHALL show its 
 
 #### Scenario: Next knot at the largest text size
 - **WHEN** the system text size is at its largest and the rider is 467 m before 94 with 41 to follow
-- **THEN** the header shows ↑, 94, "467 m", › 41 and Stop completely
+- **THEN** the header shows 94, "467 m", › 41 and Stop completely
 
 #### Scenario: Number to follow at the default text size
 - **WHEN** the system text size is the default
@@ -272,4 +272,4 @@ After navigation started away from the route, until the rider is first on the ro
 
 #### Scenario: On the way with a screen reader
 - **WHEN** a screen reader reaches the header on the way to the route, 800 m to the east, with 24 as the first knot
-- **THEN** it announces "To the route, next 24, 800 m, to the east"
+- **THEN** it announces "Next 24, 800 m to the east"

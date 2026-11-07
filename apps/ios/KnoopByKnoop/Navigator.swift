@@ -56,6 +56,8 @@ final class Navigator: NSObject, ObservableObject {
   /// Keeps location updates coming while the app is in the background.
   private var backgroundSession: CLBackgroundActivitySession?
   private var route: NavigationRoute?
+  /// The network's courses, to tell whether the rider is on a path of the knot network off route.
+  var geometry: NetworkGeometry? { route?.geometry }
   /// Kept here, not in the map, so it includes the stretches ridden with the screen off.
   private var track = RiddenTrack(points: [], network: .cycling)
   private var waitingForAccess = false

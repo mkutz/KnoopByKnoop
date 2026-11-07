@@ -1291,6 +1291,311 @@ class NavigationTest {
     assertEquals(Precision.LIVE, navigation.precision(visible = true))
   }
 
+  // Requirement: Number to follow, the header's row
+
+  private fun regioned(region: SignRegion?) = route.map { it.copy(signRegion = region) }
+
+  private fun closeTo45(
+    knots: List<Knot> = route,
+    stops: Set<Int> = setOf(),
+  ): Pair<Navigation, Fix> {
+    val regionGraph =
+      NetworkGraph(knots + knot77.copy(signRegion = knots.first().signRegion), graph.connections)
+    val started =
+      assertNotNull(Navigation.start(knots, regionGraph, geometry, fix(0.0), stops = stops))
+    val (navigation, _) = ride(started.navigation, from = 40.0, to = 840.0)
+    return navigation to fix(850.0)
+  }
+
+  @Test
+  fun `next knot in the middle of the route in the header`() {
+    val (navigation, fix) = closeTo45()
+
+    val header = navigation.header(fix) as HeaderRow.Close
+
+    assertEquals("45", header.next.ref)
+    assertEquals("150 m", header.distance)
+    assertEquals("12", header.follow.ref)
+    assertTrue(header.follow.onPlate, "12 on a sign plate")
+    assertFalse(header.next.onPlate)
+  }
+
+  @Test
+  fun `far from the next knot in the header`() {
+    val navigation = start(east = 0.0).navigation
+    val fix = fix(100.0)
+
+    val header = navigation.update(fix).navigation.header(fix) as HeaderRow.Far
+
+    assertEquals("45", header.next.ref)
+    assertEquals("900 m", header.distance)
+    assertEquals("12", header.follow.ref)
+    assertFalse(header.follow.onPlate, "no sign plate between knots")
+  }
+
+  @Test
+  fun `coming close in the header`() {
+    val navigation = start(east = 0.0).navigation
+    val (far, _) = ride(navigation, from = 40.0, to = 760.0)
+    val (close, _) = far.ride(fix(800.0))
+
+    assertTrue(far.header(fix(760.0)) is HeaderRow.Far)
+    assertTrue(close.header(fix(800.0)) is HeaderRow.Close)
+  }
+
+  @Test
+  fun `knot right after the last one in the header`() {
+    val knot50 = knot(50, "50", east = 1150.0)
+    val closeGraph =
+      NetworkGraph(
+        knots = listOf(knot24, knot45, knot50, knot12),
+        connections =
+          listOf(Connection(24, 45, 1000), Connection(45, 50, 150), Connection(50, 12, 850)),
+      )
+    val started =
+      assertNotNull(
+        Navigation.start(listOf(knot24, knot45, knot50, knot12), closeGraph, null, fix(0.0))
+      )
+    val (navigation, _) = ride(started.navigation, from = 600.0, to = 1000.0)
+
+    val header = navigation.header(fix(1000.0)) as HeaderRow.Close
+
+    assertEquals("50", header.next.ref)
+    assertEquals("12", header.follow.ref)
+  }
+
+  @Test
+  fun `next knot is the end in the header`() {
+    val (navigation, _) = ride(start(east = 0.0).navigation, from = 40.0, to = 2080.0)
+    val fix = fix(2100.0)
+
+    val header = navigation.update(fix).navigation.header(fix) as HeaderRow.End
+
+    assertEquals("31", header.next.ref)
+    assertEquals(KnotRole.END, header.next.role)
+    assertEquals("900 m", header.distance)
+  }
+
+  @Test
+  fun `distance to the first knot in the header`() {
+    val started = start(east = -500.0, north = -1000.0).navigation
+    val (navigation, _) = started.ride(fix(80.0))
+
+    val header = navigation.header(fix(80.0))
+
+    assertEquals(
+      "80 m",
+      (header as? HeaderRow.Close)?.distance ?: (header as HeaderRow.Far).distance,
+    )
+  }
+
+  @Test
+  fun `Dutch knots in the header`() {
+    val (navigation, fix) = closeTo45(regioned(SignRegion.NETHERLANDS))
+
+    val header = navigation.header(fix) as HeaderRow.Close
+
+    assertTrue(header.next.filled, "45 filled, as at the knot")
+    assertFalse(header.follow.filled, "12 white, as on the Dutch arrow signs")
+    assertEquals(KnotPlate.of(SignRegion.NETHERLANDS), header.follow.plate)
+  }
+
+  @Test
+  fun `German knots in the header`() {
+    val (navigation, fix) = closeTo45(regioned(SignRegion.NORTH_RHINE_WESTPHALIA))
+
+    val header = navigation.header(fix) as HeaderRow.Close
+
+    assertTrue(header.next.filled)
+    assertTrue(header.follow.filled)
+    assertEquals(KnotPlate.of(SignRegion.NORTH_RHINE_WESTPHALIA), header.next.plate)
+  }
+
+  @Test
+  fun `picked knot in the header`() {
+    val (navigation, fix) = closeTo45(stops = setOf(2))
+
+    val header = navigation.header(fix) as HeaderRow.Close
+
+    assertEquals(KnotRole.STOP, header.follow.role)
+    assertEquals(KnotRole.PASSED, header.next.role)
+  }
+
+  // Requirement: Direction to the route
+
+  /** Off route 300 m south of the road at 700 m, after riding the road to 600 m. */
+  private fun offRouteSouth(): Pair<Navigation, Fix> {
+    val (onRoad, _) = ride(start(east = 0.0).navigation, from = 40.0, to = 600.0)
+    val (off, _) = onRoad.ride(fix(650.0, north = -150.0), fix(700.0, north = -300.0))
+    return off to fix(700.0, north = -300.0)
+  }
+
+  @Test
+  fun `direction in the header`() {
+    val (navigation, fix) = offRouteSouth()
+
+    val header =
+      navigation.header(fix, ridingDirection = 90.0, network = geometry) as HeaderRow.ToRoute
+
+    assertTrue(header.offRoute, "dark: the rider was on the route")
+    assertEquals(
+      270.0,
+      header.arrowDegrees,
+      3.0,
+      "riding east, the road to the north is to the left",
+    )
+  }
+
+  @Test
+  fun `back to the route and not to the knot`() {
+    val (navigation, fix) = offRouteSouth()
+
+    val header = navigation.header(fix) as HeaderRow.ToRoute
+
+    assertEquals("300 m", header.distance, "to the road, not the 420 m to 45")
+  }
+
+  @Test
+  fun `standing still in the header`() {
+    val (navigation, fix) = offRouteSouth()
+
+    val header = navigation.header(fix, ridingDirection = null) as HeaderRow.ToRoute
+
+    assertEquals(0.0, normalized(header.arrowDegrees + 3.0) - 3.0, 3.0, "north, as on the map")
+  }
+
+  @Test
+  fun `without courses in the header`() {
+    val started = start(east = 0.0, geometry = null).navigation
+    val (navigation, _) = started.ride(fix(250.0, north = 150.0), fix(500.0, north = 300.0))
+    val fix = fix(500.0, north = 300.0)
+
+    val header = navigation.header(fix, ridingDirection = null) as HeaderRow.ToRoute
+
+    assertTrue(navigation.offRoute, "passed 77")
+    assertEquals(121.0, header.arrowDegrees, 3.0, "to 45 to the east-south-east")
+  }
+
+  @Test
+  fun `distance off route in the header`() {
+    val (navigation, fix) = offRouteSouth()
+
+    assertTrue(navigation.header(fix) is HeaderRow.ToRoute, "not the number to follow")
+  }
+
+  @Test
+  fun `off the network`() {
+    val (navigation, fix) = offRouteSouth()
+
+    val header = navigation.header(fix, network = geometry) as HeaderRow.ToRoute
+
+    assertNull(header.next)
+  }
+
+  @Test
+  fun `wrong turn within the network`() {
+    val started = start(east = 0.0).navigation
+    val (navigation, _) =
+      started.ride(fix(100.0, north = 60.0), fix(250.0, north = 150.0), fix(500.0, north = 300.0))
+    val onCourse = fix(750.0, north = 150.0)
+    val (riding, _) = navigation.ride(onCourse)
+
+    val header = riding.header(onCourse, network = geometry) as HeaderRow.ToRoute
+
+    assertEquals("45", header.next?.ref)
+    assertFalse(header.next!!.onPlate)
+  }
+
+  // Requirement: Header on the way to the route
+
+  @Test
+  fun `starting at home`() {
+    val navigation = start(east = 1000.0, north = -2000.0).navigation
+    val fix = fix(1000.0, north = -2000.0)
+
+    val header = navigation.header(fix, network = geometry) as HeaderRow.ToRoute
+
+    assertFalse(header.offRoute, "not dark: no mistake")
+    assertNull(header.next, "no path of the network here")
+  }
+
+  @Test
+  fun `reaching the network on the way`() {
+    val navigation = start(east = 1000.0, north = -2000.0).navigation
+    val onCourseTo77 = fix(250.0, north = 150.0)
+    val (riding, _) = navigation.ride(onCourseTo77)
+
+    val header = riding.header(onCourseTo77, network = geometry) as HeaderRow.ToRoute
+
+    assertFalse(header.offRoute)
+    assertEquals("24", header.next?.ref)
+  }
+
+  @Test
+  fun `on the route after starting away`() {
+    val navigation = start(east = 1000.0, north = -2000.0).navigation
+    val (riding, _) = navigation.ride(fix(-60.0, north = 10.0), fix(-20.0))
+
+    assertFalse(riding.header(fix(-20.0)) is HeaderRow.ToRoute)
+  }
+
+  @Test
+  fun `leaving the route later`() {
+    val navigation = start(east = 1000.0, north = -2000.0).navigation
+    val (joined, _) = navigation.ride(fix(-20.0), fix(10.0), fix(50.0))
+    val (left, _) = joined.ride(fix(100.0, north = -150.0), fix(150.0, north = -300.0))
+
+    val header = left.header(fix(150.0, north = -300.0)) as HeaderRow.ToRoute
+
+    assertTrue(header.offRoute, "dark now")
+  }
+
+  @Test
+  fun `wrong direction in the header`() {
+    val (navigation, _) = ridingBack()
+    val fix = fix(300.0)
+    val (riding, _) = navigation.ride(fix)
+
+    val header = riding.header(fix) as HeaderRow.WrongWay
+
+    assertEquals("45", header.next.ref)
+    assertEquals("700 m", header.distance)
+  }
+
+  // Requirement: Number to follow, screen readers
+
+  @Test
+  fun `far from the next knot with a screen reader`() {
+    val navigation = start(east = 0.0).navigation
+    val fix = fix(100.0)
+
+    assertEquals("Next 45, 900 m, then 12", navigation.update(fix).navigation.header(fix).spoken)
+  }
+
+  @Test
+  fun `close to the next knot with a screen reader`() {
+    val (navigation, fix) = closeTo45()
+
+    assertEquals("At 45 follow 12, 150 m", navigation.header(fix).spoken)
+  }
+
+  @Test
+  fun `direction with a screen reader`() {
+    val (navigation, fix) = offRouteSouth()
+
+    assertEquals("Off route, next 45, 300 m to the north", navigation.header(fix).spoken)
+  }
+
+  @Test
+  fun `on the way with a screen reader`() {
+    val navigation = start(east = 1000.0, north = -2000.0).navigation
+
+    assertEquals(
+      "Next 24, 2.2 km to the north-west",
+      navigation.header(fix(1000.0, north = -2000.0)).spoken,
+    )
+  }
+
   private companion object {
     const val ORIGIN_LATITUDE = 52.0
     const val ORIGIN_LONGITUDE = 5.0

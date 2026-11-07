@@ -35,6 +35,11 @@ internal fun Texts.next(next: Spot, after: Spot?): String =
 internal fun Texts.nextOutside(next: Spot, after: Spot): String =
   next.role?.let { nextPoint(it, name(after)) } ?: nextOutside(next.ref, name(after))
 
+/** For screen readers, e.g. `Next 83, 1.2 km, then 30`, or a route point by its role. */
+internal fun Texts.nextAt(next: Spot, distance: String, after: Spot): String =
+  next.role?.let { "${nextPoint(it, name(after))}, $distance" }
+    ?: nextAt(next.ref, distance, name(after))
+
 internal fun Texts.ahead(next: Spot, after: Spot?): String =
   next.role?.let { aheadPoint(it, after?.let(::name)) } ?: ahead(next.ref, after?.let(::name))
 

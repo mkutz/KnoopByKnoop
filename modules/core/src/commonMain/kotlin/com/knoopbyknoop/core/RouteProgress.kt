@@ -45,7 +45,31 @@ data class ProgressMark(
   val routePoint: Boolean = false,
   /** The plate of a knot's sign region, see `map-planning` "Route knots stand out". */
   val plate: KnotPlate = KnotPlate.NONE,
-)
+  /** A knot's position on the route. */
+  val knotIndex: Int? = null,
+  /**
+   * Whether the knot is in the header, the next knot or the number to follow there, so the strip
+   * shows its badge too, see `knot-navigation` "Progress strip".
+   */
+  val inHeader: Boolean = false,
+) {
+  /**
+   * How important the mark is where its badge or its distance would overlap another's, lower first:
+   * the end, then the knots of the header, see `knot-navigation` "Progress strip", then ferries
+   * with a warning, stops, the start and other ferries.
+   */
+  val rank: Int
+    get() =
+      when {
+        kind == ProgressMarkKind.END -> 0
+        inHeader -> 1
+        kind == ProgressMarkKind.FERRY && state == FerryArrivalState.WARNING -> 2
+        kind == ProgressMarkKind.STOP -> 3
+        kind == ProgressMarkKind.START -> 4
+        kind == ProgressMarkKind.FERRY -> 5
+        else -> Int.MAX_VALUE
+      }
+}
 
 /**
  * The route drawn to scale with the rider on it, see `knot-navigation` "Progress strip".
@@ -190,21 +214,24 @@ private constructor(
         else offset - place,
       )
     val ahead = setOf(ProgressMarkKind.STOP, ProgressMarkKind.FERRY, ProgressMarkKind.END)
+    val headerKnots = setOf(nextIndex, nextIndex + 1)
     val marks =
-      marks().map { mark ->
-        val offset = mark.fraction * length
-        // Half a meter of slack, as the offset comes back from the fraction.
-        if (mark.kind !in ahead || offset <= aheadFrom(place, nextIndex, straightDistance) + 0.5)
-          mark
-        else {
-          val meters = distanceTo(offset)
-          mark.copy(
-            distance = MapFeatures.formatDistance(meters.roundToInt(), language),
-            arrival = localTime?.let { arrivalText(now, meters / metersPerSecond, it) },
-            state = mark.position?.let(ferryState),
-          )
+      marks()
+        .map { it.copy(inHeader = it.knotIndex in headerKnots) }
+        .map { mark ->
+          val offset = mark.fraction * length
+          // Half a meter of slack, as the offset comes back from the fraction.
+          if (mark.kind !in ahead || offset <= aheadFrom(place, nextIndex, straightDistance) + 0.5)
+            mark
+          else {
+            val meters = distanceTo(offset)
+            mark.copy(
+              distance = MapFeatures.formatDistance(meters.roundToInt(), language),
+              arrival = localTime?.let { arrivalText(now, meters / metersPerSecond, it) },
+              state = mark.position?.let(ferryState),
+            )
+          }
         }
-      }
     fun arrival(meters: Double) = localTime?.let { arrivalText(now, meters / metersPerSecond, it) }
     // The knots from the next one, and the ferries ahead between them, see `knot-navigation`
     // "Coming knots".
@@ -346,6 +373,7 @@ private constructor(
           fraction(offsets[index]),
           routePoint = knots[index].isRoutePoint,
           plate = KnotPlate.of(knots[index].signRegion),
+          knotIndex = index,
         )
       }
     val ferryMarks = ferryPositions.map { position ->

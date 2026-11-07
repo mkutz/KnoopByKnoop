@@ -54,7 +54,7 @@ private struct ProgressStripView: View {
       let y = Self.height / 2
       let riderX = inset + lineWidth * CGFloat(strip.rider)
       let badges = Self.shown(strip.marks, lineWidth: lineWidth, space: Self.badgeSpace) {
-        $0.kind != .knot
+        $0.kind != .knot || $0.inHeader
       }
       // Centered below the mark, but within the strip at both ends.
       let labelCenter = { (mark: ProgressMark) in
@@ -158,7 +158,9 @@ private struct ProgressStripView: View {
         switch mark.kind {
         case .start: KnotBadge(ref: mark.label, role: .start, plate: mark.plate)
         case .stop: KnotBadge(ref: mark.label, role: .stop, plate: mark.plate)
-        default: KnotBadge(ref: mark.label, role: .end, plate: mark.plate)
+        case .end: KnotBadge(ref: mark.label, role: .end, plate: mark.plate)
+        // A knot of the header, see `knot-navigation` "Progress strip".
+        default: KnotBadge(ref: mark.label, role: .passed, plate: mark.plate)
         }
       }
       .accessibilityHidden(true)
@@ -175,18 +177,6 @@ private struct ProgressStripView: View {
     return [String(localized: "Ferry \(ferry.place)", bundle: AppLanguage.bundle), status].compactMap { $0 }.joined(separator: ", ")
   }
 
-  /// How important a mark is where its badge or its distance would overlap another's: lower first.
-  private static func rank(_ mark: ProgressMark) -> Int {
-    switch mark.kind {
-    case .end: 0
-    case .ferry where mark.state == .warning: 1
-    case .stop: 2
-    case .start: 3
-    case .ferry: 4
-    default: Int.max
-    }
-  }
-
   /// The marks that pass `include` and fit with `space` around them and are `apart`, the more
   /// important ones first.
   private static func shown(
@@ -194,7 +184,7 @@ private struct ProgressStripView: View {
     apart: (ProgressMark, ProgressMark) -> Bool = { _, _ in true }, include: (ProgressMark) -> Bool
   ) -> [ProgressMark] {
     var shown: [ProgressMark] = []
-    for mark in marks.filter(include).sorted(by: { rank($0) < rank($1) }) {
+    for mark in marks.filter(include).sorted(by: { $0.rank < $1.rank }) {
       if shown.allSatisfy({ lineWidth * abs(CGFloat($0.fraction - mark.fraction)) >= space && apart($0, mark) }) {
         shown.append(mark)
       }

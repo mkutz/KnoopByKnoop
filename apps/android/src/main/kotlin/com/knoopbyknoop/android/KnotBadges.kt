@@ -65,6 +65,20 @@ private class BadgeStyle(
   val large: Boolean,
 )
 
+private fun styleOf(
+  role: KnotRole?,
+  plate: KnotPlate,
+  dark: Boolean,
+  filled: Boolean? = null,
+): BadgeStyle =
+  when {
+    // In the navigation header, filled or white as on the knot's signs, see `knot-navigation`
+    // "Number to follow".
+    filled == true -> BadgeStyle(plate.color, null, 0f, plate.innerRing, Color.White, large = false)
+    filled == false -> BadgeStyle(Color.White, plate.color, 5f, false, plate.color, large = false)
+    else -> styleOf(role, plate, dark)
+  }
+
 private fun styleOf(role: KnotRole?, plate: KnotPlate, dark: Boolean): BadgeStyle =
   when (role) {
     null ->
@@ -325,9 +339,10 @@ fun KnotBadge(
   modifier: Modifier = Modifier,
   scale: Float = 1f,
   plate: KnotPlate = KnotPlate.NONE,
+  filled: Boolean? = null,
 ) {
   val dark = isAppInDarkTheme()
-  val style = styleOf(role, plate, dark)
+  val style = styleOf(role, plate, dark, filled)
   val size = (if (style.large) 34.dp else 28.dp) * scale
   // Required, so a slot narrower than the badge, e.g. on the strip, can't squeeze it into an oval.
   Box(contentAlignment = Alignment.Center, modifier = modifier.requiredSize(size)) {

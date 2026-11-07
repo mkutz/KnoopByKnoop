@@ -142,6 +142,23 @@ class GuidedWayTest {
   }
 
   @Test
+  fun `In the header the turn is an arrow with its distance and the street`() {
+    val header = guided().at(at(880.0)).way.headerTurn(Language.EN)
+    assertEquals(TurnDirection.LEFT, header.turn)
+    assertEquals("120 m", header.turnDistance)
+    assertEquals("Weierstraße", header.street)
+    assertEquals("1.1 km", header.remaining)
+    assertEquals("Left in 120 m, Weierstraße, 1.1 km", header.description)
+  }
+
+  @Test
+  fun `In the header after the last turn there is only the way left`() {
+    val header = guided().at(at(900.0)).way.at(at(1200.0)).way.headerTurn(Language.EN)
+    assertEquals(null, header.turn)
+    assertEquals("800 m", header.remaining)
+  }
+
+  @Test
   fun `After the last turn the view says to follow the way`() {
     val view = guided().at(at(900.0)).way.at(at(1200.0)).way.view(Language.EN)
     assertEquals("Follow the way", view.turn)

@@ -2,16 +2,16 @@
 
 ## 1. Core
 
-- [ ] 1.1 Add `HeaderRow` and `HeaderBadge` to `NavigationUpdate`, with the close, far and end rows and the sign-like `filled`. Tests in `NavigationTest`:
+- [x] 1.1 Add `HeaderRow` and `HeaderBadge` to `NavigationUpdate`, with the close, far and end rows and the sign-like `filled`. Tests in `NavigationTest`:
   - "Next knot in the middle of the route", "Far from the next knot", "Coming close", "Knot right after the last one", "Next knot is the end" and "Distance to the first knot".
   - "Dutch knots in the header", "German knots in the header" and "Picked knot in the header", for the fill, the corner role and which badge is on the sign plate.
-- [ ] 1.2 Add `joinedRoute` and the on-the-way row. The off-route row gets its arrow and distance from `wayToRoute`, falling back to the next knot, with the bearing relative to the riding direction or to north when standing still. Tests in `NavigationTest`:
+- [x] 1.2 Add `joinedRoute` and the on-the-way row. The off-route row gets its arrow and distance from `wayToRoute`, falling back to the next knot, with the bearing relative to the riding direction or to north when standing still. Tests in `NavigationTest`:
   - "Direction in the header", "Back to the route, not to the knot", "Standing still", "Without courses" and "Distance off route".
   - "Starting at home", "On the route" and "Leaving the route later".
-- [ ] 1.3 Add the on-network check: within 30 m of any course of the installed geometry, evaluated only off route or on the way. Tests in `NavigationTest`: "Off the network", "Wrong turn within the network" and "Reaching the network on the way".
-- [ ] 1.4 Add the guided and wrong-way rows. Tests: "In the header" for the guided way (turn, distance, street, distance left) and "Wrong direction in the panel" (U-turn row with 28 and the distance along the route).
-- [ ] 1.5 Add `HeaderRow.spoken(language)`. Tests: "Far from the next knot with a screen reader", "Close to the next knot with a screen reader", "Direction with a screen reader", "On the way with a screen reader" and "Header with a screen reader", in English. The German texts of "In the app's language" exist for wrong way.
-- [ ] 1.6 Mark the next knot and the number to follow as labeled on the strip model, with their badge style, and let them win over overlapping stop badges. Tests in `RouteProgressTest`: "Knots of the header on the strip", "Passed knot leaves the strip's labels" and "Next knot close to a stop".
+- [x] 1.3 Add the on-network check: within 30 m of any course of the installed geometry, evaluated only off route or on the way. Tests in `NavigationTest`: "Off the network", "Wrong turn within the network" and "Reaching the network on the way".
+- [x] 1.4 Add the guided and wrong-way rows. Tests: "In the header" for the guided way (turn, distance, street, distance left) and "Wrong direction in the panel" (U-turn row with 28 and the distance along the route).
+- [x] 1.5 Add `HeaderRow.spoken(language)`. Tests: "Far from the next knot with a screen reader", "Close to the next knot with a screen reader", "Direction with a screen reader", "On the way with a screen reader" and "Header with a screen reader", in English. The German texts of "In the app's language" exist for wrong way.
+- [x] 1.6 Mark the next knot and the number to follow as labeled on the strip model, with their badge style, and let them win over overlapping stop badges. Tests in `RouteProgressTest`: "Knots of the header on the strip", "Passed knot leaves the strip's labels" and "Next knot close to a stop".
 
 ## 2. Android
 
@@ -30,7 +30,7 @@
 
 ## 4. Wrap-up
 
-- [ ] 4.1 `manual-checks.md` lists every scenario of the deltas with how it was checked, plus ride steps for the maintainer:
+- [x] 4.1 `manual-checks.md` lists every scenario of the deltas with how it was checked, plus ride steps for the maintainer:
   - a German ride: close, far, end, a wrong turn within the network, and leaving the network
   - a start from home
   - riding the wrong way

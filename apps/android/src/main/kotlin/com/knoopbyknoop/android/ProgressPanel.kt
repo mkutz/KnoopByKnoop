@@ -86,17 +86,6 @@ private val LABEL_HEIGHT = 40.dp
 /** How much of [LABEL_WIDTH] the longest words of a label take, e.g. `130 km`, with a gap. */
 private const val LABEL_WORDS_SHARE = 0.75f
 
-/** How important a mark is where its badge or its distance would overlap another's: lower first. */
-private fun rank(mark: ProgressMark): Int =
-  when {
-    mark.kind == ProgressMarkKind.END -> 0
-    mark.kind == ProgressMarkKind.FERRY && mark.state == FerryArrivalState.WARNING -> 1
-    mark.kind == ProgressMarkKind.STOP -> 2
-    mark.kind == ProgressMarkKind.START -> 3
-    mark.kind == ProgressMarkKind.FERRY -> 4
-    else -> Int.MAX_VALUE
-  }
-
 /**
  * The route drawn to scale with the rider as a dot and the ridden part filled; labels that would
  * overlap a stronger one are left out, the marks of the other knots always drawn.
@@ -141,7 +130,8 @@ private fun ProgressStripView(
         drawLine(tick, Offset(x, y - 5.dp.toPx()), Offset(x, y + 5.dp.toPx()), 1.dp.toPx())
       }
     }
-    val badges = shown(strip.marks, lineWidth, BADGE_SPACE) { it.kind != ProgressMarkKind.KNOT }
+    val badges =
+      shown(strip.marks, lineWidth, BADGE_SPACE) { it.kind != ProgressMarkKind.KNOT || it.inHeader }
     for (mark in badges) {
       val x = xOf(mark.fraction) - BADGE_SPACE / 2
       Box(
@@ -376,7 +366,7 @@ private fun shown(
   include: (ProgressMark) -> Boolean,
 ): List<ProgressMark> {
   val shown = mutableListOf<ProgressMark>()
-  for (mark in marks.filter(include).sortedBy(::rank)) {
+  for (mark in marks.filter(include).sortedBy { it.rank }) {
     if (
       shown.all {
         lineWidth * abs(it.fraction - mark.fraction).toFloat() >= space && apart(it, mark)

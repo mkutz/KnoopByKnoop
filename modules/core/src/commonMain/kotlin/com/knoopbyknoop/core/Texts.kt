@@ -97,6 +97,11 @@ internal interface Texts {
   /** The short form of [next] for the one line outside the app, e.g. `Next 45, then 12`. */
   fun nextOutside(next: String, after: String): String
 
+  /**
+   * For screen readers, e.g. `Next 83, 1.2 km, then 30`, see `knot-navigation` "Number to follow".
+   */
+  fun nextAt(next: String, distance: String, after: String): String
+
   /** E.g. `45 ahead, then 12`, or `45 ahead, the end`. */
   fun ahead(next: String, after: String?): String
 
@@ -298,6 +303,9 @@ internal object EnglishTexts : Texts {
     if (after != null) "Next $next, then $after" else "Next $next"
 
   override fun nextOutside(next: String, after: String) = "Next $next, then $after"
+
+  override fun nextAt(next: String, distance: String, after: String) =
+    "Next $next, $distance, then $after"
 
   override fun ahead(next: String, after: String?) =
     if (after != null) "$next ahead, then $after" else "$next ahead, the end"
@@ -513,6 +521,9 @@ internal object GermanTexts : Texts {
     if (after != null) "Nächster Knotenpunkt $next, dann $after" else "Nächster Knotenpunkt $next"
 
   override fun nextOutside(next: String, after: String) = "Nächster $next, dann $after"
+
+  override fun nextAt(next: String, distance: String, after: String) =
+    "Nächster $next, $distance, dann $after"
 
   override fun ahead(next: String, after: String?) =
     if (after != null) "$next voraus, dann $after" else "$next voraus, das Ende"
@@ -748,6 +759,9 @@ internal object DutchTexts : Texts {
 
   override fun nextOutside(next: String, after: String) = "Volgende $next, dan $after"
 
+  override fun nextAt(next: String, distance: String, after: String) =
+    "Volgende $next, $distance, dan $after"
+
   override fun ahead(next: String, after: String?) =
     if (after != null) "$next komt eraan, dan $after" else "$next komt eraan, het einde"
 
@@ -977,6 +991,9 @@ internal object FrenchTexts : Texts {
     if (after != null) "Prochain point-nœud $next, puis $after" else "Prochain point-nœud $next"
 
   override fun nextOutside(next: String, after: String) = "Prochain $next, puis $after"
+
+  override fun nextAt(next: String, distance: String, after: String) =
+    "Prochain $next, $distance, puis $after"
 
   override fun ahead(next: String, after: String?) =
     if (after != null) "$next approche, puis $after" else "$next approche, l'arrivée"

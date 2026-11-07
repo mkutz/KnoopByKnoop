@@ -176,6 +176,11 @@ private constructor(
   private val linePlace: Double,
   private val guided: Guided?,
   private val directionWatch: DirectionWatch?,
+  /**
+   * Whether the rider has been on the route since navigation started, see `knot-navigation` "Header
+   * on the way to the route".
+   */
+  private val joinedRoute: Boolean,
   /** The language of the texts, see `app-languages`. */
   val language: Language,
   /**
@@ -231,6 +236,96 @@ private constructor(
   fun wayToRoute(fix: Fix): GeoPoint? {
     if (!offRoute || arrived) return null
     return route.nearestAhead(fix, nextIndex, place) ?: headedFor(nextIndex)
+  }
+
+  /**
+   * What the header shows with the rider at [fix], see `knot-navigation` "Number to follow",
+   * "Direction to the route" and "Header on the way to the route".
+   *
+   * @param ridingDirection the rider's direction in degrees clockwise from north, or `null` when
+   *   they have not moved recently, so the arrow points relative to north as the map
+   * @param guidedWay the way back to the route the rider follows, if any
+   * @param network the installed network's courses, to tell whether the rider is on a path of the
+   *   knot network while off route
+   */
+  fun header(
+    fix: Fix,
+    ridingDirection: Double? = null,
+    guidedWay: GuidedWay? = null,
+    network: NetworkGeometry? = null,
+  ): HeaderRow {
+    val texts = language.texts
+    val next = spotAt(nextIndex)
+    if (offRoute && !arrived) {
+      val target = wayToRoute(fix) ?: headedFor(nextIndex)
+      val meters = distanceTo(fix, target)
+      val bearing = bearing(fix, target)
+      val distance = MapFeatures.formatDistance(meters.roundToInt(), language)
+      val onNetwork =
+        network
+          ?.nearestOnCourses(GeoPoint(fix.latitude, fix.longitude), ON_NETWORK_METERS)
+          ?.isNotEmpty() == true
+      val guided = guidedWay?.headerTurn(language)
+      val way = texts.way(distance, compass(bearing, language))
+      return HeaderRow.ToRoute(
+        offRoute = joinedRoute,
+        arrowDegrees = normalized(bearing - (ridingDirection ?: 0.0)),
+        distance = distance,
+        next = if (onNetwork) badge(nextIndex, sign = true) else null,
+        guided = guided,
+        spoken =
+          when {
+            !joinedRoute -> texts.guidance(next, guided?.description ?: way)
+            else -> "${texts.offRouteNext(next)}, ${guided?.description ?: way}"
+          },
+      )
+    }
+    val distance = progress(fix, guidedWay).nextKnotDistance
+    val after = knots.getOrNull(nextIndex + 1)?.let { spotAt(nextIndex + 1) }
+    val display = display
+    return when {
+      wrongWay ->
+        HeaderRow.WrongWay(badge(nextIndex), distance, "${texts.wrongWayNext(next)}, $distance")
+      after == null || arrived ->
+        HeaderRow.End(badge(nextIndex), distance, "${texts.isTheEnd(next)}, $distance")
+      // A route point has no signs to follow, so it is shown as before the reminder.
+      display.close && next.role == null && after.role == null ->
+        HeaderRow.Close(
+          badge(nextIndex),
+          distance,
+          badge(nextIndex + 1, sign = true, onPlate = true),
+          "${texts.follow(next, after)}, $distance",
+        )
+      else ->
+        HeaderRow.Far(
+          badge(nextIndex),
+          distance,
+          badge(nextIndex + 1, sign = true),
+          texts.nextAt(next, distance, after),
+        )
+    }
+  }
+
+  /**
+   * The badge of the knot at [index] in the header: filled as at the knot itself, or with [sign] as
+   * on the arrow signs pointing to it, which are white in the Netherlands, see `knot-navigation`
+   * "Number to follow".
+   */
+  private fun badge(index: Int, sign: Boolean = false, onPlate: Boolean = false): HeaderBadge {
+    val knot = knots[index]
+    return HeaderBadge(
+      ref = knot.ref,
+      plate = KnotPlate.of(knot.signRegion),
+      filled = !sign || knot.signRegion != SignRegion.NETHERLANDS,
+      role =
+        when (index) {
+          0 -> KnotRole.START
+          knots.lastIndex -> KnotRole.END
+          in route.stops -> KnotRole.STOP
+          else -> KnotRole.PASSED
+        },
+      onPlate = onPlate,
+    )
   }
 
   /**
@@ -782,6 +877,7 @@ private constructor(
     linePlace: Double = this.linePlace,
     guided: Guided? = this.guided,
     directionWatch: DirectionWatch? = this.directionWatch,
+    joinedRoute: Boolean = this.joinedRoute,
     language: Language = this.language,
     speechLanguage: Language = this.speechLanguage,
   ) =
@@ -809,11 +905,18 @@ private constructor(
       linePlace,
       guided,
       directionWatch,
+      joinedRoute || !offRoute,
       language,
       speechLanguage,
     )
 
   companion object {
+
+    /**
+     * Off route within this distance of a course, the rider is on a path of the knot network, see
+     * `knot-navigation` "Direction to the route".
+     */
+    const val ON_NETWORK_METERS = 30.0
 
     /** A knot counts as passed within this distance, see `knot-navigation` "Passing a knot". */
     const val PASS_RADIUS_METERS = 30.0
@@ -1002,6 +1105,7 @@ private constructor(
             linePlace = place,
             guided = null,
             directionWatch = null,
+            joinedRoute = !offRoute,
             language = language,
             speechLanguage = speechLanguage,
           )

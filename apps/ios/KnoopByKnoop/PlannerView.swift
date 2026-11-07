@@ -387,10 +387,7 @@ private struct WaypointSheet: View {
       // `map-planning` "Long routes in the panel".
       VStack(alignment: .leading, spacing: 8) {
         if let navigation = navigator.state {
-          NavigationHeader(
-            state: navigation, routeKnots: complete?.knots ?? [],
-            nextKnotDistance: progress?.nextKnotDistance
-          ) { model.stopNavigation() }
+          NavigationHeader(state: navigation, geometry: navigator.geometry) { model.stopNavigation() }
         } else {
           // The distance and time stay in one line each, with the actions below them where they do
           // not fit next to them, see `map-planning` "Route summary at large text sizes".
@@ -726,22 +723,33 @@ private struct RouteKnots: View {
 private struct NavigationHeader: View {
 
   let state: NavigationState
-  /// The route's knots with how each takes part in it, for the badges.
-  let routeKnots: [RouteKnot]
-  let nextKnotDistance: String?
+  /// The network's courses, to tell whether the rider is on a path of the knot network off route.
+  let geometry: NetworkGeometry?
   let onStop: () -> Void
-  @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-
   @Environment(\.colorScheme) private var colorScheme
 
-  /// Off route and riding the wrong way, the header turns dark, light in dark mode, instead of red,
-  /// see `map-planning` "Light and dark appearance".
-  private var inverted: Bool {
-    guard let display = state.navigation?.display else { return false }
-    return display.offRoute || display.wrongWay
+  /// What to look for on the signs, see `knot-navigation` "Number to follow".
+  private var row: HeaderRow? {
+    guard let navigation = state.navigation, let position = state.position else { return nil }
+    return navigation.header(
+      fix: position, ridingDirection: state.direction.map { KotlinDouble(value: $0) },
+      guidedWay: state.guidedWay, network: geometry)
   }
 
   var body: some View {
+    let row = row
+    // Off route and riding the wrong way, the header turns dark, light in dark mode, instead of red,
+    // see `map-planning` "Light and dark appearance".
+    let inverted = row is HeaderRow.WrongWay || (row as? HeaderRow.ToRoute)?.offRoute == true
+    let content = HStack(alignment: .center) {
+      if let row {
+        HeaderRowView(row: row)
+      } else {
+        Text("Waiting for your position…").font(.headline)
+      }
+      Spacer(minLength: 8)
+      StopIconAction(action: onStop)
+    }
     if inverted {
       content
         .foregroundStyle(colorScheme == .dark ? Color.knoopInk : Color.white)
@@ -750,218 +758,10 @@ private struct NavigationHeader: View {
         .background(
           RoundedRectangle(cornerRadius: 12)
             .fill(colorScheme == .dark ? Color(red: 0xE6 / 255, green: 0xE8 / 255, blue: 0xE6 / 255) : Color.knoopInk))
+        .environment(\.colorScheme, colorScheme == .dark ? .light : .dark)
     } else {
       content
     }
-  }
-
-  @ViewBuilder private var content: some View {
-    if let navigation = state.navigation, dynamicTypeSize.isAccessibilitySize {
-      // At accessibility sizes, Stop next to the header leaves neither of them room: Stop goes above
-      // it, see `knot-navigation` "Number to follow at large text sizes".
-      VStack(alignment: .leading, spacing: 8) {
-        HStack {
-          Spacer()
-          stop
-        }
-        knotHeader(navigation)
-      }
-    } else {
-      header
-    }
-  }
-
-  private var stop: some View {
-    ProminentAction(title: "Stop", systemImage: "stop.fill", color: .actionRed, action: onStop)
-  }
-
-  private var header: some View {
-    HStack(alignment: .center) {
-      if let navigation = state.navigation {
-        knotHeader(navigation)
-      } else {
-        Text("Waiting for your position…").font(.headline)
-      }
-      Spacer()
-      stop
-    }
-  }
-
-  /// What the rider needs to know now, without Stop.
-  @ViewBuilder private func knotHeader(_ navigation: Navigation) -> some View {
-    let display = navigation.display
-    let next = Int(navigation.nextIndex)
-    if display.offRoute {
-      offRouteHeader(display.next, at: next, guidance: state.position.flatMap { navigation.guidance(fix: $0) })
-    } else if display.wrongWay {
-      offRouteHeader(display.next, at: next, guidance: nil, wrongWay: true)
-    } else if let follow = display.follow,
-      // A route point has no signs to follow, so it is named like before the reminder.
-      !display.close || display.nextRole != nil || display.followRole != nil
-    {
-      nextKnotHeader(display.next, at: next, follow: follow)
-    } else {
-      // The distance moves below the number to follow where it does not fit next to it, and the
-      // number to follow goes to two lines where it does not fit in one, see `knot-navigation`
-      // "Number to follow at large text sizes".
-      ViewThatFits(in: .horizontal) {
-        HStack(alignment: .center, spacing: 8) {
-          numberToFollow(display, at: next)
-          distance
-        }
-        VStack(alignment: .leading, spacing: 2) {
-          HStack(alignment: .center, spacing: 8) { numberToFollow(display, at: next) }
-          distance
-        }
-        VStack(alignment: .leading, spacing: 2) {
-          numberToFollowInTwoLines(display, at: next)
-          distance
-        }
-      }
-      .minimumScaleFactor(0.8)
-    }
-  }
-
-  @ViewBuilder private func numberToFollow(_ display: NavigationDisplay, at next: Int) -> some View {
-    if let follow = display.follow {
-      Text("At").font(.title2)
-      badge(display.next, at: next, scale: 1.3)
-      Text("follow").font(.title2)
-      badge(follow, at: next + 1, scale: 1.8)
-    } else {
-      badge(display.next, at: next, scale: 1.3)
-      Text("is the end").font(.title2)
-    }
-  }
-
-  @ViewBuilder private func numberToFollowInTwoLines(_ display: NavigationDisplay, at next: Int) -> some View {
-    if let follow = display.follow {
-      HStack(alignment: .center, spacing: 8) {
-        Text("At").font(.title2)
-        badge(display.next, at: next, scale: 1.3)
-      }
-      HStack(alignment: .center, spacing: 8) {
-        Text("follow").font(.title2)
-        badge(follow, at: next + 1, scale: 1.8)
-      }
-    } else {
-      badge(display.next, at: next, scale: 1.3)
-      Text("is the end").font(.title2)
-    }
-  }
-
-  /// Far from the next knot: the next knot and the distance to it as the most prominent
-  /// information, and the number to follow there smaller below, see `knot-navigation` "Number to
-  /// follow".
-  private func nextKnotHeader(_ next: String, at index: Int, follow: String) -> some View {
-    VStack(alignment: .leading, spacing: 2) {
-      // The distance moves below the next knot where it does not fit next to it, see
-      // `knot-navigation` "Number to follow at large text sizes".
-      ViewThatFits(in: .horizontal) {
-        HStack(alignment: .center, spacing: 8) {
-          Text("Next").font(.title2)
-          badge(next, at: index, scale: 1.8)
-          nextDistance
-        }
-        VStack(alignment: .leading, spacing: 2) {
-          HStack(alignment: .center, spacing: 8) {
-            Text("Next").font(.title2)
-            badge(next, at: index, scale: 1.8)
-          }
-          nextDistance
-        }
-      }
-      HStack(alignment: .center, spacing: 6) {
-        Text("then").font(.body).foregroundStyle(.secondary)
-        badge(follow, at: index + 1, scale: 1.0)
-      }
-    }
-    .minimumScaleFactor(0.8)
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel(
-      [
-        String(localized: "Next \(next)", bundle: AppLanguage.bundle), nextKnotDistance,
-        String(localized: "then \(follow)", bundle: AppLanguage.bundle),
-      ].compactMap { $0 }.joined(separator: ", "))
-  }
-
-  /// The distance to the next knot, as prominent as the knot while far from it.
-  @ViewBuilder private var nextDistance: some View {
-    if let nextKnotDistance {
-      Text(nextKnotDistance).font(.title2).lineLimit(1)
-    }
-  }
-
-  @ViewBuilder private var distance: some View {
-    if let nextKnotDistance {
-      Text(nextKnotDistance).font(.title3).foregroundStyle(.secondary).lineLimit(1)
-    }
-  }
-
-  /// Off route: the next knot, and below it the distance, an arrow towards the knot relative to
-  /// the riding direction (to north while standing, as the map) and the compass direction, see
-  /// `knot-navigation` "Direction to the route".
-  /// Riding the wrong way, on the route, so the distance along it, see `knot-navigation` "Riding the
-  /// wrong way".
-  private func offRouteHeader(_ next: String, at index: Int, guidance: Guidance?, wrongWay: Bool = false) -> some View {
-    VStack(alignment: .leading, spacing: 2) {
-      // The badge goes below the text where both do not fit in one line, as the German text, see
-      // `knot-navigation` "Number to follow at large text sizes".
-      ViewThatFits(in: .horizontal) {
-        HStack(alignment: .center, spacing: 8) {
-          warningNext(wrongWay)
-          badge(next, at: index, scale: 1.3)
-        }
-        VStack(alignment: .leading, spacing: 2) {
-          warningNext(wrongWay).fixedSize(horizontal: false, vertical: true)
-          badge(next, at: index, scale: 1.3)
-        }
-      }
-      if let guided = state.guidedWay?.view(language: AppLanguage.current), !wrongWay {
-        Text(guided.turn).font(.title3)
-        if let street = guided.street {
-          Text(street).font(.subheadline).foregroundStyle(.secondary)
-        }
-        Text(guided.remaining).font(.subheadline).foregroundStyle(.secondary)
-      } else if let guidance {
-        // The direction goes below the distance where both do not fit in one line.
-        ViewThatFits(in: .horizontal) {
-          HStack(spacing: 6) {
-            wayToNext(guidance)
-            Text(guidance.direction).font(.title3).foregroundStyle(.secondary)
-          }
-          VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 6) { wayToNext(guidance) }
-            Text(guidance.direction).font(.title3).foregroundStyle(.secondary)
-          }
-        }
-      } else if wrongWay {
-        distance
-      }
-    }
-    .minimumScaleFactor(0.8)
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel(
-      wrongWay
-        ? String(localized: "Wrong direction, next \(next)", bundle: AppLanguage.bundle)
-        : [String(localized: "Off route, next \(next)", bundle: AppLanguage.bundle), state.guidedWay?.view(language: AppLanguage.current).description ?? guidance?.text].compactMap { $0 }.joined(separator: ", "))
-  }
-
-  /// The distance to the next knot and an arrow towards it.
-  @ViewBuilder private func wayToNext(_ guidance: Guidance) -> some View {
-    Text(guidance.distance).font(.title3)
-    Image(systemName: "location.north.fill")
-      .rotationEffect(.degrees(guidance.bearing - (state.direction ?? 0)))
-  }
-
-  private func warningNext(_ wrongWay: Bool) -> some View {
-    Text(wrongWay ? "Wrong direction, next" : "Off route, next").font(.title2.bold())
-  }
-
-  private func badge(_ ref: String, at index: Int, scale: CGFloat) -> some View {
-    let routeKnot = routeKnots.indices.contains(index) ? routeKnots[index] : nil
-    return KnotBadge(
-      ref: ref, role: routeKnot?.role, plate: .of(routeKnot?.knot.signRegion), scale: scale)
   }
 }
 

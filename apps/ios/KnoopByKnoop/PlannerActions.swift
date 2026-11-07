@@ -34,6 +34,25 @@ struct IconAction: View {
   }
 }
 
+/// Stop while navigating: a filled round icon button of the same size in every language, read as
+/// "Stop" by VoiceOver, see `map-planning` "Clear actions in the planner panel".
+struct StopIconAction: View {
+
+  let action: () -> Void
+
+  var body: some View {
+    Button(action: action) {
+      Image(systemName: "stop.fill")
+        .font(.system(size: 20, weight: .bold))
+        .foregroundStyle(.white)
+        .frame(width: 52, height: 52)
+        .background(Circle().fill(Color.actionRed))
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel(Text("Stop"))
+  }
+}
+
 /// One choice of `IconChoices`.
 struct IconChoice<Value> {
   let value: Value

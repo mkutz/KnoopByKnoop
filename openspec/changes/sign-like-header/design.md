@@ -36,6 +36,13 @@ Each badge in it is a `HeaderBadge(ref, plate, filled, role?)`. `HeaderRow.spoke
 
 **Alternative:** let the apps parse `NavigationDisplay`. That would duplicate logic and give no tests on iOS.
 
+**As built (2026-11-07):**
+- **The header row comes from `Navigation.header(fix, ridingDirection, guidedWay, network)`** rather than from each `NavigationUpdate`. That's like `progress(fix)` and `guidance(fix)`, as the apps call those with each position anyway.
+- **The off-route and on-the-way rows are one type,** `HeaderRow.ToRoute`, with `offRoute` telling dark from neutral and an optional `guided` turn.
+- **`spoken` is a property** in the navigation's language, not a function of a language.
+- **The strip's ranking moved into the core** as `ProgressMark.rank`, so both apps let the header's knots win over stops in the same way.
+- **The spoken wording reuses existing texts:** "Off route, next 02, 1.7 km to the north-east", and "Next 24, 800 m to the east" on the way to the route. Only "Next 83, 1.2 km, then 30" is new, in all four languages.
+
 ### Sign-like fill in the header
 
 `filled` is computed in the core:

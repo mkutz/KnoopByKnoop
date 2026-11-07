@@ -47,8 +47,18 @@ struct PlateStyle {
   let text: UIColor
   let large: Bool
 
-  init(_ role: KnotRole?, plate: KnotPlate, dark: Bool) {
+  init(_ role: KnotRole?, plate: KnotPlate, dark: Bool, filled: Bool? = nil) {
     let colour = plate.uiColor
+    // In the navigation header, filled or white as on the knot's signs, see `knot-navigation`
+    // "Number to follow".
+    if let filled {
+      fill = filled ? colour : .white
+      ring = filled ? nil : colour
+      innerRing = filled && plate.innerRing
+      text = filled ? .white : colour
+      large = false
+      return
+    }
     switch role {
     case nil:
       fill = dark ? UIColor(red: 0x2A / 255, green: 0x2C / 255, blue: 0x2A / 255, alpha: 1) : .white
@@ -213,10 +223,11 @@ struct KnotBadge: View {
   let role: KnotRole?
   var plate: KnotPlate = .none
   var scale: CGFloat = 1
+  var filled: Bool? = nil
   @Environment(\.colorScheme) private var colorScheme
 
   var body: some View {
-    let style = PlateStyle(role, plate: plate, dark: colorScheme == .dark)
+    let style = PlateStyle(role, plate: plate, dark: colorScheme == .dark, filled: filled)
     let side: CGFloat = (style.large ? 34 : 28) * scale
     Group {
       if ref.isEmpty {

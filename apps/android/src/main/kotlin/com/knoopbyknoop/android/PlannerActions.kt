@@ -20,6 +20,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
@@ -199,6 +200,36 @@ fun IconAction(label: String, @DrawableRes icon: Int, onClick: () -> Unit) {
         ),
     ) {
       Icon(painterResource(icon), contentDescription = label, modifier = Modifier.size(20.dp))
+    }
+  }
+}
+
+/**
+ * Stop while navigating: a filled icon button of the same size in every language, named to screen
+ * readers and on a long press, see `map-planning` "Clear actions in the planner panel".
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StopIconAction(label: String, onClick: () -> Unit) {
+  TooltipBox(
+    positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+    tooltip = { PlainTooltip { Text(label) } },
+    state = rememberTooltipState(),
+  ) {
+    FilledIconButton(
+      onClick = onClick,
+      modifier = Modifier.size(52.dp),
+      colors =
+        IconButtonDefaults.filledIconButtonColors(
+          containerColor = ActionColors.red,
+          contentColor = Color.White,
+        ),
+    ) {
+      Icon(
+        painterResource(R.drawable.ic_action_stop),
+        contentDescription = label,
+        modifier = Modifier.size(24.dp),
+      )
     }
   }
 }

@@ -123,6 +123,31 @@ private constructor(
     }
   }
 
+  /**
+   * The next turn for the header, see `knot-navigation` "Guided way in the header and outside the
+   * app".
+   */
+  fun headerTurn(language: Language): GuidedHeader {
+    val view = view(language)
+    val remaining = view.remaining
+    if (turningBack)
+      return GuidedHeader(TurnDirection.BACK, null, null, remaining, view.description)
+    val turn = way.turns.firstOrNull { it.atMeters > place }
+    return if (turn == null) {
+      GuidedHeader(null, null, null, remaining, view.description)
+    } else {
+      GuidedHeader(
+        if (turn.switchTo != null && turn.direction == TurnDirection.STRAIGHT)
+          TurnDirection.STRAIGHT
+        else turn.direction,
+        MapFeatures.formatDistance(rounded(turn.atMeters - place + awayMeters), language),
+        turn.name,
+        remaining,
+        view.description,
+      )
+    }
+  }
+
   /** The way ahead of the rider, starting at [place], for the map. */
   fun pointsAhead(): List<GeoPoint> {
     val points = pointsAheadOnWay()

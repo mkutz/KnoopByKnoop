@@ -4,6 +4,7 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -581,9 +582,48 @@ class RouteProgressTest {
         ProgressMark(ProgressMarkKind.STOP, "30", 5200.0 / 12_400),
         ProgressMark(ProgressMarkKind.END, "31", 1.0),
       ),
-      strip.marks.map { it.copy(distance = null, arrival = null) },
+      strip.marks.map {
+        it.copy(distance = null, arrival = null, knotIndex = null, inHeader = false)
+      },
     )
     assertEquals(0.0, strip.rider)
+  }
+
+  /** The labels of the knots the strip shows with badges as being in the header. */
+  private fun inHeader(navigation: Navigation, fix: Fix) =
+    navigation.progress(fix).strip.marks.filter { it.inHeader }.map { it.label }
+
+  @Test
+  fun `knots of the header on the strip`() {
+    // 24 → 12 (0.8 km) → 30 (5.2 km) → 31: 150 m before 12, with 30 to follow.
+    val navigation = start(withStop, withStop.fix(0.0, "18:20"))
+    val fix = withStop.fix(650.0, "18:22")
+
+    assertEquals(listOf("12", "30"), inHeader(navigation.update(fix).navigation, fix))
+  }
+
+  @Test
+  fun `next knot close to a stop`() {
+    val nextKnot = ProgressMark(ProgressMarkKind.KNOT, "12", 0.4, inHeader = true)
+    val stop = ProgressMark(ProgressMarkKind.STOP, "30", 0.41)
+
+    assertTrue(nextKnot.rank < stop.rank, "the next knot's badge wins")
+    assertTrue(
+      ProgressMark(ProgressMarkKind.END, "31", 1.0).rank < nextKnot.rank,
+      "the end still comes first",
+    )
+  }
+
+  @Test
+  fun `passed knot leaves the strip's labels`() {
+    val navigation = start(withStop, withStop.fix(0.0, "18:20"))
+    val passed = navigation.update(withStop.fix(800.0, "18:23")).navigation
+    val fix = withStop.fix(1000.0, "18:24")
+
+    val marks = passed.update(fix).navigation.progress(fix).strip.marks
+
+    assertEquals(listOf("30", "31"), marks.filter { it.inHeader }.map { it.label })
+    assertFalse(marks.single { it.label == "12" }.inHeader, "12 a small mark again")
   }
 
   @Test

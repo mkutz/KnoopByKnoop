@@ -1,0 +1,169 @@
+import KnoopByKnoopCore
+import SwiftUI
+
+/// The header's row without words: badges, arrows and distances, see `knot-navigation` "Number to
+/// follow", "Direction to the route" and "Header on the way to the route". VoiceOver reads
+/// `row.spoken`.
+struct HeaderRowView: View {
+
+  let row: HeaderRow
+
+  var body: some View {
+    // The distance moves below the badges where it does not fit next to them, see `knot-navigation`
+    // "Number to follow at large text sizes".
+    ViewThatFits(in: .horizontal) {
+      HStack(alignment: .center, spacing: 8) { content }
+      VStack(alignment: .leading, spacing: 4) { content }
+    }
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(row.spoken)
+  }
+
+  @ViewBuilder private var content: some View {
+    if let close = row as? HeaderRow.Close {
+      HeaderKnot(badge: close.next, scale: 1.4)
+      Text(close.distance).font(.title3.weight(.semibold)).lineLimit(1)
+      PlainArrow(size: 26)
+      SignPlate(badge: close.follow)
+    } else if let far = row as? HeaderRow.Far {
+      HeaderKnot(badge: far.next, scale: 2)
+      Text(far.distance).font(.title.weight(.bold)).lineLimit(1)
+      HStack(spacing: 2) {
+        Image(systemName: "chevron.right").font(.caption.bold()).foregroundStyle(.secondary)
+        HeaderKnot(badge: far.follow, scale: 1.2)
+      }
+    } else if let end = row as? HeaderRow.End {
+      HeaderKnot(badge: end.next, scale: 2)
+      Text(end.distance).font(.title.weight(.bold)).lineLimit(1)
+    } else if let wrongWay = row as? HeaderRow.WrongWay {
+      Image(systemName: "arrow.uturn.down").font(.title.bold())
+      HeaderKnot(badge: wrongWay.next, scale: 1.6)
+      Text(wrongWay.distance).font(.title.weight(.bold)).lineLimit(1)
+    } else if let toRoute = row as? HeaderRow.ToRoute {
+      ToRouteSymbol(awayFromRoute: toRoute.offRoute, side: 38, tile: !toRoute.offRoute)
+      if let guided = toRoute.guided {
+        Image(systemName: "location.north.fill")
+          .font(.title2)
+          .rotationEffect(.degrees(Self.turnDegrees(guided.turn)))
+        if let distance = guided.turnDistance { Text(distance).font(.title3).lineLimit(1) }
+        if let street = guided.street { Text(street).font(.callout).lineLimit(1).truncationMode(.tail) }
+        Text(guided.remaining).font(.title.weight(.bold)).lineLimit(1)
+      } else {
+        Image(systemName: "location.north.fill")
+          .font(.title)
+          .rotationEffect(.degrees(toRoute.arrowDegrees))
+        Text(toRoute.distance).font(.title.weight(.bold)).lineLimit(1)
+      }
+      if let next = toRoute.next {
+        HStack(spacing: 2) {
+          Image(systemName: "chevron.right").font(.caption.bold()).foregroundStyle(.secondary)
+          HeaderKnot(badge: next, scale: 1.2)
+        }
+      }
+    }
+  }
+
+  /// The angle a turn on the guided way turns the arrow, from straight ahead.
+  private static func turnDegrees(_ turn: TurnDirection?) -> Double {
+    switch turn {
+    case .slightLeft?: -45
+    case .left?: -90
+    case .sharpLeft?: -135
+    case .slightRight?: 45
+    case .right?: 90
+    case .sharpRight?: 135
+    case .back?: 180
+    default: 0
+    }
+  }
+}
+
+/// A knot of the header, filled or white as on its signs, with a picked knot's corner symbol.
+private struct HeaderKnot: View {
+  let badge: HeaderBadge
+  let scale: CGFloat
+
+  var body: some View {
+    KnotBadge(ref: badge.ref, role: badge.role, plate: badge.plate, scale: scale, filled: badge.filled)
+  }
+}
+
+/// The number to follow on a sign plate, with the arrow to the right of the number, like the knot's
+/// arrow signs, see `knot-navigation` "Number to follow".
+private struct SignPlate: View {
+  let badge: HeaderBadge
+
+  var body: some View {
+    let plate = Color(badge.plate.uiColor)
+    let dutch = !badge.filled
+    HStack(spacing: 2) {
+      HeaderKnot(badge: badge, scale: 1.9)
+      PlainArrow(size: 24, color: dutch ? plate : .white)
+    }
+    .padding(.leading, 8)
+    .padding(.trailing, 4)
+    .padding(.vertical, 6)
+    .background(RoundedRectangle(cornerRadius: 8).fill(dutch ? Color.white : plate))
+    .overlay {
+      if dutch { RoundedRectangle(cornerRadius: 8).strokeBorder(plate, lineWidth: 3) }
+    }
+  }
+}
+
+/// A plain → between the knot and the number to follow, until it shows the turn.
+private struct PlainArrow: View {
+  let size: CGFloat
+  var color: Color? = nil
+
+  var body: some View {
+    Image(systemName: "arrow.right")
+      .font(.system(size: size * 0.75, weight: .bold))
+      .foregroundStyle(color.map { AnyShapeStyle($0) } ?? AnyShapeStyle(.primary))
+      .frame(width: size, height: size)
+  }
+}
+
+/// The to-the-route symbol: a small rider arrow joined by a dashed line to the orange route line, as
+/// on the map; the arrow points away from the route off route, towards it on the way to it, see
+/// `knot-navigation` "Direction to the route".
+struct ToRouteSymbol: View {
+  let awayFromRoute: Bool
+  let side: CGFloat
+  let tile: Bool
+  @Environment(\.colorScheme) private var colorScheme
+
+  var body: some View {
+    Canvas { context, size in
+      let unit = size.width / 24
+      var route = Path()
+      route.move(to: CGPoint(x: 9 * unit, y: 2.5 * unit))
+      route.addCurve(
+        to: CGPoint(x: 21.5 * unit, y: 13 * unit), control1: CGPoint(x: 12 * unit, y: 7 * unit),
+        control2: CGPoint(x: 15 * unit, y: 11 * unit))
+      context.stroke(route, with: .color(.knoopOrange), style: StrokeStyle(lineWidth: 3.2 * unit, lineCap: .round))
+      var dashes = Path()
+      dashes.move(to: CGPoint(x: 6 * unit, y: 18.5 * unit))
+      dashes.addLine(to: CGPoint(x: 13 * unit, y: 9.5 * unit))
+      context.stroke(
+        dashes, with: .foreground,
+        style: StrokeStyle(lineWidth: 2 * unit, lineCap: .round, dash: [2 * unit, 2.6 * unit]))
+      var arrow = Path()
+      arrow.move(to: CGPoint(x: 0, y: -4.6 * unit))
+      arrow.addLine(to: CGPoint(x: 3.6 * unit, y: 4 * unit))
+      arrow.addLine(to: CGPoint(x: 0, y: 2 * unit))
+      arrow.addLine(to: CGPoint(x: -3.6 * unit, y: 4 * unit))
+      arrow.closeSubpath()
+      var placed = context
+      placed.translateBy(x: 5.5 * unit, y: 19 * unit)
+      placed.rotate(by: .degrees(awayFromRoute ? 218 : 38))
+      placed.fill(arrow, with: .color(Color(red: 0x1A / 255, green: 0x73 / 255, blue: 0xE8 / 255)))
+      placed.stroke(arrow, with: .color(.white), style: StrokeStyle(lineWidth: 1.2 * unit, lineJoin: .round))
+    }
+    .frame(width: side, height: side)
+    .padding(tile ? 6 : 0)
+    .background {
+      if tile { RoundedRectangle(cornerRadius: 12).fill(Color(uiColor: .secondarySystemFill)) }
+    }
+    .accessibilityHidden(true)
+  }
+}
