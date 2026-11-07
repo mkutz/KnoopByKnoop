@@ -4,7 +4,7 @@
 
 Checked on 2026-11-07:
 
-- **Data:** built locally with `pipeline build` from the Geofabrik extracts of the Netherlands, Belgium and North Rhine-Westphalia found on this machine. The published data has no regions until the next "Update Network Data" run.
+- **Data:** built locally with `pipeline build` from the Geofabrik extracts of the Netherlands, Belgium and North Rhine-Westphalia found on this machine. The regions were published on 2026-11-07 by "Update Network Data" run 42407900788 (`cycling.graph` 558,357 bytes). Afterwards the maintainer saw the knots around Siegburg red on their iPhone with the published data.
 - **Android:** on the emulator (`Medium_Phone_API_37.0`) with the debug build. The new `cycling.graph` and `cycling.geometry` were copied into the app's storage, the emulator was offline so the published files would not replace them, and positions were simulated with `adb emu geo fix`.
 - **iOS:** in the simulator (iPhone 18 Pro, iOS 27) with the debug build. The same files were copied into the app's container, with a far-future data date so the published files would not replace them.
 - **Afterwards:** routes, cameras and data were restored on both, and the emulator is back online.
