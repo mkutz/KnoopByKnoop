@@ -45,7 +45,7 @@
 
 ### The core picks the course of the direction
 - `NetworkGeometry` gets `coursesBack: Map<Int, List<GeoPoint>>`. One private function gives the course of a connection in a direction: the course there, or the course back if there is one, otherwise the course there reversed. `courseOf`, `courses(knots)` and the route point overlay use it instead of reversing themselves.
-- **Route points** on a connection cut the course there; one on the way back is placed on that course reversed, as today. A route point beside the course back is rare and would only move the cut by the road's width.
+- **Route points** on a connection cut the course there. From a route point on towards the connection's `from` knot, the rest of the way is cut from the course back at the place nearest the point, and the same for its signpost courses, which are also left out against their only direction. The point stays where it was placed on the course there; the course back starts at most a road's width from it. (Changed on 2026-11-07: the maintainer's GPX of a walk with a stop on 02–06 showed the leg to 02 on the course there reversed.) The same holds towards a route point: its connections get a course back and signpost courses back of their own, so a leg from a knot to a route point also follows the ways of its direction.
 - Bridge stretches of the courses back join the segment set the map lines are split with, so bridges work on both.
 
 ## Risks / Trade-offs

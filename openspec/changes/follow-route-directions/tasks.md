@@ -31,6 +31,11 @@
 - [x] 5.3 Build the whole area again, report the counts and the size, and check 06 → 02 at Zange in the data and on the emulator.
   - Result 2026-11-06: the first try gave only 24 signpost courses back, and 06 → 02 still took the main signpost's course reversed. At Zange the way back reaches 02's second signpost first; the main signpost has no way back that avoids it, the second no way there. A signpost course without a way in one direction now is not offered in that direction (`OneWay`), as the knot's other signposts are; stored in the same section. cycling.geometry 3.29 MB, hiking 2.60 MB. 06 → 02 now follows the course back to the second signpost; on the emulator, 02 → 06 → 02 runs north on the eastern side of the L 16 bridge and back on the western side.
 
+## 6. Route points on the way back (added 2026-11-07)
+
+- [x] 6.1 Core: from a route point towards the connection's `from` knot, cut the course back and the signpost courses back, and leave out one-way signpost courses against their direction. Test "from a route point on the way back"; with the real data, a stop on 02–06 now reaches 02 along the course back to its second signpost.
+- [x] 6.2 Core: the other way too, towards a route point: a route point's connections get their own course back and signpost courses back, with one-way marks. Found in the maintainer's GPX of 2026-11-07: the last leg 02 → home ran the loop of the course back in reverse. Test "to a route point on the way back"; with the real data, the planned walk home → 02 → 01 → 02 → 28 → 02 → home leaves 02 on the eastern side.
+
 ## 4. Release
 
 - [x] 4.1 Changelog line, and manual checks for the maintainer: walk or ride 28 → 02 and back at Zange on both phones.

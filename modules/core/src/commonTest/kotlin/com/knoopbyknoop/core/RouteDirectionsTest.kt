@@ -71,6 +71,34 @@ class RouteDirectionsTest {
   }
 
   @Test
+  fun `from a route point on the way back`() {
+    // A stop halfway along 28–02, then on to 28: the rest of the way runs on the course back.
+    val place = point(500.0)
+    val stop =
+      routePointKnot(place, NetworkType.CYCLING, CoursePlace(graph.connections[0], 0.5, place, 0.0))
+    val session = PlanningSession.start(graph, listOf(stop, knot28))
+
+    val line = assertNotNull(geometry.withRoutePoints(session.routeGraph).courseOf(session.route!!))
+
+    assertTrue(point(100.0, 100.0) in line, "on the course back, not $line")
+    assertEquals(point(0.0), line.last())
+  }
+
+  @Test
+  fun `to a route point on the way back`() {
+    // From 02 to a stop halfway along 28–02: the way there runs on the course back too.
+    val place = point(500.0)
+    val stop =
+      routePointKnot(place, NetworkType.CYCLING, CoursePlace(graph.connections[0], 0.5, place, 0.0))
+    val session = PlanningSession.start(graph, listOf(knot02, stop))
+
+    val line = assertNotNull(geometry.withRoutePoints(session.routeGraph).courseOf(session.route!!))
+
+    assertTrue(point(900.0, 100.0) in line, "on the course back, not $line")
+    assertEquals(point(1000.0), line.first())
+  }
+
+  @Test
   fun `geometry without courses back`() {
     val plain = NetworkGeometry(graph, listOf(there))
 

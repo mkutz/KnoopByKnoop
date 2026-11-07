@@ -15,6 +15,10 @@ The route on the map, the line ahead while navigating, and the course navigation
 - **WHEN** the rider navigates from 02 to 28 on the way for that direction
 - **THEN** the line ahead follows that way, and the rider is not told they are off route
 
+#### Scenario: From a route point on the way back
+- **WHEN** a stop lies on the connection between 02 and 06 and the route goes on from it to 02
+- **THEN** the route from the stop to 02 follows the course from 06 to 02, not the course from 02 to 06 reversed
+
 #### Scenario: Geometry without courses back
 - **WHEN** the installed geometry file has no courses back, e.g. because it was published before this change
 - **THEN** the route is drawn and followed as before

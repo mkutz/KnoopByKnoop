@@ -207,6 +207,18 @@ private constructor(
     val addedCourses = added.map { connection ->
       installed.routePointCourse(routeGraph, connection)
     }
+    // Towards a route point, the course of that direction, see `network-data` "Course in each
+    // riding direction".
+    val addedBack =
+      added
+        .withIndex()
+        .mapNotNull { (offset, connection) ->
+          installed
+            .routePointCourseBack(routeGraph, connection)
+            ?.takeIf { it != addedCourses[offset].asReversed() }
+            ?.let { installed.courses.size + offset to CourseBack(it) }
+        }
+        .toMap()
     val addedSignposts =
       added
         .withIndex()
@@ -225,7 +237,7 @@ private constructor(
       if (addedSignposts.isEmpty()) installed.signpostCourses
       else installed.signpostCourses + addedSignposts,
       installed.bridges,
-      installed.coursesBack,
+      if (addedBack.isEmpty()) installed.coursesBack else installed.coursesBack + addedBack,
       installed,
     )
   }
@@ -243,14 +255,63 @@ private constructor(
         otherRoutePoint != null ->
           between(main, routePoint.fraction, otherRoutePoint.fractionFrom(routePoint.fromId)) +
             otherRoutePoint.way.asReversed()
-        other.id == routePoint.fromId ->
-          cutAt(main, routePoint.fraction, routePoint.place).first.asReversed()
-        else -> cutAt(main, routePoint.fraction, routePoint.place).second
+        else ->
+          lineBetween(farEnd(routePoint, other.id), other.id)?.let {
+            cutAtPoint(it, routePoint).second
+          }
+            ?: if (other.id == routePoint.fromId) {
+              cutAt(main, routePoint.fraction, routePoint.place).first.asReversed()
+            } else {
+              cutAt(main, routePoint.fraction, routePoint.place).second
+            }
       }
     return joined(way, onCourse)
   }
 
-  /** The signpost courses of [connection], which starts at a route point and ends at a knot. */
+  /**
+   * The course of [connection] the other way, from its knot to its route point, on the course of
+   * that direction; `null` between two route points, where the course reversed is right.
+   */
+  private fun routePointCourseBack(
+    routeGraph: NetworkGraph,
+    connection: Connection,
+  ): List<GeoPoint>? {
+    val routePoint = routeGraph.knots.getValue(connection.fromId).routePoint!!
+    val other = routeGraph.knots.getValue(connection.toId)
+    if (other.isRoutePoint) return null
+    val line = lineBetween(other.id, farEnd(routePoint, other.id)) ?: return null
+    return joined(cutAtPoint(line, routePoint).first, routePoint.way.asReversed())
+  }
+
+  /** The knot at the other end of [routePoint]'s connection than [knotId]. */
+  private fun farEnd(routePoint: RoutePoint, knotId: Long) =
+    if (knotId == routePoint.fromId) routePoint.toId else routePoint.fromId
+
+  /**
+   * The course of the direct connection from [fromId] to [toId] in that direction: the course back
+   * where it has one, otherwise the course reversed; `null` without a connection.
+   */
+  private fun lineBetween(fromId: Long, toId: Long): List<GeoPoint>? =
+    courseIndexByKnotIds[fromId to toId]?.let { courses[it] }
+      ?: courseIndexByKnotIds[toId to fromId]?.let {
+        coursesBack[it]?.course ?: courses[it].asReversed()
+      }
+
+  /**
+   * [line] cut where it passes [routePoint], at the point's own place if the line runs through it.
+   */
+  private fun cutAtPoint(
+    line: List<GeoPoint>,
+    routePoint: RoutePoint,
+  ): Pair<List<GeoPoint>, List<GeoPoint>> {
+    return cutAt(line, nearestOn(line, routePoint.place).fraction, routePoint.place)
+  }
+
+  /**
+   * The signpost courses of [connection], which starts at a route point and ends at a knot, each in
+   * the directions its signpost course can be ridden in, see "Courses to each signpost in each
+   * direction".
+   */
   private fun routePointSignposts(
     routeGraph: NetworkGraph,
     connection: Connection,
@@ -258,14 +319,35 @@ private constructor(
     val routePoint = routeGraph.knots.getValue(connection.fromId).routePoint!!
     if (routeGraph.knots.getValue(connection.toId).isRoutePoint) return listOf()
     val index = courseIndexByKnotIds[routePoint.fromId to routePoint.toId] ?: return listOf()
+    val towardsFrom = connection.toId == routePoint.fromId
     return signpostCourses[index].orEmpty().mapNotNull { signpost ->
-      val on = nearestOn(signpost.course, routePoint.place)
-      if (on.distanceMeters > ON_SIGNPOST_METERS) return@mapNotNull null
-      val (before, after) = cutAt(signpost.course, on.fraction, routePoint.place)
-      if (connection.toId == routePoint.fromId) {
-        SignpostCourse(0, signpost.fromPosition, joined(routePoint.way, before.asReversed()))
-      } else {
-        SignpostCourse(0, signpost.toPosition, joined(routePoint.way, after))
+      if (nearestOn(signpost.course, routePoint.place).distanceMeters > ON_SIGNPOST_METERS) {
+        return@mapNotNull null
+      }
+      // The signpost course from its `from` knot to its `to` knot, and back, where it can be
+      // ridden.
+      val there = signpost.course.takeIf { signpost.oneWay != OneWay.BACK }
+      val back =
+        (signpost.back?.course ?: signpost.course.asReversed()).takeIf {
+          signpost.oneWay != OneWay.THERE
+        }
+      val (outward, inward) = if (towardsFrom) back to there else there to back
+      val out = outward?.let { joined(routePoint.way, cutAtPoint(it, routePoint).second) }
+      val into = inward?.let {
+        joined(cutAtPoint(it, routePoint).first, routePoint.way.asReversed())
+      }
+      val position = if (towardsFrom) signpost.fromPosition else signpost.toPosition
+      when {
+        out != null ->
+          SignpostCourse(
+            0,
+            position,
+            out,
+            back = into?.takeIf { it != out.asReversed() }?.let { CourseBack(it) },
+            oneWay = if (into == null) OneWay.THERE else null,
+          )
+        into != null -> SignpostCourse(0, position, into.asReversed(), oneWay = OneWay.BACK)
+        else -> null
       }
     }
   }
