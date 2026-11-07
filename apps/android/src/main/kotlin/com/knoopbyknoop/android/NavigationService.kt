@@ -309,6 +309,9 @@ class NavigationService : Service() {
       Log.i(LOG_TAG, "notice: ${it.text}, spoken in ${speaker.language}: ${it.speech}")
       speaker.speak(it.speech)
     }
+    // The route's network sets the speed a fix may not exceed, see `knot-navigation` "Ridden
+    // track".
+    route?.graph?.network?.takeIf { it != track.network }?.let { track = track.copy(network = it) }
     track = track.add(fix)
     publish(newNavigation, fix)
     if (newNavigation.arrived) {

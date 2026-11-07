@@ -11,7 +11,7 @@ struct NavigationState {
   let navigation: Navigation?
   let position: Fix?
   /// The track ridden since navigation started, see `knot-navigation` "Ridden track".
-  var track = RiddenTrack(points: [])
+  var track = RiddenTrack(points: [], network: .cycling)
   /// The riding direction from the most recent movement, or `nil` when standing.
   var direction: Double? = nil
   /// The way back to the route, see `knot-navigation` "Guided way back to the route".
@@ -57,7 +57,7 @@ final class Navigator: NSObject, ObservableObject {
   private var backgroundSession: CLBackgroundActivitySession?
   private var route: NavigationRoute?
   /// Kept here, not in the map, so it includes the stretches ridden with the screen off.
-  private var track = RiddenTrack(points: [])
+  private var track = RiddenTrack(points: [], network: .cycling)
   private var waitingForAccess = false
   private var precision: Precision?
   private var activity: Activity<NavigationActivityAttributes>?
@@ -160,7 +160,7 @@ final class Navigator: NSObject, ObservableObject {
 
   private func begin() {
     stopping = false
-    track = RiddenTrack(points: [])
+    track = RiddenTrack(points: [], network: .cycling)
     state = NavigationState(navigation: nil, position: nil)
     manager.allowsBackgroundLocationUpdates = true
     manager.showsBackgroundLocationIndicator = true
@@ -209,6 +209,10 @@ final class Navigator: NSObject, ObservableObject {
     for notice in step.notices {
       logger.notice("notice: \(notice.text, privacy: .public)")
       speak(notice.speech)
+    }
+    // The route's network sets the speed a fix may not exceed, see `knot-navigation` "Ridden track".
+    if let network = route?.graph.network, network != track.network {
+      track = track.doCopy(points: track.points, network: network)
     }
     track = track.add(fix: fix)
     publish(navigation, fix: fix)

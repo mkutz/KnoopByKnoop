@@ -25,7 +25,7 @@ class RiddenTrackTest {
     val track =
       ride(
         fix(east = 0.0),
-        fix(east = 20.0),
+        fix(east = 20.0, after = 2),
         fix(east = 20.0, north = 6.0),
         fix(east = 20.0, north = 12.0),
       )
@@ -55,8 +55,8 @@ class RiddenTrackTest {
 
   @Test
   fun `fixes are kept in the order they were ridden`() {
-    val track = ride(fix(east = 0.0), fix(east = 20.0), fix(east = 40.0))
-    assertEquals(listOf(0.0, 20.0, 40.0), track.points.map { east(it) })
+    val track = ride(fix(east = 0.0), fix(east = 12.0), fix(east = 24.0))
+    assertEquals(listOf(0.0, 12.0, 24.0), track.points.map { east(it) })
   }
 
   @Test
@@ -76,11 +76,116 @@ class RiddenTrackTest {
     assertEquals(listOf(0.0), track.points.map { east(it) })
   }
 
-  private fun ride(vararg fixes: Fix) = fixes.fold(RiddenTrack()) { track, fix -> track.add(fix) }
+  // `smooth-ridden-track`: scatter and spikes, see `knot-navigation` "Ridden track".
 
-  /** A fix one second after the previous one. */
-  private fun fix(east: Double, north: Double = 0.0, accuracy: Double = 5.0): Fix {
-    seconds += 1
+  @Test
+  fun `standing with scattered fixes`() {
+    // Two minutes, a fix every 10 s, scattered up to 20 m around where the hiker stands.
+    val corners =
+      listOf(20.0 to 0.0, 0.0 to 20.0, -20.0 to 0.0, 0.0 to -20.0, 14.0 to 14.0, -14.0 to -14.0)
+    val track =
+      ride(
+        NetworkType.HIKING,
+        *(0 until 12)
+          .map {
+            corners[it % corners.size].let { (east, north) -> fix(east, north, 20.0, after = 10) }
+          }
+          .toTypedArray(),
+      )
+
+    assertEquals(1, track.points.size)
+  }
+
+  @Test
+  fun `scatter while walking slowly`() {
+    // 200 m east at 1.3 m/s, a fix every 10 s accurate to 30 m, 30 m to either side in turn.
+    val track =
+      ride(
+        NetworkType.HIKING,
+        *(0..15)
+          .map { fix(it * 13.0, if (it % 2 == 0) 30.0 else -30.0, 30.0, after = 10) }
+          .toTypedArray(),
+      )
+
+    val easts = track.points.map { east(it) }
+    track.points.zipWithNext().forEach { (from, to) ->
+      assertTrue(
+        distanceMeters(from.latitude, from.longitude, to.latitude, to.longitude) >= 60.0,
+        "points at least 60 m apart",
+      )
+    }
+    assertEquals(easts.sorted(), easts, "none west of the one before")
+  }
+
+  @Test
+  fun `impossible jump`() {
+    val track = ride(NetworkType.HIKING, fix(0.0, after = 10), fix(120.0, after = 10))
+
+    assertEquals(listOf(0.0), track.points.map { east(it) })
+  }
+
+  @Test
+  fun `spike out and back`() {
+    // Riding east at 5 m/s with a fix every 10 s; one lands 80 m north.
+    val track =
+      ride(
+        fix(0.0, after = 10),
+        fix(50.0, after = 10),
+        fix(100.0, north = 80.0, after = 10),
+        fix(150.0, after = 10),
+        fix(200.0, after = 10),
+      )
+
+    assertTrue(track.points.none { it.latitude > ORIGIN_LATITUDE + 40 / METERS_PER_DEGREE })
+    assertEquals(listOf(0.0, 50.0, 150.0, 200.0), track.points.map { east(it) })
+  }
+
+  @Test
+  fun `a right-angle corner stays`() {
+    val track =
+      ride(fix(0.0, after = 10), fix(50.0, after = 10), fix(50.0, north = 50.0, after = 10))
+
+    assertEquals(3, track.points.size)
+  }
+
+  @Test
+  fun `riding fast with good fixes`() {
+    val track = ride(*(0..60).map { fix(it * 8.0) }.toTypedArray())
+
+    track.points.zipWithNext().forEach { (from, to) -> assertTrue(east(to) - east(from) <= 16.0) }
+    assertEquals(480.0, east(track.points.last()))
+  }
+
+  @Test
+  fun `out and back on the same path`() {
+    // 100 m north and back on the same path at 5 m/s, a fix every 10 s, then on east.
+    val fixes = buildList {
+      add(fix(0.0, after = 10))
+      add(fix(50.0, after = 10))
+      add(fix(100.0, after = 10))
+      add(fix(100.0, north = 50.0, after = 10))
+      add(fix(100.0, north = 100.0, after = 10))
+      add(fix(100.0, north = 50.0, after = 10))
+      add(fix(100.0, after = 10))
+      add(fix(150.0, after = 10))
+    }
+    val track = ride(*fixes.toTypedArray())
+
+    assertTrue(
+      track.points.any { it.latitude > ORIGIN_LATITUDE + 90 / METERS_PER_DEGREE },
+      "the far end",
+    )
+    assertEquals(150.0, east(track.points.last()))
+  }
+
+  private fun ride(vararg fixes: Fix) = ride(NetworkType.CYCLING, *fixes)
+
+  private fun ride(network: NetworkType, vararg fixes: Fix) =
+    fixes.fold(RiddenTrack(network = network)) { track, fix -> track.add(fix) }
+
+  /** A fix [after] seconds after the previous one. */
+  private fun fix(east: Double, north: Double = 0.0, accuracy: Double = 5.0, after: Long = 1): Fix {
+    seconds += after
     return Fix(
       ORIGIN_LATITUDE + north / METERS_PER_DEGREE,
       ORIGIN_LONGITUDE + east / METERS_PER_DEGREE_LONGITUDE,
