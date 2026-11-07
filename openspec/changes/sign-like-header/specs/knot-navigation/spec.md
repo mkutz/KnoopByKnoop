@@ -4,12 +4,13 @@
 While navigating, the panel's header SHALL show what to look for on the signs, as one row of badges, arrows and distances, without words.
 
 **Close to the next knot** (from when the rider is reminded of it, see "Reminder before a knot"), the row SHALL show, in this order:
-1. the next knot's badge
+1. the next knot's badge, with the distance to it
 2. an arrow
-3. the badge of the number to follow there, as the most prominent element
-4. the distance to the next knot
+3. the number to follow there on a sign plate, as the most prominent element
 
-**Farther away**, the row SHALL show ↑ with the next knot's badge and the distance to it as the most prominent elements, then › and the badge of the number to follow there, smaller.
+**Farther away**, the row SHALL show the next knot's badge, plain, and the distance to it as the most prominent elements, then › and the badge of the number to follow there, plain and smaller.
+
+**The sign plate** marks the number to follow at the knot the rider is close to, the one to look for on that knot's arrow signs. It SHALL be shown only when close: between knots, arrow signs on the way can point in any direction, so a plate's arrow would mislead. It SHALL be a rectangular plate around the badge with the arrow to the right of the number, like the knot's arrow signs: white with a border in the plate colour and the arrow in that colour in the Netherlands, the plate colour with a white arrow elsewhere. Every other badge in the row SHALL be a plain disc.
 
 **When the next knot is the end**, the row SHALL show the end's badge with its corner symbol and the distance, and no number to follow.
 
@@ -21,15 +22,15 @@ While navigating, the panel's header SHALL show what to look for on the signs, a
 
 #### Scenario: Next knot in the middle of the route
 - **WHEN** the next knot is 45, 150 m ahead, and the route continues to 12
-- **THEN** the header shows the badge 45, an arrow, the badge 12 as the most prominent element, and "150 m", and no words
+- **THEN** the header shows the plain badge 45 with "150 m", an arrow, and 12 on a sign plate with → as the most prominent element, and no words
 
 #### Scenario: Far from the next knot
 - **WHEN** the next knot is 83, 1.2 km ahead, and the route continues to 30
-- **THEN** the header shows ↑, the badge 83 and "1.2 km" as the most prominent elements, and › with a smaller badge 30
+- **THEN** the header shows the plain badge 83 and "1.2 km" as the most prominent elements, and › with a smaller plain badge 30, and no sign plate
 
 #### Scenario: Coming close
 - **WHEN** the rider heading to 83 comes within 200 m of it and is reminded "83 ahead, then 30"
-- **THEN** the header shows the badge 83, an arrow and the badge 30 as the most prominent element
+- **THEN** the header shows the plain badge 83, an arrow, and 30 on a sign plate as the most prominent element
 
 #### Scenario: Knot right after the last one
 - **WHEN** the rider passes 45 and the next knot 12 is 150 m after it
@@ -49,11 +50,11 @@ While navigating, the panel's header SHALL show what to look for on the signs, a
 
 #### Scenario: Dutch knots in the header
 - **WHEN** the rider is close to the Dutch knot 95 with 1 to follow
-- **THEN** 95 is a filled dark green plate and 1 is white with a dark green ring and number
+- **THEN** 95 is a filled dark green disc, and 1 is white with a dark green ring and number on a white sign plate with a dark green border and arrow
 
 #### Scenario: German knots in the header
 - **WHEN** the rider is close to 25 in North Rhine-Westphalia with 32 to follow
-- **THEN** 25 and 32 are both red plates with a white ring and number
+- **THEN** 25 is a red disc with a white ring and number, and 32 the same on a red sign plate with a white arrow
 
 #### Scenario: Picked knot in the header
 - **WHEN** the number to follow is 30, a stop the rider picked
@@ -73,16 +74,16 @@ While navigating, the panel's header SHALL show what to look for on the signs, a
 
 ### Requirement: Direction to the route
 While navigating and off route without a guided way, the header SHALL show, on its dark background (see `map-planning` "Light and dark appearance"):
-- the off-route symbol
+- the to-the-route symbol: a small rider arrow joined by a dashed line to the route line, as on the map, with the arrow pointing away from the route
 - an arrow pointing to where the rider gets back onto the route (the end of the line in "Way to the route on the map"), relative to the rider's riding direction
 - the straight distance to that place, as the most prominent element
-- the next knot's badge, small, only while the rider is within 30 m of a course of the knot network
+- › and the next knot's badge, small, as for the number to follow farther away, only while the rider is within 30 m of a course of the knot network
 
 The header SHALL show no compass word. When the rider has not moved recently, the arrow SHALL point relative to north, as the map.
 
 #### Scenario: Direction in the header
 - **WHEN** the rider is off route without a guided way, rides north, and the place where they get back onto the course is 1.7 km to the north-east
-- **THEN** the header is dark, with the off-route symbol, an arrow pointing to the front right and "1.7 km", and no compass word
+- **THEN** the header is dark, with the to-the-route symbol, an arrow pointing to the front right and "1.7 km", and no compass word
 
 #### Scenario: Back to the route, not to the knot
 - **WHEN** the rider left the course of the leg to 02, 150 m from the course, and 02 is 1.4 km ahead along it
@@ -94,7 +95,7 @@ The header SHALL show no compass word. When the rider has not moved recently, th
 
 #### Scenario: Wrong turn within the network
 - **WHEN** the rider passed 77, which is not on the route, and rides on along a course of the network
-- **THEN** the header also shows the next knot 02 as a small badge
+- **THEN** the header also shows › and the next knot 02 as a small badge
 
 #### Scenario: Standing still
 - **WHEN** the rider has not moved recently, has no guided way and the place where they get back onto the route is to the east
@@ -109,11 +110,11 @@ The header SHALL show no compass word. When the rider has not moved recently, th
 - **THEN** it announces "Off route, next 02, 1.7 km to the route, to the north-east"
 
 ### Requirement: Guided way in the header and outside the app
-On a guided way, the header, the Android notification and the iOS Live Activity SHALL show the next turn with its distance, and the distance left along the way, in place of the straight distance. The header SHALL show them without words, on its dark background: the off-route symbol, the turn as an arrow with its distance, the street name of the turn when known, and the distance left along the way.
+On a guided way, the header, the Android notification and the iOS Live Activity SHALL show the next turn with its distance, and the distance left along the way, in place of the straight distance. The header SHALL show them without words, on its dark background: the to-the-route symbol, the turn as an arrow with its distance, the street name of the turn when known, and the distance left along the way.
 
 #### Scenario: In the header
 - **WHEN** the rider is off route with next knot 02, a left turn into Weierstraße 120 m ahead and 1.9 km left along the way
-- **THEN** the header shows the off-route symbol, a left-turn arrow with "120 m", "Weierstraße" and "1.9 km", and no words of the app
+- **THEN** the header shows the to-the-route symbol, a left-turn arrow with "120 m", "Weierstraße" and "1.9 km", and no words of the app
 
 #### Scenario: On the lock screen
 - **WHEN** the same rider looks at the lock screen
@@ -148,7 +149,7 @@ In every app language and at large system text sizes, the header SHALL show its 
 
 #### Scenario: Off route in German
 - **WHEN** the app is in German and the rider is off route, 1.7 km from the route
-- **THEN** the header shows the off-route symbol, the arrow, "1.7 km" and Stop completely, at the same height as in English
+- **THEN** the header shows the to-the-route symbol, the arrow, "1.7 km" and Stop completely, at the same height as in English
 
 ### Requirement: Riding the wrong way
 While navigating with the network's courses, a rider within 30 m of the course of the current leg who has ridden at least 150 m back along it from the furthest place they reached on that leg, and has moved at least 100 m in a straight line from that place, SHALL be told they are riding the wrong way. The app SHALL say it once and show it until they turn around, pass the next knot or leave the course. It SHALL NOT plan a new route.
@@ -209,18 +210,57 @@ While navigating with the network's courses, a rider within 30 m of the course o
 - **WHEN** the network's courses are not installed
 - **THEN** the app does not say they ride the wrong way
 
+### Requirement: Progress strip
+While navigating, the panel SHALL show, below the number to follow, the route as a strip drawn to scale by distance along the route, in place of the knot badge row: the start, the stops, the end and the ferries marked and labeled, the start, the stops and the end with badges like on the map, the next knot and the number to follow there also with their badges, so every number in the header is on the strip too, the other knots as small marks, the rider's place on the route as a dot, and the part of the route already ridden filled. While the panel is shown, the strip SHALL follow each position.
+
+#### Scenario: Strip at the start
+- **WHEN** the rider starts navigating a route from 24 via the stop 30 to 31, 12.4 km long, at 24
+- **THEN** the strip shows 24 at its start, 30 at the distance of 30 along the route, 31 at its end, the other knots as small marks, and the dot at 24 with nothing filled
+
+#### Scenario: Moving along
+- **WHEN** the rider has ridden 4 km of that route
+- **THEN** the dot is a third of the way along the strip and the strip is filled up to it
+
+#### Scenario: Ferry on the strip
+- **WHEN** the route crosses a ferry between 12 and 30
+- **THEN** the strip marks the ferry with ⛴ between 12 and 30
+
+#### Scenario: Long route
+- **WHEN** the route passes 80 knots and has two stops
+- **THEN** the strip fits the width of the panel without scrolling, with the start, the stops and the end labeled and the other knots as marks
+
+#### Scenario: Off route on the strip
+- **WHEN** the rider is off route
+- **THEN** the dot stays at the last place on the route and is shown as a ring with ✕, not in red
+
+#### Scenario: Progress with a screen reader
+- **WHEN** a screen reader (TalkBack, VoiceOver) reaches the strip after 4.0 of 12.4 km
+- **THEN** it announces "4.0 of 12.4 km ridden, next knot 12"
+
+#### Scenario: Knots of the header on the strip
+- **WHEN** the rider is 150 m before 45, with 12 to follow, on a route from 24 to 31
+- **THEN** the strip shows 45 just ahead of the dot and 12 after it as badges, not as marks
+
+#### Scenario: Passed knot leaves the strip's labels
+- **WHEN** the rider has passed 45 and the next knot is 12 with 31 to follow
+- **THEN** 45 is a small mark again, and 12 and 31 are badges
+
+#### Scenario: Next knot close to a stop
+- **WHEN** the next knot's badge would overlap a stop's badge on the strip
+- **THEN** the next knot's badge is shown, and the stop's is left out unless it is the next knot or the number to follow itself
+
 ## ADDED Requirements
 
 ### Requirement: Header on the way to the route
-After navigation started away from the route, until the rider is first on the route, the header SHALL show the way to the route like "Direction to the route", or like "Guided way in the header and outside the app" on a guided way, but with a start flag on a neutral tile in place of the off-route symbol and without the dark background, as this is no mistake. The next knot's badge SHALL be shown small only while the rider is within 30 m of a course of the knot network. After the rider has been on the route, leaving it SHALL show the off-route header.
+After navigation started away from the route, until the rider is first on the route, the header SHALL show the way to the route like "Direction to the route", or like "Guided way in the header and outside the app" on a guided way, but on a neutral tile without the dark background, as this is no mistake, and with the to-the-route symbol's arrow pointing towards the route. The next knot's badge SHALL be shown small only while the rider is within 30 m of a course of the knot network. After the rider has been on the route, leaving it SHALL show the off-route header.
 
 #### Scenario: Starting at home
 - **WHEN** the rider starts navigating at home, 800 m from the route to the east, on a street that is no path of the knot network
-- **THEN** the header shows the start flag on a neutral background, an arrow to the right and "800 m", no knot badge, and is not dark
+- **THEN** the header shows the to-the-route symbol on a neutral background, an arrow to the right and "800 m", no knot badge, and is not dark
 
 #### Scenario: Reaching the network on the way
 - **WHEN** that rider reaches a course of the knot network on the way to the first knot 24
-- **THEN** the header also shows 24 as a small badge
+- **THEN** the header also shows › and 24 as a small badge
 
 #### Scenario: On the route
 - **WHEN** the rider comes within 30 m of the course

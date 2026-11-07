@@ -69,9 +69,13 @@ The row has one height per text size:
 
 No language-dependent element is left in the row. Street names on a guided way are ellipsized to one line.
 
+### Sign plate around the number to look for
+
+`HeaderBadge` gets `onPlate: Boolean`, set by the core: only the number to follow while close. Between knots no badge is on a plate, since the arrow signs on the way can point anywhere (the maintainer's review of the mockups, 2026-11-07). The apps draw a rounded rectangle around the badge with the arrow to its right, in the knot's plate scheme (NL white with a coloured border and arrow, elsewhere the plate colour with a white arrow). The arrow sits beside the number, not above or below it, to keep the row low; the real Belgian and Dutch signs put it above or below. Chosen on the "Approach and follow" board, version 1, over a post-and-arm picture whose arm shape matches no real sign.
+
 ### Arrow between the badges
 
-A plain → until `turn-at-knot` gives it a direction. The far state uses ↑ before the next knot and a small › before the knot after it, as in the mockups.
+A plain → between the knot and the plate until `turn-at-knot` gives the arrow on the plate a direction. The far state has no arrow before the next knot, and a small › before the knot after it, as in the mockups.
 
 ## Risks / Trade-offs
 
@@ -86,4 +90,4 @@ App-only change. No data or format change. Rollback by reverting the apps' heade
 
 ## Open Questions
 
-- The exact off-route symbol and the U-turn icon may be refined on the device. That doesn't change the specs.
+- The exact to-the-route symbol and the U-turn icon may be refined on the device. That doesn't change the specs.
