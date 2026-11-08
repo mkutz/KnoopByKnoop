@@ -55,6 +55,31 @@ enum class PathSwitch {
   }
 }
 
+/** Why a junction on a guided way is doubtful, see `knot-navigation` "Doubtful junctions". */
+enum class JunctionDoubt {
+  /** Another exit leaves within [PathRouter.SIMILAR_EXIT_DEGREES] of the one taken. */
+  SIMILAR_EXIT,
+
+  /** The way crosses a main road, without riding along it. */
+  MAIN_ROAD,
+
+  /** The way leaves a street or road for a cycle path or another path. */
+  OFF_ROAD,
+}
+
+/**
+ * A doubtful junction on a guided way, or several within [PathRouter.MERGE_METERS] of each other,
+ * see `knot-navigation` "Doubtful junctions".
+ *
+ * @property startMeters where its first junction is, along the way
+ * @property endMeters where its last junction is
+ */
+data class DoubtfulJunction(
+  val startMeters: Double,
+  val endMeters: Double,
+  val doubts: Set<JunctionDoubt>,
+)
+
 /**
  * A way found by [PathRouter].
  *
@@ -64,6 +89,8 @@ enum class PathSwitch {
  *   in the riding direction"
  * @property firstName the name of the way it starts on, if known, e.g. for the turn off the network
  *   into it, see `knot-navigation` "Guidance to a route point off the network"
+ * @property doubtful its doubtful junctions, see `knot-navigation` "Doubtful junctions"
+ * @property decisionMeters where it passes a junction with a choice of ways, for measuring
  */
 class PathWay(
   val points: List<GeoPoint>,
@@ -71,6 +98,8 @@ class PathWay(
   val turns: List<PathTurn>,
   val startsBack: Boolean = false,
   val firstName: String? = null,
+  val doubtful: List<DoubtfulJunction> = listOf(),
+  internal val decisionMeters: List<Double> = listOf(),
 ) {
 
   val lengthMeters: Double
@@ -112,6 +141,9 @@ class PathRouter(private val file: PathSquareSource) {
   private val loaded = HashSet<PathSquare>()
   private val segmentsBySquare = HashMap<PathSquare, List<PathSegment>>()
   private val stepsByNode = HashMap<Long, ArrayList<Step>>()
+
+  /** Every segment at a node, also those only for drawing, e.g. a motorway being crossed. */
+  private val segmentsByNode = HashMap<Long, ArrayList<PathSegment>>()
 
   /** How many squares are loaded, to measure the memory used. */
   val loadedSquares: Int
@@ -238,9 +270,14 @@ class PathRouter(private val file: PathSquareSource) {
     }
     add(from)
     val junctions = ArrayList<Junction>()
+    val doubts = ArrayList<Pair<Double, Set<JunctionDoubt>>>()
     pieces.forEachIndexed { index, piece ->
       if (index > 0) {
         val previous = pieces[index - 1]
+        val node = piece.fromNode ?: 0L
+        doubtsAt(node, previous.step, piece.step)
+          .takeIf { it.isNotEmpty() }
+          ?.let { doubts.add(meters.last() to it) }
         junctions.add(
           Junction(
             meters.last(),
@@ -261,6 +298,8 @@ class PathRouter(private val file: PathSquareSource) {
       turns(points, meters, junctions),
       startsBack(points, first.start?.points?.firstOrNull(), heading),
       pieces.firstOrNull()?.step?.segment?.name,
+      merged(doubts),
+      junctions.filter { it.exits >= 2 && it.atMeters > 0.0 }.map { it.atMeters },
     )
   }
 
@@ -302,6 +341,52 @@ class PathRouter(private val file: PathSquareSource) {
           it.segment === taken.segment ||
           turnOf(it) - takenTurn >= CLEAR_CHOICE_DEGREES
       }
+  }
+
+  /**
+   * Why the junction at [node] is doubtful when arriving on [arriving] and taking [taken], see
+   * `knot-navigation` "Doubtful junctions"; empty for a plain one.
+   */
+  private fun doubtsAt(node: Long, arriving: Step, taken: Step): Set<JunctionDoubt> {
+    val doubts = mutableSetOf<JunctionDoubt>()
+    val takenHeading = headingAlong(taken.points())
+    val others =
+      stepsByNode[node].orEmpty().filter {
+        it.segment !== arriving.segment && it.segment !== taken.segment
+      }
+    if (
+      others.any {
+        abs(signedAngle(takenHeading, headingAlong(it.points()))) <= SIMILAR_EXIT_DEGREES
+      }
+    ) {
+      doubts += JunctionDoubt.SIMILAR_EXIT
+    }
+    fun isMainRoad(kind: PathKind) = kind == PathKind.MAJOR || kind == PathKind.MAIN
+    val mainRoads =
+      segmentsByNode[node].orEmpty().count {
+        isMainRoad(it.kind) && it !== arriving.segment && it !== taken.segment
+      }
+    // A main road passing through, which the way neither comes along nor goes on.
+    if (mainRoads >= 2 && !isMainRoad(arriving.segment.kind) && !isMainRoad(taken.segment.kind)) {
+      doubts += JunctionDoubt.MAIN_ROAD
+    }
+    val switch = PathSwitch.of(arriving.segment.kind, taken.segment.kind)
+    if (switch != null && switch != PathSwitch.STREET) doubts += JunctionDoubt.OFF_ROAD
+    return doubts
+  }
+
+  /** [doubts] at junctions along the way, those within [MERGE_METERS] of each other as one. */
+  private fun merged(doubts: List<Pair<Double, Set<JunctionDoubt>>>): List<DoubtfulJunction> {
+    val result = ArrayList<DoubtfulJunction>()
+    for ((at, reasons) in doubts) {
+      val last = result.lastOrNull()
+      if (last != null && at - last.endMeters <= MERGE_METERS) {
+        result[result.lastIndex] = last.copy(endMeters = at, doubts = last.doubts + reasons)
+      } else {
+        result += DoubtfulJunction(at, at, reasons)
+      }
+    }
+    return result
   }
 
   /** The direction [points] set off in, over about [HEADING_METERS]. */
@@ -531,6 +616,7 @@ class PathRouter(private val file: PathSquareSource) {
     loaded.clear()
     segmentsBySquare.clear()
     stepsByNode.clear()
+    segmentsByNode.clear()
   }
 
   private fun load(place: GeoPoint) = load(PathSquare.of(place.latitude, place.longitude))
@@ -542,6 +628,10 @@ class PathRouter(private val file: PathSquareSource) {
     segments.forEach { segment ->
       if (segment.forward) addStep(segment, reversed = false)
       if (segment.backward) addStep(segment, reversed = true)
+      for (node in listOf(segment.fromId, segment.toId)) {
+        val atNode = segmentsByNode.getOrPut(node) { ArrayList(STEPS_PER_NODE) }
+        if (atNode.none { it.isSameAs(segment) }) atNode.add(segment)
+      }
     }
   }
 
@@ -660,6 +750,9 @@ class PathRouter(private val file: PathSquareSource) {
 
     /** Turns this close together are one, see "Turn notices on the guided way". */
     const val MERGE_METERS = 40.0
+
+    /** Another exit within this of the one taken makes a junction doubtful. */
+    const val SIMILAR_EXIT_DEGREES = 35.0
 
     /** The direction of a way at a junction is taken over this length. */
     const val HEADING_METERS = 15.0
