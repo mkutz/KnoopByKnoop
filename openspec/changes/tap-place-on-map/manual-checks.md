@@ -11,9 +11,9 @@ Checked on 2026-11-08 with the published network data and the base map's tiles:
 
 | Scenario | Android | iOS | Notes |
 |---|---|---|---|
-| Name of a café | ✅ | open | "Eiscafé Riviera" with the food icon above the three choices ([Android](screenshots/android-cafe.png)). `NetworkGeometryTest` |
-| Place without a name | ✅ | open | Unnamed toilets by the station: "Toilets" ([Android](screenshots/android-water.png)). `NetworkGeometryTest` |
-| Stop at a place | ✅ | open | "Add stop here" put the stop at the café, with a way along paths from the course near 25 ([Android](screenshots/android-stop.png)). `NetworkGeometryTest` |
+| Name of a café | ✅ | ✅ maintainer | "Eiscafé Riviera" with the food icon above the three choices ([Android](screenshots/android-cafe.png)). `NetworkGeometryTest` |
+| Place without a name | ✅ | ✅ maintainer | Unnamed toilets by the station: "Toilets" ([Android](screenshots/android-water.png)). `NetworkGeometryTest` |
+| Stop at a place | ✅ | ✅ maintainer | "Add stop here" put the stop at the café, with a way along paths from the course near 25 ([Android](screenshots/android-stop.png)). `NetworkGeometryTest` |
 | Place next to a course | unit test | unit test | `NetworkGeometryTest`: no snapping to the course within the tolerance |
 | Knot before a place | unit test | unit test | `NetworkGeometryTest` |
 | Place far from the network | unit test | unit test | `NetworkGeometryTest`: `PlaceOnly` |
@@ -23,6 +23,9 @@ Checked on 2026-11-08 with the published network data and the base map's tiles:
 
 ## For the maintainer
 
-1. **iPhone, planning:** tap a café, a supermarket and a drinking water point: icon and name (or "Drinking water") above the choices. Make one a stop: the flag is at the place.
+On the iPhone on 2026-11-08 the maintainer checked planning (step 1) and asked for the stop to show the place's icon instead of the flag, which is out of scope here and can be its own change.
+
+
+1. ✅ (2026-11-08) **iPhone, planning:** tap a café, a supermarket and a drinking water point: icon and name (or "Drinking water") above the choices. Make one a stop: the flag is at the place.
 2. **iPhone, navigating:** tap a place: the name only, and a tap beside it closes it.
 3. **On a ride, both phones:** tap a toilet or a café you pass, and see whether the name helps you decide.
