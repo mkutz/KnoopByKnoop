@@ -16,7 +16,7 @@ class RoutePointWays(private val router: PathRouter, private val geometry: Netwo
    */
   fun wayFor(point: Knot): Knot? {
     if (point.network != NetworkType.CYCLING) return null
-    point.routePoint ?: return null
+    val routePoint = point.routePoint ?: return null
     val position = GeoPoint(point.latitude, point.longitude)
     return geometry
       .nearestOnCourses(position, MAX_METERS, CANDIDATES)
@@ -24,7 +24,15 @@ class RoutePointWays(private val router: PathRouter, private val geometry: Netwo
       .minByOrNull { (_, way) -> way.lengthMeters }
       ?.let { (place, way) ->
         val points = joined(joined(listOf(position), way.points), listOf(place.place))
-        routePointKnot(position, point.network, place, points, straight = false)
+        routePointKnot(
+          position,
+          point.network,
+          place,
+          points,
+          straight = false,
+          placeKind = routePoint.placeKind,
+          placeName = routePoint.placeName,
+        )
       }
   }
 

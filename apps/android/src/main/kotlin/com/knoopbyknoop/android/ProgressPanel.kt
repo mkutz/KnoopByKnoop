@@ -155,7 +155,7 @@ private fun ProgressStripView(
           }
         } else {
           Box(modifier = Modifier.clearAndSetSemantics {}) {
-            KnotBadge(mark.label, roleOf(mark.kind), plate = mark.plate)
+            KnotBadge(mark.label, roleOf(mark.kind), plate = mark.plate, place = mark.place)
           }
         }
       }
@@ -294,7 +294,13 @@ fun ComingKnots(
       ) {
         Box(modifier = Modifier.width(BADGE_SPACE + 10.dp), contentAlignment = Alignment.Center) {
           if (knot == null) FerryBadge(warning = item.state == FerryArrivalState.WARNING)
-          else KnotBadge(item.label, roleOf(item.kind), plate = KnotPlate.of(knot.signRegion))
+          else
+            KnotBadge(
+              item.label,
+              roleOf(item.kind),
+              plate = KnotPlate.of(knot.signRegion),
+              place = knot.routePoint?.placeKind,
+            )
         }
         Text(
           item.distance,

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A start, stop or end made from a tapped place shows the place's icon instead of the flag, on the map, on the strip and in the list, where it also has the place's name, e.g. "Stop · Eiscafé Riviera". It stays after a restart
 - Tap a highlighted place to see its name, or what it is when it has none. While planning, "Start here", "Add stop here" and "End here" come with it and put the point at the place itself, so the way leads there; while navigating, only the name shows
 - Places that matter on a ride stand out on the map from zoom 14: food and drink, supermarkets, bike shops, railway stations, and drinking water and toilets, each with its own icon on a coloured disc, with names from zoom 16. They give way to knots, sit below the route, and come with the base map, so nothing extra is downloaded. A switch in the info sheet turns them off
 - Started away from the route, riding onto its course and along it now joins the route there, with the knot ahead next, instead of still leading to the first knot

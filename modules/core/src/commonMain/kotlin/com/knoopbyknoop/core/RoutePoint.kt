@@ -17,6 +17,9 @@ import kotlin.math.roundToLong
  * @property place the position where the point joins the course
  * @property way from the point's own position to [place], empty if the point is on the course
  * @property straight whether [way] is only a straight line, as no way along paths is known
+ * @property placeKind for a point made from a highlighted place, its [MapPlace.kindKey], see
+ *   `map-planning` "Route points from a place"
+ * @property placeName that place's name, `null` without one
  */
 data class RoutePoint(
   val fromId: Long,
@@ -25,6 +28,8 @@ data class RoutePoint(
   val place: GeoPoint,
   val way: List<GeoPoint> = listOf(),
   val straight: Boolean = false,
+  val placeKind: String? = null,
+  val placeName: String? = null,
 ) {
 
   /**
@@ -75,6 +80,8 @@ fun routePointKnot(
   at: CoursePlace,
   way: List<GeoPoint> = listOf(),
   straight: Boolean = false,
+  placeKind: String? = null,
+  placeName: String? = null,
 ): Knot {
   val point = if (way.isEmpty()) at.place else position
   return Knot(
@@ -84,7 +91,16 @@ fun routePointKnot(
     latitude = point.latitude,
     longitude = point.longitude,
     routePoint =
-      RoutePoint(at.connection.fromId, at.connection.toId, at.fraction, at.place, way, straight),
+      RoutePoint(
+        at.connection.fromId,
+        at.connection.toId,
+        at.fraction,
+        at.place,
+        way,
+        straight,
+        placeKind,
+        placeName,
+      ),
   )
 }
 
@@ -326,7 +342,13 @@ fun PlanningSession.tapAt(
  */
 fun PlanningSession.routePointFor(offer: MapTap.Offer, geometry: NetworkGeometry): Knot? {
   offer.onCourse?.let {
-    return routePointKnot(offer.position, network, it)
+    return routePointKnot(
+      offer.position,
+      network,
+      it,
+      placeKind = offer.place?.kindKey,
+      placeName = offer.place?.name,
+    )
   }
   val nearest =
     geometry.nearestOnCourses(offer.position, ANY_DISTANCE_METERS).firstOrNull() ?: return null
@@ -336,6 +358,8 @@ fun PlanningSession.routePointFor(offer: MapTap.Offer, geometry: NetworkGeometry
     nearest,
     way = listOf(offer.position, nearest.place),
     straight = true,
+    placeKind = offer.place?.kindKey,
+    placeName = offer.place?.name,
   )
 }
 
@@ -365,6 +389,8 @@ fun PlanningSession.reattached(geometry: NetworkGeometry): PlanningSession {
             nearest.place,
             if (nearest.distanceMeters < 1.0) listOf() else listOf(position, nearest.place),
             straight = nearest.distanceMeters >= 1.0,
+            placeKind = point.routePoint?.placeKind,
+            placeName = point.routePoint?.placeName,
           )
       )
     session.withRoutePoint(joined)

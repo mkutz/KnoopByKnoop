@@ -57,6 +57,11 @@ enum class PlaceKind(val key: String, val colour: Long, val matches: Map<String,
     /** The base map's layers that draw places in its own style. */
     val BASE_MAP_LAYERS = listOf("poi_r1", "poi_r7", "poi_r20", "poi_transit")
 
+    /** The kind of a [MapPlace.kindKey], `null` for none. */
+    fun ofKey(kindKey: String?): PlaceKind? =
+      entries.firstOrNull { it.key == kindKey }
+        ?: WATER.takeIf { kindKey == "drinking_water" || kindKey == "toilets" }
+
     /** The kind of a place with the tiles' [className] and [subclass], `null` for other places. */
     fun of(className: String?, subclass: String?): PlaceKind? = entries.firstOrNull {
       subclass in it.matches[className].orEmpty()

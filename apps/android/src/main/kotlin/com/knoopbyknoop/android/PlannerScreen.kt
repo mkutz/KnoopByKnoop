@@ -108,6 +108,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
@@ -884,7 +885,12 @@ private fun RouteKnots(description: RouteDescription.Complete) {
       Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(vertical = 4.dp),
   ) {
     description.knots.forEachIndexed { position, (knot, role) ->
-      KnotBadge(knot.ref, role, plate = KnotPlate.of(knot.signRegion))
+      KnotBadge(
+        knot.ref,
+        role,
+        plate = KnotPlate.of(knot.signRegion),
+        place = knot.routePoint?.placeKind,
+      )
       if (position in ferryPositions) FerryBadge()
     }
   }
@@ -978,8 +984,17 @@ private fun WaypointList(
         val moveUp = stringResource(R.string.move_up)
         val moveDown = stringResource(R.string.move_down)
         val remove = stringResource(R.string.remove)
-        // A route point is named by its role, as it has no number.
-        val name = if (knot.isRoutePoint) roleName else knot.ref
+        // A route point is named by its role, as it has no number, and by its place if it was made
+        // from one, see `map-planning` "Route points from a place".
+        val placeKind = knot.routePoint?.placeKind
+        val placeName =
+          knot.routePoint?.placeName ?: placeKind?.let { stringResource(placeKindLabel(it)) }
+        val name =
+          when {
+            placeName != null -> "$roleName, $placeName"
+            knot.isRoutePoint -> roleName
+            else -> knot.ref
+          }
         val removeKnot = stringResource(R.string.remove_knot, name)
         val moveKnot = stringResource(R.string.move_knot, name)
         Row(
@@ -1024,12 +1039,21 @@ private fun WaypointList(
               },
         ) {
           Box(modifier = Modifier.width(44.dp), contentAlignment = Alignment.Center) {
-            KnotBadge(knot.ref, role, plate = KnotPlate.of(knot.signRegion))
+            KnotBadge(
+              knot.ref,
+              role,
+              plate = KnotPlate.of(knot.signRegion),
+              place = knot.routePoint?.placeKind,
+            )
           }
           Text(
-            roleName,
+            placeName?.let { "$roleName · $it" } ?: roleName,
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(start = 12.dp).weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            // Read with a comma, not the dot, see `map-planning` "Screen reader in the list".
+            modifier =
+              Modifier.padding(start = 12.dp).weight(1f).semantics { contentDescription = name },
           )
           if (editable && canRemove) {
             IconButton(onClick = { viewModel.removeWaypoint(index) }) {
@@ -1103,7 +1127,7 @@ private fun PlaceOfferMenu(offer: PlaceOffer, viewModel: AppViewModel) {
       // The tapped place's icon and name, see `map-planning` "Tapping a place on the map".
       offer.offer.place?.let { place ->
         val context = LocalContext.current
-        val icon = remember(place.kind) { placeBitmap(context, place.kind).asImageBitmap() }
+        val icon = remember(place.kind) { placeBitmap(place.kind).asImageBitmap() }
         Row(
           modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
           verticalAlignment = Alignment.CenterVertically,
@@ -1160,11 +1184,21 @@ private fun RouteChip(route: RouteDescription.Complete) {
       modifier = Modifier.clearAndSetSemantics {}.padding(horizontal = 10.dp, vertical = 6.dp),
     ) {
       route.knots.first().let {
-        KnotBadge(it.knot.ref, it.role, plate = KnotPlate.of(it.knot.signRegion))
+        KnotBadge(
+          it.knot.ref,
+          it.role,
+          plate = KnotPlate.of(it.knot.signRegion),
+          place = it.knot.routePoint?.placeKind,
+        )
       }
       Text("→", style = MaterialTheme.typography.titleMedium)
       route.knots.last().let {
-        KnotBadge(it.knot.ref, it.role, plate = KnotPlate.of(it.knot.signRegion))
+        KnotBadge(
+          it.knot.ref,
+          it.role,
+          plate = KnotPlate.of(it.knot.signRegion),
+          place = it.knot.routePoint?.placeKind,
+        )
       }
       Text(route.distance, style = MaterialTheme.typography.titleMedium)
     }

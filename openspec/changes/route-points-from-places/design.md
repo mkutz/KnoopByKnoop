@@ -37,6 +37,13 @@
 
 The row's text is the role and, for a route point with a place, " · " and the name, or the kind's name (the strings of `tap-place-on-map`). The screen reader actions ("Move …", "Remove …") use the same text.
 
+### As built (2026-11-08)
+
+- **Android glyphs as path data:** the badge code has no `Context`, so the five Material Symbols glyphs are now path data in `PlaceIcons.kt`, drawn with `PathParser`. The `ic_place_*` drawables of `highlight-places-on-map` are gone; the map's place icons use the same paths.
+- **The place kept when the point is rebuilt:** `RoutePointWays.wayFor` (a way along paths found later) and `reattached` (connection gone) build new route points, so they pass the place on.
+- **Screen readers read a comma:** the row shows "Stop · Eiscafé Riviera" and reads "Stop, Eiscafé Riviera", as the spec's scenario says.
+- **Image names** end in `-<place>` for every route knot, empty for knots, on both platforms.
+
 ## Risks / Trade-offs
 
 - **[Badge size]** The place disc drawn at a knot badge's size may look heavier than the small map icon. → Same glyphs, bigger disc; checked on screenshots next to knots.

@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.knoopbyknoop.core.KnotPlate
 import com.knoopbyknoop.core.KnotRole
+import com.knoopbyknoop.core.PlaceKind
 
 /** The colors of the app icon, see `design/icon`. */
 val Green = Color(0xFF2E9E5B)
@@ -96,8 +97,14 @@ private fun styleOf(role: KnotRole?, plate: KnotPlate, dark: Boolean): BadgeStyl
  * The map image name of a badge; the map's symbol layers build the same names from GeoJSON. Knots
  * not on the route are grey everywhere, so only route knots carry their plate.
  */
-fun badgeName(role: KnotRole?, ref: String, plate: KnotPlate = KnotPlate.NONE) =
-  if (role == null) "knot-$ref" else "route-${role.name.lowercase()}-${plate.key}-$ref"
+fun badgeName(
+  role: KnotRole?,
+  ref: String,
+  plate: KnotPlate = KnotPlate.NONE,
+  place: String? = null,
+) =
+  if (role == null) "knot-$ref"
+  else "route-${role.name.lowercase()}-${plate.key}-$ref-${place.orEmpty()}"
 
 /** Room around the plate for the corner symbol, on every side so the plate stays centred. */
 private const val CORNER_ROOM = 9
@@ -118,6 +125,8 @@ fun badgeBitmap(
   plate: KnotPlate = KnotPlate.NONE,
   dark: Boolean = false,
   filled: Boolean? = null,
+  /** For a route point made from a place, its kind key, drawn instead of the flag. */
+  place: String? = null,
 ): Bitmap {
   val style = styleOf(role, plate, dark, filled)
   val plateSize = if (style.large) 72 else 56
@@ -126,6 +135,22 @@ fun badgeBitmap(
   val canvas = Canvas(bitmap)
   val center = size / 2f
   val radius = plateSize / 2f - 3
+  // A route point made from a place: the place's disc and glyph, see `map-planning` "Route points
+  // from a place".
+  PlaceKind.ofKey(place)?.let { kind ->
+    drawPlaceDisc(canvas, kind, center, radius, 3f)
+    role?.let {
+      val diameter = 2 * radius
+      drawCornerSymbol(
+        canvas,
+        it,
+        center + diameter * CORNER_OFFSET,
+        center - diameter * CORNER_OFFSET,
+        diameter * CORNER_SIZE / 2,
+      )
+    }
+    return bitmap
+  }
   canvas.drawCircle(
     center,
     center,
@@ -341,46 +366,63 @@ fun KnotBadge(
   scale: Float = 1f,
   plate: KnotPlate = KnotPlate.NONE,
   filled: Boolean? = null,
+  /** For a route point made from a place, its kind key, drawn instead of the flag. */
+  place: String? = null,
 ) {
   val dark = isAppInDarkTheme()
   val style = styleOf(role, plate, dark, filled)
   val size = (if (style.large) 34.dp else 28.dp) * scale
+  val placeKind = PlaceKind.ofKey(place)
   // Required, so a slot narrower than the badge, e.g. on the strip, can't squeeze it into an oval.
   Box(contentAlignment = Alignment.Center, modifier = modifier.requiredSize(size)) {
-    Box(
-      contentAlignment = Alignment.Center,
-      modifier =
-        Modifier.requiredSize(size)
-          .background(style.fill, CircleShape)
-          .then(style.ring?.let { Modifier.border(2.dp * scale, it, CircleShape) } ?: Modifier)
-          .then(
-            if (style.innerRing)
-              Modifier.padding(size * 0.12f).border(size * 0.055f, Color.White, CircleShape)
-            else Modifier
-          ),
-    ) {
-      // In dp, so the number fits the badge at any text size, like on the map, see `map-planning`
-      // "Knot badges at large text sizes"; the line height too, which would push the number down.
-      val textSize =
-        with(LocalDensity.current) {
-          ((if (ref.length > 2) 10 else 12).dp * (if (style.large) 1.2f else 1f) * scale).toSp()
+    if (placeKind != null) {
+      // The place's disc and glyph, see `map-planning` "Route points from a place".
+      Box(
+        contentAlignment = Alignment.Center,
+        modifier =
+          Modifier.requiredSize(size)
+            .background(Color(placeKind.colour), CircleShape)
+            .border(2.dp * scale, Color.White, CircleShape),
+      ) {
+        Canvas(Modifier.size(size * 0.62f)) {
+          drawPath(placeGlyphPath(placeKind, this.size.width).asComposePath(), Color.White)
         }
-      if (ref.isEmpty()) {
-        // A route point's flag, as on the map.
-        Canvas(Modifier.size(size)) {
-          drawPath(flagPath(this.size.width).asComposePath(), style.text)
-        }
-      } else {
-        Text(
-          ref,
-          color = style.text,
-          fontWeight = FontWeight.Bold,
-          fontSize = textSize,
-          lineHeight = textSize,
-          maxLines = 1,
-        )
       }
-    }
+    } else
+      Box(
+        contentAlignment = Alignment.Center,
+        modifier =
+          Modifier.requiredSize(size)
+            .background(style.fill, CircleShape)
+            .then(style.ring?.let { Modifier.border(2.dp * scale, it, CircleShape) } ?: Modifier)
+            .then(
+              if (style.innerRing)
+                Modifier.padding(size * 0.12f).border(size * 0.055f, Color.White, CircleShape)
+              else Modifier
+            ),
+      ) {
+        // In dp, so the number fits the badge at any text size, like on the map, see `map-planning`
+        // "Knot badges at large text sizes"; the line height too, which would push the number down.
+        val textSize =
+          with(LocalDensity.current) {
+            ((if (ref.length > 2) 10 else 12).dp * (if (style.large) 1.2f else 1f) * scale).toSp()
+          }
+        if (ref.isEmpty()) {
+          // A route point's flag, as on the map.
+          Canvas(Modifier.size(size)) {
+            drawPath(flagPath(this.size.width).asComposePath(), style.text)
+          }
+        } else {
+          Text(
+            ref,
+            color = style.text,
+            fontWeight = FontWeight.Bold,
+            fontSize = textSize,
+            lineHeight = textSize,
+            maxLines = 1,
+          )
+        }
+      }
     role?.let {
       CornerSymbol(
         it,

@@ -290,7 +290,7 @@ fun NetworkMap(
   holder.dark = dark
   holder.online = online
   holder.placeIcons = remember {
-    PlaceKind.entries.associate { it.iconName to placeBitmap(context, it) }
+    PlaceKind.entries.associate { it.iconName to placeBitmap(it) }
   }
   val mapView = remember {
     MapLibre.getInstance(context)
@@ -1193,8 +1193,11 @@ private class MapHolder {
     if (previous == null || previous.route !== layers.route) {
       layers.routeKnotList.forEach { (knot, role) ->
         val plate = KnotPlate.of(knot.signRegion)
-        val name = badgeName(role, knot.ref, plate)
-        if (style.getImage(name) == null) style.addImage(name, badgeBitmap(role, knot.ref, plate))
+        val place = knot.routePoint?.placeKind
+        val name = badgeName(role, knot.ref, plate, place)
+        if (style.getImage(name) == null) {
+          style.addImage(name, badgeBitmap(role, knot.ref, plate, place = place))
+        }
       }
       style.getSourceAs<GeoJsonSource>("route")?.setGeoJson(layers.route)
       style.getSourceAs<GeoJsonSource>("route-knots")?.setGeoJson(layers.routeKnots)
@@ -1450,6 +1453,8 @@ private class MapHolder {
               Expression.get("plate"),
               Expression.literal("-"),
               Expression.get("ref"),
+              Expression.literal("-"),
+              Expression.get("place"),
             )
           ),
           PropertyFactory.iconAllowOverlap(true),

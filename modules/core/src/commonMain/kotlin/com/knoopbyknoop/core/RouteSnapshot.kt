@@ -38,6 +38,9 @@ data class RouteSnapshot(
     val placeLongitude: Double,
     val way: List<List<Double>> = listOf(),
     val straight: Boolean = false,
+    /** See [RoutePoint.placeKind]; missing in routes saved before `route-points-from-places`. */
+    val placeKind: String? = null,
+    val placeName: String? = null,
   ) {
 
     internal fun toKnot(id: Long, network: NetworkType) =
@@ -55,6 +58,8 @@ data class RouteSnapshot(
             GeoPoint(placeLatitude, placeLongitude),
             way.map { GeoPoint(it[0], it[1]) },
             straight,
+            placeKind,
+            placeName,
           ),
       )
 
@@ -71,6 +76,8 @@ data class RouteSnapshot(
             it.place.longitude,
             it.way.map { point -> listOf(point.latitude, point.longitude) },
             it.straight,
+            it.placeKind,
+            it.placeName,
           )
         }
     }

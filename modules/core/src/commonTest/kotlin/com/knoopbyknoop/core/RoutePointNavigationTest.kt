@@ -198,6 +198,18 @@ class RoutePointNavigationTest {
   }
 
   @Test
+  fun `a place's icon on the strip`() {
+    val plain = point(1500.0, north = 100.0, wayPoints = listOf(40.0))
+    val cafe =
+      plain.copy(routePoint = plain.routePoint!!.copy(placeKind = "food", placeName = "Café"))
+    val started = start(knot24, cafe, knot31, east = 0.0)
+
+    val mark = started.navigation.progress(fix(0.0)).strip.marks.single { it.routePoint }
+
+    assertEquals("food", mark.place)
+  }
+
+  @Test
   fun `on the strip`() {
     val stop = point(1500.0, north = 100.0, wayPoints = listOf(40.0))
     val started = start(knot24, stop, knot31, east = 0.0)

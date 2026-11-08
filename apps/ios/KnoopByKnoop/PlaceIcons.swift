@@ -13,7 +13,7 @@ enum PlaceIcons {
   private static let glyph: CGFloat = 12
 
   /// The SF Symbol of each kind, see `design.md` of `highlight-places-on-map`.
-  private static func symbol(_ kind: PlaceKind) -> String {
+  static func symbol(_ kind: PlaceKind) -> String {
     switch kind {
     case .food: return "fork.knife"
     case .supermarket: return "cart.fill"
@@ -23,12 +23,29 @@ enum PlaceIcons {
     }
   }
 
-  static func image(_ kind: PlaceKind) -> UIImage {
-    let size = disc + 2 * edge
+  /// The disc's colour of `kind`.
+  static func fill(_ kind: PlaceKind) -> UIColor {
     let colour = UInt32(truncatingIfNeeded: kind.colour)
-    let fill = UIColor(
+    return UIColor(
       red: CGFloat((colour >> 16) & 0xFF) / 255, green: CGFloat((colour >> 8) & 0xFF) / 255,
       blue: CGFloat(colour & 0xFF) / 255, alpha: 1)
+  }
+
+  /// The name of a kind of place in the app's language, for a place without a name of its own.
+  static func kindName(_ kindKey: String) -> String {
+    switch kindKey {
+    case "food": String(localized: "Food and drink", bundle: AppLanguage.bundle)
+    case "supermarket": String(localized: "Supermarket", bundle: AppLanguage.bundle)
+    case "bicycle": String(localized: "Bicycle shop", bundle: AppLanguage.bundle)
+    case "railway": String(localized: "Railway station", bundle: AppLanguage.bundle)
+    case "toilets": String(localized: "Toilets", bundle: AppLanguage.bundle)
+    default: String(localized: "Drinking water", bundle: AppLanguage.bundle)
+    }
+  }
+
+  static func image(_ kind: PlaceKind) -> UIImage {
+    let size = disc + 2 * edge
+    let fill = fill(kind)
     return UIGraphicsImageRenderer(size: CGSize(width: size, height: size)).image { context in
       UIColor.white.setFill()
       context.cgContext.fillEllipse(in: CGRect(x: 0, y: 0, width: size, height: size))

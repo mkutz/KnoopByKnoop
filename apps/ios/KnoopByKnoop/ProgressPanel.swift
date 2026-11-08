@@ -156,9 +156,9 @@ private struct ProgressStripView: View {
     } else {
       Group {
         switch mark.kind {
-        case .start: KnotBadge(ref: mark.label, role: .start, plate: mark.plate)
-        case .stop: KnotBadge(ref: mark.label, role: .stop, plate: mark.plate)
-        case .end: KnotBadge(ref: mark.label, role: .end, plate: mark.plate)
+        case .start: KnotBadge(ref: mark.label, role: .start, plate: mark.plate, place: mark.place)
+        case .stop: KnotBadge(ref: mark.label, role: .stop, plate: mark.plate, place: mark.place)
+        case .end: KnotBadge(ref: mark.label, role: .end, plate: mark.plate, place: mark.place)
         // A knot of the header, see `knot-navigation` "Progress strip".
         default: KnotBadge(ref: mark.label, role: .passed, plate: mark.plate)
         }

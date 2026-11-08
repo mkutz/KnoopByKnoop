@@ -475,8 +475,18 @@ private struct WaypointSheet: View {
         }
         ForEach(Array((navigator.state == nil ? rows : []).enumerated()), id: \.element.id) { index, row in
           HStack(spacing: 12) {
-            KnotBadge(ref: row.knot.ref, role: role(index), plate: .of(row.knot.signRegion)).frame(width: 40)
-            Text(Self.roleName(role(index))).font(.callout)
+            KnotBadge(
+              ref: row.knot.ref, role: role(index), plate: .of(row.knot.signRegion),
+              place: row.knot.routePoint?.placeKind
+            ).frame(width: 40)
+            // A route point made from a place shows its name, see `map-planning` "Route points from a
+            // place"; read with a comma, not the dot.
+            if let placeName = Self.placeName(of: row.knot) {
+              Text(verbatim: "\(Self.roleName(role(index))) · \(placeName)").font(.callout).lineLimit(1)
+                .accessibilityLabel(Text(verbatim: "\(Self.roleName(role(index))), \(placeName)"))
+            } else {
+              Text(Self.roleName(role(index))).font(.callout)
+            }
           }
           .deleteDisabled(!session.canRemoveWaypoints)
           .listRowInsets(EdgeInsets(top: 2, leading: 16, bottom: 2, trailing: 16))
@@ -544,7 +554,9 @@ private struct WaypointSheet: View {
     if coming.knot == nil {
       FerryBadge(warning: coming.state == FerryArrivalState.warning)
     } else {
-      KnotBadge(ref: coming.label, role: Self.role(of: coming.kind), plate: .of(coming.knot?.signRegion))
+      KnotBadge(
+        ref: coming.label, role: Self.role(of: coming.kind), plate: .of(coming.knot?.signRegion),
+        place: coming.knot?.routePoint?.placeKind)
     }
   }
 
@@ -579,6 +591,12 @@ private struct WaypointSheet: View {
           .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
       }
     }
+  }
+
+  /// The name of the place a route point was made from, or its kind's name, `nil` for others.
+  private static func placeName(of knot: Knot) -> String? {
+    guard let kind = knot.routePoint?.placeKind else { return nil }
+    return knot.routePoint?.placeName ?? PlaceIcons.kindName(kind)
   }
 
   private static func roleName(_ role: KnotRole) -> String {
@@ -711,7 +729,9 @@ private struct RouteKnots: View {
     ScrollView(.horizontal, showsIndicators: false) {
       HStack(spacing: 4) {
         ForEach(Array(description.knots.enumerated()), id: \.offset) { position, routeKnot in
-          KnotBadge(ref: routeKnot.knot.ref, role: routeKnot.role, plate: .of(routeKnot.knot.signRegion))
+          KnotBadge(
+            ref: routeKnot.knot.ref, role: routeKnot.role, plate: .of(routeKnot.knot.signRegion),
+            place: routeKnot.knot.routePoint?.placeKind)
           if ferryPositions.contains(position) { FerryBadge() }
         }
         // Room for the waypoints' corner symbols, which reach beyond their badges.

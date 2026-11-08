@@ -372,6 +372,8 @@ object MapFeatures {
         property("role", quoted(routeKnot.role.name.lowercase()))
         property("plate", quoted(KnotPlate.of(routeKnot.knot.signRegion).key))
         property("point", routeKnot.knot.isRoutePoint.toString())
+        // See `map-planning` "Route points from a place".
+        property("place", quoted(routeKnot.knot.routePoint?.placeKind ?: ""))
       }
     }
 

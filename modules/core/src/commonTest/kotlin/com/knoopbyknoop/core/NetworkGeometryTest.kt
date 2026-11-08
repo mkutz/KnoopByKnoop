@@ -435,6 +435,45 @@ class NetworkGeometryTest {
   }
 
   @Test
+  fun `café as a stop`() {
+    val offer =
+      assertIs<MapTap.Offer>(
+        branchSession.tapAt(besideTheCourse, 30.0, null, branchGeometry, place = cafe())
+      )
+    val point = assertNotNull(branchSession.routePointFor(offer, branchGeometry)).routePoint!!
+    assertEquals("food", point.placeKind)
+    assertEquals("Eiscafé Riviera", point.placeName)
+  }
+
+  @Test
+  fun `place without a name as the end`() {
+    val water =
+      assertNotNull(
+        MapPlace.of(
+          besideTheCourse.latitude,
+          besideTheCourse.longitude,
+          null,
+          "drinking_water",
+          "drinking_water",
+        )
+      )
+    val offer =
+      assertIs<MapTap.Offer>(
+        branchSession.tapAt(besideTheCourse, 30.0, null, branchGeometry, place = water)
+      )
+    val point = assertNotNull(branchSession.routePointFor(offer, branchGeometry)).routePoint!!
+    assertEquals("drinking_water", point.placeKind)
+    assertNull(point.placeName)
+  }
+
+  @Test
+  fun `spot without a place`() {
+    val point = pointBesideTheCourse().routePoint!!
+    assertNull(point.placeKind)
+    assertNull(point.placeName)
+  }
+
+  @Test
   fun `knot before a place`() {
     assertEquals(
       MapTap.OnKnot(knot06),

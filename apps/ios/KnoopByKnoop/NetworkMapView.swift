@@ -840,9 +840,10 @@ struct NetworkMapView: UIViewRepresentable {
         // Route knots change without the route, e.g. when only the start is set.
         for routeKnot in layers.routeKnotList {
           let plate = KnotPlate.of(routeKnot.knot.signRegion)
-          let name = KnotBadges.name(routeKnot.role, routeKnot.knot.ref, plate)
+          let place = routeKnot.knot.routePoint?.placeKind
+          let name = KnotBadges.name(routeKnot.role, routeKnot.knot.ref, plate, place: place)
           if style.image(forName: name) == nil {
-            style.setImage(KnotBadges.image(routeKnot.role, routeKnot.knot.ref, plate), forName: name)
+            style.setImage(KnotBadges.image(routeKnot.role, routeKnot.knot.ref, plate, place: place), forName: name)
           }
         }
         (style.source(withIdentifier: "route") as? MLNShapeSource)?.shape = shape(layers.route)
@@ -1250,7 +1251,7 @@ struct NetworkMapView: UIViewRepresentable {
 
       // Route knots are drawn above the network's knots, with a badge per role.
       let routeKnots = MLNSymbolStyleLayer(identifier: "route-knots", source: sources[2])
-      routeKnots.iconImageName = NSExpression(format: "mgl_join({'route-', role, '-', plate, '-', ref})")
+      routeKnots.iconImageName = NSExpression(format: "mgl_join({'route-', role, '-', plate, '-', ref, '-', place})")
       routeKnots.iconAllowsOverlap = NSExpression(forConstantValue: true)
       routeKnots.iconIgnoresPlacement = NSExpression(forConstantValue: true)
       routeKnots.minimumZoomLevel = Float(knotMinimumZoom)

@@ -105,8 +105,8 @@ enum KnotBadges {
 
   /// The map image name of a badge; the map's symbol layers build the same names from GeoJSON.
   /// Knots not on the route are grey everywhere, so only route knots carry their plate.
-  static func name(_ role: KnotRole?, _ ref: String, _ plate: KnotPlate = .none) -> String {
-    role.map { "route-\($0.name.lowercased())-\(plate.key)-\(ref)" } ?? "knot-\(ref)"
+  static func name(_ role: KnotRole?, _ ref: String, _ plate: KnotPlate = .none, place: String? = nil) -> String {
+    role.map { "route-\($0.name.lowercased())-\(plate.key)-\(ref)-\(place ?? "")" } ?? "knot-\(ref)"
   }
 
   /// Room around the plate for the corner symbol, on every side so the plate stays centred.
@@ -114,15 +114,30 @@ enum KnotBadges {
 
   /// A round badge with the knot's number, drawn locally so numbers show without network access,
   /// with a waypoint's corner symbol.
-  static func image(_ role: KnotRole?, _ ref: String, _ plate: KnotPlate = .none, dark: Bool = false)
-    -> UIImage
-  {
+  /// `place` is the kind key of a route point made from a place, drawn instead of the flag, see
+  /// `map-planning` "Route points from a place".
+  static func image(
+    _ role: KnotRole?, _ ref: String, _ plate: KnotPlate = .none, dark: Bool = false, place: String? = nil
+  ) -> UIImage {
+    let placeKind = PlaceKind.companion.ofKey(kindKey: place)
     let style = PlateStyle(role, plate: plate, dark: dark)
     let plateSide: CGFloat = style.large ? 28 : 22
     let side = plateSide + 2 * cornerRoom
     let size = CGSize(width: side, height: side)
     return UIGraphicsImageRenderer(size: size).image { context in
       let circle = CGRect(origin: .zero, size: size).insetBy(dx: cornerRoom + 1, dy: cornerRoom + 1)
+      if let placeKind {
+        UIColor.white.setFill()
+        context.cgContext.fillEllipse(in: circle)
+        PlaceIcons.fill(placeKind).setFill()
+        context.cgContext.fillEllipse(in: circle.insetBy(dx: 1.5, dy: 1.5))
+        let configuration = UIImage.SymbolConfiguration(pointSize: circle.width * 0.42, weight: .semibold)
+        if let glyph = UIImage(systemName: PlaceIcons.symbol(placeKind), withConfiguration: configuration)?
+          .withTintColor(.white, renderingMode: .alwaysOriginal)
+        {
+          glyph.draw(at: CGPoint(x: circle.midX - glyph.size.width / 2, y: circle.midY - glyph.size.height / 2))
+        }
+      } else {
       style.fill.setFill()
       context.cgContext.fillEllipse(in: circle)
       if let ring = style.ring {
@@ -153,6 +168,7 @@ enum KnotBadges {
         text.draw(
           at: CGPoint(x: (side - textSize.width) / 2, y: (side - textSize.height) / 2),
           withAttributes: attributes)
+      }
       }
       if let symbol = PlateStyle.cornerSymbol(role) {
         let radius = circle.width * PlateStyle.cornerSize / 2
@@ -224,13 +240,24 @@ struct KnotBadge: View {
   var plate: KnotPlate = .none
   var scale: CGFloat = 1
   var filled: Bool? = nil
+  /// For a route point made from a place, its kind key, drawn instead of the flag, see
+  /// `map-planning` "Route points from a place".
+  var place: String? = nil
   @Environment(\.colorScheme) private var colorScheme
 
   var body: some View {
+    let placeKind = PlaceKind.companion.ofKey(kindKey: place)
     let style = PlateStyle(role, plate: plate, dark: colorScheme == .dark, filled: filled)
     let side: CGFloat = (style.large ? 34 : 28) * scale
     Group {
-      if ref.isEmpty {
+      if let placeKind {
+        Image(systemName: PlaceIcons.symbol(placeKind)).font(.system(size: side * 0.42, weight: .semibold))
+          .foregroundStyle(.white)
+          .frame(width: side, height: side)
+          .background(Circle().fill(Color(PlaceIcons.fill(placeKind))))
+          .overlay(Circle().strokeBorder(.white, lineWidth: 1.5 * scale))
+          .accessibilityHidden(true)
+      } else if ref.isEmpty {
         Image(systemName: "flag.fill").font(.system(size: 12 * (style.large ? 1.2 : 1) * scale, weight: .bold))
           .accessibilityHidden(true)
       } else {
@@ -239,12 +266,14 @@ struct KnotBadge: View {
     }
     .foregroundStyle(Color(style.text))
     .frame(width: side, height: side)
-    .background(Circle().fill(Color(style.fill)))
+    .background(Circle().fill(placeKind == nil ? Color(style.fill) : .clear))
     .overlay {
-      if let ring = style.ring { Circle().strokeBorder(Color(ring), lineWidth: 2 * scale) }
+      if placeKind == nil, let ring = style.ring { Circle().strokeBorder(Color(ring), lineWidth: 2 * scale) }
     }
     .overlay {
-      if style.innerRing { Circle().stroke(.white, lineWidth: side * 0.055).padding(side * 0.12) }
+      if placeKind == nil, style.innerRing {
+        Circle().stroke(.white, lineWidth: side * 0.055).padding(side * 0.12)
+      }
     }
     .overlay(alignment: .topTrailing) {
       if let symbol = PlateStyle.cornerSymbol(role) {

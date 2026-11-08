@@ -19,6 +19,7 @@ import kotlin.time.TimeSource
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 /** Covers the planning scenarios of `map-planning`, and the route scenarios of `network-sync`. */
 class PlanningTest {
@@ -866,6 +867,60 @@ class PlanningTest {
     val before = assertIs<RouteSummary.Complete>(planned.route?.summary).lengthMeters
     val after = assertIs<RouteSummary.Complete>(replaced.route?.summary).lengthMeters
     assertTrue(after > before, "$after > $before")
+  }
+
+  // Requirement: Route points from a place
+
+  /** [home] as made from the café "Eiscafé Riviera". */
+  private val cafe =
+    home.copy(
+      routePoint = home.routePoint!!.copy(placeKind = "food", placeName = "Eiscafé Riviera")
+    )
+
+  @Test
+  fun `start that becomes a stop`() {
+    val other = TestNetwork.pointOn(knot30, knot45, 0.5)
+    val planned = session.startAt(cafe).tap(knot45, NewKnots.STOP).startAt(other)
+
+    val stop = planned.waypoints[1].routePoint!!
+    assertEquals("food", stop.placeKind)
+    assertEquals("Eiscafé Riviera", stop.placeName)
+  }
+
+  @Test
+  fun `kept after a restart`() {
+    val planned = session.startAt(cafe).tap(knot45, NewKnots.STOP)
+
+    val restored = RouteSnapshot.parse(RouteSnapshot.of(planned).toJson()).restore(graph)
+
+    val start = restored.session.waypoints.first().routePoint!!
+    assertEquals("food", start.placeKind)
+    assertEquals("Eiscafé Riviera", start.placeName)
+  }
+
+  @Test
+  fun `route saved before`() {
+    val json =
+      RouteSnapshot.of(session.startAt(home).tap(knot45, NewKnots.STOP))
+        .toJson()
+        .replace(Regex(""",\s*"place(Kind|Name)":\s*(null|"[^"]*")"""), "")
+    assertFalse(json.contains("placeKind"))
+
+    val start = RouteSnapshot.parse(json).restore(graph).session.waypoints.first().routePoint!!
+    assertNull(start.placeKind)
+    assertNull(start.placeName)
+  }
+
+  @Test
+  fun `the place on the map`() {
+    val features =
+      features(MapFeatures.routeKnotsLayer(session.startAt(cafe).tap(knot45, NewKnots.STOP)))
+    val places = features.map {
+      it.jsonObject["properties"]!!.jsonObject["place"]!!.jsonPrimitive.content
+    }
+    // The café first, then the knots, which have none.
+    assertEquals("food", places.first())
+    assertTrue(places.drop(1).all { it.isEmpty() }, "$places")
   }
 
   // Requirement: Keeping route points
