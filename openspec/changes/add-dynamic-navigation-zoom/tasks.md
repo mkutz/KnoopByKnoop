@@ -2,8 +2,8 @@
 
 ## 1. Tricky stretches on the route
 
-- [ ] 1.1 Core: find tricky stretches on each leg's course once per route, measuring turns between the 10 m before and after a point and grouping turns of 60° or more within 100 m. Tests: "Zigzag", "One sharp turn", "Gentle bends", "Without courses", and a course with many short OSM vertices that has no tricky stretch.
-- [ ] 1.2 Measure how often tricky stretches occur per 10 km on the eight public trips of `add-offline-paths`, cycling and hiking, with the real course data, and report it. **The maintainer decides whether to change 60° and 100 m before any app work.**
+- [x] 1.1 Core: find tricky stretches on each leg's course once per route, measuring turns between the 10 m before and after a point and grouping turns of 60° or more within 100 m. Tests: "Zigzag", "One sharp turn", "Gentle bends", "Without courses", and a course with many short OSM vertices that has no tricky stretch.
+- [x] 1.2 Measure how often tricky stretches occur per 10 km on the eight public trips of `add-offline-paths`, cycling and hiking, with the real course data, and report it. **The maintainer decides whether to change 60° and 100 m before any app work.**
 
 ## 2. What the map shows
 
