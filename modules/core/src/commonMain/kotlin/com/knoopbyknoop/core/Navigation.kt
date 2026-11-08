@@ -181,6 +181,11 @@ private constructor(
    * on the way to the route".
    */
   private val joinedRoute: Boolean,
+  /**
+   * On the way to the first knot, the leg whose course the rider follows and where along the route
+   * they first were on it, see `knot-navigation` "Joining the course on the way to the start".
+   */
+  private val joining: Joining?,
   /** The language of the texts, see `app-languages`. */
   val language: Language,
   /**
@@ -192,6 +197,9 @@ private constructor(
 
   private val texts = language.texts
   private val speech = speechLanguage.texts
+
+  /** A leg the rider follows on the way to the first knot, from [place] along the route on. */
+  private data class Joining(val leg: Int, val place: Double)
 
   /**
    * What the rider was last told off route: the distance and bearing of the last notice, and the
@@ -585,6 +593,47 @@ private constructor(
             directionWatch = null,
           )
       }
+    } else if (
+      nextIndex == 0 &&
+        offRoute &&
+        courses != null &&
+        distanceTo(fix, headedFor(0)) > REMINDER_METERS
+    ) {
+      // On the way to the first knot, only following a leg's course joins the route. Close to the
+      // first knot, its course counts as the way there, see "Distance to the first knot".
+      val leg = legOnCourse(fix, courses, ON_COURSE_METERS)
+      val joining = this.joining
+      navigation =
+        when {
+          leg == null -> navigation.copy(joining = null)
+          joining == null || joining.leg != leg ->
+            navigation.copy(joining = Joining(leg, route.placeOf(fix, leg + 1)))
+          abs(route.placeOf(fix, leg + 1) - joining.place) < JOIN_ALONG_METERS -> navigation
+          else -> {
+            val newNext = leg + 1
+            notices += backOnRouteNotice(newNext)
+            val place = route.placeOf(fix, newNext)
+            navigation.copy(
+              nextIndex = newNext,
+              offRoute = false,
+              offRouteKnot = null,
+              place = place,
+              progressLine =
+                route.line(
+                  place,
+                  newNext,
+                  pace.metersPerSecond,
+                  fix.timeMillis,
+                  localTime,
+                  language,
+                ),
+              linePlace = place,
+              guided = null,
+              directionWatch = null,
+              joining = null,
+            )
+          }
+        }
     } else {
       val offRouteKnot = enteredOffRouteKnot(fix)
       val distanceToCourse = distanceToCourse(fix)
@@ -926,6 +975,7 @@ private constructor(
     guided: Guided? = this.guided,
     directionWatch: DirectionWatch? = this.directionWatch,
     joinedRoute: Boolean = this.joinedRoute,
+    joining: Joining? = this.joining,
     language: Language = this.language,
     speechLanguage: Language = this.speechLanguage,
   ) =
@@ -954,6 +1004,7 @@ private constructor(
       guided,
       directionWatch,
       joinedRoute || !offRoute,
+      joining,
       language,
       speechLanguage,
     )
@@ -1024,6 +1075,26 @@ private constructor(
     /** At the start, legs this much further than the nearest count as just as near. */
     private const val SAME_LEG_METERS = 10.0
 
+    /** How far a rider follows a leg's course before joining it on the way to the start. */
+    private const val JOIN_ALONG_METERS = 50.0
+
+    /**
+     * The leg whose course is nearest to [fix] within [maxMeters], or `null`: the earliest of the
+     * legs about as near, as on a stretch used both ways a rounding difference must not put the
+     * rider on the way back, see `knot-navigation` "Leg ahead on the map".
+     */
+    private fun legOnCourse(fix: Fix, courses: List<List<GeoPoint>>, maxMeters: Double): Int? {
+      val distances =
+        courses
+          .withIndex()
+          .map { (index, course) ->
+            index to distanceToPolyline(fix.latitude, fix.longitude, course)
+          }
+          .filter { (_, distance) -> distance <= maxMeters }
+      val nearest = distances.minOfOrNull { (_, distance) -> distance } ?: return null
+      return distances.first { (_, distance) -> distance <= nearest + SAME_LEG_METERS }.first
+    }
+
     /** The rider's pace is measured over this much of the route, see "Ferry arrival estimate". */
     private const val PACE_WINDOW_METERS = 5000.0
 
@@ -1072,19 +1143,7 @@ private constructor(
           .dropLast(1)
           .indexOfFirst { distanceToNearestNode(fix, it) <= PASS_RADIUS_METERS }
           .let { if (it >= 0) lastWithin(knots, it, knots.lastIndex - 1, fix) else it }
-      val legDistances =
-        courses
-          ?.withIndex()
-          ?.map { (index, course) ->
-            index to distanceToPolyline(fix.latitude, fix.longitude, course)
-          }
-          ?.filter { (_, distance) -> distance <= OFF_COURSE_METERS }
-      // The earliest of the legs about as near: on a stretch used both ways, a rounding difference
-      // must not start the rider on the way back, see `knot-navigation` "Leg ahead on the map".
-      val nearest = legDistances?.minOfOrNull { (_, distance) -> distance }
-      val legIndex = nearest?.let {
-        legDistances.first { (_, distance) -> distance <= nearest + SAME_LEG_METERS }.first
-      }
+      val legIndex = courses?.let { legOnCourse(fix, it, OFF_COURSE_METERS) }
       val (nextIndex, offRoute) =
         when {
           startIndex >= 0 -> startIndex + 1 to false
@@ -1160,6 +1219,7 @@ private constructor(
             guided = null,
             directionWatch = null,
             joinedRoute = !offRoute,
+            joining = null,
             language = language,
             speechLanguage = speechLanguage,
           )
