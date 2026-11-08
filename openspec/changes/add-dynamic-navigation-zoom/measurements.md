@@ -26,4 +26,4 @@ Examples with the design's limits around Siegburg, to look at on the map:
 | 50.77521, 7.28599 | 2 over 41 m |
 | 50.79360, 7.14661 | 2 over 47 m |
 
-**For the maintainer to decide before any app work:** keep 60° within 100 m, or narrow it.
+**Decided by the maintainer, 2026-11-08:** keep 60° within 100 m.

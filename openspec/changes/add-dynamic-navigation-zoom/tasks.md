@@ -7,10 +7,10 @@
 
 ## 2. What the map shows
 
-- [ ] 2.1 Core: `MapFocus` for a fix, with its kind, the points to show and the limits in meters, in the order tricky spot, knot, after knot, base. Tests: "Riding between knots", "Tricky spot at a knot", "Off route".
-- [ ] 2.2 Core: the knot focus. Tests: "Approaching a knot" (rider, knot and 100 m after it), "Coming closer" (the focus stays the same kind and its points stay within the radius set at the start), "Knot at the end of the route".
-- [ ] 2.3 Core: the focus after passing a knot, timed by fix times. Tests: "Next knot 800 m ahead", "Next knot far ahead" (capped at 3 km), "Next knot close", "Tricky spot right after the knot", "Last knot passed".
-- [ ] 2.4 Core: the tricky spot focus on the route. Tests: "Approaching a zigzag", "Past the spot".
+- [x] 2.1 Core: `MapFocus` for a fix, with its kind, the points to show and the limits in meters, in the order tricky spot, knot, after knot, base. Tests: "Riding between knots", "Tricky spot at a knot", "Off route".
+- [x] 2.2 Core: the knot focus. Tests: "Approaching a knot" (rider, knot and 100 m after it), "Coming closer" (the focus stays the same kind and its points stay within the radius set at the start), "Knot at the end of the route".
+- [x] 2.3 Core: the focus after passing a knot, timed by fix times. Tests: "Next knot 800 m ahead", "Next knot far ahead" (capped at 3 km), "Next knot close", "Tricky spot right after the knot", "Last knot passed".
+- [x] 2.4 Core: the tricky spot focus on the route. Tests: "Approaching a zigzag", "Past the spot".
 
 ## 3. Android
 

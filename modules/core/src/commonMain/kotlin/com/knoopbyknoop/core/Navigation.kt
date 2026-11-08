@@ -193,6 +193,10 @@ private constructor(
   private val joining: Joining?,
   /** Per leg, where its way along paths leaves or joins the network, see [LegTurns]. */
   private val legTurns: List<LegTurns?>,
+  /** The route's tricky stretches, see `knot-navigation` "Tricky spots on the route". */
+  private val tricky: List<RouteTricky>,
+  /** When the last knot was passed, for "Zoom out after passing a knot". */
+  private val passedAtMillis: Long?,
   /** The language of the texts, see `app-languages`. */
   val language: Language,
   /**
@@ -565,6 +569,72 @@ private constructor(
     return navigation.copy(progressLine = line)
   }
 
+  /**
+   * What the map shows while following the rider at [fix], see `knot-navigation` "Zoom while
+   * following": a tricky spot wins over the next knot, the knot over the zoom-out after passing
+   * one, and that over the navigation zoom. Route points get the navigation zoom, as they have no
+   * signposts.
+   */
+  fun mapFocus(fix: Fix): MapFocus {
+    if (arrived) return MapFocus.BASE
+    if (offRoute) {
+      return MapFocus(MapFocusKind.OFF_ROUTE, nextIndex, listOfNotNull(wayToRoute(fix)), null, null)
+    }
+    val trickyAhead =
+      tricky.withIndex().firstOrNull { (_, stretch) ->
+        stretch.start - place <= MapFocus.TRICKY_AHEAD_METERS &&
+          place <= stretch.end + MapFocus.TRICKY_PAST_METERS
+      }
+    val course = trickyAhead?.let { courses?.getOrNull(it.value.leg) }
+    if (trickyAhead != null && course != null) {
+      val stretch = trickyAhead.value
+      return MapFocus(
+        MapFocusKind.TRICKY_SPOT,
+        trickyAhead.index,
+        stretchOfLine(
+          course,
+          stretch.startMeters,
+          stretch.endMeters + MapFocus.TRICKY_AFTER_METERS,
+        ),
+        MapFocus.TRICKY_CLOSEST_METERS,
+        null,
+      )
+    }
+    val next = knots[nextIndex]
+    if (next.isRoutePoint || nextIndex == 0) return MapFocus.BASE
+    if (remindedIndex == nextIndex) {
+      val after =
+        drawnCourses.getOrNull(nextIndex)?.let {
+          pointAlong(it.asSequence(), MapFocus.KNOT_AFTER_METERS)
+        }
+      return MapFocus(
+        MapFocusKind.KNOT,
+        nextIndex,
+        listOfNotNull(headedFor(nextIndex), after),
+        MapFocus.KNOT_CLOSEST_METERS,
+        null,
+      )
+    }
+    val passed = passedAtMillis
+    val passedPlace = route.offsets[nextIndex - 1]
+    // A tricky spot since the knot ends the zoom-out for good.
+    val trickySincePassing = tricky.any {
+      it.start >= passedPlace - 1 && it.start - place <= MapFocus.TRICKY_AHEAD_METERS
+    }
+    if (
+      passed != null && fix.timeMillis - passed <= MapFocus.AFTER_KNOT_MILLIS && !trickySincePassing
+    ) {
+      return MapFocus(
+        MapFocusKind.AFTER_KNOT,
+        nextIndex,
+        listOf(headedFor(nextIndex)),
+        null,
+        MapFocus.AFTER_KNOT_FARTHEST_METERS,
+      )
+    }
+    return MapFocus.BASE
+  }
+
   /** How precisely to sample next; [visible] is whether the app is on screen. */
   fun precision(visible: Boolean): Precision =
     when {
@@ -599,6 +669,7 @@ private constructor(
           navigation.copy(
             nextIndex = passedIndex,
             passedKnot = knots[passedIndex],
+            passedAtMillis = null,
             arrived = true,
             offRoute = false,
             directionWatch = null,
@@ -616,6 +687,7 @@ private constructor(
             offRoute = false,
             offRouteKnot = null,
             passedKnot = knots[passedIndex],
+            passedAtMillis = fix.timeMillis,
             remindedIndex = if (closeToPrevious(newNext)) newNext else remindedIndex,
             ferryWatch = ferries?.first ?: ferryWatch,
             pace = pace,
@@ -1076,6 +1148,7 @@ private constructor(
     directionWatch: DirectionWatch? = this.directionWatch,
     joinedRoute: Boolean = this.joinedRoute,
     joining: Joining? = this.joining,
+    passedAtMillis: Long? = this.passedAtMillis,
     language: Language = this.language,
     speechLanguage: Language = this.speechLanguage,
   ) =
@@ -1107,6 +1180,8 @@ private constructor(
       joinedRoute || !offRoute,
       joining,
       legTurns,
+      tricky,
+      passedAtMillis,
       language,
       speechLanguage,
     )
@@ -1336,6 +1411,8 @@ private constructor(
             joinedRoute = !offRoute,
             joining = null,
             legTurns = courses?.let { legTurnsOf(knots, graph, it) } ?: knots.drop(1).map { null },
+            tricky = routeTricky(courses, route.offsets),
+            passedAtMillis = null,
             language = language,
             speechLanguage = speechLanguage,
           )
