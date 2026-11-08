@@ -150,6 +150,11 @@ data class AppState(
   val newKnots: NewKnots = NewKnots.STOP,
   /** The appearance chosen in the info sheet, see `map-planning` "Light and dark appearance". */
   val appearance: Appearance = Appearance.SYSTEM,
+  /**
+   * Whether places useful on a ride are highlighted, see `map-planning` "Switch for places on the
+   * map".
+   */
+  val places: Boolean = true,
   /** How far the path data for the planned route is ready, `null` if none is wanted. */
   val pathData: PathDataStatus? = null,
   /** The data date of the installed path data. */
@@ -257,6 +262,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
           settings.getString(KEY_APPEARANCE, null)?.let { saved ->
             Appearance.entries.firstOrNull { it.name == saved }
           } ?: Appearance.SYSTEM,
+        places = settings.getBoolean(KEY_PLACES, true),
         pathDataDate = paths.dataDate,
         initialPlace = camera,
         askLocationOnStart = camera == null && storage.route()?.waypoints.isNullOrEmpty(),
@@ -418,6 +424,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   fun chooseAppearance(appearance: Appearance) {
     settings.edit().putString(KEY_APPEARANCE, appearance.name).apply()
     state = state.copy(appearance = appearance)
+  }
+
+  /**
+   * Turns the highlighted places on or off and keeps the choice, see `map-planning` "Switch for
+   * places on the map".
+   */
+  fun choosePlaces(places: Boolean) {
+    settings.edit().putBoolean(KEY_PLACES, places).apply()
+    state = state.copy(places = places)
   }
 
   /** The start's question for location access was asked, see "Show my position". */
@@ -924,6 +939,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 private const val LOCATE_TIMEOUT_MILLIS = 15_000L
 
 private const val KEY_APPEARANCE = "appearance"
+private const val KEY_PLACES = "places"
 private const val PATH_DATA_DELAY_MILLIS = 2000L
 
 private const val KEY_NEW_KNOTS = "new_knots"

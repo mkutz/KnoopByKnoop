@@ -19,6 +19,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -59,6 +60,21 @@ fun InfoSheet(state: AppState, viewModel: AppViewModel, onDismiss: () -> Unit) {
             Text(stringResource(appearance.label))
           }
         }
+      }
+      // Places useful on a ride, see `map-planning` "Switch for places on the map".
+      Row(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
+          Text(stringResource(R.string.places_on_map), style = MaterialTheme.typography.titleLarge)
+          Text(
+            stringResource(R.string.places_on_map_kinds),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+        }
+        Switch(checked = state.places, onCheckedChange = viewModel::choosePlaces)
       }
       // The app's language, see `app-languages` "Language setting".
       Text(stringResource(R.string.language), style = MaterialTheme.typography.titleLarge)

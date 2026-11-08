@@ -52,6 +52,8 @@
   <string name="needs_location_position">Knoop by Knoop heeft toegang tot je locatie nodig om je positie te tonen.</string>
   <string name="waypoint_removed">Routepunt %1$s bestaat niet meer en is uit de route verwijderd.</string>
   <string name="appearance">Weergave</string>
+  <string name="places_on_map">Plaatsen op de kaart</string>
+  <string name="places_on_map_kinds">Eten, supermarkten, fietsenwinkels, stations, water en toiletten</string>
   <string name="appearance_system">Systeem</string>
   <string name="appearance_light">Licht</string>
   <string name="appearance_dark">Donker</string>

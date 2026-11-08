@@ -39,6 +39,7 @@ import com.knoopbyknoop.core.MapFeatures
 import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkGraph
 import com.knoopbyknoop.core.PlaceHit
+import com.knoopbyknoop.core.PlaceKind
 import com.knoopbyknoop.core.RiddenTrack
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
@@ -171,6 +172,20 @@ private const val TOUCH_TARGET_DP = 24f
 private const val GREEN = "#2E9E5B"
 private const val ORANGE = "#F28C28"
 
+/** The base map's vector source, with the places. */
+private const val BASE_MAP_SOURCE = "openmaptiles"
+
+/** The invisible copies of the knot badges that keep places clear of them. */
+private const val KNOT_ROOM_LAYER = "places-knot-room"
+private const val ROUTE_KNOT_ROOM_LAYER = "places-route-knot-room"
+
+/** The place icons' scale, so the disc is a little smaller than a far knot's badge. */
+private const val PLACE_ICON_SIZE = 1f
+
+private const val PLACE_TEXT_LIGHT = "#3F4541"
+private const val PLACE_TEXT_DARK = "#D6DDD8"
+private const val PLACE_HALO_DARK = "#1E2320"
+
 /** A place on the map, saved when the app goes to the background, see `faster-startup`. */
 data class CameraPlace(val latitude: Double, val longitude: Double, val zoom: Double)
 
@@ -251,6 +266,10 @@ fun NetworkMap(
    * open.
    */
   holdAppearance: Boolean = false,
+  /**
+   * Whether places useful on a ride are highlighted, see `map-planning` "Places useful on a ride".
+   */
+  places: Boolean = true,
 ) {
   val context = LocalContext.current
   val touchTargetPixels = with(LocalDensity.current) { TOUCH_TARGET_DP * density }
@@ -259,6 +278,9 @@ fun NetworkMap(
   val dark = isAppInDarkTheme()
   holder.dark = dark
   holder.online = online
+  holder.placeIcons = remember {
+    PlaceKind.entries.associate { it.iconName to placeBitmap(context, it) }
+  }
   val mapView = remember {
     MapLibre.getInstance(context)
     // Before any style is loaded, the map shows the offline style's background, not MapLibre's.
@@ -363,6 +385,7 @@ fun NetworkMap(
     holder.compassStart = topControlsStart
     holder.placeCompass()
   }
+  LaunchedEffect(places) { holder.showPlaces(places) }
   LaunchedEffect(shownKnot) { shownKnot?.let { holder.showKnot(it.knot) } }
   // The offline style has no base map; it is loaded as soon as network access is back.
   LaunchedEffect(online) { if (online && holder.usesOfflineStyle) holder.loadBaseMap() }
@@ -569,6 +592,8 @@ private class MapHolder {
       return
     }
     addLayers(loaded)
+    placesFilters = mapOf()
+    updatePlaces(loaded)
     updateMarker(loaded)
     updateOffer(loaded)
     updateNavigation(loaded)
@@ -671,6 +696,102 @@ private class MapHolder {
   private var marker: PlaceHit? = null
   var onOfferMoved: (Float, Float) -> Unit = { _, _ -> }
   private var offerPlace: GeoPoint? = null
+
+  /** The icons of the highlighted places by image name. */
+  var placeIcons: Map<String, android.graphics.Bitmap> = mapOf()
+
+  private var placesShown = true
+
+  /** The base map's own filters of its place layers, as loaded, to restore them. */
+  private var placesFilters: Map<String, Expression?> = mapOf()
+
+  fun showPlaces(shown: Boolean) {
+    if (shown == placesShown) return
+    placesShown = shown
+    style?.let { updatePlaces(it) }
+  }
+
+  /**
+   * Highlights places useful on a ride, or takes them away again, see `map-planning` "Places useful
+   * on a ride": the base map's place layers leave our kinds out, our layer draws them from zoom 14
+   * below everything of ours, and invisible copies of the knot badges keep places and the base
+   * map's labels clear of the badges from zoom 14. The offline style has no places.
+   */
+  private fun updatePlaces(style: Style) {
+    if (style.getSource(BASE_MAP_SOURCE) == null) return
+    if (placesFilters.isEmpty()) {
+      placesFilters =
+        PlaceKind.BASE_MAP_LAYERS.mapNotNull { id ->
+            (style.getLayer(id) as? SymbolLayer)?.let { id to it.filter }
+          }
+          .toMap()
+    }
+    val notPlaces = Expression.raw(PlaceKind.notPlacesFilter)
+    for ((id, filter) in placesFilters) {
+      val layer = style.getLayer(id) as? SymbolLayer ?: continue
+      when {
+        placesShown -> layer.setFilter(filter?.let { Expression.all(it, notPlaces) } ?: notPlaces)
+        filter != null -> layer.setFilter(filter)
+        else -> layer.setFilter(Expression.literal(true))
+      }
+    }
+    val roomIds = listOf("knots" to KNOT_ROOM_LAYER, "route-knots" to ROUTE_KNOT_ROOM_LAYER)
+    if (!placesShown) {
+      roomIds.forEach { (_, id) -> style.removeLayer(id) }
+      style.removeLayer(PlaceKind.NAMED_LAYER_ID)
+      style.removeLayer(PlaceKind.LAYER_ID)
+      return
+    }
+    if (style.getLayer(PlaceKind.LAYER_ID) != null) return
+    for ((name, icon) in placeIcons) style.addImage(name, icon)
+    val dark = styleDark == true
+    fun places(id: String, named: Boolean) =
+      SymbolLayer(id, BASE_MAP_SOURCE)
+        .withSourceLayer(PlaceKind.SOURCE_LAYER)
+        .withFilter(Expression.raw(PlaceKind.placesFilter))
+        .withProperties(
+          PropertyFactory.iconImage(Expression.raw(PlaceKind.placesIcon)),
+          PropertyFactory.iconSize(PLACE_ICON_SIZE),
+        )
+        .apply {
+          if (named) {
+            setProperties(
+              PropertyFactory.textField(Expression.raw(PlaceKind.placesText)),
+              PropertyFactory.textFont(arrayOf("Noto Sans Regular")),
+              PropertyFactory.textSize(12f),
+              PropertyFactory.textAnchor(Property.TEXT_ANCHOR_LEFT),
+              PropertyFactory.textOffset(arrayOf(1.1f, 0f)),
+              PropertyFactory.textMaxWidth(9f),
+              PropertyFactory.textOptional(true),
+              PropertyFactory.textColor(if (dark) PLACE_TEXT_DARK else PLACE_TEXT_LIGHT),
+              PropertyFactory.textHaloColor(if (dark) PLACE_HALO_DARK else "#FFFFFF"),
+              PropertyFactory.textHaloWidth(1.2f),
+            )
+            minZoom = PlaceKind.NAME_ZOOM.toFloat()
+          } else {
+            minZoom = PlaceKind.MIN_ZOOM.toFloat()
+            maxZoom = PlaceKind.NAME_ZOOM.toFloat()
+          }
+        }
+    style.addLayerBelow(places(PlaceKind.LAYER_ID, named = false), "marker")
+    style.addLayerAbove(places(PlaceKind.NAMED_LAYER_ID, named = true), PlaceKind.LAYER_ID)
+    // Invisible copies of the badges, placed before the places and the base map's labels below, so
+    // those give way to a knot, see `map-planning` "Knot next to a café".
+    for ((source, id) in roomIds) {
+      val badges = style.getLayer(source) as? SymbolLayer ?: continue
+      style.addLayerAbove(
+        SymbolLayer(id, source)
+          .withProperties(
+            PropertyFactory.iconImage(badges.iconImage.expression!!),
+            PropertyFactory.iconOpacity(0f),
+            PropertyFactory.iconAllowOverlap(true),
+            PropertyFactory.iconIgnorePlacement(false),
+          )
+          .apply { minZoom = PlaceKind.MIN_ZOOM.toFloat() },
+        PlaceKind.NAMED_LAYER_ID,
+      )
+    }
+  }
 
   fun showOffer(place: GeoPoint?) {
     offerPlace = place

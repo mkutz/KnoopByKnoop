@@ -466,6 +466,28 @@
         }
       }
     },
+    "Food, supermarkets, bike shops, stations, water and toilets": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Essen, Supermärkte, Fahrradläden, Bahnhöfe, Wasser und Toiletten"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eten, supermarkten, fietsenwinkels, stations, water en toiletten"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restauration, supermarchés, magasins de vélos, gares, eau et toilettes"
+          }
+        }
+      }
+    },
     "Guides you back to the route along suitable paths, also without a connection. The app downloads the ways around planned cycling routes from GitHub, so GitHub can see the rough area of a route, but never where you are.": {
       "localizations": {
         "de": {
@@ -1056,6 +1078,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Horaires inconnus"
+          }
+        }
+      }
+    },
+    "Places on the map": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orte auf der Karte"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plaatsen op de kaart"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lieux sur la carte"
           }
         }
       }

@@ -56,7 +56,7 @@ With the switch off, the original filters are restored and `places` is removed, 
 
 Each icon is a filled disc in the kind's colour with a white glyph and a thin white edge, the size of a far-away knot badge, drawn by the apps' badge code and added to the style as `place-<key>`:
 - **Android:** Material Symbols vector drawables `restaurant`, `shopping_cart`, `pedal_bike`, `train`, `water_drop`, bundled as drawables
-- **iOS:** SF Symbols `fork.knife`, `cart.fill`, `bicycle`, `tram.fill`, `drop.fill`
+- **iOS:** SF Symbols `fork.knife`, `cart.fill`, `bicycle`, `lightrail.fill`, `drop.fill`
 
 Water and toilets share one kind and one icon (the drop). Toilets get their own glyph only if the mockup shows the drop misleads.
 
@@ -65,17 +65,38 @@ Water and toilets share one kind and one icon (the drop). Toilets get their own 
 ### Colours away from the signs
 
 The discs must not read as a knot (NRW red `#C8102E`, NL green `#12663A`, BE blue `#1A5FB4`, app green `#2E9E5B`), nor as a problem (dark) or the route. Starting palette, settled in the mockup (task 1.2) before code:
-- food and drink: orange `#D9600F`
+- food and drink: magenta `#B0268C` (was orange `#D9600F`, see As built)
 - supermarket: purple `#7A3E9D`
 - bicycle: brown `#8A5A2B`
 - railway: slate `#3D4A5C`
-- water and toilets: cyan `#0B8FA8`
+- water and toilets: teal `#00897B` (was cyan `#0B8FA8`, see As built)
 
-The white glyph needs at least 3:1 contrast on each. On the dark map, the same colours with a dark edge.
+The white glyph needs at least 3:1 contrast on each. On the dark map, the same colours with the same white edge.
 
 ### The switch
 
 "Places on the map", a toggle in the info sheet below the appearance choice, stored as `places` (`true` by default) next to `appearance`. Changing it updates the layers on the running style.
+
+### As built (2026-11-07)
+
+**Tiles read** (task 1.1): 16 OpenFreeMap tiles at z14 (version 20261101) over Troisdorf, Siegburg, Utrecht and Hasselt. The `poi` pairs of our kinds, with counts:
+- food and drink: `restaurant`/`restaurant` 589, `fast_food`/`fast_food` 278, `cafe`/`cafe` 181, `beer`/`pub` 143, `bar`/`bar` 81, `ice_cream`/`ice_cream` 37, `beer`/`biergarten` 7
+- supermarket: `grocery`/`supermarket` 98
+- bicycle: `bicycle`/`bicycle` 67
+- railway: `railway`/`station` 19, next to `railway`/`tram_stop` 2, which stays out
+- water and toilets: `drinking_water`/`drinking_water` 46, `toilets`/`toilets` 38
+
+No `bicycle_repair_station` and no `halt` appear, so OpenMapTiles doesn't carry repair stations; the bicycle kind covers shops only, as the spec allows. `halt` stays in the match in case a tile has one. Left out on purpose: `bar`/`nightclub`, `bakery`, `shop`/`convenience`, and `bicycle_parking` (1,356, far too many).
+
+**Colours** (task 1.2, settled on 2026-11-08): the maintainer applied the change after seeing the mockup (https://claude.ai/artifact/SzXTPw6ypsP4e9sRDCLVSt). Two colours changed on their choice while building: the colour test found the cyan only 23° of hue from the Belgian blue, so water and toilets are teal `#00897B`; and the mockup had drawn the route green, but the app's route is orange `#F28C28`, only 6° from the food orange, so food and drink are magenta `#B0268C`. `PlaceKindTest` checks every disc against the sign colours, the app green, the route and the other kinds: distinct means an RGB distance over 0.25 or a hue difference over 25°. The white edge stays on the dark map too, since slate and purple alone sink into the dark land (1.8:1 and 2.3:1). Food and drink start at z14 like the others; the busy-centre question is a ride check.
+
+**Two layers instead of a zoom step in the text:** `places` (icons, z14–16) and `places-named` (icons and names, from z16). A zoom step in `text-field` is evaluated at the tile's zoom and showed names only from about z17 with the 512-pixel tiles; a layer's zoom range follows the map's zoom.
+
+**Knots keep places away:** the knot badges ignore placement, so they don't push other symbols away. Invisible copies of the badges (`places-knot-room`, `places-route-knot-room`) from z14, placed above the place layers, make places, and base map labels below them, give way to a badge. The maintainer chose this on 2026-11-08 over drawing places under the badges, knowing that base map labels under a knot are hidden from z14 too. Only while places are on.
+
+**Station glyph on iOS:** `lightrail.fill`, a front view like Material `train`; `train.side.front.car` drew as an unclear side view at this size.
+
+**Tram stops stay grey:** e.g. "Siegburg Bahnhof", the tram stop next to the station "Siegburg/Bonn", is `railway`/`tram_stop` and keeps the base map's blue icon, as designed.
 
 ## Risks / Trade-offs
 

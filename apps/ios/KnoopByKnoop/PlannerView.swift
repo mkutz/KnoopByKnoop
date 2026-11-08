@@ -11,6 +11,8 @@ struct PlannerView: View {
   @ObservedObject private var navigator = Navigator.shared
   @State private var pendingNetwork: IndexedNetworkType?
   @State private var showInfo = false
+  /// Whether places useful on a ride are highlighted, see `map-planning` "Switch for places on the map".
+  @AppStorage("places") private var places = true
   @State private var detent: PresentationDetent = smallestDetent
   /// The height of the summary and the actions, the knots and the switch while planning, with their
   /// padding, see `planningDetent`.
@@ -165,6 +167,7 @@ struct PlannerView: View {
   private func content(landscape: Bool, keyboardShown: Bool, screen: GeometryProxy) -> some View {
     ZStack(alignment: .top) {
       NetworkMapView(
+        places: places,
         graph: model.session?.graph, layers: model.layers, focus: model.session.map(focus) ?? [],
         onTap: model.tap(latitude:longitude:radiusMeters:at:),
         online: model.online,

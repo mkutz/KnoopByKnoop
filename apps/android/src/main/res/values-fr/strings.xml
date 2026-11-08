@@ -52,6 +52,8 @@
   <string name="needs_location_position">Knoop by Knoop a besoin d\'accéder à votre position pour l\'afficher.</string>
   <string name="waypoint_removed">Le point %1$s n\'existe plus et a été retiré de l\'itinéraire.</string>
   <string name="appearance">Apparence</string>
+  <string name="places_on_map">Lieux sur la carte</string>
+  <string name="places_on_map_kinds">Restauration, supermarchés, magasins de vélos, gares, eau et toilettes</string>
   <string name="appearance_system">Système</string>
   <string name="appearance_light">Clair</string>
   <string name="appearance_dark">Sombre</string>

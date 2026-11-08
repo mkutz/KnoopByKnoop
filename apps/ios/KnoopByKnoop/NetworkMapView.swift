@@ -77,6 +77,8 @@ struct CameraPlace: Codable {
 /// The map is shown before a network is loaded (`graph` and `layers` `nil`), at `initialPlace` if
 /// there is one, see `map-planning` "Map, knots and courses one after the other".
 struct NetworkMapView: UIViewRepresentable {
+  /// Whether places useful on a ride are highlighted, see `map-planning` "Places useful on a ride".
+  var places = true
 
   let graph: NetworkGraph?
   let layers: MapLayers?
@@ -286,6 +288,7 @@ struct NetworkMapView: UIViewRepresentable {
     context.coordinator.locateButton?.accessibilityLabel =
       String(localized: "My position", bundle: AppLanguage.bundle)
     context.coordinator.onTap = onTap
+    context.coordinator.showPlaces(places)
     context.coordinator.onLeave = onLeave
     context.coordinator.onMove = onMove
     context.coordinator.showMarker(marker, on: mapView)
@@ -734,6 +737,8 @@ struct NetworkMapView: UIViewRepresentable {
       shownNetwork = nil
       shownRoute = nil
       addLayers(to: style)
+      placesPredicates = nil
+      updatePlaces(on: style)
       update()
       // The appearance may have changed again while this style was loading.
       reloadStyleIfAppearanceChanged(on: mapView)
@@ -954,6 +959,108 @@ struct NetworkMapView: UIViewRepresentable {
       copy.lineCap = layer.lineCap
       copy.lineJoin = layer.lineJoin
       return copy
+    }
+
+    private var placesShown = true
+
+    /// The base map's own filters of its place layers, as loaded, to restore them.
+    private var placesPredicates: [String: NSPredicate?]?
+
+    func showPlaces(_ shown: Bool) {
+      guard shown != placesShown else { return }
+      placesShown = shown
+      if let style { updatePlaces(on: style) }
+    }
+
+    private func json(_ text: String) -> Any {
+      try! JSONSerialization.jsonObject(with: Data(text.utf8), options: [.fragmentsAllowed])
+    }
+
+    /// Highlights places useful on a ride, or takes them away again, see `map-planning` "Places
+    /// useful on a ride": the base map's place layers leave our kinds out, our layers draw them from
+    /// zoom 14 below everything of ours, and invisible copies of the knot badges keep places and the
+    /// base map's labels clear of the badges from zoom 14. The offline style has no places.
+    private func updatePlaces(on style: MLNStyle) {
+      guard let source = style.source(withIdentifier: "openmaptiles") as? MLNVectorTileSource else { return }
+      let companion = PlaceKind.companion
+      if placesPredicates == nil {
+        var predicates: [String: NSPredicate?] = [:]
+        for identifier in companion.BASE_MAP_LAYERS {
+          if let layer = style.layer(withIdentifier: identifier) as? MLNSymbolStyleLayer {
+            predicates[identifier] = layer.predicate
+          }
+        }
+        placesPredicates = predicates
+      }
+      let notPlaces = NSPredicate(mglJSONObject: json(companion.notPlacesFilter))
+      for (identifier, predicate) in placesPredicates ?? [:] {
+        guard let layer = style.layer(withIdentifier: identifier) as? MLNSymbolStyleLayer else { continue }
+        if placesShown {
+          layer.predicate =
+            predicate.map { NSCompoundPredicate(andPredicateWithSubpredicates: [$0, notPlaces]) } ?? notPlaces
+        } else {
+          layer.predicate = predicate
+        }
+      }
+      let rooms = [("knots", "places-knot-room"), ("route-knots", "places-route-knot-room")]
+      guard placesShown else {
+        for identifier in rooms.map(\.1) + [companion.NAMED_LAYER_ID, companion.LAYER_ID] {
+          if let layer = style.layer(withIdentifier: identifier) { style.removeLayer(layer) }
+        }
+        return
+      }
+      guard style.layer(withIdentifier: companion.LAYER_ID) == nil,
+        let marker = style.layer(withIdentifier: "marker")
+      else { return }
+      for kind in [PlaceKind.food, .supermarket, .bicycle, .railway, .water] {
+        style.setImage(PlaceIcons.image(kind), forName: kind.iconName)
+      }
+      let dark = styleDark == true
+      func places(_ identifier: String, named: Bool) -> MLNSymbolStyleLayer {
+        let layer = MLNSymbolStyleLayer(identifier: identifier, source: source)
+        layer.sourceLayerIdentifier = companion.SOURCE_LAYER
+        layer.predicate = NSPredicate(mglJSONObject: json(companion.placesFilter))
+        layer.iconImageName = NSExpression(mglJSONObject: json(companion.placesIcon))
+        if named {
+          layer.text = NSExpression(mglJSONObject: json(companion.placesText))
+          layer.textFontNames = NSExpression(forConstantValue: ["Noto Sans Regular"])
+          layer.textFontSize = NSExpression(forConstantValue: 12)
+          layer.textAnchor = NSExpression(forConstantValue: "left")
+          layer.textOffset = NSExpression(forConstantValue: NSValue(cgVector: CGVector(dx: 1.1, dy: 0)))
+          layer.maximumTextWidth = NSExpression(forConstantValue: 9)
+          layer.textOptional = NSExpression(forConstantValue: true)
+          layer.textColor = NSExpression(
+            forConstantValue: dark
+              ? UIColor(red: 0xD6 / 255, green: 0xDD / 255, blue: 0xD8 / 255, alpha: 1)
+              : UIColor(red: 0x3F / 255, green: 0x45 / 255, blue: 0x41 / 255, alpha: 1))
+          layer.textHaloColor = NSExpression(
+            forConstantValue: dark ? UIColor(red: 0x1E / 255, green: 0x23 / 255, blue: 0x20 / 255, alpha: 1) : .white)
+          layer.textHaloWidth = NSExpression(forConstantValue: 1.2)
+          layer.minimumZoomLevel = Float(companion.NAME_ZOOM)
+        } else {
+          layer.minimumZoomLevel = Float(companion.MIN_ZOOM)
+          layer.maximumZoomLevel = Float(companion.NAME_ZOOM)
+        }
+        return layer
+      }
+      let icons = places(companion.LAYER_ID, named: false)
+      style.insertLayer(icons, below: marker)
+      let named = places(companion.NAMED_LAYER_ID, named: true)
+      style.insertLayer(named, above: icons)
+      // Invisible copies of the badges, placed before the places and the base map's labels below,
+      // so those give way to a knot, see `map-planning` "Knot next to a café".
+      for (badgesIdentifier, identifier) in rooms {
+        guard let badges = style.layer(withIdentifier: badgesIdentifier) as? MLNSymbolStyleLayer,
+          let badgeSource = style.source(withIdentifier: badgesIdentifier)
+        else { continue }
+        let room = MLNSymbolStyleLayer(identifier: identifier, source: badgeSource)
+        room.iconImageName = badges.iconImageName
+        room.iconOpacity = NSExpression(forConstantValue: 0)
+        room.iconAllowsOverlap = NSExpression(forConstantValue: true)
+        room.iconIgnoresPlacement = NSExpression(forConstantValue: false)
+        room.minimumZoomLevel = Float(companion.MIN_ZOOM)
+        style.insertLayer(room, above: named)
+      }
     }
 
     private func addLayers(to style: MLNStyle) {

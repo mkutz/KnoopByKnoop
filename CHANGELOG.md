@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Places that matter on a ride stand out on the map from zoom 14: food and drink, supermarkets, bike shops, railway stations, and drinking water and toilets, each with its own icon on a coloured disc, with names from zoom 16. They give way to knots, sit below the route, and come with the base map, so nothing extra is downloaded. A switch in the info sheet turns them off
 - Started away from the route, riding onto its course and along it now joins the route there, with the knot ahead next, instead of still leading to the first knot
 - Close to a knot, the arrow on the sign plate shows which way the route goes there: straight on, slightly or sharply left or right, or back, in the app, on the lock screen and in the notification. Without the network's courses it stays a plain arrow
 - The lock screen, the Dynamic Island and the Pixel's notification and status chip show the same as the top of the panel, without words: the knots, the sign plate close to a knot, the arrow and distance back to the route, and the arrival at the end after ■. Off route and riding the wrong way, the iPhone's card turns to the opposite of its usual light or dark

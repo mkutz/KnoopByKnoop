@@ -364,6 +364,7 @@ private fun MapArea(
     var topControlsBottom by remember { mutableIntStateOf(0) }
     var topControlsStart by remember { mutableIntStateOf(0) }
     NetworkMap(
+      places = state.places,
       // The map follows an appearance chosen in the info sheet when the sheet closes, see
       // `map-planning` "Choosing the appearance in the info sheet".
       holdAppearance = infoShown,

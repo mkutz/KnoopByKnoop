@@ -9,6 +9,9 @@ struct InfoSheet: View {
   let onDone: () -> Void
   /// The appearance of the whole app, see `map-planning` "Light and dark appearance".
   @AppStorage("appearance") private var appearance = "system"
+  /// Whether places useful on a ride are highlighted, see `map-planning` "Switch for places on the
+  /// map".
+  @AppStorage("places") private var places = true
   /// The language of the app, see `app-languages` "Language setting".
   @AppStorage(AppLanguage.storageKey) private var language = "system"
 
@@ -22,6 +25,16 @@ struct InfoSheet: View {
             Text("Dark").tag("dark")
           }
           .pickerStyle(.segmented)
+        }
+        Section {
+          Toggle(isOn: $places) {
+            VStack(alignment: .leading) {
+              Text("Places on the map")
+              Text("Food, supermarkets, bike shops, stations, water and toilets")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+            }
+          }
         }
         Section("Language") {
           Picker("Language", selection: $language) {

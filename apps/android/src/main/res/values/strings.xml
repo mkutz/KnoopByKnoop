@@ -53,6 +53,8 @@
   <string name="needs_location_position">Knoop by Knoop needs location access to show your position.</string>
   <string name="waypoint_removed">Waypoint %1$s no longer exists and was removed from the route.</string>
   <string name="appearance">Appearance</string>
+  <string name="places_on_map">Places on the map</string>
+  <string name="places_on_map_kinds">Food, supermarkets, bike shops, stations, water and toilets</string>
   <string name="appearance_system">System</string>
   <string name="appearance_light">Light</string>
   <string name="appearance_dark">Dark</string>
