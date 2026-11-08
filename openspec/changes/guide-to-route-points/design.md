@@ -32,7 +32,7 @@
 - Between the turn-off and the route point, and from a route point to the network, the header shows the light tile of the way to the route after starting elsewhere: the arrow and distance, the next turn and its street. Not the dark one, as the rider is on route (the maintainer, 2026-11-08).
 
 ### Turns after the turn-off from a guided way
-- When the rider reaches the turn-off, `WayGuide` searches a way from the rider to the route point, as it does off route, and follows it with `GuidedWay`. So the turns, the reminders, leaving the way and searching again work as on the way back to the route.
+- 300 m before the turn-off, `WayGuide` searches the way from the turn-off to the route point; it names the turn-off's street. From 40 m before the turn-off it follows that way with `GuidedWay`, or searches one from the rider if there is none, as it does off route. So the turns, the reminders, leaving the way and searching again work as on the way back to the route; the guided way tells each turn once, as off route.
 - **Why search again:** the planned way is only points; searching from the turn-off gives the turns and streets, from the same path data and so nearly the same way.
 - **Alternative:** keeping the `PathWay` of the planning in the route point. It would need storing turns in the saved route, and a route restored after an app update would have none.
 

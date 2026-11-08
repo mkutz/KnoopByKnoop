@@ -9,14 +9,17 @@ package com.knoopbyknoop.core
  * @property position where the way leaves or joins the course
  * @property direction the turn there, or `null` where the course or the way is too short to tell
  * @property towards the knot the course leads to in the riding direction, `null` if unknown
- * @property heading the riding direction just before the turn, clockwise from north
+ * @property lead the leg's course from the turn to a little after it, to look for the way from its
+ *   end: at the turn itself, a search could start on a path crossing above or below
+ * @property restMeters how far the leg goes on after the turn
  */
 internal class NetworkTurn(
   val meters: Double,
   val position: GeoPoint,
   val direction: TurnDirection?,
   val towards: Knot?,
-  val heading: Double?,
+  val lead: List<GeoPoint>,
+  val restMeters: Double,
 )
 
 /**
@@ -50,6 +53,9 @@ internal class NetworkLeg(
       return null
     }
 }
+
+/** How far after a turn-off the way to the route point is looked for from. */
+private const val WAY_SEARCH_AFTER_METERS = 40.0
 
 /** Within this distance of a turn-off or a join, the rider is told to turn now. */
 internal const val NETWORK_TURN_NOW_METERS = 40.0
@@ -98,8 +104,8 @@ private fun networkTurn(course: List<GeoPoint>, meters: Double, towards: Knot?):
   val known =
     beforeMeters >= Navigation.TURN_MIN_METERS && afterMeters >= Navigation.TURN_MIN_METERS
   val direction = if (known) turnOf(signedAngle(heading(before, at), heading(at, after))) else null
-  val riding = if (beforeMeters >= Navigation.TURN_MIN_METERS) heading(before, at) else null
-  return NetworkTurn(meters, at, direction, towards, riding?.let { (it + 360) % 360 })
+  val lead = stretchOf(course, meters, meters + WAY_SEARCH_AFTER_METERS)
+  return NetworkTurn(meters, at, direction, towards, lead, lengthOf(course) - meters)
 }
 
 /** The knot the course of [routePoint] leads to, riding from [from] towards the point. */
@@ -127,6 +133,38 @@ private fun towardsTo(routePoint: RoutePoint, to: Knot, graph: NetworkGraph): Kn
       else -> return null
     }
   return graph.knots[id]
+}
+
+/** [line] from [from] to [to] meters along it, with the points between. */
+private fun stretchOf(line: List<GeoPoint>, from: Double, to: Double): List<GeoPoint> {
+  val inside = mutableListOf<GeoPoint>()
+  var covered = 0.0
+  for ((start, end) in line.zipWithNext()) {
+    covered += distanceMeters(start.latitude, start.longitude, end.latitude, end.longitude)
+    if (covered > from && covered < to) inside += end
+  }
+  return listOf(pointOn(line, from)) + inside + pointOn(line, to)
+}
+
+/** [way], found from the end of [lead], with [lead] in front of it, so it starts at the turn. */
+internal fun ledBy(lead: List<GeoPoint>, way: PathWay): PathWay {
+  val points = lead + way.points
+  var total = 0.0
+  val meters = points.mapIndexed { index, point ->
+    if (index > 0) {
+      val before = points[index - 1]
+      total += distanceMeters(before.latitude, before.longitude, point.latitude, point.longitude)
+    }
+    total
+  }
+  val offset = meters[lead.size]
+  return PathWay(
+    points,
+    meters,
+    way.turns.map { it.copy(atMeters = it.atMeters + offset) },
+    startsBack = false,
+    firstName = way.firstName,
+  )
 }
 
 /** The point [meters] along [line], clamped to its ends. */

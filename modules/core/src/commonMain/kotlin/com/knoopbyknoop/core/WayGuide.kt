@@ -43,6 +43,7 @@ class WayGuide {
    * "now"), and the way from the turn-off to the route point, found ahead of it for the street.
    */
   private class LegState(val leg: Int) {
+    var turnOff: NetworkTurn? = null
     var turnOffTold = 0
     var joinTold = 0
     var aheadSearched = false
@@ -164,9 +165,11 @@ class WayGuide {
     if (fix.accuracyMeters > Navigation.PRECISE_ACCURACY_METERS) return null
     if (turnOff.meters - leg.meters > AHEAD_METERS) return null
     state.aheadSearched = true
+    state.turnOff = turnOff
     searching = true
     aheadSearch = state
-    return WaySearch(turnOff.position, leg.pointPosition, turnOff.heading)
+    // From a little into the way and without a riding direction: it starts with the turn.
+    return WaySearch(turnOff.lead.last(), leg.pointPosition, null)
   }
 
   private fun withinReach(target: GeoPoint?, fix: Fix): Boolean {
@@ -263,7 +266,12 @@ class WayGuide {
     aheadSearch = null
     if (navigation == null || navigation.arrived) return
     if (ahead != null) {
-      ahead.ahead = found
+      val turnOff = ahead.turnOff
+      // Much longer than the planned way, it went wrong, e.g. from a path crossing at the start.
+      ahead.ahead =
+        found
+          ?.takeIf { turnOff != null && it.lengthMeters <= turnOff.restMeters * 1.5 + 100 }
+          ?.let { ledBy(turnOff!!.lead, it) }
       return
     }
     if (navigation.offRoute || navigation.offNetworkTarget() != null) {

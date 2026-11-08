@@ -135,15 +135,19 @@ class RoutePointGuidanceTest {
     return PathWay(points.toList(), meters, turns, firstName = firstName)
   }
 
-  /** The way from the turn-off to the flag, as the path data would have it. */
-  private val toTheFlag =
-    wayOf(
-      at(1500.0),
-      at(1500.0, 200.0),
+  /** The way to the flag from where [search] starts, as the path data would have it. */
+  private fun toTheFlag(search: WaySearch): PathWay {
+    val corner = at(1500.0, 200.0)
+    val toCorner =
+      distanceMeters(search.from.latitude, search.from.longitude, corner.latitude, corner.longitude)
+    return wayOf(
+      search.from,
+      corner,
       at(1350.0, 200.0),
-      turns = listOf(PathTurn(200.0, TurnDirection.LEFT, "Kronprinzenstraße")),
+      turns = listOf(PathTurn(toCorner, TurnDirection.LEFT, "Kronprinzenstraße")),
       firstName = "Cecilienstraße",
     )
+  }
 
   // Requirement: Guidance to a route point off the network
 
@@ -188,7 +192,7 @@ class RoutePointGuidanceTest {
 
   @Test
   fun `leaving the network`() {
-    val ride = start(knot45, end, east = 1000.0).along(1000.0, 1500.0) { toTheFlag }
+    val ride = start(knot45, end, east = 1000.0).along(1000.0, 1500.0) { toTheFlag(it) }
 
     assertEquals(
       listOf("In 100 m, turn left into Cecilienstraße", "Turn left now into Cecilienstraße"),
@@ -203,25 +207,26 @@ class RoutePointGuidanceTest {
 
   @Test
   fun `the way after the turn-off is looked for ahead of it`() {
-    val ride = start(knot45, end, east = 1000.0).along(1000.0, 1220.0) { toTheFlag }
+    val ride = start(knot45, end, east = 1000.0).along(1000.0, 1220.0) { toTheFlag(it) }
 
     val search = assertNotNull(ride.search)
-    assertEquals(at(1500.0).latitude, search.from.latitude, 1e-6)
-    assertEquals(at(1500.0).longitude, search.from.longitude, 1e-6)
+    // 40 m into the way, so the search starts on it.
+    assertEquals(at(1500.0, 40.0).latitude, search.from.latitude, 1e-6)
+    assertEquals(at(1500.0, 40.0).longitude, search.from.longitude, 1e-6)
     assertEquals(at(1350.0, 200.0), search.to)
     assertNull(guide.way)
   }
 
   @Test
   fun `turn by turn to the flag`() {
-    val atTurnOff = start(knot45, end, east = 1000.0).along(1000.0, 1500.0) { toTheFlag }
+    val atTurnOff = start(knot45, end, east = 1000.0).along(1000.0, 1500.0) { toTheFlag(it) }
 
     // 95 m before the turn into Kronprinzenstraße at 105 m.
     val ride =
       atTurnOff.through(
         *listOf(20.0, 45.0, 70.0, 105.0, 130.0, 165.0, 180.0).map { fix(1500.0, it) }.toTypedArray()
       ) {
-        toTheFlag
+        toTheFlag(it)
       }
 
     assertEquals(
@@ -241,10 +246,25 @@ class RoutePointGuidanceTest {
   }
 
   @Test
-  fun `missing the turn-off`() {
-    val pastTurnOff = start(knot45, end, east = 1000.0).along(1000.0, 1500.0) { toTheFlag }
+  fun `a way much longer than the planned one is not followed`() {
+    val detour = { search: WaySearch ->
+      wayOf(search.from, at(2500.0), at(2500.0, 900.0), at(1350.0, 200.0), firstName = "Ringstraße")
+    }
 
-    val ride = pastTurnOff.along(1500.0, 1600.0) { toTheFlag }
+    val ride = start(knot45, end, east = 1000.0).along(1000.0, 1500.0, found = detour)
+
+    // As without path data until a way from the rider is found.
+    assertEquals(
+      listOf("In 100 m, turn left", "Turn left now, 228 m to the north-west"),
+      ride.texts(NoticeKind.TURN),
+    )
+  }
+
+  @Test
+  fun `missing the turn-off`() {
+    val pastTurnOff = start(knot45, end, east = 1000.0).along(1000.0, 1500.0) { toTheFlag(it) }
+
+    val ride = pastTurnOff.along(1500.0, 1600.0) { toTheFlag(it) }
 
     val search = assertNotNull(ride.search)
     assertEquals(at(1600.0).latitude, search.from.latitude, 1e-6)

@@ -9,7 +9,7 @@
 
 ## 2. Apps
 
-- [ ] 2.1 Both apps build. On the emulator, a mocked ride home → 28 → 02 → home like the maintainer's: the notices towards 06, the turn into Cecilienstraße, and the turns to the flag, spoken and in the header. Same in the simulator.
+- [x] 2.1 Both apps build. On the emulator, a mocked ride home → 28 → 02 → home like the maintainer's: the notices towards 06, the turn into Cecilienstraße, and the turns to the flag, spoken and in the header. Same in the simulator.
 
 ## 3. Release
 

@@ -1,0 +1,27 @@
+# Manual checks
+
+## Scenarios
+
+Android checked 2026-11-08 on the emulator (`Medium_Phone_API_37.0`), debug build, app on screen, the route 06 → 02 → the restaurant Alt Mülldorf as the end, planned in the app with its way along paths. From 02 the way follows the course towards 01 along the Sieg and leaves it under the A 560. Positions came from the emulator's test GPS provider along the last 400 m to 02, then along the planned way to the flag. The shell's mock location permission and the test provider were removed again afterwards.
+
+| Scenario | Android | iOS | Notes |
+|---|---|---|---|
+| Towards the next knot | ✅ emulator | unit test | "Next 02, then towards 01", then at 02 "Towards 01, then the end", spoken "Next 2, then towards 1" |
+| Leaving the network | ✅ emulator | unit test | "In 90 m, turn right into An der Ziegelei", "Turn right now into An der Ziegelei": 90 m, as positions came every 20 m |
+| Turn by turn to the flag | ✅ emulator | unit test | The header shows the light tile with the turn and its street ([screenshot](screenshots/android-after-turn-off.png)). The planned way runs 150 m straight from the network to the first path, which the mocked rider followed; the guided way goes along An der Ziegelei, so the rider left it, a new way was found (239 m, 1 turn) and "In 80 m, turn left" told |
+| Missing the turn-off | unit test | unit test | Leaving the guided way on the emulator, as above, found a new way to the flag |
+| A straight line | unit test | unit test | |
+| Without path data | unit test | unit test | |
+| From the start flag onto the network | unit test | unit test | |
+
+Found on the emulator and fixed before these checks: the way after the turn-off, looked for from the turn-off itself, started on the path above it and came back 1000 m long with "Turn back now". It is now looked for from 40 m into the way, and a way much longer than the planned one is not used.
+
+The route point's header badge is the plain flag where the strip shows the place's icon; that is the existing badge, not this change.
+
+### Steps for the maintainer
+
+1. Plan home → 28 → 02 → home with the start and end flags at home, as on the ride of 2026-11-08.
+2. Start at home: each turn to the network is told, and at the network "Turn left now onto the route towards 02" (or right, as it is there).
+3. After 28: "Next 02, then towards 06"; after 02: "Towards 06, then the end".
+4. Before Cecilienstraße: "In 100 m, turn right into Cecilienstraße", then "Turn right now…", and the turns to the flag, with the light tile in the header.
+5. Note any turn that was missing, wrong or late, and whether a way different from the planned one was guided.
