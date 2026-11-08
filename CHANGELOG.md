@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- No more false "Off route" with the screen off: a rough position far from the route is first checked with a precise one, and positions the iPhone delivers again are no longer counted twice, which made it switch between rough and precise positioning many times a second
 - A route that passes a knot twice is no longer cut short when you ride around at that knot: coming back into its circle counts as the later visit only once you have been more than 200 m away from it
 - A start, stop or end made from a tapped place shows the place's icon instead of the flag, on the map, on the strip and in the list, where it also has the place's name, e.g. "Stop · Eiscafé Riviera". It stays after a restart
 - Tap a highlighted place to see its name, or what it is when it has none. While planning, "Start here", "Add stop here" and "End here" come with it and put the point at the place itself, so the way leads there; while navigating, only the name shows

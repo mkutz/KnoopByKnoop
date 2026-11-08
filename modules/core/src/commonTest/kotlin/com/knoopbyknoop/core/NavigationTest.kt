@@ -642,6 +642,85 @@ class NavigationTest {
     assertEquals(Precision.FINE, update.precision)
   }
 
+  // Requirement: Off route confirmed by a precise position
+
+  @Test
+  fun `a coarse position far from the course`() {
+    val (riding, _) = start(east = 0.0).navigation.ride(fix(300.0))
+
+    val coarse = riding.update(fix(400.0, north = 200.0, accuracy = 40.0))
+
+    assertFalse(coarse.navigation.offRoute)
+    assertTrue(coarse.notices.isEmpty())
+    assertEquals(Precision.FINE, coarse.precision)
+
+    val precise = coarse.navigation.update(fix(500.0, accuracy = 10.0))
+
+    assertFalse(precise.navigation.offRoute)
+    assertTrue(precise.notices.isEmpty())
+    assertEquals(Precision.COARSE, precise.precision)
+  }
+
+  @Test
+  fun `leaving the route for real`() {
+    val (navigation, notices) =
+      start(east = 0.0)
+        .navigation
+        .ride(
+          fix(300.0),
+          fix(400.0, north = 150.0, accuracy = 40.0),
+          fix(420.0, north = 150.0, accuracy = 10.0),
+        )
+
+    assertTrue(navigation.offRoute)
+    assertEquals(listOf(NoticeKind.OFF_ROUTE), notices.map { it.kind })
+    assertTrue(notices.single().text.startsWith("Off route, next 45"))
+  }
+
+  @Test
+  fun `the same position delivered again`() {
+    val first = fix(300.0)
+    val (riding, _) = start(east = 0.0).navigation.ride(first)
+    val update = riding.update(fix(400.0, north = 200.0, accuracy = 40.0))
+
+    val again = update.navigation.update(update.navigation.lastFix)
+    val older = update.navigation.update(first)
+
+    assertEquals(
+      listOf(update.navigation, update.navigation),
+      listOf(again, older).map { it.navigation },
+    )
+    assertTrue((again.notices + older.notices).isEmpty())
+    assertEquals(
+      listOf(update.precision, update.precision),
+      listOf(again, older).map { it.precision },
+    )
+  }
+
+  @Test
+  fun `old positions delivered again do not flip the sampling`() {
+    val onCourse = fix(300.0)
+    val farOff = fix(310.0, north = 300.0, accuracy = 250.0)
+    val (riding, _) = start(east = 0.0).navigation.ride(onCourse, farOff, fix(320.0))
+    val precision = riding.precision(visible = false)
+
+    val precisions = (1..10).map { riding.update(if (it % 2 == 0) onCourse else farOff).precision }
+
+    assertEquals(Precision.COARSE, precision)
+    assertEquals(List(10) { precision }, precisions)
+  }
+
+  @Test
+  fun `passing a knot not on the route with a less precise position`() {
+    val (navigation, notices) =
+      start(east = 0.0, geometry = null)
+        .navigation
+        .ride(fix(300.0, north = 200.0), fix(500.0, north = 290.0, accuracy = 40.0))
+
+    assertTrue(navigation.offRoute)
+    assertEquals(listOf(NoticeKind.OFF_ROUTE), notices.map { it.kind })
+  }
+
   // Requirement: Riding the line through a signpost
 
   private val branchPoint = GeoPoint(latitude(-300.0), longitude(500.0))
@@ -841,9 +920,10 @@ class NavigationTest {
   @Test
   fun `line through both signposts reaching the other node first`() {
     val signposts = throughBothSignpostsOf45(arrivingThroughSignpost = true)
+    val started = signposts.start(fix(0.0))
     val away = fix(1000.0, north = 1395.0)
 
-    val update = signposts.start(fix(0.0)).navigation.update(away)
+    val update = started.navigation.update(away)
 
     assertEquals("1.2 km", update.navigation.guidance(away)?.distance)
 
@@ -862,9 +942,10 @@ class NavigationTest {
   @Test
   fun `line through both signposts reaching the main position first`() {
     val signposts = throughBothSignpostsOf45(arrivingThroughSignpost = false)
+    val started = signposts.start(fix(0.0))
     val away = fix(1000.0, north = 1395.0)
 
-    val update = signposts.start(fix(0.0)).navigation.update(away)
+    val update = started.navigation.update(away)
 
     assertEquals("1.4 km", update.navigation.guidance(away)?.distance)
   }
@@ -882,9 +963,10 @@ class NavigationTest {
 
   @Test
   fun `a knot with one signpost is measured to its position`() {
+    val started = start(east = 0.0)
     val away = fix(1000.0, north = 1395.0)
 
-    val navigation = start(east = 0.0).navigation.update(away).navigation
+    val navigation = started.navigation.update(away).navigation
 
     assertEquals("1.4 km", navigation.guidance(away)?.distance)
     assertEquals(point(knot45), navigation.courseAhead?.last())

@@ -560,8 +560,13 @@ private constructor(
   /** Follows the route with [fix]; [visible] is whether the app is on screen. */
   fun update(fix: Fix, visible: Boolean = false): NavigationUpdate {
     if (arrived) return NavigationUpdate(this, listOf(), precision(visible))
+    // A position delivered again, e.g. by iOS after a changed request, counts only once, see
+    // `knot-navigation` "Off route confirmed by a precise position".
+    if (fix.timeMillis <= lastFix.timeMillis)
+      return NavigationUpdate(this, listOf(), precision(visible))
     if (fix.accuracyMeters > PRECISE_ACCURACY_METERS) return updateCoarse(fix, visible)
     val notices = mutableListOf<Notice>()
+    var confirming = false
     var navigation =
       if (passedKnot != null && distanceToNearestNode(fix, passedKnot) > REMINDER_METERS)
         copy(passedKnot = null)
@@ -658,6 +663,11 @@ private constructor(
           navigation =
             navigation.copy(offRoute = true, offRouteKnot = offRouteKnot, directionWatch = null)
         }
+        // Off route by distance is confirmed with a fix of CONFIRM_ACCURACY_METERS or better.
+        distanceToCourse != null &&
+          distanceToCourse > OFF_COURSE_METERS &&
+          !offRoute &&
+          fix.accuracyMeters > CONFIRM_ACCURACY_METERS -> confirming = true
         distanceToCourse != null && distanceToCourse > OFF_COURSE_METERS -> {
           if (!offRoute) notices += offRouteNotice(nextIndex, fix)
           navigation = navigation.copy(offRoute = true, directionWatch = null)
@@ -723,7 +733,7 @@ private constructor(
       guidance?.let { notices += it }
       navigation = guided
     }
-    navigation = navigation.copy(lastPreciseFix = fix, lastFix = fix, confirming = false)
+    navigation = navigation.copy(lastPreciseFix = fix, lastFix = fix, confirming = confirming)
     return NavigationUpdate(navigation, notices, navigation.precision(visible))
   }
 
@@ -1055,6 +1065,12 @@ private constructor(
 
     /** Fixes less accurate than this are coarse: they only choose the precision. */
     const val PRECISE_ACCURACY_METERS = 50.0
+
+    /**
+     * Off route by the distance to the course needs a fix this accurate, see `knot-navigation` "Off
+     * route confirmed by a precise position".
+     */
+    const val CONFIRM_ACCURACY_METERS = 20.0
 
     /** Within this distance of the next knot, the apps sample with [Precision.FINE]. */
     const val FINE_DISTANCE_METERS = 400.0
