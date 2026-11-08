@@ -17,3 +17,5 @@ Android checked 2026-11-08 on the emulator (`Medium_Phone_API_37.0`), debug buil
 ## For the maintainer
 
 On the Pixel on a ride: wake the phone while navigating, tap the button (the hint shows, navigation goes on), then hold it until the ring closes (navigation stops).
+
+Checked by the maintainer on the Pixel on 8 November 2026: "It works well."

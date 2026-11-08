@@ -7,4 +7,4 @@
 
 ## 2. Release
 
-- [ ] 2.1 Changelog line, and a manual check on the Pixel on a ride: wake the phone, tap the button for the hint, hold it to stop.
+- [x] 2.1 Changelog line, and a manual check on the Pixel on a ride: wake the phone, tap the button for the hint, hold it to stop.
