@@ -34,7 +34,9 @@ struct NavigationLiveActivity: Widget {
         CompactLeading(state: context.state)
       } compactTrailing: {
         if let row = context.state.row {
+          // Smaller rather than cut off, e.g. "2.3 km" next to another app's activity.
           Text(row.remaining ?? row.distance).font(.subheadline.bold()).lineLimit(1)
+            .minimumScaleFactor(0.6)
         }
       } minimal: {
         Minimal(state: context.state)
@@ -148,43 +150,18 @@ private struct BarWithArrival: View {
 
 /// The Dynamic Island's leading side: the row in miniature, see `knot-navigation` "Navigation with
 /// the screen off".
+/// The one element of the island on the leading side, as the island has room for little, see
+/// `knot-navigation` "Navigation with the screen off".
 private struct CompactLeading: View {
   let state: NavigationActivityAttributes.ContentState
 
   var body: some View {
-    if let row = state.row {
-      switch row.kind {
-      case .close:
-        HStack(spacing: 2) {
-          if let next = row.next { SignKnot(knot: next, side: 18) }
-          Image(systemName: "arrow.right").font(.system(size: 9, weight: .bold))
-          if let follow = row.follow { SignPlateView(knot: follow, side: 18, turnDegrees: row.turnDegrees) }
-        }
-      case .far:
-        HStack(spacing: 2) {
-          if let next = row.next { SignKnot(knot: next, side: 22) }
-          Image(systemName: "chevron.right").font(.system(size: 9, weight: .bold)).opacity(0.7)
-          if let follow = row.follow { SignKnot(knot: follow, side: 16) }
-        }
-      case .end:
-        if let next = row.next { SignKnot(knot: next, side: 22) }
-      case .wrongWay, .toRoute:
-        HStack(spacing: 2) {
-          WarningTile(row: row, side: 24)
-          if row.kind == .toRoute, let next = row.next {
-            Image(systemName: "chevron.right").font(.system(size: 9, weight: .bold)).opacity(0.7)
-            SignKnot(knot: next, side: 16)
-          }
-        }
-      }
-    } else {
-      NumberOrFlag(ref: state.next).bold()
-    }
+    Minimal(state: state)
   }
 }
 
-/// One element when the island is shared: the plate close to a knot, the next knot far from it, and
-/// the arrow off route, see "Dynamic Island with room for one number".
+/// The island's one element: the plate close to a knot, the next knot far from it, and the arrow off
+/// route, see "Dynamic Island with room for one number".
 private struct Minimal: View {
   let state: NavigationActivityAttributes.ContentState
 

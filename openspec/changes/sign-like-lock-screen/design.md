@@ -70,8 +70,8 @@ This avoids depending on a per-state tint, which is reported unreliable.
 
 ### Dynamic Island regions
 
-- **Compact leading:** the miniature row, sized to the island's height (about 22–26 pt badges).
-- **Compact trailing:** the distance.
+- **Compact leading:** the same single element as the minimal island, about 22–24 pt. The miniature row of first design, next knot, arrow and the number to follow, did not fit: on the maintainer's ride of 8 November, with a podcast sharing the island, it showed two cut badges and "2....".
+- **Compact trailing:** the distance, scaled down to fit rather than truncated.
 - **Minimal:** a single element, chosen in the core as `HeaderRow.minimal`.
 - **Expanded:** the lock screen row and bar.
 

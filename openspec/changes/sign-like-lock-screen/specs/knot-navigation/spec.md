@@ -9,13 +9,7 @@ Navigation SHALL keep running with the screen off and while other apps are in us
 
 Off route and riding the wrong way, its card SHALL take the opposite of its usual appearance, light on a dark lock screen and dark on a light one.
 
-**The compact Dynamic Island** SHALL show the row in miniature on the leading side and the distance on the trailing side:
-- close: the next knot, → and the number to follow on its plate
-- far: the next knot, › and the knot after it
-- off route: the direction arrow on a light tile
-- on the way to the route: the plain direction arrow
-
-**The minimal Dynamic Island** SHALL show one element: the number to follow on its plate when close, the next knot when far, the light tile with the arrow off route or riding the wrong way, and the plain arrow on the way to the route.
+**The Dynamic Island** has room for little, so it SHALL show one element: the number to follow on its plate when close, the next knot when far, the light tile with the arrow off route or riding the wrong way, and the plain arrow on the way to the route. The compact island SHALL show that element on the leading side and the distance on the trailing side, made smaller rather than cut off; the minimal island the element alone.
 
 **On Android**, an ongoing notification SHALL show:
 - a title of numbers, arrow characters (↑ ↗ → ↘ ↓ ↙ ← ↖ for directions, → between a knot and the number to follow, › before the knot after) and distances
@@ -38,11 +32,15 @@ From Android 16 it SHALL be a Live Update with the route's progress and a status
 
 #### Scenario: Dynamic Island
 - **WHEN** the rider is navigating on an iPhone with a Dynamic Island, close to 45 with 12 to follow, and uses another app
-- **THEN** the compact Dynamic Island shows 45, → and 12 on its plate, and "150 m"
+- **THEN** the compact Dynamic Island shows 12 on its plate and "150 m", and nothing is cut off
 
 #### Scenario: Dynamic Island with room for one number
 - **WHEN** the Dynamic Island is shared, e.g. with a screen recording, so it has room for one element
 - **THEN** it shows the number to follow on its plate when close, the next knot when far
+
+#### Scenario: Dynamic Island shared with another app
+- **WHEN** the rider listens to a podcast while navigating, far from 28 with 27 after it, 2.3 km away
+- **THEN** the island shows 28 and "2.3 km" in full, without cut badges or "…"
 
 #### Scenario: Off route outside the app
 - **WHEN** the rider is off route, 1.7 km from the route to the front left, with 02 next, on a path of the network, and looks at the lock screen
@@ -50,7 +48,7 @@ From Android 16 it SHALL be a Live Update with the route's progress and a status
 
 #### Scenario: Off route in the Dynamic Island
 - **WHEN** the same rider uses another app on an iPhone with a Dynamic Island
-- **THEN** the compact island shows the arrow on a light tile, › 02 and "1.7 km", and the minimal island the light tile with the arrow
+- **THEN** the compact island shows the arrow on a light tile and "1.7 km", and the minimal island the light tile with the arrow
 
 #### Scenario: On the way to the route outside the app
 - **WHEN** the rider started navigating at home, 800 m from the route to the right, and looks at the lock screen

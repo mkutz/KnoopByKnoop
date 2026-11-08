@@ -37,10 +37,14 @@ Checked on 2026-11-07 with the locally built cycling data with sign regions, on 
 
 TalkBack on the notification: not checked yet. The title is made of arrow characters, so how TalkBack reads it is open.
 
+## Found and fixed
+
+- **The compact Dynamic Island tried to show too much.** On the maintainer's ride of 8 November, with a podcast sharing the island, the compact view showed two cut badges and "2....": the miniature row (next knot, arrow, number to follow) and the distance don't fit its room. The compact island now shows one element on the leading side, the same as the minimal one (the plate close to a knot, the next knot far from it, the tile off route), and the distance scales down instead of being cut off. The project builds; the simulator did not show the Live Activity, so the check is on the iPhone (step 2 below).
+
 ## For the maintainer
 
 1. **With the screen off on a ride,** look at the lock screen far from a knot, close to one (the sign plate as the large icon on the Pixel, on the card on the iPhone), off route, and riding the wrong way.
-2. **On the iPhone, use another app while navigating:** the Dynamic Island's compact and, with a screen recording, minimal views.
+2. **On the iPhone, use another app while navigating, and listen to a podcast:** the Dynamic Island shows one knot or plate and the distance, nothing cut off; also with a screen recording, where it shows the element alone.
 3. **On the Pixel, the status bar chip:** "→12" close to a knot, the next knot far from it.
 4. **TalkBack once on the notification:** note how the title is read.
 5. **Stop from the lock screen** on both phones.
