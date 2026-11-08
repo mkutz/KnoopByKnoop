@@ -124,10 +124,38 @@ private constructor(
   }
 
   /**
+   * The doubtful junction whose picture shows now: from [PICTURE_METERS] before it until it is
+   * passed, see `knot-navigation` "Picture in the app"; `null` otherwise.
+   */
+  fun junctionAhead(): DoubtfulJunction? =
+    way.doubtful.firstOrNull {
+      it.picture != null &&
+        it.startMeters - place <= PICTURE_METERS &&
+        place <= it.endMeters + PASSED_METERS
+    }
+
+  /** The sentence for [junctionAhead], with the distance to it or for now. */
+  fun junctionSentence(language: Language): String? {
+    val junction = junctionAhead() ?: return null
+    val turn = way.turns.firstOrNull { it.doubtful == junction }
+    val meters = junction.startMeters - place + awayMeters
+    val distance =
+      if (meters <= NOW_METERS) null else MapFeatures.formatDistance(rounded(meters), language)
+    return language.texts.doubtful(junction, turn?.direction ?: TurnDirection.STRAIGHT, distance)
+  }
+
+  /**
    * The next turn for the header, see `knot-navigation` "Guided way in the header and outside the
    * app".
    */
-  fun headerTurn(language: Language): GuidedHeader {
+  fun headerTurn(language: Language): GuidedHeader =
+    plainHeaderTurn(language)
+      .copy(
+        picture = junctionAhead()?.picture,
+        pictureSentence = junctionSentence(language),
+      )
+
+  private fun plainHeaderTurn(language: Language): GuidedHeader {
     val view = view(language)
     val remaining = view.remaining
     if (turningBack)
@@ -240,6 +268,10 @@ private constructor(
     private const val NOW_METERS = 40.0
     private const val ROUNDING_METERS = 10
     private const val LOOK_BACK_METERS = 50.0
+
+    /** See `knot-navigation` "Picture in the app". */
+    private const val PICTURE_METERS = 150.0
+    private const val PASSED_METERS = 10.0
     private const val LOOK_AHEAD_METERS = 300.0
 
     /**

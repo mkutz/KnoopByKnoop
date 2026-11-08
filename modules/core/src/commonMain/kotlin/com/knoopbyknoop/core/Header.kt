@@ -27,6 +27,9 @@ data class HeaderBadge(
  * @property street the name of the way the turn goes into, if known
  * @property remaining the distance left along the way, e.g. `1.9 km`
  * @property description what screen readers say, e.g. `Left in 120 m, Weierstraße, 1.9 km`
+ * @property picture the drawing of a doubtful junction ahead, see `knot-navigation` "Picture in the
+ *   app"
+ * @property pictureSentence the sentence for it, also what screen readers say for the picture
  */
 data class GuidedHeader(
   val turn: TurnDirection?,
@@ -34,6 +37,8 @@ data class GuidedHeader(
   val street: String?,
   val remaining: String,
   val description: String,
+  val picture: JunctionPicture? = null,
+  val pictureSentence: String? = null,
 )
 
 /**

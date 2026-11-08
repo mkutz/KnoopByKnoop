@@ -85,6 +85,8 @@ data class DoubtfulJunction(
   val doubts: Set<JunctionDoubt>,
   val keep: TurnDirection? = null,
   val offRoad: PathSwitch? = null,
+  /** Its drawing, see `knot-navigation` "Junction picture". */
+  val picture: JunctionPicture? = null,
 ) {
   /** What the sentence for it is about: a main road before leaving the road before a fork. */
   val main: JunctionDoubt
@@ -304,7 +306,9 @@ class PathRouter(private val file: PathSquareSource) {
       piece.points.forEach(::add)
     }
     add(to)
-    val doubtful = merged(doubts)
+    val waySegments = pieces.map { it.step.segment }
+    val doubtful =
+      merged(doubts).map { it.copy(picture = pictureOf(it, points, meters, waySegments)) }
     return PathWay(
       points,
       meters,
@@ -410,6 +414,67 @@ class PathRouter(private val file: PathSquareSource) {
       }
     }
     return result.sortedBy { it.atMeters }
+  }
+
+  /**
+   * The drawing of [junction] on the way through [points], see `knot-navigation` "Junction
+   * picture": the way before and after it, the main roads, and the other streets and cycle paths
+   * close by, with the riding direction up.
+   */
+  private fun pictureOf(
+    junction: DoubtfulJunction,
+    points: List<GeoPoint>,
+    meters: List<Double>,
+    waySegments: List<PathSegment>,
+  ): JunctionPicture {
+    val start = junction.startMeters
+    val center = pointAtMeters(points, meters, start)
+    val from = pointAtMeters(points, meters, start - JunctionPicture.DIRECTION_FROM_METERS)
+    val to = pointAtMeters(points, meters, start - JunctionPicture.DIRECTION_TO_METERS)
+    val ahead = if (from == to) pointAtMeters(points, meters, start + HEADING_METERS) else to
+    val heading = (heading(if (from == to) center else from, ahead) + 360) % 360
+    val frame = PictureFrame(center, heading)
+    val view = PICTURE_VIEW_METERS
+    val lines = mutableListOf<PictureLine>()
+    frame
+      .lines(stretchOf(points, meters, start - JunctionPicture.BEFORE_METERS, start), view)
+      .forEach { lines += PictureLine(PictureLineKind.WAY_BEFORE, it) }
+    frame
+      .lines(
+        stretchOf(points, meters, start, junction.endMeters + JunctionPicture.AFTER_METERS),
+        view,
+      )
+      .forEach { lines += PictureLine(PictureLineKind.WAY_AFTER, it) }
+    val square = PathSquare.of(center.latitude, center.longitude)
+    val nearby = mutableListOf<PathSegment>()
+    (squaresAround(center) + square).forEach { around ->
+      segmentsBySquare[around].orEmpty().forEach { segment ->
+        if (nearby.none { it.isSameAs(segment) } && waySegments.none { it.isSameAs(segment) }) {
+          nearby += segment
+        }
+      }
+    }
+    for (segment in nearby) {
+      val (kind, radius) =
+        when (segment.kind) {
+          PathKind.MAJOR,
+          PathKind.MAIN -> PictureLineKind.MAIN_ROAD to view
+          PathKind.STREET -> PictureLineKind.STREET to JunctionPicture.EXIT_METERS
+          PathKind.CYCLE -> PictureLineKind.CYCLE_PATH to JunctionPicture.EXIT_METERS
+          PathKind.PATH -> continue
+        }
+      frame.lines(segment.points, radius).forEach { lines += PictureLine(kind, it) }
+    }
+    // Roads first, so the way is drawn over them.
+    val order =
+      listOf(
+        PictureLineKind.MAIN_ROAD,
+        PictureLineKind.STREET,
+        PictureLineKind.CYCLE_PATH,
+        PictureLineKind.WAY_BEFORE,
+        PictureLineKind.WAY_AFTER,
+      )
+    return JunctionPicture(lines.sortedBy { order.indexOf(it.kind) })
   }
 
   /** [doubts] at junctions along the way, those within [MERGE_METERS] of each other as one. */
@@ -794,6 +859,11 @@ class PathRouter(private val file: PathSquareSource) {
     /** Turns this close together are one, see "Turn notices on the guided way". */
     const val MERGE_METERS = 40.0
 
+    /**
+     * Lines of a junction picture reach this far from the junction, past the corners of its view.
+     */
+    const val PICTURE_VIEW_METERS = 70.0
+
     /** Another exit within this of the one taken makes a junction doubtful. */
     const val SIMILAR_EXIT_DEGREES = 35.0
 
@@ -858,4 +928,31 @@ internal fun nearestOnLine(place: GeoPoint, from: GeoPoint, to: GeoPoint): GeoPo
     from.latitude + (to.latitude - from.latitude) * along,
     from.longitude + (to.longitude - from.longitude) * along,
   )
+}
+
+/** The point [at] meters along [points] with their [meters], clamped to the ends. */
+internal fun pointAtMeters(points: List<GeoPoint>, meters: List<Double>, at: Double): GeoPoint {
+  val clamped = at.coerceIn(0.0, meters.last())
+  val index = meters.indexOfFirst { it >= clamped }.coerceAtLeast(1)
+  val length = meters[index] - meters[index - 1]
+  val along = if (length == 0.0) 0.0 else (clamped - meters[index - 1]) / length
+  val start = points[index - 1]
+  val end = points[index]
+  return GeoPoint(
+    start.latitude + (end.latitude - start.latitude) * along,
+    start.longitude + (end.longitude - start.longitude) * along,
+  )
+}
+
+/** [points] with their [meters] from [from] to [to] meters along, with the points between. */
+internal fun stretchOf(
+  points: List<GeoPoint>,
+  meters: List<Double>,
+  from: Double,
+  to: Double,
+): List<GeoPoint> {
+  val start = from.coerceIn(0.0, meters.last())
+  val end = to.coerceIn(0.0, meters.last())
+  val between = points.indices.filter { meters[it] > start && meters[it] < end }.map { points[it] }
+  return listOf(pointAtMeters(points, meters, start)) + between + pointAtMeters(points, meters, end)
 }

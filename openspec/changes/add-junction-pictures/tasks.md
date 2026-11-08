@@ -8,8 +8,8 @@
 
 ## 2. The picture
 
-- [ ] 2.1 Core: `JunctionPicture` from the way and the squares. Tests: "Picture of a junction", "Footways at a busy junction", "Roads that can't be ridden", the riding direction is up, and it fits in 1 KB for the six junctions of `sketches/`.
-- [ ] 2.2 Core: when a picture applies. Tests: "Approaching a doubtful junction in the app" (on the core's state), "After the junction", "Leaving the way before the junction", "No picture on an easy turn", "Screen comes on at a junction".
+- [x] 2.1 Core: `JunctionPicture` from the way and the squares. Tests: "Picture of a junction", "Footways at a busy junction", "Roads that can't be ridden", the riding direction is up, and it fits in 1 KB for the six junctions of `sketches/`.
+- [x] 2.2 Core: when a picture applies. Tests: "Approaching a doubtful junction in the app" (on the core's state), "After the junction", "Leaving the way before the junction", "No picture on an easy turn", "Screen comes on at a junction".
 
 ## 3. iOS
 
