@@ -33,3 +33,28 @@ When a route point is joined to the network by a way along paths, navigation SHA
 #### Scenario: From the start flag onto the network
 - **WHEN** the rider starts navigating at the start flag at home, whose way along paths joins the course of 02–28 after 600 m, turning left there towards 02
 - **THEN** the rider hears each turn of the way, and at the join "Turn left now onto the route towards 02", and then "Next 02" as usual
+
+## MODIFIED Requirements
+
+### Requirement: Riding the way to a route point
+On a way along paths to a route point, the rider SHALL be guided with the line on the map and turn notices, as described in "Guidance to a route point off the network" and "Guidance from a route point onto the network", and leaving the way SHALL count as off route as on a course. On a straight line, which cannot be followed, the rider SHALL NOT be told they are off route, and SHALL be told the distance and direction to where it leads.
+
+#### Scenario: Following a way along paths
+- **WHEN** the rider rides along the way to a stop
+- **THEN** they stay on route, and the distance to the stop counts down along the way
+
+#### Scenario: Leaving a way along paths
+- **WHEN** the rider moves more than the off route distance away from the way
+- **THEN** they are off route, as on a course
+
+#### Scenario: A straight line
+- **WHEN** the next stretch is a straight line of 800 m to a stop, and the rider rides around a building 200 m from it
+- **THEN** they are not told they are off route, and see the distance and direction to the stop
+
+#### Scenario: Turning round at a detour
+- **WHEN** the rider reaches a stop at the end of a way and turns back along it
+- **THEN** the turn is not taken for riding the wrong way, and the next knot is named
+
+#### Scenario: Without internet access
+- **WHEN** the rider navigates a route with a way along paths to a route point, without internet access
+- **THEN** the way and its guidance work as with internet access

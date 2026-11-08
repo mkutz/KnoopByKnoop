@@ -20,3 +20,7 @@ Checked 2026-11-06. Android: emulator `Medium_Phone_API_37.0`, Android 17, with 
 |---|---|---|---|
 | Walk through the Siegburg old town with the screen off, then look at the track | ⏳ | ⏳ | Compare with the screenshot of 2026-11-06 17:17 |
 | The direction arrow while walking slowly with the screen on | ⏳ | ⏳ | Does it fall back to a dot too often? |
+
+## Archived
+
+Archived on 8 November 2026 at the maintainer's choice. On the ride of 8 November the track had a 250 m straight piece at the shortcut in Siegburg and two short strokes south of 21 that may be spikes; to be looked at as a fix of its own. The walk through the Siegburg old town was not done.

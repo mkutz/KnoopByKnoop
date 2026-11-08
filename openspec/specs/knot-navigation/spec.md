@@ -344,7 +344,7 @@ While navigating, the rider's position SHALL be shown as an arrow pointing in th
 - **THEN** their arrow is about 44 points long, larger than a knot's badge, and stands out from the route and the knots
 
 ### Requirement: Ridden track
-While navigating, the map SHALL show the track the rider has ridden since navigation started, as a line distinguishable from the planned route, drawn on top of it and narrower than it, so the ridden part of the route shows and the route stays visible at its edges, made from the location fixes navigation already uses. Fixes too inaccurate to place the rider SHALL NOT be part of the track. The track SHALL exist only while navigating.
+While navigating, the map SHALL show the track the rider has ridden since navigation started, as a line distinguishable from the planned route, drawn on top of it and narrower than it, so the ridden part of the route shows and the route stays visible at its edges, made from the location fixes navigation already uses. Fixes too inaccurate to place the rider SHALL NOT be part of the track. A fix SHALL be part of the track only when it is farther from the track's last point than the inaccuracies of both together, and at least 5 m. A fix that would mean riding faster than 15 m/s on a cycling route, or 4 m/s on a hiking route, since the track's last point SHALL NOT be part of the track, and a point the next fix comes straight back from SHALL be taken out of it. The track SHALL exist only while navigating.
 
 #### Scenario: Detour
 - **WHEN** the rider leaves the route for a detour and comes back to it
@@ -365,6 +365,30 @@ While navigating, the map SHALL show the track the rider has ridden since naviga
 #### Scenario: Riding along the route
 - **WHEN** the rider has ridden the first 2 km of the route as planned
 - **THEN** those 2 km show the blue track on top of the route with the route's orange at both edges, and the rest of the route is orange with its direction arrows
+
+#### Scenario: Standing with scattered fixes
+- **WHEN** a hiker stands still for two minutes, with fixes accurate to 20 m that scatter up to 20 m around them
+- **THEN** the track gets no new point
+
+#### Scenario: Scatter while walking slowly
+- **WHEN** a hiker walks 200 m straight east at 1.3 m/s, with fixes every 10 s accurate to 30 m that scatter up to 30 m to either side
+- **THEN** the track's points are at least 60 m apart, and none of them lies west of the one before
+
+#### Scenario: Impossible jump
+- **WHEN** on a hiking route a fix lies 120 m from the track's last point, 10 s after it
+- **THEN** it is not added to the ridden track
+
+#### Scenario: Spike out and back
+- **WHEN** on a cycling route a fix lands 80 m north of the track while riding east, and the next fix is back on the line further east
+- **THEN** the track has no point 80 m north
+
+#### Scenario: Out and back on the same path
+- **WHEN** a cyclist rides 100 m off the route and back on the same path at 5 m/s, with a fix every 10 s
+- **THEN** the ridden track shows the way out to its far end and back
+
+#### Scenario: Riding fast with good fixes
+- **WHEN** a cyclist rides at 8 m/s with fixes every second accurate to 5 m
+- **THEN** the track has a point at least every 16 m along the way
 
 ### Requirement: Display on while navigating in the app
 While navigating and the app is in the foreground, the display SHALL stay on, overriding the system's display timeout. Over the lock screen, and when the app is left or navigation ends, the system's normal display timeout SHALL apply.
@@ -1151,3 +1175,100 @@ While navigating a cycling route and off route, the app SHALL find a way along s
 #### Scenario: Skipping ahead on the guided way
 - **WHEN** the rider following a guided way to 24 passes 12, a later knot of the route
 - **THEN** the guided way ends and navigation continues from 12, as when skipping ahead
+
+### Requirement: Navigating with route points
+A route point SHALL be passed, reached and aimed at like a knot, with the same radius, also around the end of its way where the way stops short of the point, and SHALL count for reminders, distances and arrival. Everywhere a number would name it, on screen, outside the app and in the voice, it SHALL be named as the start, the stop or the end in the app's language. Navigating SHALL NOT compute a route point's way anew.
+
+#### Scenario: Starting at the point
+- **WHEN** the rider starts navigating at a route point and the first knot is 02, then 28
+- **THEN** the first notice is the usual "Next 02, then 28"
+
+#### Scenario: Starting away from the point
+- **WHEN** the rider starts navigating 400 m from the route point at the start
+- **THEN** they are off route with the way to the start, in words instead of a number
+
+#### Scenario: Joining further along
+- **WHEN** the rider joins the route between the route point and 02 without reaching the point
+- **THEN** they are on route with 02 next
+
+#### Scenario: A stop next
+- **WHEN** the rider passes 28 and a route point is the next stop, then 27
+- **THEN** the notice names the stop and 27, and the same words are on the lock screen and spoken
+
+#### Scenario: The last knot before the end
+- **WHEN** the rider passes 81 and the end is a route point
+- **THEN** the notice names the end instead of a number, and the same words are on the lock screen and spoken
+
+#### Scenario: Reminder and arrival
+- **WHEN** the rider nears a route point at the end and then comes within the radius
+- **THEN** the reminder says that the end is coming, and arrival is announced as for a knot
+
+#### Scenario: A point the way does not reach
+- **WHEN** the way along paths ends 60 m from the route point, as the point is inside a park, and the rider reaches the end of the way
+- **THEN** the point counts as reached
+
+#### Scenario: Off route with the end next
+- **WHEN** the rider is off route and the route point at the end is next
+- **THEN** the notice gives the way to the end in words, and the map's dashed line goes to the route ahead, on the way to the point, as in "Way to the route on the map"
+
+#### Scenario: On the strip
+- **WHEN** a route with route points is navigated
+- **THEN** the strip marks them with the flag, and its distances count only the ridden part of their connections and their ways
+
+#### Scenario: A round trip from a route point
+- **WHEN** the route starts and ends at the same route point and the rider leaves it
+- **THEN** leaving does not count as arriving, and arrival is announced only after the waypoints before the end were passed
+
+#### Scenario: All languages
+- **WHEN** the app's language is German, Dutch or French
+- **THEN** the wording for the start, stop and end is in that language, in the texts and the voice
+
+### Requirement: Riding the way to a route point
+On a way along paths to a route point, the rider SHALL be told the distance and direction with the line on the map, with no directions at each turn, and leaving the way SHALL count as off route as on a course. On a straight line, which cannot be followed, the rider SHALL NOT be told they are off route, and SHALL be told the distance and direction to where it leads.
+
+#### Scenario: Following a way along paths
+- **WHEN** the rider rides along the way to a stop
+- **THEN** they stay on route, and the distance to the stop counts down along the way
+
+#### Scenario: Leaving a way along paths
+- **WHEN** the rider moves more than the off route distance away from the way
+- **THEN** they are off route, as on a course
+
+#### Scenario: A straight line
+- **WHEN** the next stretch is a straight line of 800 m to a stop, and the rider rides around a building 200 m from it
+- **THEN** they are not told they are off route, and see the distance and direction to the stop
+
+#### Scenario: Turning round at a detour
+- **WHEN** the rider reaches a stop at the end of a way and turns back along it
+- **THEN** the turn is not taken for riding the wrong way, and the next knot is named
+
+#### Scenario: Without internet access
+- **WHEN** the rider navigates a route with a way along paths to a route point, without internet access
+- **THEN** the way and its guidance work as with internet access
+
+### Requirement: Joining the course on the way to the start
+While navigation leads to the first knot of the route, a rider who follows the course of a leg of the route for at least 50 m, within 30 m of it, SHALL join the route there: the next knot SHALL be the end of that leg, as when starting on the course. Crossing a course SHALL NOT join it. Until joined, the rider SHALL NOT be told they are back on route, except within 200 m of the first knot, where its course counts as the way there, as in "Distance to the first knot".
+
+#### Scenario: Reaching the course and following it
+- **WHEN** the rider started navigating the route 06 → 02 250 m from its course, heads for 06, reaches the course 4 km before 06 and rides 100 m along it towards 02
+- **THEN** navigation continues with 02 as the next knot, the line ahead is drawn, and the rider is told they are back on route
+
+#### Scenario: Crossing the course
+- **WHEN** the rider heads for the first knot 24 of the route 24, 45, 12, 31 and crosses the course of the leg from 45 to 12 at a right angle
+- **THEN** navigation keeps 24 as the next knot and the rider stays off route
+
+#### Scenario: Reaching the course of the first leg near the start
+- **WHEN** the rider heads for 24 and follows the course of the leg from 24 to 45 from 300 m after 24 on
+- **THEN** navigation continues with 45 as the next knot
+
+#### Scenario: On the course close to the first knot
+- **WHEN** the rider heads for 24 and comes within 30 m of the course of the leg from 24 to 45, 80 m from 24
+- **THEN** the rider is back on route with 24 still the next knot, as before
+
+#### Scenario: Following the course against the route
+- **WHEN** the rider reaches the course of the leg from 45 to 12 and follows it towards 45
+- **THEN** navigation continues with 12 as the next knot and, after riding on, tells the rider they ride the wrong way, as on the route
+
+#### Scenario: Without courses
+- **WHEN** the network's courses are not installed
+- **THEN** navigation behaves as before, as it began at the nearest knot

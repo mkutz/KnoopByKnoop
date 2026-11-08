@@ -21,3 +21,7 @@ Covered by tests only: "One-way stretch", "No marks", "Marks that leave no way",
 |---|---|---|---|
 | 02 → 06 and back at Zange: each way on its side of the L 16 | ⏳ | ⏳ | Does it match what the signs and the paths on the ground say? |
 | A route through a one-way street | ⏳ | ⏳ | |
+
+## Archived
+
+Archived on 8 November 2026 at the maintainer's choice. Not ridden: each way on its side of the L 16 at Zange, and a route through a one-way street.

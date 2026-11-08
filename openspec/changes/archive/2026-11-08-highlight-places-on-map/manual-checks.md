@@ -37,3 +37,7 @@ On 2026-11-08 the maintainer confirmed the planning features on both phones, the
 3. **Near a knot in a town:** a café right next to a knot is left out, and street names under a knot are hidden from z14.
 4. **Navigate through a town:** the places are below the route and your arrow.
 5. **Dark mode:** icons and names readable.
+
+## Archived
+
+Archived on 8 November 2026 at the maintainer's choice. Not checked on the ride of 8 November: whether the icons crowd town centres at zoom 14 to 15, a café next to a knot, and the map without the base map.

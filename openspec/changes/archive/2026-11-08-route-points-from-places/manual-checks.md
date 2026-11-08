@@ -30,3 +30,7 @@ On 2026-11-08 the maintainer confirmed step 1 on the iPhone ("Works") and kept t
 1. ✅ (2026-11-08) **iPhone:** tap a café, "Add stop here": the stop shows the food icon on the map, the strip and in the list with the name; it stays after restarting the app.
 2. **Both phones, on the map:** the stop's badge is about the size of a highlighted place icon, so the corner symbol and the route line set it apart. Say if it should be larger.
 3. **On a ride:** ride to a café stop and check it reads well on the strip.
+
+## Archived
+
+Archived on 8 November 2026 at the maintainer's choice. Ridden on 8 November to a restaurant stop. The header showed the flag for it, which matches the spec: the place's icon is on the map, the list and the strip only.

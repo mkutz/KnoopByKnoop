@@ -30,3 +30,7 @@ Covered by tests only: "Course over a bridge", "Course under a bridge", "Several
 | Riding it: the line ahead and the ridden track on the bridge | ⏳ | ⏳ | |
 | The dark map outside | ⏳ | ⏳ | Are the edges visible enough? |
 | Battery while navigating | ⏳ | ⏳ | About 20 more line layers on tiles already loaded |
+
+## Archived
+
+Archived on 8 November 2026 at the maintainer's choice. Not ridden: the line ahead and the ridden track on a bridge, the dark map, and the battery.

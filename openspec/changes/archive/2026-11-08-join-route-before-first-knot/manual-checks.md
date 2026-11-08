@@ -18,3 +18,7 @@ Checked 2026-11-08. Android: emulator `Medium_Phone_API_37.0`, Android 17, with 
 | Check | Pixel | iPhone | Notes |
 |---|---|---|---|
 | Start at home away from the route, ride onto the course and along it | ⏳ | ⏳ | The header switches from the first knot to the one ahead, the line ahead appears, "Back on route" is said once |
+
+## Archived
+
+Archived on 8 November 2026 at the maintainer's choice. Built after the morning ride of 8 November that showed the problem; the maintainer judged it working after the afternoon ride.

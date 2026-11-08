@@ -6,7 +6,7 @@ Lets a user plan a route over a knooppunt network by choosing waypoints and chan
 ## Requirements
 
 ### Requirement: Route from waypoints
-A route SHALL be defined by an ordered list of at least two waypoints, each a knot of the same network. The route SHALL consist of the shortest path over the network between each pair of consecutive waypoints.
+A route SHALL be defined by an ordered list of at least two waypoints of the same network, each a knot or a route point, a chosen place that is not a knot. The route SHALL consist of the shortest path over the network between each pair of consecutive waypoints.
 
 #### Scenario: Start and end only
 - **WHEN** the user sets knot 12 as start and knot 45 as end
@@ -23,6 +23,26 @@ A route SHALL be defined by an ordered list of at least two waypoints, each a kn
 #### Scenario: Waypoints of different networks
 - **WHEN** the waypoints include a cycling knot and a hiking knot
 - **THEN** the route is rejected
+
+#### Scenario: Starting from a route point
+- **WHEN** the start is a route point on the connection 02-06, 300 m from 02 and 1,700 m from 06, and the end is 28
+- **THEN** the route is the shorter way from the point over 02 or 06 to 28, and its length counts only the part of 02-06 that is ridden
+
+#### Scenario: Ending at a route point
+- **WHEN** the start is 28 and the end is a route point on the connection 02-06
+- **THEN** the route ends at the point, without riding on to the next knot
+
+#### Scenario: Two route points on one connection
+- **WHEN** two consecutive waypoints are route points on the same connection
+- **THEN** that leg is the stretch of the connection between them, without either of its knots
+
+#### Scenario: Passing a route point that is not on this leg
+- **WHEN** the start is a route point on 02-06 and a later leg rides from 02 to 06
+- **THEN** that leg is the whole connection, and the point is not among the knots it passes
+
+#### Scenario: Length with a way to the network
+- **WHEN** a route point away from the network is reached by a way of 320 m
+- **THEN** the route's length includes those 320 m, each time the way is ridden
 
 ### Requirement: Insert a stop between start and end
 The user SHALL be able to insert a stop at any position between the first and the last waypoint without changing the other waypoints.
@@ -69,8 +89,27 @@ A route SHALL expose its full knot sequence and its total distance in meters.
 - **THEN** knot 30 appears exactly once at the junction of both legs in the knot sequence
 
 ### Requirement: Waypoints are knots, not numbers
-Waypoints SHALL refer to a specific knot, not to its number, because several knots can share a number.
+A waypoint that is a knot SHALL refer to a specific knot, not to its number, because several knots can share a number.
 
 #### Scenario: Choose between knots with equal numbers
 - **WHEN** knot 30 exists on both banks of a river, connected only by a ferry, and the user sets the one on the near bank as end
 - **THEN** the route ends on the near bank and does not take the ferry
+
+### Requirement: Route points as waypoints
+A route point SHALL be movable and removable like a knot, and its role SHALL follow from its position. A route point added as a stop without a position SHALL be inserted into the leg where it adds the least distance.
+
+#### Scenario: Moving a route point
+- **WHEN** the waypoints are a route point, 30 and 45, and the user moves the point to position 1
+- **THEN** the waypoints are 30, the point and 45, with 30 the start and the point a stop
+
+#### Scenario: A stop on the route's own course
+- **WHEN** the route rides 02 → 06 and the user adds a stop on that connection
+- **THEN** the route's knots and length do not change, and the point is a stop between them
+
+#### Scenario: A stop as a detour
+- **WHEN** the route rides 02 → 06 and the user adds a stop away from the network, 320 m by its way from the course
+- **THEN** the route rides to the point and back, and is 640 m longer
+
+#### Scenario: Several route points
+- **WHEN** the waypoints are a route point, 02, a route point, a route point and 28
+- **THEN** the route passes them in that order

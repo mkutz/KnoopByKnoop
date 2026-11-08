@@ -37,3 +37,7 @@ Covered by tests only: "Connection gone", "Older route", "Starting away from the
 | Dynamic Island with a route point next | – | ⏳ | A flag where the number would be |
 | GPX export of a route with route points | ✅ | ✅ | 2026-11-07, both phones: waypoints "Start", "Stop" and "02" with the types start, stop and end, and the track via the stop's straight way. Consecutive repeated points where a way joins a course; harmless |
 | Hiking far from the network: a tap at home | ✅ | ✅ | 2026-11-07 at home: Pixel (German) a bar "Keine Wanderknotenpunkte im Umkreis von 5 km", iPhone (English) a dialog "No hiking knots within 5 km" with OK; no offer on either |
+
+## Archived
+
+Archived on 8 November 2026 at the maintainer's choice. Seen on the maintainer's ride of 8 November: the stop notice on the afternoon ride, and "On to the end" and "The end ahead" on the Pixel's way home. Not seen: the Dynamic Island with a route point next. The guided way to and from route points follows in `guide-to-route-points`.
