@@ -33,6 +33,7 @@ import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.KnotLocator
 import com.knoopbyknoop.core.Language
 import com.knoopbyknoop.core.MapFeatures
+import com.knoopbyknoop.core.MapPlace
 import com.knoopbyknoop.core.MapTap
 import com.knoopbyknoop.core.NetworkCatalog
 import com.knoopbyknoop.core.NetworkGeometry
@@ -101,7 +102,13 @@ data class MapLayers(
  * A tapped place offered as a route point, see `map-planning` "Choose a route point on the map".
  * [x] and [y] are where it was tapped on the map, in pixels, to show the choices there.
  */
-data class PlaceOffer(val offer: MapTap.Offer, val x: Float, val y: Float)
+data class PlaceOffer(
+  val offer: MapTap.Offer,
+  val x: Float,
+  val y: Float,
+  /** Whether only the place's name is shown, without choices, see "Tapping a place on the map". */
+  val nameOnly: Boolean = false,
+)
 
 /** What to make of an offered place, see `map-planning` "What a chosen route point does". */
 enum class PlaceChoice {
@@ -622,7 +629,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   }
 
   /** Handles a tap on the map; [radiusMeters] is the touch target at the current zoom level. */
-  fun tap(latitude: Double, longitude: Double, radiusMeters: Double, x: Float, y: Float) {
+  fun tap(
+    latitude: Double,
+    longitude: Double,
+    radiusMeters: Double,
+    x: Float,
+    y: Float,
+    place: MapPlace? = null,
+  ) {
     // A tap beside the choices closes them, see `map-planning` "Offer and dismiss".
     if (state.offer != null) {
       state = state.copy(offer = null)
@@ -632,11 +646,27 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val network = loaded ?: return
     // Any badge of a knot, see `map-planning` "Knots signposted at several places".
     val knot = network.locator.nearestAtAnyNode(latitude, longitude, radiusMeters)
-    val place = GeoPoint(latitude, longitude)
-    when (val tapped = session.tapAt(place, radiusMeters, knot, network.geometry)) {
+    val position = GeoPoint(latitude, longitude)
+    when (val tapped = session.tapAt(position, radiusMeters, knot, network.geometry, place)) {
       is MapTap.OnKnot -> update(session.tap(tapped.knot, state.newKnots))
       is MapTap.OnRoutePoint -> {}
-      is MapTap.Offer -> if (!state.navigating) state = state.copy(offer = PlaceOffer(tapped, x, y))
+      // While navigating, a place shows its name only, see `map-planning` "Place while navigating".
+      is MapTap.Offer ->
+        if (!state.navigating) state = state.copy(offer = PlaceOffer(tapped, x, y))
+        else if (tapped.place != null) {
+          state = state.copy(offer = PlaceOffer(tapped, x, y, nameOnly = true))
+        }
+      is MapTap.PlaceOnly ->
+        state =
+          state.copy(
+            offer =
+              PlaceOffer(
+                MapTap.Offer(tapped.place.position, null, false, tapped.place),
+                x,
+                y,
+                nameOnly = true,
+              )
+          )
       // See `map-planning` "Too far from the network".
       is MapTap.TooFar ->
         if (!state.navigating) {

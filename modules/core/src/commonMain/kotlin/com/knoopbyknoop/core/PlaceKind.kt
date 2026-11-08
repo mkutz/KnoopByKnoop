@@ -106,3 +106,39 @@ enum class PlaceKind(val key: String, val colour: Long, val matches: Map<String,
       get() = """["coalesce", ["get", "name"], ""]"""
   }
 }
+
+/**
+ * A highlighted place under a tap, as the map's tiles have it, see `map-planning` "Tapping a place
+ * on the map".
+ *
+ * @property name the place's local name, `null` without one
+ * @property subclass the tiles' subclass, which tells drinking water from toilets
+ */
+data class MapPlace(
+  val position: GeoPoint,
+  val name: String?,
+  val kind: PlaceKind,
+  val subclass: String,
+) {
+
+  /**
+   * What the place is, for its name in the app's language when it has none: `food`, `supermarket`,
+   * `bicycle`, `railway`, `drinking_water` or `toilets`.
+   */
+  val kindKey: String
+    get() = if (kind == PlaceKind.WATER) subclass else kind.key
+
+  companion object {
+    /** The place of a tapped map feature, `null` if it is none of the highlighted kinds. */
+    fun of(
+      latitude: Double,
+      longitude: Double,
+      name: String?,
+      className: String?,
+      subclass: String?,
+    ): MapPlace? {
+      val kind = PlaceKind.of(className, subclass) ?: return null
+      return MapPlace(GeoPoint(latitude, longitude), name?.ifBlank { null }, kind, subclass!!)
+    }
+  }
+}

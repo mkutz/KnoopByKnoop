@@ -250,9 +250,21 @@ sealed interface MapTap {
    *
    * @property onCourse the nearest place on a course within the touch tolerance, if any
    * @property canAddStop whether "Add stop here" is offered, once a route exists
+   * @property place the highlighted place tapped, shown with its name, see `map-planning` "Tapping
+   *   a place on the map"; its position is the offer's
    */
-  data class Offer(val position: GeoPoint, val onCourse: CoursePlace?, val canAddStop: Boolean) :
-    MapTap
+  data class Offer(
+    val position: GeoPoint,
+    val onCourse: CoursePlace?,
+    val canAddStop: Boolean,
+    val place: MapPlace? = null,
+  ) : MapTap
+
+  /**
+   * A highlighted place too far from the network to plan to: only its name is shown, see
+   * `map-planning` "Place far from the network".
+   */
+  data class PlaceOnly(val place: MapPlace) : MapTap
 
   /**
    * The place is farther than [limitMeters] from every course of the network; nothing is offered,
@@ -274,13 +286,15 @@ fun maxRoutePointMeters(network: NetworkType): Double =
 /**
  * What a tap at [position] means, with [knot] the knot within [radiusMeters] if any, see
  * `map-planning` "Knots go first" and "A route point goes first". [geometry] is the installed
- * network's, to find a course within reach.
+ * network's, to find a course within reach. [place] is the highlighted place under the tap, if any,
+ * which comes after knots and route points, see `map-planning` "Tapping a place on the map".
  */
 fun PlanningSession.tapAt(
   position: GeoPoint,
   radiusMeters: Double,
   knot: Knot?,
   geometry: NetworkGeometry?,
+  place: MapPlace? = null,
 ): MapTap {
   if (knot != null) return MapTap.OnKnot(knot)
   routePoints
@@ -288,6 +302,14 @@ fun PlanningSession.tapAt(
     ?.let {
       return MapTap.OnRoutePoint(it)
     }
+  if (place != null) {
+    // At the place itself, not on a course beside it, see `map-planning` "Place next to a course".
+    if (geometry != null) {
+      val limit = maxRoutePointMeters(network)
+      if (geometry.nearestOnCourses(place.position, limit).isEmpty()) return MapTap.PlaceOnly(place)
+    }
+    return MapTap.Offer(place.position, onCourse = null, canAddStop = route != null, place = place)
+  }
   val onCourse = geometry?.nearestOnCourses(position, radiusMeters)?.firstOrNull()
   if (onCourse == null && geometry != null) {
     val limit = maxRoutePointMeters(network)

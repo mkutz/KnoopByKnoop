@@ -54,6 +54,12 @@
   <string name="appearance">Darstellung</string>
   <string name="places_on_map">Orte auf der Karte</string>
   <string name="places_on_map_kinds">Essen, Supermärkte, Fahrradläden, Bahnhöfe, Wasser und Toiletten</string>
+  <string name="place_food">Essen und Trinken</string>
+  <string name="place_supermarket">Supermarkt</string>
+  <string name="place_bicycle">Fahrradladen</string>
+  <string name="place_railway">Bahnhof</string>
+  <string name="place_drinking_water">Trinkwasser</string>
+  <string name="place_toilets">Toiletten</string>
   <string name="appearance_system">System</string>
   <string name="appearance_light">Hell</string>
   <string name="appearance_dark">Dunkel</string>

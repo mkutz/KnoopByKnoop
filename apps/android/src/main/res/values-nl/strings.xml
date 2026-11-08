@@ -54,6 +54,12 @@
   <string name="appearance">Weergave</string>
   <string name="places_on_map">Plaatsen op de kaart</string>
   <string name="places_on_map_kinds">Eten, supermarkten, fietsenwinkels, stations, water en toiletten</string>
+  <string name="place_food">Eten en drinken</string>
+  <string name="place_supermarket">Supermarkt</string>
+  <string name="place_bicycle">Fietsenwinkel</string>
+  <string name="place_railway">Station</string>
+  <string name="place_drinking_water">Drinkwater</string>
+  <string name="place_toilets">Toiletten</string>
   <string name="appearance_system">Systeem</string>
   <string name="appearance_light">Licht</string>
   <string name="appearance_dark">Donker</string>

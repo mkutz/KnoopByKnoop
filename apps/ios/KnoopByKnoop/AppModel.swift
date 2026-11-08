@@ -67,6 +67,9 @@ struct PlaceOffer: Identifiable {
   let offer: MapTapOffer
   /// Where the place is on the map now, to show the choices there; it follows the map.
   var point: CGPoint
+  /// Whether only the place's name is shown, without choices, see `map-planning` "Tapping a place
+  /// on the map".
+  var nameOnly = false
 }
 
 /// What to make of an offered place, see `map-planning` "What a chosen route point does".
@@ -249,20 +252,26 @@ final class AppModel: ObservableObject {
   }
 
   /// Handles a tap on the map; `radiusMeters` is the touch target at the current zoom level.
-  func tap(latitude: Double, longitude: Double, radiusMeters: Double, at point: CGPoint) {
+  func tap(latitude: Double, longitude: Double, radiusMeters: Double, at point: CGPoint, place: MapPlace?) {
     // A tap beside the choices closes them, see `map-planning` "Offer and dismiss".
     if offer != nil {
       offer = nil
       return
     }
-    guard let loaded, let session, !navigating else { return }
+    guard let loaded, let session else { return }
+    // While navigating, a place shows its name only, see `map-planning` "Place while navigating".
+    if navigating {
+      if let place { offer = nameOnly(place, at: point) }
+      return
+    }
     let newKnots = newKnots
     // Any badge of a knot, see `map-planning` "Knots signposted at several places".
     let knot = loaded.locator.nearestAtAnyNode(latitude: latitude, longitude: longitude, radiusMeters: radiusMeters)
     let tapped = session.tapAt(
       position: GeoPoint(latitude: latitude, longitude: longitude), radiusMeters: radiusMeters, knot: knot,
-      geometry: loaded.geometry)
+      geometry: loaded.geometry, place: place)
     switch tapped {
+    case let placeOnly as MapTapPlaceOnly: offer = nameOnly(placeOnly.place, at: point)
     case let onKnot as MapTapOnKnot: change { $0.tap(knot: onKnot.knot, newKnots: newKnots) }
     case let place as MapTapOffer:
       offer = PlaceOffer(offer: place, point: point)
@@ -279,6 +288,13 @@ final class AppModel: ObservableObject {
 
   /// A tapped place whose choices are shown, see `map-planning` "Choose a route point on the map".
   @Published var offer: PlaceOffer?
+
+  /// The card with only the name of `place`.
+  private func nameOnly(_ place: MapPlace, at point: CGPoint) -> PlaceOffer {
+    PlaceOffer(
+      offer: MapTapOffer(position: place.position, onCourse: nil, canAddStop: false, place: place), point: point,
+      nameOnly: true)
+  }
 
   /// Keeps the offered place's choices at its flag while the map moves.
   func offerMoved(to point: CGPoint) {

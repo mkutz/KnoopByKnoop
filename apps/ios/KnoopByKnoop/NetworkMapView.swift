@@ -85,7 +85,7 @@ struct NetworkMapView: UIViewRepresentable {
   /// The knots to show when a network is opened, e.g. those of a restored route.
   let focus: [Knot]
   /// A tap with its position, the touch target in meters, and where on the map it was.
-  let onTap: (Double, Double, Double, CGPoint) -> Void
+  let onTap: (Double, Double, Double, CGPoint, MapPlace?) -> Void
   /// Whether the device has internet access; the base map is loaded again once it is back.
   let online: Bool
   /// Where the map opens: where it was when the app was left last.
@@ -132,6 +132,8 @@ struct NetworkMapView: UIViewRepresentable {
   /// A tapped place offered as a route point, marked with a flag on the map, see `map-planning`
   /// "Choose a route point on the map".
   var offerPlace: GeoPoint? = nil
+  /// Whether `offerPlace` gets its flag; not for a place whose name only is shown.
+  var offerFlag = true
   /// Called with where `offerPlace` is on the screen while the map moves, so its choices follow.
   var onOfferMoved: (CGPoint) -> Void = { _ in }
 
@@ -293,7 +295,7 @@ struct NetworkMapView: UIViewRepresentable {
     context.coordinator.onMove = onMove
     context.coordinator.showMarker(marker, on: mapView)
     context.coordinator.onOfferMoved = onOfferMoved
-    context.coordinator.showOffer(offerPlace)
+    context.coordinator.showOffer(offerPlace, flag: offerFlag)
     context.coordinator.showNavigation(
       position: position, nextKnot: nextKnot, wayToRoute: wayToRoute, guidedWay: guidedWay, direction: direction, on: mapView)
     context.coordinator.showTrack(track)
@@ -320,7 +322,7 @@ struct NetworkMapView: UIViewRepresentable {
   /// Keeps the style and what is shown, so updates only touch what changed.
   final class Coordinator: NSObject, MLNMapViewDelegate {
 
-    var onTap: (Double, Double, Double, CGPoint) -> Void = { _, _, _, _ in }
+    var onTap: (Double, Double, Double, CGPoint, MapPlace?) -> Void = { _, _, _, _, _ in }
     var onLeave: (CameraPlace) -> Void = { _ in }
     var onMove: (CameraPlace, GeoBounds?) -> Void = { _, _ in }
     var onOfferMoved: (CGPoint) -> Void = { _ in }
@@ -599,15 +601,40 @@ struct NetworkMapView: UIViewRepresentable {
       (style?.source(withIdentifier: "guided-way") as? MLNShapeSource)?.shape = guided
     }
 
-    func showOffer(_ place: GeoPoint?) {
-      guard place !== offerPlace else { return }
+    private var offerFlag = true
+
+    func showOffer(_ place: GeoPoint?, flag: Bool = true) {
+      guard place !== offerPlace || flag != offerFlag else { return }
       offerPlace = place
+      offerFlag = flag
       updateOffer()
+    }
+
+    /// The highlighted place nearest to a tap at `point`, see `map-planning` "Tapping a place on
+    /// the map".
+    private func place(at point: CGPoint, in mapView: MLNMapView) -> MapPlace? {
+      let area = CGRect(
+        x: point.x - touchTargetPoints, y: point.y - touchTargetPoints, width: 2 * touchTargetPoints,
+        height: 2 * touchTargetPoints)
+      let layers: Set<String> = [PlaceKind.companion.LAYER_ID, PlaceKind.companion.NAMED_LAYER_ID]
+      return mapView.visibleFeatures(in: area, styleLayerIdentifiers: layers)
+        .compactMap { feature -> (MapPlace, CGFloat)? in
+          guard let pointFeature = feature as? MLNPointFeature,
+            let place = MapPlace.companion.of(
+              latitude: pointFeature.coordinate.latitude, longitude: pointFeature.coordinate.longitude,
+              name: feature.attribute(forKey: "name") as? String,
+              className: feature.attribute(forKey: "class") as? String,
+              subclass: feature.attribute(forKey: "subclass") as? String)
+          else { return nil }
+          let screen = mapView.convert(pointFeature.coordinate, toPointTo: mapView)
+          return (place, hypot(screen.x - point.x, screen.y - point.y))
+        }
+        .min { $0.1 < $1.1 }?.0
     }
 
     private func updateOffer() {
       guard let source = style?.source(withIdentifier: "offer") as? MLNShapeSource else { return }
-      if let offerPlace {
+      if let offerPlace, offerFlag {
         let point = MLNPointFeature()
         point.coordinate = CLLocationCoordinate2D(latitude: offerPlace.latitude, longitude: offerPlace.longitude)
         source.shape = point
@@ -711,7 +738,9 @@ struct NetworkMapView: UIViewRepresentable {
       }
       let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
       let metersPerPoint = mapView.metersPerPoint(atLatitude: coordinate.latitude)
-      onTap(coordinate.latitude, coordinate.longitude, metersPerPoint * touchTargetPoints, point)
+      onTap(
+        coordinate.latitude, coordinate.longitude, metersPerPoint * touchTargetPoints, point,
+        place(at: point, in: mapView))
     }
 
     private var coursesHandedOver = false

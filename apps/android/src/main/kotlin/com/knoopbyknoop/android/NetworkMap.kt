@@ -36,6 +36,7 @@ import com.knoopbyknoop.core.GeoPoint
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.KnotPlate
 import com.knoopbyknoop.core.MapFeatures
+import com.knoopbyknoop.core.MapPlace
 import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkGraph
 import com.knoopbyknoop.core.PlaceHit
@@ -207,7 +208,15 @@ fun NetworkMap(
   graph: NetworkGraph?,
   layers: MapLayers?,
   focus: List<Knot>,
-  onTap: (latitude: Double, longitude: Double, radiusMeters: Double, x: Float, y: Float) -> Unit,
+  onTap:
+    (
+      latitude: Double,
+      longitude: Double,
+      radiusMeters: Double,
+      x: Float,
+      y: Float,
+      place: MapPlace?,
+    ) -> Unit,
   online: Boolean,
   initialPlace: CameraPlace?,
   onLeave: (CameraPlace) -> Unit,
@@ -253,6 +262,8 @@ fun NetworkMap(
    * point on the map".
    */
   offerPlace: GeoPoint? = null,
+  /** Whether [offerPlace] gets its flag; not for a place whose name only is shown. */
+  offerFlag: Boolean = true,
   /** Called with where [offerPlace] is on the map, in pixels, while the map moves. */
   onOfferMoved: (x: Float, y: Float) -> Unit = { _, _ -> },
   /**
@@ -325,6 +336,7 @@ fun NetworkMap(
             metersPerPixel * touchTargetPixels,
             screenPoint.x,
             screenPoint.y,
+            holder.placeAt(screenPoint.x, screenPoint.y, touchTargetPixels),
           )
           true
         }
@@ -363,7 +375,7 @@ fun NetworkMap(
   // A chosen search hit: the map moves there, close enough to tap knots, see `place-search`.
   LaunchedEffect(marker) { holder.showMarker(marker) }
   holder.onOfferMoved = onOfferMoved
-  LaunchedEffect(offerPlace) { holder.showOffer(offerPlace) }
+  LaunchedEffect(offerPlace, offerFlag) { holder.showOffer(offerPlace, offerFlag) }
   LaunchedEffect(myPosition) {
     holder.showMyPosition(myPosition, center = myPosition != nearestKnots?.rider)
   }
@@ -504,7 +516,7 @@ private class MapHolder {
     settings.setCompassMargins(compassStart, compassTop, 0, 0)
   }
 
-  var onTap: (Double, Double, Double, Float, Float) -> Unit = { _, _, _, _, _ -> }
+  var onTap: (Double, Double, Double, Float, Float, MapPlace?) -> Unit = { _, _, _, _, _, _ -> }
   private var style: Style? = null
 
   /** Whether a style is loaded, the base map or the offline style. */
@@ -793,10 +805,42 @@ private class MapHolder {
     }
   }
 
-  fun showOffer(place: GeoPoint?) {
+  private var offerFlag = true
+
+  fun showOffer(place: GeoPoint?, flag: Boolean = true) {
     offerPlace = place
+    offerFlag = flag
     style?.let { updateOffer(it) }
   }
+
+  /**
+   * The highlighted place nearest to a tap at [x], [y] within [touchTarget] pixels, see
+   * `map-planning` "Tapping a place on the map".
+   */
+  fun placeAt(x: Float, y: Float, touchTarget: Float): MapPlace? {
+    val map = map ?: return null
+    val area = RectF(x - touchTarget, y - touchTarget, x + touchTarget, y + touchTarget)
+    return map
+      .queryRenderedFeatures(area, PlaceKind.LAYER_ID, PlaceKind.NAMED_LAYER_ID)
+      .mapNotNull { feature ->
+        val point = feature.geometry() as? org.maplibre.geojson.Point ?: return@mapNotNull null
+        val place =
+          MapPlace.of(
+            point.latitude(),
+            point.longitude(),
+            feature.getStringPropertyOrNull("name"),
+            feature.getStringPropertyOrNull("class"),
+            feature.getStringPropertyOrNull("subclass"),
+          ) ?: return@mapNotNull null
+        val screen = map.projection.toScreenLocation(LatLng(point.latitude(), point.longitude()))
+        place to (screen.x - x) * (screen.x - x) + (screen.y - y) * (screen.y - y)
+      }
+      .minByOrNull { it.second }
+      ?.first
+  }
+
+  private fun org.maplibre.geojson.Feature.getStringPropertyOrNull(name: String) =
+    if (hasNonNullValueForProperty(name)) getStringProperty(name) else null
 
   /** Where the offered place is on the map now, for its choices. */
   fun reportOffer() {
@@ -806,9 +850,10 @@ private class MapHolder {
   }
 
   private fun updateOffer(style: Style) {
-    val point = offerPlace?.let {
-      """{"type": "Point", "coordinates": [${it.longitude}, ${it.latitude}]}"""
-    }
+    val point =
+      offerPlace
+        ?.takeIf { offerFlag }
+        ?.let { """{"type": "Point", "coordinates": [${it.longitude}, ${it.latitude}]}""" }
     style
       .getSourceAs<GeoJsonSource>("offer")
       ?.setGeoJson(point ?: """{"type": "FeatureCollection", "features": []}""")

@@ -158,6 +158,28 @@
         }
       }
     },
+    "Bicycle shop": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fahrradladen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fietsenwinkel"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Magasin de vélos"
+          }
+        }
+      }
+    },
     "Clear": {
       "localizations": {
         "de": {
@@ -356,6 +378,28 @@
         }
       }
     },
+    "Drinking water": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trinkwasser"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drinkwater"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eau potable"
+          }
+        }
+      }
+    },
     "End here": {
       "localizations": {
         "de": {
@@ -462,6 +506,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bac %@"
+          }
+        }
+      }
+    },
+    "Food and drink": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Essen und Trinken"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eten en drinken"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restauration"
           }
         }
       }
@@ -1104,6 +1170,28 @@
         }
       }
     },
+    "Railway station": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bahnhof"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Station"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gare"
+          }
+        }
+      }
+    },
     "Recenter": {
       "localizations": {
         "de": {
@@ -1434,6 +1522,28 @@
         }
       }
     },
+    "Supermarket": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supermarkt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supermarkt"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supermarché"
+          }
+        }
+      }
+    },
     "Switch": {
       "localizations": {
         "de": {
@@ -1650,6 +1760,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Horaires selon OpenStreetMap"
+          }
+        }
+      }
+    },
+    "Toilets": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toiletten"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toiletten"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toilettes"
           }
         }
       }

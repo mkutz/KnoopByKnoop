@@ -55,6 +55,12 @@
   <string name="appearance">Appearance</string>
   <string name="places_on_map">Places on the map</string>
   <string name="places_on_map_kinds">Food, supermarkets, bike shops, stations, water and toilets</string>
+  <string name="place_food">Food and drink</string>
+  <string name="place_supermarket">Supermarket</string>
+  <string name="place_bicycle">Bicycle shop</string>
+  <string name="place_railway">Railway station</string>
+  <string name="place_drinking_water">Drinking water</string>
+  <string name="place_toilets">Toilets</string>
   <string name="appearance_system">System</string>
   <string name="appearance_light">Light</string>
   <string name="appearance_dark">Dark</string>

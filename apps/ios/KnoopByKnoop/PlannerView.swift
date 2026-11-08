@@ -169,7 +169,7 @@ struct PlannerView: View {
       NetworkMapView(
         places: places,
         graph: model.session?.graph, layers: model.layers, focus: model.session.map(focus) ?? [],
-        onTap: model.tap(latitude:longitude:radiusMeters:at:),
+        onTap: model.tap(latitude:longitude:radiusMeters:at:place:),
         online: model.online,
         initialPlace: model.initialPlace,
         onLeave: model.saveCamera,
@@ -193,6 +193,7 @@ struct PlannerView: View {
         nearestKnots: model.nearestKnots,
         shownKnot: model.shownKnot,
         offerPlace: model.offer?.offer.position,
+        offerFlag: model.offer?.nameOnly != true,
         onOfferMoved: { point in DispatchQueue.main.async { model.offerMoved(to: point) } }
       )
       .ignoresSafeArea()
@@ -217,7 +218,9 @@ struct PlannerView: View {
       // "Choose a route point on the map". In the map's coordinates, which ignore the safe area.
       if let offer = model.offer {
         GeometryReader { map in
-          PlaceOfferMenu(canAddStop: offer.offer.canAddStop, choose: model.choose)
+          PlaceOfferMenu(
+            canAddStop: offer.offer.canAddStop, place: offer.offer.place, nameOnly: offer.nameOnly,
+            choose: model.choose)
             .fixedSize()
             .position(
               x: min(max(offer.point.x, 110), map.size.width - 110),
@@ -789,9 +792,46 @@ private struct WaypointRow: Equatable {
 /// moves. Dismissed by tapping the map elsewhere.
 private struct PlaceOfferMenu: View {
   let canAddStop: Bool
+  /// The tapped place, shown with its icon and name, see `map-planning` "Tapping a place on the map".
+  let place: MapPlace?
+  /// Whether only the place's name is shown, without choices.
+  let nameOnly: Bool
   let choose: (PlaceChoice) -> Void
 
   var body: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      if let place {
+        HStack(spacing: 12) {
+          Image(uiImage: PlaceIcons.image(place.kind)).accessibilityHidden(true)
+          Group {
+            if let name = place.name { Text(verbatim: name) } else { Text(kindName(place.kindKey)) }
+          }
+          .font(.headline)
+        }
+        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+        .padding(.horizontal, 16)
+        if !nameOnly { Divider() }
+      }
+      if !nameOnly { choices }
+    }
+    .frame(width: 200)
+    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
+    .shadow(radius: 8)
+  }
+
+  /// The name of a kind of place, for a place without a name of its own.
+  private func kindName(_ kindKey: String) -> LocalizedStringKey {
+    switch kindKey {
+    case "food": return "Food and drink"
+    case "supermarket": return "Supermarket"
+    case "bicycle": return "Bicycle shop"
+    case "railway": return "Railway station"
+    case "toilets": return "Toilets"
+    default: return "Drinking water"
+    }
+  }
+
+  @ViewBuilder private var choices: some View {
     VStack(alignment: .leading, spacing: 0) {
       item("Start here", .start)
       if canAddStop {
@@ -801,9 +841,6 @@ private struct PlaceOfferMenu: View {
       Divider()
       item("End here", .end)
     }
-    .frame(width: 200)
-    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
-    .shadow(radius: 8)
   }
 
   private func item(_ title: LocalizedStringKey, _ choice: PlaceChoice) -> some View {

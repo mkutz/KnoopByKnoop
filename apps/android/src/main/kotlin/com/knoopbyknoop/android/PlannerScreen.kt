@@ -13,6 +13,7 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
@@ -52,6 +53,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -86,6 +88,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
@@ -404,6 +407,7 @@ private fun MapArea(
       topControlsBottom = topControlsBottom,
       topControlsStart = topControlsStart,
       offerPlace = state.offer?.offer?.position,
+      offerFlag = state.offer?.nameOnly != true,
       onOfferMoved = viewModel::offerMoved,
     )
     state.offer?.let { PlaceOfferMenu(it, viewModel) }
@@ -1070,6 +1074,17 @@ private fun WaypointList(
   }
 }
 
+/** The name of a kind of place, for a place without a name of its own. */
+private fun placeKindLabel(kindKey: String) =
+  when (kindKey) {
+    "food" -> R.string.place_food
+    "supermarket" -> R.string.place_supermarket
+    "bicycle" -> R.string.place_bicycle
+    "railway" -> R.string.place_railway
+    "toilets" -> R.string.place_toilets
+    else -> R.string.place_drinking_water
+  }
+
 /**
  * The choices for a tapped place, at the place, see `map-planning` "Choose a route point on the
  * map". Dismissing changes nothing.
@@ -1085,6 +1100,24 @@ private fun PlaceOfferMenu(offer: PlaceOffer, viewModel: AppViewModel) {
       onDismissRequest = viewModel::dismissOffer,
       properties = PopupProperties(focusable = false, dismissOnClickOutside = false),
     ) {
+      // The tapped place's icon and name, see `map-planning` "Tapping a place on the map".
+      offer.offer.place?.let { place ->
+        val context = LocalContext.current
+        val icon = remember(place.kind) { placeBitmap(context, place.kind).asImageBitmap() }
+        Row(
+          modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Image(bitmap = icon, contentDescription = null, modifier = Modifier.size(24.dp))
+          Spacer(modifier = Modifier.width(12.dp))
+          Text(
+            place.name ?: stringResource(placeKindLabel(place.kindKey)),
+            style = MaterialTheme.typography.titleMedium,
+          )
+        }
+        if (!offer.nameOnly) HorizontalDivider()
+      }
+      if (offer.nameOnly) return@DropdownMenu
       DropdownMenuItem(
         text = { Text(stringResource(R.string.start_here)) },
         onClick = { viewModel.choose(PlaceChoice.START) },

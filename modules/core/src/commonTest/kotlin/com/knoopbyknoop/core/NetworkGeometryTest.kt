@@ -360,6 +360,105 @@ class NetworkGeometryTest {
     )
   }
 
+  /** A café at [position], as the map's tiles have it. */
+  private fun cafe(position: GeoPoint = besideTheCourse, name: String? = "Eiscafé Riviera") =
+    assertNotNull(MapPlace.of(position.latitude, position.longitude, name, "cafe", "cafe"))
+
+  @Test
+  fun `name of a café`() {
+    val offer =
+      assertIs<MapTap.Offer>(
+        branchSession.tapAt(besideTheCourse, 30.0, null, branchGeometry, place = cafe())
+      )
+    assertEquals("Eiscafé Riviera", offer.place?.name)
+    assertEquals(PlaceKind.FOOD, offer.place?.kind)
+    assertEquals("food", offer.place?.kindKey)
+  }
+
+  @Test
+  fun `place without a name`() {
+    val water =
+      assertNotNull(
+        MapPlace.of(
+          besideTheCourse.latitude,
+          besideTheCourse.longitude,
+          "",
+          "drinking_water",
+          "drinking_water",
+        )
+      )
+    assertNull(water.name)
+    assertEquals("drinking_water", water.kindKey)
+    assertEquals(
+      "toilets",
+      MapPlace.of(52.0, 5.0, null, "toilets", "toilets")?.kindKey,
+    )
+  }
+
+  @Test
+  fun `place next to a course`() {
+    // Within 30 m of the course, yet the point goes to the café itself.
+    val nearCourse = GeoPoint(besideTheCourse.latitude + 0.0001, besideTheCourse.longitude)
+    val offer =
+      assertIs<MapTap.Offer>(
+        branchSession.tapAt(besideTheCourse, 30.0, null, branchGeometry, place = cafe(nearCourse))
+      )
+    assertNull(offer.onCourse)
+    assertEquals(nearCourse, offer.position)
+    val point = assertNotNull(branchSession.routePointFor(offer, branchGeometry))
+    assertEquals(nearCourse, GeoPoint(point.latitude, point.longitude))
+  }
+
+  @Test
+  fun `stop at a place`() {
+    val withRoute = branchSession.tap(knot06, NewKnots.STOP).tap(knot28, NewKnots.STOP)
+    val supermarket =
+      assertNotNull(
+        MapPlace.of(
+          northOfTheCourse(300.0).latitude,
+          besideTheCourse.longitude,
+          "Aldi",
+          "grocery",
+          "supermarket",
+        )
+      )
+    val offer =
+      assertIs<MapTap.Offer>(
+        withRoute.tapAt(supermarket.position, 30.0, null, branchGeometry, place = supermarket)
+      )
+    assertTrue(offer.canAddStop)
+    val point = assertNotNull(withRoute.routePointFor(offer, branchGeometry))
+    val planned = withRoute.addStopAt(point)
+    assertTrue(
+      planned.routePoints.any { GeoPoint(it.latitude, it.longitude) == supermarket.position }
+    )
+  }
+
+  @Test
+  fun `knot before a place`() {
+    assertEquals(
+      MapTap.OnKnot(knot06),
+      branchSession.tapAt(besideTheCourse, 30.0, knot06, branchGeometry, place = cafe()),
+    )
+  }
+
+  @Test
+  fun `place far from the network`() {
+    val far = cafe(northOfTheCourse(25_000.0))
+    assertEquals(
+      MapTap.PlaceOnly(far),
+      branchSession.tapAt(far.position, 30.0, null, branchGeometry, place = far),
+    )
+  }
+
+  @Test
+  fun `grey places unchanged`() {
+    assertNull(MapPlace.of(52.0, 5.0, "Apotheke", "pharmacy", "pharmacy"))
+    val offer =
+      assertIs<MapTap.Offer>(branchSession.tapAt(besideTheCourse, 30.0, null, branchGeometry))
+    assertNull(offer.place)
+  }
+
   /** [besideTheCourse] moved north by [meters], away from every course of [branches]. */
   private fun northOfTheCourse(meters: Double) =
     GeoPoint(besideTheCourse.latitude + meters / 111_195.0, besideTheCourse.longitude)

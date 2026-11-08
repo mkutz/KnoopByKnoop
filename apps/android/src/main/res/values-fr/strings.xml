@@ -54,6 +54,12 @@
   <string name="appearance">Apparence</string>
   <string name="places_on_map">Lieux sur la carte</string>
   <string name="places_on_map_kinds">Restauration, supermarchés, magasins de vélos, gares, eau et toilettes</string>
+  <string name="place_food">Restauration</string>
+  <string name="place_supermarket">Supermarché</string>
+  <string name="place_bicycle">Magasin de vélos</string>
+  <string name="place_railway">Gare</string>
+  <string name="place_drinking_water">Eau potable</string>
+  <string name="place_toilets">Toilettes</string>
   <string name="appearance_system">Système</string>
   <string name="appearance_light">Clair</string>
   <string name="appearance_dark">Sombre</string>
