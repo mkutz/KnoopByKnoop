@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.11.0
 
 - Android: over the lock screen, the stop button is round and as small as the one in the app; hold it until the ring around it closes to stop, and a short tap shows "Hold to stop"
 - While navigating, the map's zoom follows what lies ahead: from 200 m before a knot it zooms in on the knot and the route after it, after passing a knot it zooms out for about 10 s to show the next one, and before a tricky stretch with sharp turns close together it zooms in on it. Otherwise it stays at the usual zoom. Moving the map by hand still stops following, and recenter brings back the zoom for what lies ahead

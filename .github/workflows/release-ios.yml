@@ -111,7 +111,8 @@ jobs:
             --arg issuer_id "$API_ISSUER_ID" \
             --rawfile key "$API_KEY_PATH" \
             '{key_id: $key_id, issuer_id: $issuer_id, key: $key}' > "$RUNNER_TEMP/api-key.json"
-          export IPA_PATH="$(ls "$EXPORT_PATH"/*.ipa)"
+          IPA_PATH="$(ls "$EXPORT_PATH"/*.ipa)"
+          export IPA_PATH
           mkdir -p "$RUNNER_TEMP/fastlane"
           cat > "$RUNNER_TEMP/fastlane/Fastfile" <<'FASTFILE'
           lane :testflight_upload do
