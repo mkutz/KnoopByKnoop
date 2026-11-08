@@ -8,16 +8,11 @@ An app cannot turn an iPhone's screen on directly. It can update its Live Activi
 
 ## What Changes
 
-- At the moments that already have a spoken notice and need the rider's attention, the app alerts outside the app, so the locked phone shows the sign plate, the arrow back to the route, or the arrival:
-  - the reminder before the next knot;
-  - off route;
-  - riding the wrong way;
-  - a ferry on the route closing or closed;
-  - arriving.
+- With every spoken notice, the app also shows it on the screen: a locked phone lights up with the notice and what the panel shows. That is when the rider looks down to check what they heard (the maintainer, 2026-11-08).
 - Always on, without a setting, and silent: the spoken notice is the sound.
-- **iPhone:** an alerting Live Activity update with a silent sound.
-- **Android:** the navigation notification alerts once at these moments, waking the screen.
-- Other updates stay silent, as today.
+- **iPhone:** a silent notification with the notice's text; the lock screen shows it above the Live Activity.
+- **Android:** the navigation notification alerts once at each notice, waking the screen.
+- Updates without a spoken notice stay silent, as today.
 
 ## Out of Scope
 
@@ -37,6 +32,6 @@ None.
 
 ## Impact
 
-- **Core:** the update tells the apps whether to alert, from its notice kinds.
-- **iOS:** `Navigator` passes an `AlertConfiguration` on those updates; a short silent sound file in the bundle.
+- **Core:** nothing; every update with notices alerts.
+- **iOS:** `Navigator` posts a silent notification for each spoken notice while the app is not on screen; the permission to show notifications is asked when navigation starts for the first time.
 - **Android:** `NavigationService` alerts with the navigation notification on those updates.

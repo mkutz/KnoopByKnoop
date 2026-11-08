@@ -20,24 +20,25 @@
 
 ## Decisions
 
-### Which notices alert, decided in the core
-- `NavigationUpdate` gets `alerts: Boolean`, true when one of its notices is a REMINDER, OFF_ROUTE, WRONG_WAY, ARRIVED, or a FERRY notice about closing. Both apps use it; the kinds are decided in one place and tested.
-- **Not alerting:** NEXT, BACK_ON_ROUTE, guidance turns on a guided way, which come often while off route.
+### Every spoken notice alerts
+- The maintainer looks down whenever a notice is spoken, to check what they heard (2026-11-08). So every update with notices alerts once, whatever its kinds; several notices of one update give one alert with their texts.
+- Notices come a few times per knot, more on a guided way with its turns; each wake lasts until the screen times out.
 
-### iOS: an alerting update with a silent sound
-- On an update with `alerts`, `Navigator` passes `AlertConfiguration(title:body:sound: .named("silence.caf"))`. The title and body are the notice's text, for Apple Watch.
-- `silence.caf` is a short silent sound in the app bundle, as `AlertSound` has no silent option.
-- **Rate:** the alerts are as rare as the notices, a few per knot at most, well within what the system presents.
-- **Check first:** before the rest, a throwaway build on the maintainer's iPhone checks that a locked screen wakes, that the silent sound is silent, and how the Watch shows it. If the screen does not wake, the change stops there and is reconsidered.
+### iOS: a silent notification, not a Live Activity alert
+- **Check of 2026-11-08 (task 1.1):** a Live Activity update with `AlertConfiguration` and a silent sound expanded the Dynamic Island while the phone was unlocked, but did not light up a locked screen. A throwaway queuing it on every scene change also alerted two or three times in a row.
+- So `Navigator` posts a local notification per update with notices, while the app is not on screen: the notices' text, no sound, `interruptionLevel` active, replaced by the next one (same identifier), and removed when navigation ends. A delivered notification lights up the locked screen, unless a Focus holds it back.
+- **Permission:** notifications need the person's permission. It is asked when navigation starts the first time; without it, nothing alerts and navigation works as before.
+- **Check first:** a throwaway build posts one such notification 10 s after locking, once. On the maintainer's iPhone: does the screen light up, is it silent, what does the Watch show?
 
 ### Android: the notification alerts once at these moments
-- A second channel, "Navigation alerts", with `IMPORTANCE_HIGH`, no sound and no vibration. On an update with `alerts`, the same ongoing notification is posted on it with `setOnlyAlertOnce(false)`; afterwards back on the quiet channel.
+- A second channel, "Navigation alerts", with `IMPORTANCE_HIGH`, no sound and no vibration. On an update with notices, the same ongoing notification is posted on it with `setOnlyAlertOnce(false)`; afterwards back on the quiet channel.
 - **Screen:** a high-importance notification lights the locked screen where the phone's "wake screen for notifications" is on, the default on Pixels. Where it is off, the alert shows the next time the screen turns on.
 - **Alternative:** a wake lock with `ACQUIRE_CAUSES_WAKEUP`, deprecated and ignored by newer Android versions.
 
 ## Risks / Trade-offs
 
-- **[The iPhone does not wake for Live Activity alerts]** → Checked first on the maintainer's iPhone; the change is reconsidered if not.
+- **[The iPhone does not wake for notifications either]** → Checked first; the change is reconsidered if not.
+- **[Permission denied]** → No alerts, nothing else changes.
 - **[Focus modes, e.g. a cycling Focus]** → They can hold the alert back; the rider decides.
 - **[Battery]** → A few screen wakes per knot; the screen goes off again on its own.
 - **[Apple Watch shows a notice]** → The title and body are the notice's text, so the Watch shows it too, which is useful.
