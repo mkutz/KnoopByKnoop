@@ -23,6 +23,8 @@ Checked on 2026-11-08 with the published network data:
 
 ## For the maintainer
 
+On 2026-11-08 the maintainer confirmed the planning features on both phones, the Pixel and the iPhone ("Planning features work on both phones"). What happens while navigating and on a ride waits for the next tour.
+
 On 2026-11-08 the maintainer confirmed step 1 on the iPhone ("Works") and kept the badge size for now; steps 2 and 3 wait for the next tour.
 
 1. ✅ (2026-11-08) **iPhone:** tap a café, "Add stop here": the stop shows the food icon on the map, the strip and in the list with the name; it stays after restarting the app.

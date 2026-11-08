@@ -30,6 +30,8 @@ Checked on 2026-11-08 with the published network data and OpenFreeMap's tiles (v
 
 ## For the maintainer
 
+On 2026-11-08 the maintainer confirmed the planning features on both phones, the Pixel and the iPhone ("Planning features work on both phones"). What happens while navigating and on a ride waits for the next tour.
+
 1. **Plan in a town centre** (Siegburg, Troisdorf): do the icons help, or do they crowd out the street names at z14–15? If too busy, food and drink could start at z15.
 2. **The info sheet on the iPhone:** the "Places on the map" toggle turns them off and on, also after a restart.
 3. **Near a knot in a town:** a café right next to a knot is left out, and street names under a knot are hidden from z14.

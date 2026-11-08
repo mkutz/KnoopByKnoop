@@ -23,6 +23,8 @@ Checked on 2026-11-08 with the published network data and the base map's tiles:
 
 ## For the maintainer
 
+On 2026-11-08 the maintainer confirmed the planning features on both phones, the Pixel and the iPhone ("Planning features work on both phones"). What happens while navigating and on a ride waits for the next tour.
+
 On the iPhone on 2026-11-08 the maintainer checked planning (step 1) and asked for the stop to show the place's icon instead of the flag, which is out of scope here and can be its own change.
 
 
