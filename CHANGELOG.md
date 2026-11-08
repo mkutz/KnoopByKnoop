@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- While navigating, the map's zoom follows what lies ahead: from 200 m before a knot it zooms in on the knot and the route after it, after passing a knot it zooms out for about 10 s to show the next one, and before a tricky stretch with sharp turns close together it zooms in on it. Otherwise it stays at the usual zoom. Moving the map by hand still stops following, and recenter brings back the zoom for what lies ahead
 - Guided all the way to and from a start, stop or end off the network: on the way there along the network, the notices say which knot the course leads to ("Next 02, then towards 06", "Towards 06, then the end"), the turn off the network is told with its street, e.g. "In 100 m, turn right into Cecilienstraße", and then each turn to the flag; from a start flag, each turn to the network and "Turn left now onto the route towards 02". The top of the panel shows the next turn on the light tile meanwhile
 - No more false "Off route" with the screen off: a rough position far from the route is first checked with a precise one, and positions the iPhone delivers again are no longer counted twice, which made it switch between rough and precise positioning many times a second
 - A route that passes a knot twice is no longer cut short when you ride around at that knot: coming back into its circle counts as the later visit only once you have been more than 200 m away from it

@@ -1,5 +1,8 @@
 package com.knoopbyknoop.core
 
+import kotlin.math.PI
+import kotlin.math.cos
+
 /** Which rule decides what the map shows while following the rider, see "Zoom while following". */
 enum class MapFocusKind {
   /** The navigation zoom of the platform. */
@@ -37,7 +40,41 @@ data class MapFocus(
   val closestMeters: Double?,
   val farthestMeters: Double?,
 ) {
+  /**
+   * How much the view spans across the narrower side of the map with the rider at [rider]: twice
+   * the distance to the farthest of [points], within the limits; `null` for the navigation zoom.
+   */
+  fun acrossMeters(rider: Fix): Double? {
+    if (kind == MapFocusKind.BASE) return null
+    val radius =
+      points.maxOfOrNull {
+        distanceMeters(rider.latitude, rider.longitude, it.latitude, it.longitude)
+      } ?: return null
+    var across = radius * 2
+    closestMeters?.let { across = maxOf(across, it) }
+    farthestMeters?.let { across = minOf(across, it) }
+    return across
+  }
+
+  /**
+   * The square of [acrossMeters] around [rider], for the platform to fit its zoom to, so its own
+   * screen units apply; `null` for the navigation zoom.
+   */
+  fun viewAround(rider: Fix): GeoBounds? {
+    val half = (acrossMeters(rider) ?: return null) / 2
+    val latitudeSpan = half / METERS_PER_DEGREE
+    val longitudeSpan = half / (METERS_PER_DEGREE * cos(rider.latitude * PI / 180))
+    return GeoBounds(
+      rider.latitude - latitudeSpan,
+      rider.longitude - longitudeSpan,
+      rider.latitude + latitudeSpan,
+      rider.longitude + longitudeSpan,
+    )
+  }
+
   companion object {
+    private const val METERS_PER_DEGREE = 6_371_008.8 * PI / 180
+
     internal val BASE = MapFocus(MapFocusKind.BASE, 0, listOf(), null, null)
 
     /** The closest view at a knot. */

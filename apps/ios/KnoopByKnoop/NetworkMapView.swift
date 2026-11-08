@@ -108,6 +108,8 @@ struct NetworkMapView: UIViewRepresentable {
   /// Off route, where the line back to the route ends, see `knot-navigation` "Way to the route on
   /// the map"; `nil` on the route.
   var wayToRoute: GeoPoint? = nil
+  /// What the map shows while following the rider, see `knot-navigation` "Zoom while following".
+  var mapFocus: MapFocus? = nil
   /// Off route, the way along paths, see `knot-navigation` "Guided way back to the route".
   var guidedWay: [GeoPoint]? = nil
   /// The track ridden while navigating, see `knot-navigation` "Ridden track".
@@ -297,7 +299,8 @@ struct NetworkMapView: UIViewRepresentable {
     context.coordinator.onOfferMoved = onOfferMoved
     context.coordinator.showOffer(offerPlace, flag: offerFlag)
     context.coordinator.showNavigation(
-      position: position, nextKnot: nextKnot, wayToRoute: wayToRoute, guidedWay: guidedWay, direction: direction, on: mapView)
+      position: position, nextKnot: nextKnot, wayToRoute: wayToRoute, guidedWay: guidedWay, direction: direction,
+      focus: mapFocus, on: mapView)
     context.coordinator.showTrack(track)
     context.coordinator.showLegAhead(navigating: navigating, courseAhead: courseAhead, geometry: layers?.geometry)
     context.coordinator.showKnot(shownKnot, on: mapView)
@@ -458,13 +461,38 @@ struct NetworkMapView: UIViewRepresentable {
         zoomLevel: navigationZoom, animated: true)
     }
 
-    /// Back to the rider at the navigation zoom, following them again.
+    /// Back to the rider at the zoom for what lies ahead, following them again, see
+    /// `knot-navigation` "Recentering near a knot".
     @objc func recenter() {
       guard let mapView, let position else { return }
       following = true
       mapView.setCenter(
         CLLocationCoordinate2D(latitude: position.latitude, longitude: position.longitude),
-        zoomLevel: navigationZoom, animated: true)
+        zoomLevel: zoom(for: mapFocus, rider: position, in: mapView), animated: true)
+      appliedFocus = mapFocus.map { FocusKey(kind: $0.kind, key: $0.key) }
+    }
+
+    /// What the map shows while following, and the kind and key the zoom was last set for; while
+    /// they stay, the map only pans, see `knot-navigation` "Smooth zoom changes".
+    private var mapFocus: MapFocus?
+    private var appliedFocus: FocusKey?
+
+    private struct FocusKey: Equatable {
+      let kind: MapFocusKind
+      let key: Int32
+    }
+
+    /// The zoom for `focus` with the rider at `rider`: a circle around the rider out to the farthest
+    /// of its points, within its limits across the narrower side; the navigation zoom for the base
+    /// focus, and never closer than that after a knot, see `knot-navigation` "Zoom while following".
+    private func zoom(for focus: MapFocus?, rider: Fix, in mapView: MLNMapView) -> Double {
+      guard let focus, let view = focus.viewAround(rider: rider) else { return navigationZoom }
+      let bounds = MLNCoordinateBounds(
+        sw: CLLocationCoordinate2D(latitude: view.minLatitude, longitude: view.minLongitude),
+        ne: CLLocationCoordinate2D(latitude: view.maxLatitude, longitude: view.maxLongitude))
+      let camera = mapView.cameraThatFitsCoordinateBounds(bounds, edgePadding: clearPadding(in: mapView))
+      let zoom = MLNZoomLevelForAltitude(camera.altitude, camera.pitch, rider.latitude, mapView.frame.size)
+      return focus.kind == .afterKnot ? min(zoom, navigationZoom) : zoom
     }
 
     /// Moving or zooming the map by hand stops following the rider; the app's own camera moves
@@ -523,9 +551,11 @@ struct NetworkMapView: UIViewRepresentable {
     /// navigating, the map moves to the rider, see `knot-navigation` "Looking at the map".
     func showNavigation(
       position newPosition: Fix?, nextKnot newNextKnot: Knot?, wayToRoute newWayToRoute: GeoPoint?, guidedWay newGuidedWay: [GeoPoint]?, direction newDirection: Double?,
-      on mapView: MLNMapView
+      focus newFocus: MapFocus? = nil, on mapView: MLNMapView
     ) {
-      guard newPosition !== position || newNextKnot !== nextKnot || newWayToRoute != wayToRoute || newGuidedWay != guidedWay else { return }
+      guard newPosition !== position || newNextKnot !== nextKnot || newWayToRoute != wayToRoute || newGuidedWay != guidedWay || newFocus != mapFocus else { return }
+      mapFocus = newFocus
+      let focusKey = newFocus.map { FocusKey(kind: $0.kind, key: $0.key) }
       let begins = newPosition != nil && (position == nil || findRider)
       if begins { findRider = false }
       position = newPosition
@@ -553,10 +583,22 @@ struct NetworkMapView: UIViewRepresentable {
           MLNAltitudeForZoomLevel(navigationZoom, camera.pitch, camera.centerCoordinate.latitude, mapView.frame.size))
         center(camera, on: bounds, padding: padding, in: mapView)
         mapView.setCamera(camera, animated: true)
+        appliedFocus = focusKey
       } else if begins {
+        let zoom =
+          newFocus == nil || newFocus?.kind == .base
+          ? max(mapView.zoomLevel, navigationZoom) : zoom(for: newFocus, rider: newPosition, in: mapView)
         mapView.setCenter(
           CLLocationCoordinate2D(latitude: newPosition.latitude, longitude: newPosition.longitude),
-          zoomLevel: max(mapView.zoomLevel, navigationZoom), animated: true)
+          zoomLevel: zoom, animated: true)
+        appliedFocus = focusKey
+      } else if focusKey != appliedFocus {
+        // The zoom is set once, in one even move, when what lies ahead changes, see
+        // `knot-navigation` "Smooth zoom changes"; until it changes again, the map only pans.
+        mapView.setCenter(
+          CLLocationCoordinate2D(latitude: newPosition.latitude, longitude: newPosition.longitude),
+          zoomLevel: zoom(for: newFocus, rider: newPosition, in: mapView), animated: true)
+        appliedFocus = focusKey
       } else {
         mapView.setCenter(
           CLLocationCoordinate2D(latitude: newPosition.latitude, longitude: newPosition.longitude), animated: true)

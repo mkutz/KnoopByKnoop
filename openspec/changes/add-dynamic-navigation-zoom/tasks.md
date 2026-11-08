@@ -14,13 +14,13 @@
 
 ## 3. Android
 
-- [ ] 3.1 `NetworkMap`: turn a `MapFocus` into a zoom (circle around the rider, within the limits), set it in one 1 s ease when the kind changes, and pan only while it stays the same. Recenter uses the current focus. Keep `following = false` on hand moves.
-- [ ] 3.2 A mocked ride on the emulator through a knot and a zigzag, with screenshots before, at and after each, and a screen recording for "Smooth zoom changes" and "Labels while zoomed in". Covers "Approaching a knot", "Next knot 800 m ahead", "Approaching a zigzag", "Past the spot".
+- [x] 3.1 `NetworkMap`: turn a `MapFocus` into a zoom (circle around the rider, within the limits), set it in one 1 s ease when the kind changes, and pan only while it stays the same. Recenter uses the current focus. Keep `following = false` on hand moves.
+- [x] 3.2 A mocked ride on the emulator through a knot and a zigzag, with screenshots before, at and after each, and a screen recording for "Smooth zoom changes" and "Labels while zoomed in". Covers "Approaching a knot", "Next knot 800 m ahead", "Approaching a zigzag", "Past the spot".
 - [ ] 3.3 On the emulator: "Looking around", "No automatic zoom after looking around", "Recentering near a knot", "Off route", "Both in view".
 
 ## 4. iOS
 
-- [ ] 4.1 `NetworkMapView`: the same as 3.1.
+- [x] 4.1 `NetworkMapView`: the same as 3.1.
 - [ ] 4.2 A throwaway XCUITest ride in the simulator through a knot and a zigzag, with screenshots, for the same scenarios as 3.2 and 3.3.
 
 ## 5. Doubtful junctions (after `add-junction-pictures`)
@@ -30,9 +30,9 @@
 
 ## 6. Wrap-up
 
-- [ ] 6.1 `manual-checks.md` with the scenarios and the maintainer's steps, including a real ride on each phone that notes whether the zoom helped at knots and tricky spots, whether 10 s after a knot is right, and whether the map moved too much.
+- [x] 6.1 `manual-checks.md` with the scenarios and the maintainer's steps, including a real ride on each phone that notes whether the zoom helped at knots and tricky spots, whether 10 s after a knot is right, and whether the map moved too much.
 - [ ] 6.2 Battery: check with the maintainer whether "Battery use while navigating" needs a new ride. The screen-off path doesn't change, so it shouldn't.
-- [ ] 6.3 `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; a CHANGELOG entry under Unreleased.
+- [x] 6.3 `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; a CHANGELOG entry under Unreleased.
 
 ## Workflow follow-up
 

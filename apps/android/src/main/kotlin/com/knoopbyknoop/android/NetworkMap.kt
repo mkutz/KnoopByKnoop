@@ -1,6 +1,7 @@
 package com.knoopbyknoop.android
 
 import android.graphics.RectF
+import android.util.Log
 import android.view.Gravity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,8 @@ import com.knoopbyknoop.core.GeoPoint
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.KnotPlate
 import com.knoopbyknoop.core.MapFeatures
+import com.knoopbyknoop.core.MapFocus
+import com.knoopbyknoop.core.MapFocusKind
 import com.knoopbyknoop.core.MapPlace
 import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkGraph
@@ -99,8 +102,14 @@ private const val BASE_MAP_RETRY_MILLIS = 2_000L
 /** The zoom level a search hit is shown at: streets and knots around it are easy to tap. */
 private const val SEARCH_HIT_ZOOM = 14.0
 
-/** The zoom when navigation begins: close enough to see the next knot and the way to it. */
+/**
+ * The zoom when navigation begins and while nothing special lies ahead: close enough to see the
+ * next knot and the way to it, see `knot-navigation` "Zoom while following".
+ */
 private const val NAVIGATION_ZOOM = 15.0
+
+/** Around the view fitted for a [MapFocus], in pixels. */
+private const val FOCUS_PADDING = 48
 private const val ROUTE_WIDTH = 5f
 
 /** How opaque the copies of the base map's bridges over the route are, see "Route and bridges". */
@@ -240,6 +249,8 @@ fun NetworkMap(
    * the map"; `null` on the route.
    */
   wayToRoute: GeoPoint? = null,
+  /** What the map shows while following the rider, see `knot-navigation` "Zoom while following". */
+  mapFocus: MapFocus? = null,
   /** Off route, the way along paths, see `knot-navigation` "Guided way back to the route". */
   guidedWay: List<GeoPoint>? = null,
   /** The position found on request while planning, see `map-planning` "Show my position". */
@@ -385,8 +396,8 @@ fun NetworkMap(
       onNearestShown()
     }
   }
-  LaunchedEffect(position, nextKnot, wayToRoute, guidedWay) {
-    holder.showNavigation(position, nextKnot, wayToRoute, direction, guidedWay)
+  LaunchedEffect(position, nextKnot, wayToRoute, guidedWay, mapFocus) {
+    holder.showNavigation(position, nextKnot, wayToRoute, direction, guidedWay, mapFocus)
   }
   LaunchedEffect(track) { holder.showTrack(track) }
   LaunchedEffect(navigating, courseAhead, layers?.geometry) {
@@ -892,13 +903,23 @@ private class MapHolder {
 
   private var direction: Double? = null
 
+  private var mapFocus: MapFocus? = null
+
+  /**
+   * The kind and key of the focus the zoom was last set for; while they stay, the map only pans.
+   */
+  private var appliedFocus: Pair<MapFocusKind, Int>? = null
+
   fun showNavigation(
     newPosition: Fix?,
     newNextKnot: Knot?,
     newWayToRoute: GeoPoint? = null,
     newDirection: Double? = null,
     newGuidedWay: List<GeoPoint>? = null,
+    newFocus: MapFocus? = null,
   ) {
+    mapFocus = newFocus
+    val focusKey = newFocus?.let { it.kind to it.key }
     val begins = newPosition != null && (position == null || findRider)
     if (begins) {
       findRider = false
@@ -933,10 +954,24 @@ private class MapHolder {
           false,
         )
       }
+      appliedFocus = focusKey
     } else if (begins) {
-      map.animateCamera(
-        CameraUpdateFactory.newLatLngZoom(rider, maxOf(map.cameraPosition.zoom, NAVIGATION_ZOOM))
+      val zoom =
+        if (newFocus == null || newFocus.kind == MapFocusKind.BASE)
+          maxOf(map.cameraPosition.zoom, NAVIGATION_ZOOM)
+        else zoomFor(map, newFocus, newPosition)
+      map.animateCamera(CameraUpdateFactory.newLatLngZoom(rider, zoom))
+      appliedFocus = focusKey
+    } else if (focusKey != appliedFocus) {
+      // The zoom is set once, in one even move, when what lies ahead changes, see `knot-navigation`
+      // "Smooth zoom changes"; until it changes again, the map only pans.
+      Log.i("Navigation", "map focus: ${newFocus?.kind}, ${newFocus?.acrossMeters(newPosition)} m")
+      map.easeCamera(
+        CameraUpdateFactory.newLatLngZoom(rider, zoomFor(map, newFocus, newPosition)),
+        FOLLOW_MOVE_MILLIS,
+        false,
       )
+      appliedFocus = focusKey
     } else {
       // One even move per fix, as long as the time to the next one: an animation restarted with
       // every fix makes the base map place its labels anew all the time, so they flicker, see
@@ -1015,10 +1050,36 @@ private class MapHolder {
   /** Back to the rider at the navigation zoom, following them again. */
   fun recenter() {
     val rider = position ?: return
+    val map = map ?: return
     following = true
-    map?.animateCamera(
-      CameraUpdateFactory.newLatLngZoom(LatLng(rider.latitude, rider.longitude), NAVIGATION_ZOOM)
+    // At the zoom for what lies ahead, see `knot-navigation` "Recentering near a knot".
+    map.animateCamera(
+      CameraUpdateFactory.newLatLngZoom(
+        LatLng(rider.latitude, rider.longitude),
+        zoomFor(map, mapFocus, rider),
+      )
     )
+    appliedFocus = mapFocus?.let { it.kind to it.key }
+  }
+
+  /**
+   * The zoom for [focus] with the rider at [rider]: a circle around the rider out to the farthest
+   * of its points, within its limits across the narrower side of the map; the navigation zoom for
+   * the base focus, and never closer than that after a knot, see `knot-navigation` "Zoom while
+   * following".
+   */
+  private fun zoomFor(map: MapLibreMap, focus: MapFocus?, rider: Fix): Double {
+    val view = focus?.viewAround(rider) ?: return NAVIGATION_ZOOM
+    val bounds =
+      LatLngBounds.from(view.maxLatitude, view.maxLongitude, view.minLatitude, view.minLongitude)
+    val zoom =
+      map
+        .getCameraForLatLngBounds(
+          bounds,
+          intArrayOf(FOCUS_PADDING, compassTop + FOCUS_PADDING, FOCUS_PADDING, FOCUS_PADDING),
+        )
+        ?.zoom ?: return NAVIGATION_ZOOM
+    return if (focus.kind == MapFocusKind.AFTER_KNOT) minOf(zoom, NAVIGATION_ZOOM) else zoom
   }
 
   private var track: RiddenTrack? = null

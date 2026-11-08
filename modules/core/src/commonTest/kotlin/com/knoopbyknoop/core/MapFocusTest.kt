@@ -196,6 +196,21 @@ class MapFocusTest {
     assertEquals(MapFocus.BASE, focus)
   }
 
+  @Test
+  fun `the view spans twice the farthest point within the limits`() {
+    val rider = Fix(latitude(0.0), longitude(0.0), 5.0, 0)
+    val knot = MapFocus(MapFocusKind.KNOT, 1, listOf(at(100.0), at(250.0)), 300.0, null)
+    val near = MapFocus(MapFocusKind.KNOT, 1, listOf(at(50.0)), 300.0, null)
+    val after = MapFocus(MapFocusKind.AFTER_KNOT, 1, listOf(at(6000.0)), null, 3000.0)
+
+    assertEquals(500.0, assertNotNull(knot.acrossMeters(rider)), 1.0)
+    assertEquals(300.0, near.acrossMeters(rider))
+    assertEquals(3000.0, after.acrossMeters(rider))
+    assertEquals(null, MapFocus.BASE.acrossMeters(rider))
+    val view = assertNotNull(knot.viewAround(rider))
+    assertEquals(500.0, (view.maxLatitude - view.minLatitude) * METERS_PER_DEGREE, 1.0)
+  }
+
   // Requirement: Zoom at a tricky spot
 
   @Test

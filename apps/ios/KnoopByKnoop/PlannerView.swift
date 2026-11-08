@@ -182,6 +182,9 @@ struct PlannerView: View {
         wayToRoute: navigator.state.flatMap { state in
           state.position.flatMap { state.navigation?.wayToRoute(fix: $0) }
         },
+        mapFocus: navigator.state.flatMap { state in
+          state.position.flatMap { state.navigation?.mapFocus(fix: $0) }
+        },
         guidedWay: navigator.state?.guidedWay?.pointsAhead(),
         track: navigator.state?.track,
         direction: navigator.state?.direction,
