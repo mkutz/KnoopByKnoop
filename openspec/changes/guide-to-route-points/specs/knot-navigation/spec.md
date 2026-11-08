@@ -9,11 +9,11 @@ When the next route point is joined to the network by a way along paths, navigat
 
 #### Scenario: Leaving the network
 - **WHEN** the way to the end flag leaves the course of 02–06 by turning right into Cecilienstraße
-- **THEN** the rider hears "In 150 m turn right into Cecilienstraße" before it, and "Turn right now into Cecilienstraße" at it
+- **THEN** the rider hears "In 100 m, turn right into Cecilienstraße" before it, and "Turn right now into Cecilienstraße" at it
 
 #### Scenario: Turn by turn to the flag
 - **WHEN** the rider turned into Cecilienstraße and the way to the flag turns left into Kronprinzenstraße after 300 m
-- **THEN** the rider hears the turn into Kronprinzenstraße as on the guided way back to the route, and the header shows it
+- **THEN** the rider hears the turn as on the guided way back to the route, "In 100 m, turn left", and the header shows it with Kronprinzenstraße on the light tile of the way to the route
 
 #### Scenario: Missing the turn-off
 - **WHEN** the rider rides on along the course past Cecilienstraße

@@ -25,7 +25,11 @@
 
 ### The turn-off as a turn
 - The turn-off is the place where the way leaves the course. Its turn direction comes from the course before it and the way's first stretch after it, measured like the turn at a knot (`turn-at-knot`). The street is the one of the way's first segment, from the path data.
-- Its notices use the reminder distance of a guided way's turn, so the rider hears it in time.
+- Its notices use the distances of a guided way's turn: from 100 m ahead, and "now" within 40 m.
+- **Street name:** only the turn-off names its street ("into Cecilienstraße"), as it is the one turn the rider cannot see coming from the signs. The turns after it are told as on the guided way back to the route, without the street; the header shows the street (the maintainer, 2026-11-08).
+
+### The header off the network
+- Between the turn-off and the route point, and from a route point to the network, the header shows the light tile of the way to the route after starting elsewhere: the arrow and distance, the next turn and its street. Not the dark one, as the rider is on route (the maintainer, 2026-11-08).
 
 ### Turns after the turn-off from a guided way
 - When the rider reaches the turn-off, `WayGuide` searches a way from the rider to the route point, as it does off route, and follows it with `GuidedWay`. So the turns, the reminders, leaving the way and searching again work as on the way back to the route.

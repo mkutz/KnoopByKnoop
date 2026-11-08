@@ -176,6 +176,21 @@ internal interface Texts {
   /** A turn [notice] with the switch, e.g. `In 100 m, turn right, onto the cycle path`. */
   fun onto(notice: String, switchTo: PathSwitch): String
 
+  // Ways to and from route points, see `knot-navigation` "Guidance to a route point off the
+  // network" and "Guidance from a route point onto the network".
+
+  /** The knot the course leads to after the next knot, e.g. `towards 06`. */
+  fun towardsKnot(ref: String): String
+
+  /** Along a course towards the knot [ref], then a route point, e.g. `Towards 06, then the end`. */
+  fun towardsThen(ref: String, then: String): String
+
+  /** The turn [notice] off the network into [street], e.g. `In 100 m, turn right into Main St`. */
+  fun into(notice: String, street: String): String
+
+  /** The turn [notice] onto the network, e.g. `Turn left now onto the route towards 02`. */
+  fun ontoRoute(notice: String, ref: String): String
+
   // Progress, see `knot-navigation` "Progress strip" and "Coming knots".
 
   /** E.g. `0.8 km to 45 · end around 19:05`. */
@@ -414,6 +429,14 @@ internal object EnglishTexts : Texts {
 
   override fun onto(notice: String, switchTo: PathSwitch) = "$notice, onto ${way(switchTo)}"
 
+  override fun towardsKnot(ref: String) = "towards $ref"
+
+  override fun towardsThen(ref: String, then: String) = "Towards $ref, then $then"
+
+  override fun into(notice: String, street: String) = "$notice into $street"
+
+  override fun ontoRoute(notice: String, ref: String) = "$notice onto the route towards $ref"
+
   override fun toKnot(distance: String, next: String, endArrival: String?) =
     if (endArrival != null) "$distance to $next · end around $endArrival" else "$distance to $next"
 
@@ -644,6 +667,14 @@ internal object GermanTexts : Texts {
   override fun switchNow(switchTo: PathSwitch) = "Jetzt auf ${way(switchTo)} wechseln"
 
   override fun onto(notice: String, switchTo: PathSwitch) = "$notice, auf ${way(switchTo)}"
+
+  override fun towardsKnot(ref: String) = "Richtung $ref"
+
+  override fun towardsThen(ref: String, then: String) = "Richtung $ref, dann $then"
+
+  override fun into(notice: String, street: String) = "$notice, $street"
+
+  override fun ontoRoute(notice: String, ref: String) = "$notice, auf die Route Richtung $ref"
 
   override fun toKnot(distance: String, next: String, endArrival: String?) =
     if (endArrival != null) "$distance bis $next · Ende gegen $endArrival"
@@ -903,6 +934,14 @@ internal object DutchTexts : Texts {
 
   override fun onto(notice: String, switchTo: PathSwitch) = "$notice, naar ${way(switchTo)}"
 
+  override fun towardsKnot(ref: String) = "richting $ref"
+
+  override fun towardsThen(ref: String, then: String) = "Richting $ref, dan $then"
+
+  override fun into(notice: String, street: String) = "$notice, $street"
+
+  override fun ontoRoute(notice: String, ref: String) = "$notice, de route op richting $ref"
+
   override fun toKnot(distance: String, next: String, endArrival: String?) =
     if (endArrival != null) "$distance naar $next · einde rond $endArrival"
     else "$distance naar $next"
@@ -1139,6 +1178,14 @@ internal object FrenchTexts : Texts {
   override fun switchNow(switchTo: PathSwitch) = "Prenez ${way(switchTo)} maintenant"
 
   override fun onto(notice: String, switchTo: PathSwitch) = "$notice, sur ${way(switchTo)}"
+
+  override fun towardsKnot(ref: String) = "direction $ref"
+
+  override fun towardsThen(ref: String, then: String) = "Direction $ref, puis $then"
+
+  override fun into(notice: String, street: String) = "$notice, $street"
+
+  override fun ontoRoute(notice: String, ref: String) = "$notice, sur l'itinéraire direction $ref"
 
   override fun toKnot(distance: String, next: String, endArrival: String?) =
     if (endArrival != null) "$distance jusqu'à $next · arrivée vers $endArrival"

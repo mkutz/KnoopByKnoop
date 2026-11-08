@@ -191,6 +191,8 @@ private constructor(
    * they first were on it, see `knot-navigation` "Joining the course on the way to the start".
    */
   private val joining: Joining?,
+  /** Per leg, where its way along paths leaves or joins the network, see [LegTurns]. */
+  private val legTurns: List<LegTurns?>,
   /** The language of the texts, see `app-languages`. */
   val language: Language,
   /**
@@ -291,6 +293,23 @@ private constructor(
             !joinedRoute -> texts.guidance(next, guided?.description ?: way)
             else -> "${texts.offRouteNext(next)}, ${guided?.description ?: way}"
           },
+      )
+    }
+    val offNetwork = offNetworkTarget()
+    if (offNetwork != null) {
+      // On the way of a route point off the network, as on the way to the route, see
+      // "Guidance to a route point off the network".
+      val bearing = bearing(fix, offNetwork)
+      val distance = MapFeatures.formatDistance(distanceTo(fix, offNetwork).roundToInt(), language)
+      val guided = guidedWay?.headerTurn(language)
+      val way = texts.way(distance, compass(bearing, language))
+      return HeaderRow.ToRoute(
+        offRoute = false,
+        arrowDegrees = normalized(bearing - (ridingDirection ?: 0.0)),
+        distance = distance,
+        next = badge(nextIndex, sign = true),
+        guided = guided,
+        spoken = texts.guidance(next, guided?.description ?: way),
       )
     }
     val distance = progress(fix, guidedWay).nextKnotDistance
@@ -883,6 +902,24 @@ private constructor(
   private fun nextNotice(index: Int): Notice {
     val next = spotAt(index)
     val after = knots.getOrNull(index + 1)?.let { spotAt(index + 1) }
+    val towards = towardsOnLeg(index - 1)
+    if (towards != null) {
+      // Along the course to the route point at [index], see "Guidance to a route point off the
+      // network".
+      return notice(
+        NoticeKind.NEXT,
+        texts.towardsThen(towards.ref, texts.name(next)),
+        speech.towardsThen(spoken(towards.ref), speech.name(next.spoken())),
+      )
+    }
+    val towardsAfter = towardsOnLeg(index)
+    if (towardsAfter != null && after != null) {
+      return notice(
+        NoticeKind.NEXT,
+        texts.next(next.ref, texts.towardsKnot(towardsAfter.ref)),
+        speech.next(next.spoken().ref, speech.towardsKnot(spoken(towardsAfter.ref))),
+      )
+    }
     return notice(
       NoticeKind.NEXT,
       texts.next(next, after),
@@ -893,6 +930,14 @@ private constructor(
   private fun reminderNotice(): Notice {
     val next = spotAt(nextIndex)
     val after = knots.getOrNull(nextIndex + 1)?.let { spotAt(nextIndex + 1) }
+    val towardsAfter = towardsOnLeg(nextIndex)
+    if (towardsAfter != null && after != null && next.role == null) {
+      return notice(
+        NoticeKind.REMINDER,
+        texts.ahead(next.ref, texts.towardsKnot(towardsAfter.ref)),
+        speech.ahead(next.spoken().ref, speech.towardsKnot(spoken(towardsAfter.ref))),
+      )
+    }
     return notice(
       NoticeKind.REMINDER,
       texts.ahead(next, after),
@@ -977,6 +1022,37 @@ private constructor(
       speech.backOnRoute(spotAt(index).spoken()),
     )
 
+  /**
+   * The knot the course of leg [leg] leads to while its way to a route point follows it, `null` if
+   * the leg has no such way or follows the course for less than [TOWARDS_MIN_METERS].
+   */
+  private fun towardsOnLeg(leg: Int): Knot? {
+    val turns = legTurns.getOrNull(leg) ?: return null
+    val turnOff = turns.turnOff ?: return null
+    val alongCourse = turnOff.meters - (turns.join?.meters ?: 0.0)
+    return turnOff.towards.takeIf { alongCourse >= TOWARDS_MIN_METERS }
+  }
+
+  /**
+   * The current leg's way to or from a route point off the network, with how far along its course
+   * the rider is, or `null` off route, at the end, or on a leg without one, see `knot-navigation`
+   * "Guidance to a route point off the network".
+   */
+  internal fun networkLeg(): NetworkLeg? {
+    if (offRoute || arrived || nextIndex == 0) return null
+    val leg = nextIndex - 1
+    val turns = legTurns.getOrNull(leg) ?: return null
+    val length = route.legLength(leg)
+    val share = if (length > 0) ((place - route.offsets[leg]) / length).coerceIn(0.0, 1.0) else 0.0
+    return NetworkLeg(leg, share * turns.courseMeters, turns, pointOf(knots[nextIndex]))
+  }
+
+  /**
+   * Where the guided way leads while the rider is on the way of a route point off the network: the
+   * place where it joins the course, or after the turn-off the route point; else `null`.
+   */
+  internal fun offNetworkTarget(): GeoPoint? = networkLeg()?.target
+
   private fun arrivedNotice(): Notice = notice(NoticeKind.ARRIVED, texts.arrived, speech.arrived)
 
   private fun notice(kind: NoticeKind, text: String, speech: String) = Notice(kind, text, speech)
@@ -1030,6 +1106,7 @@ private constructor(
       directionWatch,
       joinedRoute || !offRoute,
       joining,
+      legTurns,
       language,
       speechLanguage,
     )
@@ -1047,6 +1124,12 @@ private constructor(
 
     /** Shorter than this before or after a knot, its turn cannot be told. */
     const val TURN_MIN_METERS = 2.0
+
+    /**
+     * Along a course for less than this, a way to a route point is not said to go towards a knot,
+     * see `knot-navigation` "Guidance to a route point off the network".
+     */
+    const val TOWARDS_MIN_METERS = 30.0
 
     /** A knot counts as passed within this distance, see `knot-navigation` "Passing a knot". */
     const val PASS_RADIUS_METERS = 30.0
@@ -1252,6 +1335,7 @@ private constructor(
             directionWatch = null,
             joinedRoute = !offRoute,
             joining = null,
+            legTurns = courses?.let { legTurnsOf(knots, graph, it) } ?: knots.drop(1).map { null },
             language = language,
             speechLanguage = speechLanguage,
           )

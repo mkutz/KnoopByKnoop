@@ -62,12 +62,15 @@ enum class PathSwitch {
  * @property meters for each of [points], how far along the way it is
  * @property startsBack whether it starts against the riding direction, see `path-routing` "Starting
  *   in the riding direction"
+ * @property firstName the name of the way it starts on, if known, e.g. for the turn off the network
+ *   into it, see `knot-navigation` "Guidance to a route point off the network"
  */
 class PathWay(
   val points: List<GeoPoint>,
   val meters: List<Double>,
   val turns: List<PathTurn>,
   val startsBack: Boolean = false,
+  val firstName: String? = null,
 ) {
 
   val lengthMeters: Double
@@ -257,6 +260,7 @@ class PathRouter(private val file: PathSquareSource) {
       meters,
       turns(points, meters, junctions),
       startsBack(points, first.start?.points?.firstOrNull(), heading),
+      pieces.firstOrNull()?.step?.segment?.name,
     )
   }
 
