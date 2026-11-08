@@ -520,6 +520,33 @@ class NavigationTest {
     assertEquals(2, atFortyFive.nextIndex)
   }
 
+  // Requirement: A knot the route visits twice
+
+  @Test
+  fun `riding around at the knot`() {
+    val twice = listOf(knot24, knot45, knot12, knot45, knot31)
+    val (atFortyFive, _) =
+      ride(start(east = 0.0, knots = twice, geometry = null).navigation, from = 600.0, to = 1100.0)
+
+    val (navigation, _) = atFortyFive.ride(fix(1150.0), fix(1060.0), fix(1010.0))
+
+    assertEquals(2, navigation.nextIndex)
+    assertEquals(knot12, navigation.nextKnot)
+  }
+
+  @Test
+  fun `coming back after the loop`() {
+    val twice = listOf(knot24, knot45, knot12, knot45, knot31)
+    val (atFortyFive, _) =
+      ride(start(east = 0.0, knots = twice, geometry = null).navigation, from = 600.0, to = 1100.0)
+
+    val (navigation, _) =
+      atFortyFive.ride(fix(1250.0), fix(1300.0), fix(1150.0), fix(1060.0), fix(1010.0))
+
+    assertEquals(4, navigation.nextIndex)
+    assertEquals(knot31, navigation.nextKnot)
+  }
+
   // Requirement: Off route
 
   @Test

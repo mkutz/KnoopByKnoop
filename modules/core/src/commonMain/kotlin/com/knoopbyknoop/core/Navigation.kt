@@ -159,6 +159,11 @@ private constructor(
   val arrived: Boolean,
   private val remindedIndex: Int?,
   private val offRouteKnot: Knot?,
+  /**
+   * The knot passed last while the rider has not been more than [REMINDER_METERS] from it since,
+   * see `knot-navigation` "A knot the route visits twice".
+   */
+  private val passedKnot: Knot?,
   private val confirming: Boolean,
   private val lastPreciseFix: Fix?,
   val lastFix: Fix,
@@ -557,15 +562,19 @@ private constructor(
     if (arrived) return NavigationUpdate(this, listOf(), precision(visible))
     if (fix.accuracyMeters > PRECISE_ACCURACY_METERS) return updateCoarse(fix, visible)
     val notices = mutableListOf<Notice>()
-    var navigation = this
+    var navigation =
+      if (passedKnot != null && distanceToNearestNode(fix, passedKnot) > REMINDER_METERS)
+        copy(passedKnot = null)
+      else this
 
-    val passedIndex = passedRouteIndex(fix)
+    val passedIndex = navigation.passedRouteIndex(fix)
     if (passedIndex != null) {
       if (passedIndex == knots.lastIndex) {
         notices += arrivedNotice()
         navigation =
           navigation.copy(
             nextIndex = passedIndex,
+            passedKnot = knots[passedIndex],
             arrived = true,
             offRoute = false,
             directionWatch = null,
@@ -582,6 +591,7 @@ private constructor(
             nextIndex = newNext,
             offRoute = false,
             offRouteKnot = null,
+            passedKnot = knots[passedIndex],
             remindedIndex = if (closeToPrevious(newNext)) newNext else remindedIndex,
             ferryWatch = ferries?.first ?: ferryWatch,
             pace = pace,
@@ -780,13 +790,16 @@ private constructor(
    * The position of the last route knot passed with [fix], or `null`: the first one from the next
    * one that [fix] entered, and the knots right after it that [fix] is within the circle of, as at
    * a double knot. The end of a round trip only counts once the knots before it are passed, so
-   * returning to the start is not taken for arriving.
+   * returning to the start is not taken for arriving. Neither is a later visit of [passedKnot], so
+   * riding around at a knot does not skip ahead to it.
    */
   private fun passedRouteIndex(fix: Fix): Int? {
     val roundTrip = knots.size > 2 && knots.first().id == knots.last().id
     val entered =
       (nextIndex..knots.lastIndex).firstOrNull { index ->
-        !(roundTrip && index == knots.lastIndex && index != nextIndex) && entered(fix, knots[index])
+        !(roundTrip && index == knots.lastIndex && index != nextIndex) &&
+          knots[index].id != passedKnot?.id &&
+          entered(fix, knots[index])
       } ?: return null
     return lastWithin(knots, entered, knots.lastIndex, fix)
   }
@@ -964,6 +977,7 @@ private constructor(
     arrived: Boolean = this.arrived,
     remindedIndex: Int? = this.remindedIndex,
     offRouteKnot: Knot? = this.offRouteKnot,
+    passedKnot: Knot? = this.passedKnot,
     confirming: Boolean = this.confirming,
     lastPreciseFix: Fix? = this.lastPreciseFix,
     lastFix: Fix = this.lastFix,
@@ -991,6 +1005,7 @@ private constructor(
       arrived,
       remindedIndex,
       offRouteKnot,
+      passedKnot,
       confirming,
       lastPreciseFix,
       lastFix,
@@ -1197,6 +1212,7 @@ private constructor(
             arrived = false,
             remindedIndex = null,
             offRouteKnot = null,
+            passedKnot = null,
             confirming = false,
             lastPreciseFix = fix.takeIf { it.accuracyMeters <= PRECISE_ACCURACY_METERS },
             lastFix = fix,
