@@ -823,7 +823,7 @@ Tapping a knot in the list of coming knots SHALL show that knot on the map, with
 - **THEN** the map moves to the rider at the navigation zoom and follows them again
 
 ### Requirement: Navigation over the lock screen
-On Android, while navigating with the app on top when the phone is locked, the app SHALL show the navigation over the lock screen when the phone is woken, without unlocking. Only the navigation SHALL be reachable there: the place search SHALL be hidden, and anything else SHALL need unlocking. Stopping SHALL need holding the button for about a second, labelled "Hold to stop". The button SHALL look different from the usual Stop button, and SHALL fill up while held, so its behavior shows without reading it. The notification SHALL stay available. When navigation ends, the lock screen SHALL show as usual.
+On Android, while navigating with the app on top when the phone is locked, the app SHALL show the navigation over the lock screen when the phone is woken, without unlocking. Only the navigation SHALL be reachable there: the place search SHALL be hidden, and anything else SHALL need unlocking. Stopping SHALL need holding the stop button for about a second. The button SHALL be round and the size of the usual Stop button, and SHALL look different from it: outlined, with a ring around it that fills while it is held, so its behavior shows without reading it. A short tap SHALL show the hint "Hold to stop". The notification SHALL stay available. When navigation ends, the lock screen SHALL show as usual.
 
 #### Scenario: Waking the phone on the ride
 - **WHEN** the rider locks the phone with the app on top while navigating, and wakes it
@@ -839,15 +839,15 @@ On Android, while navigating with the app on top when the phone is locked, the a
 
 #### Scenario: Before touching the stop button
 - **WHEN** the navigation shows over the lock screen
-- **THEN** the stop button is outlined and empty, unlike the solid red Stop button in the app
+- **THEN** the stop button is round and outlined, with an empty ring, the size of the solid red Stop button in the app and unlike it
 
 #### Scenario: A touch on the stop button
 - **WHEN** the rider taps the stop button over the lock screen
-- **THEN** it fills a little and empties again, and navigation continues
+- **THEN** "Hold to stop" shows above the button for a few seconds, the ring fills a little and empties again, and navigation continues
 
 #### Scenario: Letting go early
 - **WHEN** the rider lets go of the stop button before it is full
-- **THEN** it empties again, and navigation continues
+- **THEN** the ring empties again, and navigation continues
 
 #### Scenario: Without animations
 - **WHEN** the phone's animations are turned off and the rider taps the stop button
@@ -855,7 +855,7 @@ On Android, while navigating with the app on top when the phone is locked, the a
 
 #### Scenario: Holding the stop button
 - **WHEN** the rider holds the stop button over the lock screen
-- **THEN** it fills up from the start to the end over about a second, and when it is full, navigation stops and the lock screen shows as usual
+- **THEN** the ring fills around the button over about a second, and when it is closed, navigation stops and the lock screen shows as usual
 
 #### Scenario: Stop with a screen reader
 - **WHEN** a screen reader reaches the stop button over the lock screen
