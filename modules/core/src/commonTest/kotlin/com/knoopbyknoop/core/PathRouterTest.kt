@@ -348,7 +348,9 @@ class PathRouterTest {
   @Test
   fun `From one path to another is no switch`() {
     val router = besideTheStreet(PathKind.PATH, first = PathKind.CYCLE)
-    assertEquals(listOf(), assertNotNull(router.way(start, at(1000.0, -5.0))).turns)
+    val turns = assertNotNull(router.way(start, at(1000.0, -5.0))).turns
+    // The street beside it leaves within 35°, a doubtful junction, but no switch.
+    assertTrue(turns.all { it.switchTo == null && it.direction == TurnDirection.STRAIGHT })
   }
 
   @Test

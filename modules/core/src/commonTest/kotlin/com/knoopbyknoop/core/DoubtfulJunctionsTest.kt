@@ -108,6 +108,41 @@ class DoubtfulJunctionsTest {
   }
 
   @Test
+  fun `crossing a main road straight on is a turn of the way with its doubt`() {
+    val way =
+      assertNotNull(
+        routerOf(
+            segment(1, 2, start, junction),
+            segment(2, 3, junction, end),
+            segment(4, 2, at(500.0, 300.0), junction, kind = PathKind.MAIN),
+            segment(2, 5, junction, at(500.0, -300.0), kind = PathKind.MAIN),
+          )
+          .way(start, end)
+      )
+
+    val turn = way.turns.single()
+    assertEquals(TurnDirection.STRAIGHT, turn.direction)
+    assertEquals(JunctionDoubt.MAIN_ROAD, turn.doubtful?.main)
+  }
+
+  @Test
+  fun `the side to keep to at a fork`() {
+    // The other exit 30° to the left: keep right.
+    val doubtful =
+      assertNotNull(
+          routerOf(
+              segment(1, 2, start, junction),
+              segment(2, 3, junction, end),
+              segment(2, 4, junction, at(900.0, 231.0)),
+            )
+            .way(start, end)
+        )
+        .doubtful
+
+    assertEquals(TurnDirection.RIGHT, doubtful.single().keep)
+  }
+
+  @Test
   fun `a plain turn`() {
     val doubtful =
       doubtfulOf(

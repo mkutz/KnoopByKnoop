@@ -33,6 +33,8 @@ data class PathTurn(
   val direction: TurnDirection,
   val name: String?,
   val switchTo: PathSwitch? = null,
+  /** The doubtful junction here, if it is one, see `knot-navigation` "Doubtful junctions". */
+  val doubtful: DoubtfulJunction? = null,
 )
 
 /** The kind of way a [PathTurn] switches to, between streets and paths. */
@@ -73,12 +75,24 @@ enum class JunctionDoubt {
  *
  * @property startMeters where its first junction is, along the way
  * @property endMeters where its last junction is
+ * @property keep at a similar exit, the side to keep to, [TurnDirection.LEFT] or
+ *   [TurnDirection.RIGHT]
+ * @property offRoad leaving the road, whether for a cycle path or another path
  */
 data class DoubtfulJunction(
   val startMeters: Double,
   val endMeters: Double,
   val doubts: Set<JunctionDoubt>,
-)
+  val keep: TurnDirection? = null,
+  val offRoad: PathSwitch? = null,
+) {
+  /** What the sentence for it is about: a main road before leaving the road before a fork. */
+  val main: JunctionDoubt
+    get() =
+      listOf(JunctionDoubt.MAIN_ROAD, JunctionDoubt.OFF_ROAD, JunctionDoubt.SIMILAR_EXIT).first {
+        it in doubts
+      }
+}
 
 /**
  * A way found by [PathRouter].
@@ -270,14 +284,12 @@ class PathRouter(private val file: PathSquareSource) {
     }
     add(from)
     val junctions = ArrayList<Junction>()
-    val doubts = ArrayList<Pair<Double, Set<JunctionDoubt>>>()
+    val doubts = ArrayList<DoubtfulJunction>()
     pieces.forEachIndexed { index, piece ->
       if (index > 0) {
         val previous = pieces[index - 1]
         val node = piece.fromNode ?: 0L
-        doubtsAt(node, previous.step, piece.step)
-          .takeIf { it.isNotEmpty() }
-          ?.let { doubts.add(meters.last() to it) }
+        doubtsAt(meters.last(), node, previous.step, piece.step)?.let { doubts.add(it) }
         junctions.add(
           Junction(
             meters.last(),
@@ -292,13 +304,14 @@ class PathRouter(private val file: PathSquareSource) {
       piece.points.forEach(::add)
     }
     add(to)
+    val doubtful = merged(doubts)
     return PathWay(
       points,
       meters,
-      turns(points, meters, junctions),
+      withDoubts(turns(points, meters, junctions), doubtful),
       startsBack(points, first.start?.points?.firstOrNull(), heading),
       pieces.firstOrNull()?.step?.segment?.name,
-      merged(doubts),
+      doubtful,
       junctions.filter { it.exits >= 2 && it.atMeters > 0.0 }.map { it.atMeters },
     )
   }
@@ -347,20 +360,21 @@ class PathRouter(private val file: PathSquareSource) {
    * Why the junction at [node] is doubtful when arriving on [arriving] and taking [taken], see
    * `knot-navigation` "Doubtful junctions"; empty for a plain one.
    */
-  private fun doubtsAt(node: Long, arriving: Step, taken: Step): Set<JunctionDoubt> {
+  private fun doubtsAt(at: Double, node: Long, arriving: Step, taken: Step): DoubtfulJunction? {
     val doubts = mutableSetOf<JunctionDoubt>()
     val takenHeading = headingAlong(taken.points())
     val others =
       stepsByNode[node].orEmpty().filter {
         it.segment !== arriving.segment && it.segment !== taken.segment
       }
-    if (
-      others.any {
-        abs(signedAngle(takenHeading, headingAlong(it.points()))) <= SIMILAR_EXIT_DEGREES
-      }
-    ) {
-      doubts += JunctionDoubt.SIMILAR_EXIT
-    }
+    val similar =
+      others
+        .map { signedAngle(takenHeading, headingAlong(it.points())) }
+        .filter { abs(it) <= SIMILAR_EXIT_DEGREES }
+        .minByOrNull { abs(it) }
+    // The other exit to the right means keeping left.
+    val keep = similar?.let { if (it > 0) TurnDirection.LEFT else TurnDirection.RIGHT }
+    if (similar != null) doubts += JunctionDoubt.SIMILAR_EXIT
     fun isMainRoad(kind: PathKind) = kind == PathKind.MAJOR || kind == PathKind.MAIN
     val mainRoads =
       segmentsByNode[node].orEmpty().count {
@@ -371,19 +385,48 @@ class PathRouter(private val file: PathSquareSource) {
       doubts += JunctionDoubt.MAIN_ROAD
     }
     val switch = PathSwitch.of(arriving.segment.kind, taken.segment.kind)
-    if (switch != null && switch != PathSwitch.STREET) doubts += JunctionDoubt.OFF_ROAD
-    return doubts
+    val offRoad = switch?.takeIf { it != PathSwitch.STREET }
+    if (offRoad != null) doubts += JunctionDoubt.OFF_ROAD
+    return if (doubts.isEmpty()) null else DoubtfulJunction(at, at, doubts, keep, offRoad)
+  }
+
+  /**
+   * [turns] with the doubtful junctions on them; a doubtful junction without a turn, e.g. crossing
+   * a main road straight on, becomes one.
+   */
+  private fun withDoubts(
+    turns: List<PathTurn>,
+    doubtful: List<DoubtfulJunction>,
+  ): List<PathTurn> {
+    val result = turns.toMutableList()
+    for (junction in doubtful) {
+      val index = result.indexOfFirst {
+        it.atMeters >= junction.startMeters - 1 && it.atMeters <= junction.endMeters + MERGE_METERS
+      }
+      if (index >= 0) {
+        result[index] = result[index].copy(doubtful = junction)
+      } else {
+        result += PathTurn(junction.startMeters, TurnDirection.STRAIGHT, null, doubtful = junction)
+      }
+    }
+    return result.sortedBy { it.atMeters }
   }
 
   /** [doubts] at junctions along the way, those within [MERGE_METERS] of each other as one. */
-  private fun merged(doubts: List<Pair<Double, Set<JunctionDoubt>>>): List<DoubtfulJunction> {
+  private fun merged(doubts: List<DoubtfulJunction>): List<DoubtfulJunction> {
     val result = ArrayList<DoubtfulJunction>()
-    for ((at, reasons) in doubts) {
+    for (junction in doubts) {
       val last = result.lastOrNull()
-      if (last != null && at - last.endMeters <= MERGE_METERS) {
-        result[result.lastIndex] = last.copy(endMeters = at, doubts = last.doubts + reasons)
+      if (last != null && junction.startMeters - last.endMeters <= MERGE_METERS) {
+        result[result.lastIndex] =
+          last.copy(
+            endMeters = junction.endMeters,
+            doubts = last.doubts + junction.doubts,
+            keep = last.keep ?: junction.keep,
+            offRoad = last.offRoad ?: junction.offRoad,
+          )
       } else {
-        result += DoubtfulJunction(at, at, reasons)
+        result += junction
       }
     }
     return result

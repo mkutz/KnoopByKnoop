@@ -207,6 +207,10 @@ private constructor(
 
   private fun notice(turn: PathTurn, meters: Double, texts: Texts, distance: String): String {
     val now = meters <= NOW_METERS
+    // A doubtful junction is described, see "Wording for doubtful junctions".
+    turn.doubtful?.let {
+      return texts.doubtful(it, turn.direction, distance.takeUnless { now })
+    }
     val switchTo = turn.switchTo
     if (switchTo != null && turn.direction == TurnDirection.STRAIGHT) {
       return if (now) texts.switchNow(switchTo) else texts.switchAhead(switchTo, distance)

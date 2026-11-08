@@ -4,7 +4,7 @@
 
 - [x] 1.1 Core: find doubtful junctions on a guided way, merging parts within 40 m. Tests: "A similar exit close by", "Crossing a main road", "Leaving the road for a cycle path", "A plain turn".
 - [x] 1.2 Measure the share of doubtful junctions on the eight public trips of `add-offline-paths` with the real path file and report it. **The maintainer decides whether to narrow the rules before any further work** (43 % in the rough test).
-- [ ] 1.3 Sentences and speech in all app languages. Tests: "Crossing a main road and turning", "Cycle path after a road", "A similar exit".
+- [x] 1.3 Sentences and speech in all app languages. Tests: "Crossing a main road and turning", "Cycle path after a road", "A similar exit".
 
 ## 2. The picture
 

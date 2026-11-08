@@ -31,4 +31,4 @@ By rule (a junction can have several): crossing a main road 23, leaving the road
 
 The guided way is only shown off route and to and from route points, so on a ride these come up far less often than per kilometre of the network.
 
-**For the maintainer to decide before any further work:** keep the three rules, or narrow them.
+**Decided by the maintainer, 2026-11-08:** keep all three rules.

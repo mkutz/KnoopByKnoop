@@ -191,6 +191,12 @@ internal interface Texts {
   /** The turn [notice] onto the network, e.g. `Turn left now onto the route towards 02`. */
   fun ontoRoute(notice: String, ref: String): String
 
+  /**
+   * The sentence for a doubtful junction, see `knot-navigation` "Wording for doubtful junctions":
+   * e.g. `In 100 m, cross the main road, then turn left`, or with no [distance] the one for now.
+   */
+  fun doubtful(junction: DoubtfulJunction, direction: TurnDirection, distance: String?): String
+
   // Progress, see `knot-navigation` "Progress strip" and "Coming knots".
 
   /** E.g. `0.8 km to 45 · end around 19:05`. */
@@ -437,6 +443,39 @@ internal object EnglishTexts : Texts {
 
   override fun ontoRoute(notice: String, ref: String) = "$notice onto the route towards $ref"
 
+  override fun doubtful(
+    junction: DoubtfulJunction,
+    direction: TurnDirection,
+    distance: String?,
+  ): String {
+    val then =
+      when (direction) {
+        TurnDirection.STRAIGHT -> null
+        TurnDirection.SLIGHT_LEFT -> "bear left"
+        TurnDirection.LEFT -> "turn left"
+        TurnDirection.SHARP_LEFT -> "turn sharp left"
+        TurnDirection.SLIGHT_RIGHT -> "bear right"
+        TurnDirection.RIGHT -> "turn right"
+        TurnDirection.SHARP_RIGHT -> "turn sharp right"
+        TurnDirection.BACK -> "turn back"
+      }
+    val side =
+      when (sideOf(direction)) {
+        TurnDirection.LEFT -> "on the left"
+        TurnDirection.RIGHT -> "on the right"
+        else -> "ahead"
+      }
+    val sentence =
+      when (junction.main) {
+        JunctionDoubt.MAIN_ROAD -> "cross the main road" + (then?.let { ", then $it" } ?: "")
+        JunctionDoubt.OFF_ROAD ->
+          "take the ${if (junction.offRoad == PathSwitch.PATH) "path" else "cycle path"} $side"
+        JunctionDoubt.SIMILAR_EXIT ->
+          "keep ${if (junction.keep == TurnDirection.RIGHT) "right" else "left"} at the fork"
+      }
+    return if (distance != null) "In $distance, $sentence" else "Now $sentence"
+  }
+
   override fun toKnot(distance: String, next: String, endArrival: String?) =
     if (endArrival != null) "$distance to $next · end around $endArrival" else "$distance to $next"
 
@@ -675,6 +714,39 @@ internal object GermanTexts : Texts {
   override fun into(notice: String, street: String) = "$notice, $street"
 
   override fun ontoRoute(notice: String, ref: String) = "$notice, auf die Route Richtung $ref"
+
+  override fun doubtful(
+    junction: DoubtfulJunction,
+    direction: TurnDirection,
+    distance: String?,
+  ): String {
+    val then =
+      when (direction) {
+        TurnDirection.STRAIGHT -> null
+        TurnDirection.SLIGHT_LEFT -> "leicht links"
+        TurnDirection.LEFT -> "links abbiegen"
+        TurnDirection.SHARP_LEFT -> "scharf links"
+        TurnDirection.SLIGHT_RIGHT -> "leicht rechts"
+        TurnDirection.RIGHT -> "rechts abbiegen"
+        TurnDirection.SHARP_RIGHT -> "scharf rechts"
+        TurnDirection.BACK -> "umkehren"
+      }
+    val side =
+      when (sideOf(direction)) {
+        TurnDirection.LEFT -> "links"
+        TurnDirection.RIGHT -> "rechts"
+        else -> "geradeaus"
+      }
+    val sentence =
+      when (junction.main) {
+        JunctionDoubt.MAIN_ROAD -> "die Hauptstraße überqueren" + (then?.let { ", dann $it" } ?: "")
+        JunctionDoubt.OFF_ROAD ->
+          "${if (junction.offRoad == PathSwitch.PATH) "den Weg" else "den Radweg"} $side nehmen"
+        JunctionDoubt.SIMILAR_EXIT ->
+          "an der Gabelung ${if (junction.keep == TurnDirection.RIGHT) "rechts" else "links"} halten"
+      }
+    return if (distance != null) "In $distance $sentence" else "Jetzt $sentence"
+  }
 
   override fun toKnot(distance: String, next: String, endArrival: String?) =
     if (endArrival != null) "$distance bis $next · Ende gegen $endArrival"
@@ -942,6 +1014,39 @@ internal object DutchTexts : Texts {
 
   override fun ontoRoute(notice: String, ref: String) = "$notice, de route op richting $ref"
 
+  override fun doubtful(
+    junction: DoubtfulJunction,
+    direction: TurnDirection,
+    distance: String?,
+  ): String {
+    val then =
+      when (direction) {
+        TurnDirection.STRAIGHT -> null
+        TurnDirection.SLIGHT_LEFT -> "flauw links"
+        TurnDirection.LEFT -> "linksaf"
+        TurnDirection.SHARP_LEFT -> "scherp links"
+        TurnDirection.SLIGHT_RIGHT -> "flauw rechts"
+        TurnDirection.RIGHT -> "rechtsaf"
+        TurnDirection.SHARP_RIGHT -> "scherp rechts"
+        TurnDirection.BACK -> "omkeren"
+      }
+    val side =
+      when (sideOf(direction)) {
+        TurnDirection.LEFT -> "links"
+        TurnDirection.RIGHT -> "rechts"
+        else -> "rechtdoor"
+      }
+    val sentence =
+      when (junction.main) {
+        JunctionDoubt.MAIN_ROAD -> "de hoofdweg oversteken" + (then?.let { ", dan $it" } ?: "")
+        JunctionDoubt.OFF_ROAD ->
+          "${if (junction.offRoad == PathSwitch.PATH) "het pad" else "het fietspad"} $side nemen"
+        JunctionDoubt.SIMILAR_EXIT ->
+          "bij de splitsing ${if (junction.keep == TurnDirection.RIGHT) "rechts" else "links"} aanhouden"
+      }
+    return if (distance != null) "Over $distance $sentence" else "Nu $sentence"
+  }
+
   override fun toKnot(distance: String, next: String, endArrival: String?) =
     if (endArrival != null) "$distance naar $next · einde rond $endArrival"
     else "$distance naar $next"
@@ -1187,6 +1292,40 @@ internal object FrenchTexts : Texts {
 
   override fun ontoRoute(notice: String, ref: String) = "$notice, sur l'itinéraire direction $ref"
 
+  override fun doubtful(
+    junction: DoubtfulJunction,
+    direction: TurnDirection,
+    distance: String?,
+  ): String {
+    val then =
+      when (direction) {
+        TurnDirection.STRAIGHT -> null
+        TurnDirection.SLIGHT_LEFT -> "légèrement à gauche"
+        TurnDirection.LEFT -> "tournez à gauche"
+        TurnDirection.SHARP_LEFT -> "fortement à gauche"
+        TurnDirection.SLIGHT_RIGHT -> "légèrement à droite"
+        TurnDirection.RIGHT -> "tournez à droite"
+        TurnDirection.SHARP_RIGHT -> "fortement à droite"
+        TurnDirection.BACK -> "faites demi-tour"
+      }
+    val side =
+      when (sideOf(direction)) {
+        TurnDirection.LEFT -> "à gauche"
+        TurnDirection.RIGHT -> "à droite"
+        else -> "tout droit"
+      }
+    val sentence =
+      when (junction.main) {
+        JunctionDoubt.MAIN_ROAD ->
+          "traversez la route principale" + (then?.let { ", puis $it" } ?: "")
+        JunctionDoubt.OFF_ROAD ->
+          "prenez ${if (junction.offRoad == PathSwitch.PATH) "le chemin" else "la piste cyclable"} $side"
+        JunctionDoubt.SIMILAR_EXIT ->
+          "restez ${if (junction.keep == TurnDirection.RIGHT) "à droite" else "à gauche"} à la bifurcation"
+      }
+    return if (distance != null) "Dans $distance, $sentence" else "Maintenant, $sentence"
+  }
+
   override fun toKnot(distance: String, next: String, endArrival: String?) =
     if (endArrival != null) "$distance jusqu'à $next · arrivée vers $endArrival"
     else "$distance jusqu'à $next"
@@ -1253,3 +1392,15 @@ internal object FrenchTexts : Texts {
 
 /** [text] with its first letter upper case, e.g. `The stop`. */
 internal fun capitalized(text: String): String = text.replaceFirstChar { it.uppercase() }
+
+/** [TurnDirection.LEFT] or [TurnDirection.RIGHT] for a turn to that side, else `null`. */
+internal fun sideOf(direction: TurnDirection): TurnDirection? =
+  when (direction) {
+    TurnDirection.SLIGHT_LEFT,
+    TurnDirection.LEFT,
+    TurnDirection.SHARP_LEFT -> TurnDirection.LEFT
+    TurnDirection.SLIGHT_RIGHT,
+    TurnDirection.RIGHT,
+    TurnDirection.SHARP_RIGHT -> TurnDirection.RIGHT
+    else -> null
+  }
