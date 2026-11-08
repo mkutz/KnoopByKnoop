@@ -16,7 +16,7 @@
 
 ## 3. iOS
 
-- [ ] 3.1 The same in `KnotBadges.swift`, `NetworkMapView.swift`, the strip and the waypoint list. The project builds; the maintainer checks "Café as a stop" and "Kept after a restart" on the iPhone.
+- [x] 3.1 The same in `KnotBadges.swift`, `NetworkMapView.swift`, the strip and the waypoint list. The project builds; the maintainer checks "Café as a stop" and "Kept after a restart" on the iPhone.
 
 ## 4. Wrap-up
 
