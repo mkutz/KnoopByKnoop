@@ -4,15 +4,11 @@ import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
@@ -24,7 +20,6 @@ import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.SmallFloatingActionButton
@@ -34,7 +29,6 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,10 +37,12 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -99,80 +95,98 @@ fun ProminentAction(
 }
 
 /**
- * Stop over the lock screen: outlined, and filling up while held, so it doesn't pass for the usual
+ * Stop over the lock screen: round and outlined, the size of the Stop in the app, with a ring that
+ * fills around it while held, and the label as a hint on a tap, so it doesn't pass for the usual
  * Stop button, see `knot-navigation` "Navigation over the lock screen".
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HoldAction(label: String, @DrawableRes icon: Int, onHold: () -> Unit) {
   val currentOnHold by rememberUpdatedState(onHold)
   val fill = remember { Animatable(0f) }
   val scope = rememberCoroutineScope()
-  val shape = ButtonDefaults.shape
-  val content: @Composable () -> Unit = {
-    Row(
-      verticalAlignment = Alignment.CenterVertically,
-      modifier = Modifier.padding(ButtonDefaults.ButtonWithIconContentPadding),
+  val hint = rememberTooltipState()
+  val surface = MaterialTheme.colorScheme.surface
+  TooltipBox(
+    positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+    tooltip = { PlainTooltip { Text(label) } },
+    state = hint,
+    // Shown on a tap below, not on the long press that stops.
+    enableUserInput = false,
+  ) {
+    Box(
+      contentAlignment = Alignment.Center,
+      modifier =
+        Modifier.size(STOP_SIZE)
+          .drawBehind {
+            val outline = OUTLINE_WIDTH.toPx()
+            val ring = RING_WIDTH.toPx()
+            drawCircle(surface)
+            drawCircle(
+              ActionColors.red,
+              radius = size.minDimension / 2 - outline / 2,
+              style = Stroke(outline),
+            )
+            if (fill.value > 0f) {
+              drawArc(
+                ActionColors.red,
+                startAngle = -90f,
+                sweepAngle = 360f * fill.value,
+                useCenter = false,
+                topLeft = Offset(ring / 2, ring / 2),
+                size = Size(size.width - ring, size.height - ring),
+                style = Stroke(ring, cap = StrokeCap.Round),
+              )
+            }
+          }
+          .clearAndSetSemantics {
+            contentDescription = label
+            role = Role.Button
+            onClick {
+              currentOnHold()
+              true
+            }
+          }
+          .pointerInput(Unit) {
+            awaitEachGesture {
+              awaitFirstDown()
+              val filling = scope.launch {
+                fill.animateTo(1f, tween(HOLD_MILLIS.toInt(), easing = LinearEasing))
+              }
+              // Timed here and not by the animation, which ends at once with animations turned off.
+              val released =
+                withTimeoutOrNull(HOLD_MILLIS) {
+                  waitForUpOrCancellation()
+                  true
+                } ?: false
+              filling.cancel()
+              if (released) {
+                scope.launch { hint.show() }
+                scope.launch {
+                  if (fill.value < TAP_FILL) fill.animateTo(TAP_FILL, tween(TAP_FILL_MILLIS))
+                  fill.animateTo(0f, tween(EMPTY_MILLIS))
+                }
+              } else {
+                scope.launch { fill.snapTo(1f) }
+                currentOnHold()
+              }
+            }
+          },
     ) {
       Icon(
         painterResource(icon),
         contentDescription = null,
-        modifier = Modifier.size(ButtonDefaults.IconSize),
+        tint = ActionColors.red,
+        modifier = Modifier.size(24.dp),
       )
-      Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-      Text(label, style = MaterialTheme.typography.labelLarge, maxLines = 1)
-    }
-  }
-  Box(
-    modifier =
-      Modifier.clip(shape)
-        .border(2.dp, ActionColors.red, shape)
-        .clearAndSetSemantics {
-          contentDescription = label
-          role = Role.Button
-          onClick {
-            currentOnHold()
-            true
-          }
-        }
-        .pointerInput(Unit) {
-          awaitEachGesture {
-            awaitFirstDown()
-            val filling = scope.launch {
-              fill.animateTo(1f, tween(HOLD_MILLIS.toInt(), easing = LinearEasing))
-            }
-            // Timed here and not by the animation, which ends at once with animations turned off.
-            val released =
-              withTimeoutOrNull(HOLD_MILLIS) {
-                waitForUpOrCancellation()
-                true
-              } ?: false
-            filling.cancel()
-            if (released) {
-              scope.launch {
-                if (fill.value < TAP_FILL) fill.animateTo(TAP_FILL, tween(TAP_FILL_MILLIS))
-                fill.animateTo(0f, tween(EMPTY_MILLIS))
-              }
-            } else {
-              scope.launch { fill.snapTo(1f) }
-              currentOnHold()
-            }
-          }
-        }
-  ) {
-    CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
-      content()
-    }
-    Box(
-      modifier =
-        Modifier.matchParentSize().drawWithContent {
-          clipRect(right = size.width * fill.value) { this@drawWithContent.drawContent() }
-        }
-    ) {
-      Box(Modifier.matchParentSize().background(ActionColors.red))
-      CompositionLocalProvider(LocalContentColor provides Color.White) { content() }
     }
   }
 }
+
+/** The size of the Stop buttons, in the app and over the lock screen. */
+private val STOP_SIZE = 52.dp
+private val OUTLINE_WIDTH = 2.dp
+private val RING_WIDTH = 5.dp
 
 private const val HOLD_MILLIS = 1000L
 private const val TAP_FILL = 0.3f
@@ -218,7 +232,7 @@ fun StopIconAction(label: String, onClick: () -> Unit) {
   ) {
     FilledIconButton(
       onClick = onClick,
-      modifier = Modifier.size(52.dp),
+      modifier = Modifier.size(STOP_SIZE),
       colors =
         IconButtonDefaults.filledIconButtonColors(
           containerColor = ActionColors.red,
