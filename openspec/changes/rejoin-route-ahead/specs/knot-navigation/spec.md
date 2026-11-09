@@ -32,11 +32,11 @@ While navigating and off route, the map SHALL show a dashed straight line from t
 - **THEN** the map shows the dashed line again
 
 #### Scenario: Walking on to where the route goes
-- **WHEN** the leg runs 500 m west along a river and then 200 m south to the end, and the rider left it 100 m into the westward part and is now 300 m west and 150 m south of where they left it
-- **THEN** the line leads south-west to the southward part of the leg, not back north to the river
+- **WHEN** the leg runs 600 m west along a river and then 200 m south to the end, and the rider left it 100 m into the westward part and is now 300 m west and 150 m south of where they left it, 150 m from the river and 200 m from the southward part
+- **THEN** the line leads west to the southward part of the leg, not back north to the nearer river
 
 #### Scenario: Cutting a loop short
-- **WHEN** the leg makes a 600 m loop that comes back within 80 m of where it started, and the rider leaves the route at the start of the loop and crosses towards its end
+- **WHEN** the leg makes a 600 m loop that comes back within 80 m of where it started, and the rider leaves the route at the start of the loop and crosses towards its end, still nearer to the start
 - **THEN** the line leads to the end of the loop, not back into it
 
 #### Scenario: Steady target

@@ -11,3 +11,7 @@
 ## 3. Release
 
 - [ ] 3.1 Changelog line, and the maintainer's walk home → gym again, leaving the route at the Sieg as on 2026-11-09.
+
+## Notes
+
+- 1.1, 2026-11-09: the three new tests fail with the code from before the change and pass with it. At first two of them passed with the old code too: in "walking on" the southward part was nearer than the river, and in "cutting a loop short" the place on the route had already moved to the loop's end while off route was being confirmed. Both now start where the old rule leads back.

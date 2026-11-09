@@ -1386,9 +1386,10 @@ class NavigationTest {
 
   @Test
   fun `walking on to where the route goes`() {
-    // 500 m east along a river, then 200 m south, then on to 45.
+    // 600 m east along a river, then 200 m south, then on to 45: from the rider, the river is
+    // 150 m away and the southward part 200 m.
     val turning =
-      withCourse24To45(0.0 to 0.0, 500.0 to 0.0, 500.0 to -200.0, 1000.0 to -200.0, 1000.0 to 0.0)
+      withCourse24To45(0.0 to 0.0, 600.0 to 0.0, 600.0 to -200.0, 1000.0 to -200.0, 1000.0 to 0.0)
     val (left, _) =
       start(east = 0.0, geometry = turning).navigation.ride(fix(100.0), fix(400.0, -150.0))
 
@@ -1397,7 +1398,7 @@ class NavigationTest {
     assertTrue(navigation.offRoute)
     val target = assertNotNull(navigation.wayToRoute(navigation.lastFix))
     // On the southward part, not back north to the river at 400 m.
-    assertEquals(longitude(500.0), target.longitude, 2.0 / METERS_PER_DEGREE, "east")
+    assertEquals(longitude(600.0), target.longitude, 2.0 / METERS_PER_DEGREE, "east")
     assertTrue(target.latitude < latitude(-100.0), "south of the river: $target")
   }
 
@@ -1414,9 +1415,9 @@ class NavigationTest {
         1000.0 to 0.0,
       )
     val (left, _) =
-      start(east = 0.0, geometry = loop).navigation.ride(fix(150.0), fix(240.0, -110.0))
+      start(east = 0.0, geometry = loop).navigation.ride(fix(150.0), fix(205.0, -105.0))
 
-    val (navigation, _) = left.ride(fix(240.0, -110.0))
+    val (navigation, _) = left.ride(fix(205.0, -105.0))
 
     assertTrue(navigation.offRoute)
     val target = assertNotNull(navigation.wayToRoute(navigation.lastFix))
@@ -1427,17 +1428,17 @@ class NavigationTest {
 
   @Test
   fun `steady target`() {
-    // 500 m east along a river, then 200 m south, then on to 45, as in "walking on".
+    // As in "walking on".
     val turning =
-      withCourse24To45(0.0 to 0.0, 500.0 to 0.0, 500.0 to -200.0, 1000.0 to -200.0, 1000.0 to 0.0)
+      withCourse24To45(0.0 to 0.0, 600.0 to 0.0, 600.0 to -200.0, 1000.0 to -200.0, 1000.0 to 0.0)
     val (ahead, _) =
       start(east = 0.0, geometry = turning)
         .navigation
         .ride(fix(100.0), fix(400.0, -150.0), fix(400.0, -150.0))
     assertTrue(assertNotNull(ahead.wayToRoute(ahead.lastFix)).latitude < latitude(-100.0))
 
-    // Back towards the river, where leading ahead saves only about 70 m: it keeps leading ahead.
-    val (navigation, _) = ahead.ride(fix(380.0, -110.0))
+    // Back towards the river, where leading ahead saves only about 85 m: it keeps leading ahead.
+    val (navigation, _) = ahead.ride(fix(385.0, -120.0))
 
     val target = assertNotNull(navigation.wayToRoute(navigation.lastFix))
     assertTrue(target.latitude < latitude(-100.0), "still ahead: $target")
