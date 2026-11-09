@@ -757,12 +757,32 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
    */
   private val exportCourse: List<GeoPoint>?
     get() {
-      val route = state.session?.route ?: return null
+      val session = state.session ?: return null
+      val route = session.route ?: return null
       val network = loaded?.takeIf { it.hasGeometry && !state.navigating } ?: return null
-      return network.geometry.withRoutePoints(state.session!!.routeGraph).courseOf(route)?.takeIf {
-        Gpx.canExport(route, it)
-      }
+      // Once per route and network: the waypoint sheet asks on every redraw, and building the
+      // course took over 100 ms on the iPhone, which made its sheet stutter while it moved.
+      exportCourseCache
+        ?.takeIf { it.session === session && it.geometry === network.geometry }
+        ?.let {
+          return it.course
+        }
+      val course =
+        network.geometry.withRoutePoints(session.routeGraph).courseOf(route)?.takeIf {
+          Gpx.canExport(route, it)
+        }
+      exportCourseCache = ExportCourse(session, network.geometry, course)
+      return course
     }
+
+  /** The last [exportCourse], with the session and the network's geometry it was built for. */
+  private var exportCourseCache: ExportCourse? = null
+
+  private class ExportCourse(
+    val session: PlanningSession,
+    val geometry: NetworkGeometry,
+    val course: List<GeoPoint>?,
+  )
 
   /** Whether the planned route can be exported as GPX. */
   val canExportGpx: Boolean

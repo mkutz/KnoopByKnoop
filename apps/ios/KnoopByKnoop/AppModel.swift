@@ -217,12 +217,20 @@ final class AppModel: ObservableObject {
   /// The course of the planned route along the network, or `nil` while it cannot be exported, see
   /// `map-planning` "Export the route as GPX": not while navigating, and not as straight lines.
   private var exportCourse: [GeoPoint]? {
-    guard !navigating, let session, let route = session.route, let loaded, loaded.hasGeometry,
-      let course = loaded.geometry.withRoutePoints(routeGraph: session.routeGraph).courseOf(route: route),
-      Gpx.shared.canExport(route: route, course: course)
-    else { return nil }
+    guard !navigating, let session, let route = session.route, let loaded, loaded.hasGeometry else { return nil }
+    // Once per route and network: the waypoint sheet asks on every redraw, and building the course
+    // took over 100 ms on the iPhone, which made the sheet stutter while it moved.
+    if let cached = exportCourseCache, cached.session === session, cached.geometry === loaded.geometry {
+      return cached.course
+    }
+    var course = loaded.geometry.withRoutePoints(routeGraph: session.routeGraph).courseOf(route: route)
+    if let found = course, !Gpx.shared.canExport(route: route, course: found) { course = nil }
+    exportCourseCache = (session, loaded.geometry, course)
     return course
   }
+
+  /// The last `exportCourse`, with the session and the network's geometry it was built for.
+  private var exportCourseCache: (session: PlanningSession, geometry: NetworkGeometry, course: [GeoPoint]?)?
 
   /// Whether the planned route can be exported as GPX.
   var canExportGpx: Bool { exportCourse != nil }
