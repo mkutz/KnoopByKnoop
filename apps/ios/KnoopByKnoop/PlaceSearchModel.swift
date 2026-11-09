@@ -39,11 +39,12 @@ final class PlaceSearchModel: ObservableObject {
       guard !Task.isCancelled else { return }
       result = .searching
       let area = context.area
+      // The app's language rather than the system's, see `place-search` "Hits in the app's language".
       let requests = PlaceSearch.shared.requests(
         query: newQuery,
         centerLatitude: context.center?.latitude ?? (area.minLatitude + area.maxLatitude) / 2,
         centerLongitude: context.center?.longitude ?? (area.minLongitude + area.maxLongitude) / 2,
-        area: area, language: Locale.current.language.languageCode?.identifier ?? "en")
+        area: area, language: AppLanguage.code)
       async let prominent = PlaceSearchClient.fetch(requests.prominent)
       async let nearby = PlaceSearchClient.fetch(requests.nearby)
       let responses = await (prominent, nearby)

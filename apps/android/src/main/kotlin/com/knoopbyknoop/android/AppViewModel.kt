@@ -56,7 +56,6 @@ import com.knoopbyknoop.core.hasStraightLines
 import com.knoopbyknoop.core.reattached
 import com.knoopbyknoop.core.routePointFor
 import com.knoopbyknoop.core.tapAt
-import java.util.Locale
 import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -577,7 +576,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
           center?.latitude ?: (area.minLatitude + area.maxLatitude) / 2,
           center?.longitude ?: (area.minLongitude + area.maxLongitude) / 2,
           area,
-          Locale.getDefault().language,
+          // The app's language, as its texts, see `place-search` "Hits in the app's language".
+          language.name.lowercase(),
         )
       val result =
         try {

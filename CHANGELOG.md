@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The places found are named in the app's language, in German, English or French, whatever language you search in; in Dutch as named on the spot, e.g. "Köln", as the search service has no Dutch names
 - iPhone: typing in the place search no longer redraws the map and the route with each letter, so the letters show without delay
 
 ## 0.11.1
