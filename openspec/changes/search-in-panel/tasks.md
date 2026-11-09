@@ -6,6 +6,13 @@
 - [x] 1.2 `PlannerView` and `PlaceSearchView`: a `searching` state opened by the button; the sheet goes to large with the field focused at its top and the hits below it, on the sheet's background, and in landscape the same in the side panel; picking a hit, clearing or tapping the map closes it and restores the sheet's height. The search overlay over the map goes; the attribution stays above the sheet. Builds.
 - [ ] 1.3 Simulator screenshots, light and dark: "Field above the sheet on iOS" at the sheet's smallest and medium height (no button covered), "Sheet pulled up on iOS", "Typing on iOS", "One surface on iOS", "Back above the sheet on iOS", "Searching in landscape on iOS", "Typing in landscape on iOS", "Done typing in landscape on iOS", the offline state of "Search needs internet access", and the largest text size.
 
-## 2. Release
+## 2. Android
 
-- [ ] 2.1 Changelog line, and a manual check on the iPhone: search a place, pick it, and check the map's buttons with the sheet at different heights.
+- [ ] 2.1 `NetworkMap`: the magnifier button at the top of the column, like the zoom buttons, only while planning, labelled "Search places"; `strings.xml` gets it and Cancel in all four languages. Builds.
+- [ ] 2.2 `PlannerScreen` and `PlaceSearchField`: a `searching` state opened by the button; the sheet expands with the field focused at its top and the hits below, on the sheet's surface, and in landscape the same in the side panel; picking a hit, Cancel, tapping the map or back closes it and restores the sheet's height. The field leaves the map's top; the sliding landscape panel and `RouteChip` go. The column of buttons stays clear of the sheet. Builds, `./gradlew check`.
+- [ ] 2.3 Emulator screenshots, light and dark: "Button on the map on Android" at the sheet's smallest and medium height, "Typing on Android", "Back on Android", "Typing in landscape on Android", "No search while navigating", map-planning "Typing in the search in landscape" and "Map controls in landscape", and the offline state of "Search needs internet access".
+
+## 3. Release
+
+- [ ] 3.1 Changelog line, and a manual check on the iPhone: search a place, pick it, and check the map's buttons with the sheet at different heights.
+- [ ] 3.2 Changelog line for Android, and a check on the Pixel: open the search from the button, pick a place, close it with back, and see there is no search while navigating.

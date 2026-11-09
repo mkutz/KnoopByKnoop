@@ -30,8 +30,21 @@
 ### Offline
 - The button stays enabled; the opened field shows the existing disabled state with its message, so "Search needs internet access" is unchanged.
 
+## Android (added 2026-11-09)
+
+### The same, in Compose
+- A `SmallFloatingActionButton` with a magnifier icon at the top of `NetworkMap`'s column, styled like the zoom buttons, only while planning (`onSearch` is `null` while navigating), labelled "Search places".
+- `PlannerScreen` keeps a `searching` state (`rememberSaveable`). In portrait, opening expands the `BottomSheetScaffold`'s sheet and its content shows `PlaceSearchField` at the top, focused, with the hits below, instead of the waypoints; closing partially expands it again if it was at its peek, or leaves the height it had. In landscape, the side panel's `Surface` shows the same.
+- `PlaceSearchField` drops `mapOverlayColor` for the panel's surface and gets a Cancel button next to the field; the ✕ keeps clearing only.
+- `BackHandler(enabled = searching)` closes the search, as Android users expect from the back gesture.
+- The map's column of buttons is anchored above the sheet as on iOS if the sheet covers it at its medium height; checked on the emulator first, as Compose's `BottomSheetScaffold` may already lay the content out above the sheet.
+
+### Landscape
+- The side panel no longer slides aside while the keyboard is open, and `RouteChip` goes: the field and hits are in the panel, so the map needs no more room. `map-planning` "Landscape layout" is changed to say so.
+
 ## Risks / Trade-offs
 
 - **[One more tap to search]** → Accepted by the maintainer for a clear map; the button is where the eye looks for map tools.
 - **[The sheet jumping to large]** → It returns to the height it had when the search closes.
+- **[Android riders used to the field on the ride]** → The maintainer finds it of little use while navigating; places can be looked up before starting.
 - **[Large text sizes]** → The panel's field and hits use the system's dynamic type; check at the largest size.

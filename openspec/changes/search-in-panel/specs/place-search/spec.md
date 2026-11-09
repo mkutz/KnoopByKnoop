@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Search while typing
-The map SHALL offer a search field. While the user types, the app SHALL list matching places, stations, addresses and businesses, each with its name and enough of its address or type to tell similar hits apart. On Android, the field SHALL be shown at the top of the map, with the hits right below it. On iOS, the search SHALL be a round magnifier button in the map's column of buttons while it isn't used, so nothing covers the map's buttons; tapping it SHALL open the search field at the top of the waypoint sheet in portrait, or of the side panel in landscape, with the keyboard, and the hits SHALL be listed in the panel. Picking a hit, Cancel or tapping the map SHALL close the search back into the button; clearing the field SHALL keep it open to type again.
+The map SHALL offer a search field. While the user types, the app SHALL list matching places, stations, addresses and businesses, each with its name and enough of its address or type to tell similar hits apart. On both apps, the search SHALL be a round magnifier button in the map's column of buttons while it isn't used, so nothing covers the map or its buttons; tapping it SHALL open the search field at the top of the waypoint sheet in portrait, or of the side panel in landscape, with the keyboard, and the hits SHALL be listed in the panel. Picking a hit, Cancel, tapping the map or, on Android, the back gesture SHALL close the search back into the button; clearing the field SHALL keep it open to type again. While navigating, there SHALL be no search.
 
 #### Scenario: Station
 - **WHEN** the user types "Utrecht Centraal"
@@ -54,6 +54,26 @@ The map SHALL offer a search field. While the user types, the app SHALL list mat
 #### Scenario: Done typing in landscape on iOS
 - **WHEN** the iPhone is in landscape, shows hits, and the user taps a hit or Cancel
 - **THEN** the keyboard is dismissed, the side panel shows the waypoints again, and the search is the magnifier button again
+
+#### Scenario: Button on the map on Android
+- **WHEN** an Android phone is in portrait and the user drags the waypoint sheet between its smallest and its medium height
+- **THEN** no search field is over the map; a round magnifier button, styled like the zoom buttons, is in the map's column of buttons, and none of the map's buttons is covered
+
+#### Scenario: Typing on Android
+- **WHEN** an Android phone is in portrait and the user taps the magnifier button and types "Utrecht Centraal"
+- **THEN** the waypoint sheet rises, its top shows the search field with the keyboard open, and the hits are listed in the sheet below the field
+
+#### Scenario: Back on Android
+- **WHEN** an Android phone shows hits in the sheet and the user taps a hit, taps Cancel, taps the map or uses the back gesture
+- **THEN** the keyboard is dismissed, the sheet shows the waypoints again at the height it had, and the search is the magnifier button again
+
+#### Scenario: Typing in landscape on Android
+- **WHEN** an Android phone is in landscape and the user taps the magnifier button and types "Utrecht" with the on-screen keyboard
+- **THEN** the field and the hits show at the top of the side panel, and the map, the network switch and the attribution stay as they are
+
+#### Scenario: No search while navigating
+- **WHEN** the user navigates a route, on either app
+- **THEN** there is neither a magnifier button nor a search field on the map
 
 ### Requirement: Jump to a hit
 Tapping a hit SHALL move the map to it, zoomed in far enough that knots are shown and can be tapped, and SHALL mark it with a marker. A hit far from the map's view SHALL be jumped to rather than moved to, so the map draws only where it ends up. On iOS, the map SHALL show at once that it is getting there, until it has drawn the hit. The route being planned SHALL stay as it is.
