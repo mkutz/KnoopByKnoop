@@ -36,7 +36,9 @@
 - A `SmallFloatingActionButton` with a magnifier icon at the top of `NetworkMap`'s column, styled like the zoom buttons, only while planning (`onSearch` is `null` while navigating), labelled "Search places".
 - `PlannerScreen` keeps a `searching` state (`rememberSaveable`). In portrait, opening expands the `BottomSheetScaffold`'s sheet and its content shows `PlaceSearchField` at the top, focused, with the hits below, instead of the waypoints; closing partially expands it again if it was at its peek, or leaves the height it had. In landscape, the side panel's `Surface` shows the same.
 - `PlaceSearchField` drops `mapOverlayColor` for the panel's surface and gets a Cancel button next to the field; the ✕ keeps clearing only.
-- `BackHandler(enabled = searching)` closes the search, as Android users expect from the back gesture.
+- `BackHandler(enabled = searching)` closes the search, as Android users expect from the back gesture. **Found during apply:** with the keyboard open, the first back closes only the keyboard, as everywhere on Android; the next closes the search. The scenario says so.
+- **Found during apply:** reopening with text left from before put the cursor at the start, so typing on gave "AmsterdamUtrecht Centraal"; the field keeps a `TextFieldValue` with the cursor at the end.
+- **Checked during apply:** `BottomSheetScaffold` lays the map out above the sheet's smallest height, so the column of buttons needs no anchoring: at the medium height none of them is covered.
 - The map's column of buttons is anchored above the sheet as on iOS if the sheet covers it at its medium height; checked on the emulator first, as Compose's `BottomSheetScaffold` may already lay the content out above the sheet.
 
 ### Landscape

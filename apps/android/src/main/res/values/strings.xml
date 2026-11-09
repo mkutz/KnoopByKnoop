@@ -18,7 +18,6 @@
   <string name="start_here">Start here</string>
   <string name="add_stop_here">Add stop here</string>
   <string name="end_here">End here</string>
-  <string name="route_chip">Route of %1$s, closes the keyboard</string>
   <string name="start_point_set_end">Start set, tap a knot to set the end</string>
   <string name="end_point_set_start">End set, tap a knot to set the start</string>
   <string name="straight_ways">The way to a chosen place is only a straight line so far, and so is its length</string>

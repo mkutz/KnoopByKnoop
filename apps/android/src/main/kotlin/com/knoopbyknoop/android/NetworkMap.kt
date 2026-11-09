@@ -262,6 +262,11 @@ fun NetworkMap(
   locating: Boolean = false,
   /** Asks for the position; `null` while navigating, which hides the button. */
   onLocate: (() -> Unit)? = null,
+  /**
+   * Opens the place search; `null` while navigating or searching, which hides the button, see
+   * `place-search` "Search while typing".
+   */
+  onSearch: (() -> Unit)? = null,
   /** Whether the nearest knots are being found. */
   findingNearest: Boolean = false,
   /** Shows the nearest knots; `null` while knots are in view, which hides the button. */
@@ -447,6 +452,19 @@ fun NetworkMap(
   Box(modifier = modifier) {
     AndroidView(factory = { mapView })
     Column(modifier = Modifier.align(Alignment.CenterEnd).padding(12.dp)) {
+      if (onSearch != null) {
+        SmallFloatingActionButton(
+          onClick = onSearch,
+          containerColor = mapOverlayColor,
+          contentColor = Green,
+          modifier = Modifier.padding(bottom = 12.dp),
+        ) {
+          Icon(
+            painterResource(R.drawable.ic_search),
+            contentDescription = stringResource(R.string.search_places),
+          )
+        }
+      }
       listOf("+" to 1.0, "−" to -1.0).forEach { (label, delta) ->
         SmallFloatingActionButton(
           onClick = { holder.zoomBy(delta) },

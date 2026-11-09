@@ -8,11 +8,6 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -32,7 +27,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
@@ -100,11 +94,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
@@ -156,6 +148,17 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
   var showInfo by rememberSaveable { mutableStateOf(false) }
   if (showInfo) InfoSheet(state, viewModel, onDismiss = { showInfo = false })
   var pendingNetwork by remember { mutableStateOf<IndexedNetworkType?>(null) }
+  // The place search, opened from the map's magnifier button into the sheet or side panel, see
+  // `place-search` "Search while typing".
+  var searching by rememberSaveable { mutableStateOf(false) }
+  val focusManager = LocalFocusManager.current
+  val closeSearch = {
+    focusManager.clearFocus()
+    searching = false
+  }
+  BackHandler(enabled = searching, onBack = closeSearch)
+  // No search while navigating.
+  LaunchedEffect(state.navigating) { if (state.navigating) searching = false }
   val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
   // The same map in both layouts: moving it instead of creating a new one keeps its position when
   // the device is rotated, see `map-planning` "Landscape layout".
@@ -164,6 +167,9 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
       MapArea(
         currentState,
         viewModel,
+        searching = searching,
+        onSearch = { searching = true },
+        onCloseSearch = closeSearch,
         onSwitch = { pendingNetwork = it },
         onInfo = { showInfo = true },
         infoShown = showInfo,
@@ -172,54 +178,30 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
     }
   }
 
-  // While typing in the search, only a strip is left above the keyboard: the map, the field and
-  // its hits get all of it, see `map-planning` "Typing in the search in landscape".
-  val typing = WindowInsets.isImeVisible
   if (landscape) {
     Box(modifier = Modifier.fillMaxSize()) {
       Row(modifier = Modifier.fillMaxSize()) {
         mapArea(state, Modifier.weight(1f).fillMaxHeight())
-        // Slides aside instead of vanishing, so the route is clearly still there.
-        AnimatedVisibility(
-          visible = !typing,
-          enter = expandHorizontally(expandFrom = Alignment.Start),
-          exit = shrinkHorizontally(shrinkTowards = Alignment.Start),
-        ) {
-          Row {
-            VerticalDivider()
-            // The panel's background reaches behind the navigation bar; its content keeps its width
-            // clear of it, so the header stays one row, see `map-planning` "Clear of the system
-            // bars".
-            Surface(modifier = Modifier.fillMaxHeight()) {
-              Column(
-                modifier =
-                  Modifier.windowInsetsPadding(
-                      WindowInsets.safeDrawing.only(
-                        WindowInsetsSides.Top + WindowInsetsSides.End + WindowInsetsSides.Bottom
-                      )
-                    )
-                    .width(360.dp)
-                    .padding(top = 16.dp)
-              ) {
-                WaypointSheet(state, viewModel, onShowKnot = viewModel::showOnMap)
-              }
-            }
+        VerticalDivider()
+        // The panel's background reaches behind the navigation bar; its content keeps its width
+        // clear of it, so the header stays one row, see `map-planning` "Clear of the system bars".
+        Surface(modifier = Modifier.fillMaxHeight()) {
+          Column(
+            modifier =
+              Modifier.windowInsetsPadding(
+                  WindowInsets.safeDrawing.only(
+                    WindowInsetsSides.Top + WindowInsetsSides.End + WindowInsetsSides.Bottom
+                  )
+                )
+                .width(360.dp)
+                .padding(top = 16.dp)
+          ) {
+            // The search takes the panel's place while open, see `map-planning` "Landscape
+            // layout".
+            if (searching) PlaceSearchField(state, viewModel, onClose = closeSearch)
+            else WaypointSheet(state, viewModel, onShowKnot = viewModel::showOnMap)
           }
         }
-      }
-      // While the panel is aside, the route's ends and distance at the map's edge; a tap closes the
-      // keyboard and brings the panel back, see "Typing in the search in landscape".
-      val complete = state.description as? RouteDescription.Complete
-      AnimatedVisibility(
-        visible = typing && complete != null,
-        enter = fadeIn(),
-        exit = fadeOut(),
-        modifier =
-          Modifier.align(Alignment.TopEnd)
-            .windowInsetsPadding(topInsets)
-            .padding(top = 12.dp, end = 12.dp),
-      ) {
-        complete?.let { RouteChip(it) }
       }
       SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
     }
@@ -254,6 +236,18 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
         scaffoldState.bottomSheetState.partialExpand()
     }
     val scope = rememberCoroutineScope()
+    // Up while searching, so the hits have room above the keyboard; back to the height it had.
+    var heightBeforeSearch by remember { mutableStateOf<SheetValue?>(null) }
+    LaunchedEffect(searching) {
+      val sheet = scaffoldState.bottomSheetState
+      if (searching) {
+        heightBeforeSearch = sheet.currentValue
+        sheet.expand()
+      } else if (heightBeforeSearch == SheetValue.PartiallyExpanded) {
+        heightBeforeSearch = null
+        sheet.partialExpand()
+      }
+    }
     BottomSheetScaffold(
       scaffoldState = scaffoldState,
       sheetPeekHeight = peekHeight,
@@ -264,20 +258,29 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
       },
       snackbarHost = { SnackbarHost(snackbarHostState) },
       sheetContent = {
-        WaypointSheet(
-          state,
-          viewModel,
-          // The highest the navigation part was, so the sheet does not jump when the header
-          // switches to the number to follow near a knot, see `knot-navigation` "Number to follow".
-          onNavigationHeight = { navigationHeight = maxOf(navigationHeight, it) },
-          onSummaryHeight = { summaryHeight = it },
-          // The sheet comes down, so the knot is not hidden by it, see `knot-navigation` "Showing
-          // a coming knot on the map".
-          onShowKnot = { knot ->
-            viewModel.showOnMap(knot)
-            scope.launch { scaffoldState.bottomSheetState.partialExpand() }
-          },
-        )
+        if (searching)
+          PlaceSearchField(
+            state,
+            viewModel,
+            onClose = closeSearch,
+            modifier = Modifier.fillMaxHeight().windowInsetsPadding(WindowInsets.navigationBars),
+          )
+        else
+          WaypointSheet(
+            state,
+            viewModel,
+            // The highest the navigation part was, so the sheet does not jump when the header
+            // switches to the number to follow near a knot, see `knot-navigation` "Number to
+            // follow".
+            onNavigationHeight = { navigationHeight = maxOf(navigationHeight, it) },
+            onSummaryHeight = { summaryHeight = it },
+            // The sheet comes down, so the knot is not hidden by it, see `knot-navigation` "Showing
+            // a coming knot on the map".
+            onShowKnot = { knot ->
+              viewModel.showOnMap(knot)
+              scope.launch { scaffoldState.bottomSheetState.partialExpand() }
+            },
+          )
       },
     ) { padding ->
       mapArea(state, Modifier.fillMaxSize().padding(padding))
@@ -323,6 +326,9 @@ private val topInsets: WindowInsets
 private fun MapArea(
   state: AppState,
   viewModel: AppViewModel,
+  searching: Boolean,
+  onSearch: () -> Unit,
+  onCloseSearch: () -> Unit,
   onSwitch: (IndexedNetworkType) -> Unit,
   onInfo: () -> Unit,
   infoShown: Boolean,
@@ -378,7 +384,11 @@ private fun MapArea(
       focus =
         session?.let { (it.route?.summary as? RouteSummary.Complete)?.knots ?: it.waypoints }
           ?: listOf(),
-      onTap = viewModel::tap,
+      // A tap on the map closes an open search rather than adding a knot, see `place-search`
+      // "Search while typing".
+      onTap = { latitude, longitude, radius, x, y, place ->
+        if (searching) onCloseSearch() else viewModel.tap(latitude, longitude, radius, x, y, place)
+      },
       online = state.online,
       initialPlace = state.initialPlace,
       onLeave = viewModel::saveCamera,
@@ -406,6 +416,7 @@ private fun MapArea(
       myPosition = state.myPosition.takeUnless { state.navigating },
       locating = state.locating,
       onLocate = locate.takeUnless { state.navigating },
+      onSearch = onSearch.takeUnless { state.navigating || searching },
       findingNearest = state.findingNearest,
       onShowNearest =
         viewModel::showNearestKnots.takeIf { state.noKnotsInView && !state.navigating },
@@ -429,7 +440,6 @@ private fun MapArea(
           .padding(12.dp)
           .onGloballyPositioned { topControlsStart = it.positionInParent().x.roundToInt() }
     ) {
-      if (!Navigating.overLockScreen.collectAsState().value) PlaceSearchField(state, viewModel)
       // Not while navigating: the route is fixed then, see `knot-navigation` "Switching the network
       // while navigating", and the info sheet is not needed on the ride, see `network-sync` "Info
       // sheet".
@@ -437,8 +447,7 @@ private fun MapArea(
         Row(
           // Scrolls at very large text, so the words stay on one line and the info button in reach.
           modifier =
-            Modifier.padding(top = 8.dp)
-              .background(mapOverlayColor.copy(alpha = 0.85f), MaterialTheme.shapes.medium)
+            Modifier.background(mapOverlayColor.copy(alpha = 0.85f), MaterialTheme.shapes.medium)
               .horizontalScroll(rememberScrollState())
               .padding(horizontal = 8.dp),
           verticalAlignment = Alignment.CenterVertically,
@@ -1163,51 +1172,6 @@ private fun PlaceOfferMenu(offer: PlaceOffer, viewModel: AppViewModel) {
         text = { Text(stringResource(R.string.end_here)) },
         onClick = { viewModel.choose(PlaceChoice.END) },
       )
-    }
-  }
-}
-
-/**
- * The route's start, end and distance while the panel is aside in landscape; a tap closes the
- * keyboard, which brings the panel back, see `map-planning` "Typing in the search in landscape".
- */
-@Composable
-private fun RouteChip(route: RouteDescription.Complete) {
-  val focusManager = LocalFocusManager.current
-  val keyboard = LocalSoftwareKeyboardController.current
-  val description = stringResource(R.string.route_chip, route.distance)
-  Surface(
-    onClick = {
-      keyboard?.hide()
-      focusManager.clearFocus()
-    },
-    shape = RoundedCornerShape(24.dp),
-    shadowElevation = 4.dp,
-    modifier = Modifier.semantics { contentDescription = description },
-  ) {
-    Row(
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(6.dp),
-      modifier = Modifier.clearAndSetSemantics {}.padding(horizontal = 10.dp, vertical = 6.dp),
-    ) {
-      route.knots.first().let {
-        KnotBadge(
-          it.knot.ref,
-          it.role,
-          plate = KnotPlate.of(it.knot.signRegion),
-          place = it.knot.routePoint?.placeKind,
-        )
-      }
-      Text("→", style = MaterialTheme.typography.titleMedium)
-      route.knots.last().let {
-        KnotBadge(
-          it.knot.ref,
-          it.role,
-          plate = KnotPlate.of(it.knot.signRegion),
-          place = it.knot.routePoint?.placeKind,
-        )
-      }
-      Text(route.distance, style = MaterialTheme.typography.titleMedium)
     }
   }
 }

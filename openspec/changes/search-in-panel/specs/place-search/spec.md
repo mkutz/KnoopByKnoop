@@ -64,7 +64,7 @@ The map SHALL offer a search field. While the user types, the app SHALL list mat
 - **THEN** the waypoint sheet rises, its top shows the search field with the keyboard open, and the hits are listed in the sheet below the field
 
 #### Scenario: Back on Android
-- **WHEN** an Android phone shows hits in the sheet and the user taps a hit, taps Cancel, taps the map or uses the back gesture
+- **WHEN** an Android phone shows hits in the sheet and the user taps a hit, taps Cancel, taps the map or uses the back gesture, a first one closing only the keyboard if it is open
 - **THEN** the keyboard is dismissed, the sheet shows the waypoints again at the height it had, and the search is the magnifier button again
 
 #### Scenario: Typing in landscape on Android
