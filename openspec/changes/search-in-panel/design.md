@@ -13,6 +13,10 @@
 - A round 40 pt button with `magnifyingglass`, styled like the zoom buttons, placed below the my-position and nearest-knots buttons, hidden while navigating like my position. Its accessibility label is "Search places", in all four languages.
 - **Why there:** the column is where the map's tools are; the search was the only one floating elsewhere.
 
+### The button column ends above the sheet
+- The column of map buttons is anchored with its bottom a little above the sheet's top edge in portrait, moving with the sheet, instead of being centred on the map, so the extra button and a tall sheet cover none of them. In landscape it stays where it is, beside the side panel.
+- **Why:** with the floating field gone, a column centred on the map would still reach under a tall sheet, now one button longer.
+
 ### The search opens in the panel
 - Tapping the button sets a `searching` state: the sheet goes to `.large` in portrait and its content shows `PlaceSearchView` at the top, focused, with the hits below it instead of the waypoint list. In landscape the side panel does the same.
 - The field and hits drop `FloatingBackground` and sit on the panel's background, so there is one surface.

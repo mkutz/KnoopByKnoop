@@ -6,7 +6,7 @@ The maintainer's TestFlight feedback on build 25 (2026-11-09, 08:02 and 08:04) s
 
 ## What Changes
 
-- While not in use, the search is a round magnifier button in the map's button column on iOS, styled like the zoom buttons.
+- While not in use, the search is a round magnifier button in the map's button column on iOS, styled like the zoom buttons. The column ends just above the sheet and moves with it, so a tall sheet covers none of its buttons.
 - Tapping it opens the search field at the top of the waypoint sheet in portrait, or of the side panel in landscape, with the keyboard; the places found show in the panel.
 - Picking a place, clearing the search or tapping the map collapses it back into the button.
 - No search field floats over the map any more, so it covers no button, and the search shares the panel's glass.
