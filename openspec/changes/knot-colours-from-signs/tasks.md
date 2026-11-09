@@ -42,7 +42,7 @@
 ## 4. iOS
 
 - [x] 4.1 `KnotBadges.swift`: a new `PlateBadge` with the same plates, fills, corner symbols and image names. `Shared/Badges.swift` stays as it is for the widget. The project builds, and simulator screenshots show the same scenarios as 3.1.
-- [ ] 4.2 `NetworkMapView.swift`: the same line and marker colours as 3.2. Checked by a simulator screenshot while off route.
+- [x] 4.2 `NetworkMapView.swift`: the same line and marker colours as 3.2. Checked by a simulator screenshot while off route.
 - [ ] 4.3 `PlannerView.swift`, `ProgressPanel.swift`, `RouteFerries.swift`: the same panel changes as 3.3. Simulator screenshots of the same scenarios, and the Live Activity unchanged.
 
 ## 5. Wrap-up

@@ -32,16 +32,18 @@ Checked on 2026-11-07:
 | Knots not on the route | ✅ | ✅ | 24, 06, 28 grey around Troisdorf |
 | Knot without a region | ✅ | — | Hiking 73 → 74 near Aachen in the app's green ([Android](screenshots/android-hiking-without-region.png)) |
 | Data from before sign regions | unit test | unit test | `PlanningTest`: plate `none` |
-| Off route on the map | ✅ | open | The guided way is dark with a white casing, light on the dark map ([light](screenshots/android-off-route-light.png), [dark](screenshots/android-off-route-dark.png)) |
+| Off route on the map | ✅ | ✅ | The guided way is dark with a white casing, light on the dark map ([light](screenshots/android-off-route-light.png), [dark](screenshots/android-off-route-dark.png)); the same on iOS ([light](screenshots/ios-light-off.png), [dark](screenshots/ios-dark-off.png)) |
 | Knots on the dark map | ✅ | ✅ | Grey knots on dark discs, plates unchanged |
-| Off route in light mode | ✅ | open | Dark header with white text, the badge keeps its plate |
-| Off route in dark mode | ✅ | open | Light header with dark text |
-| Off route on the strip | ✅ | open | A ring with ✕ in place of the dot. Badges on the strip stay round ([navigating](screenshots/android-navigating-strip.png)) |
-| Wrong direction in the panel | open | open | Same code path as off route, not seen on a device yet |
+| Off route in light mode | ✅ | ✅ | Dark header with white text, the badge keeps its plate |
+| Off route in dark mode | ✅ | ✅ | Light header with dark text; on iOS no salmon, Stop red ([iOS](screenshots/ios-dark-off.png)) |
+| Off route on the strip | ✅ | ✅ | A ring with ✕ in place of the dot. Badges on the strip stay round ([navigating](screenshots/android-navigating-strip.png)) |
+| Wrong direction in the panel | ✅ | ✅ | Riding 300 m back along the route: the dark header with the U-turn and the ring with ✕ on the strip ([Android](screenshots/android-wrong-way.png), [iOS light](screenshots/ios-light-wrong.png), [iOS dark](screenshots/ios-dark-wrong.png)) |
 | Warning in the ferry list | open | open | Clock badge and bold arrival. `FerryArrivalClockTest` covers the arrival's look per state |
 | Closed at the renewed estimate | open | open | As above |
 
 On iOS, navigation can't be started in the simulator without tapping Navigate, so the navigation scenarios wait for a throwaway UI test or the maintainer.
+
+On 2026-11-09 the navigation scenarios were checked with a throwaway UI test in the simulator and mocked positions along 02–06 near Siegburg, from the installed course data, and on the emulator. The salmon off-route header the maintainer once saw on the iPhone in dark mode did not show: the header is light and Stop red.
 
 ## For the maintainer
 
