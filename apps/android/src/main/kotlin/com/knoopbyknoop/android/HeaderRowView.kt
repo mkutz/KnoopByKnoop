@@ -198,10 +198,42 @@ private fun OneRowOrStacked(
  */
 @Composable
 private fun GuidedRow(row: HeaderRow.ToRoute, guided: GuidedHeader, modifier: Modifier) {
+  // With the distance left where the row fits with it, else without: on the Pixel the next knot ran
+  // under Stop. Measured with the turn's distance alone, as the street is cut short anyway.
+  SubcomposeLayout(modifier) { constraints ->
+    val probe =
+      subcompose("probe") { GuidedRowContent(row, guided, withRemaining = true, probe = true) }
+        .map { it.measure(Constraints()) }
+    val withRemaining = probe.all { it.width <= constraints.maxWidth }
+    val placeables =
+      subcompose("row") { GuidedRowContent(row, guided, withRemaining, probe = false) }
+        .map { it.measure(constraints.copy(minWidth = 0)) }
+    layout(
+      (placeables.maxOfOrNull { it.width } ?: 0).coerceIn(
+        constraints.minWidth,
+        constraints.maxWidth,
+      ),
+      placeables.maxOfOrNull { it.height } ?: 0,
+    ) {
+      placeables.forEach { it.placeRelative(0, 0) }
+    }
+  }
+}
+
+/**
+ * The guided row's content; as a [probe], without the street, to see whether the rest fits in one
+ * row.
+ */
+@Composable
+private fun GuidedRowContent(
+  row: HeaderRow.ToRoute,
+  guided: GuidedHeader,
+  withRemaining: Boolean,
+  probe: Boolean,
+) {
   Row(
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.spacedBy(8.dp),
-    modifier = modifier,
   ) {
     ToRouteSymbol(awayFromRoute = row.offRoute, size = 40.dp, tile = !row.offRoute)
     Icon(
@@ -209,32 +241,29 @@ private fun GuidedRow(row: HeaderRow.ToRoute, guided: GuidedHeader, modifier: Mo
       contentDescription = null,
       modifier = Modifier.size(32.dp).rotate(turnDegrees(guided.turn)),
     )
-    Column(Modifier.weight(1f, fill = false)) {
+    Column(if (probe) Modifier else Modifier.weight(1f, fill = false)) {
       Text(
         guided.turnDistance ?: guided.remaining,
         style = MaterialTheme.typography.titleLarge,
         fontWeight = FontWeight.Bold,
         maxLines = 1,
       )
-      guided.street?.let {
-        Text(
-          it,
-          style = MaterialTheme.typography.bodySmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis,
-        )
+      if (!probe) {
+        guided.street?.let {
+          Text(
+            it,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+          )
+        }
       }
     }
-    if (guided.turnDistance != null) {
+    if (guided.turnDistance != null && withRemaining) {
       Text(guided.remaining, style = MaterialTheme.typography.titleLarge, maxLines = 1)
     }
-    row.next?.let {
-      Row(verticalAlignment = Alignment.CenterVertically) {
-        Chevron(18.dp)
-        HeaderKnot(it, scale = 1.2f)
-      }
-    }
+    row.next?.let { FollowKnot(it) }
   }
 }
 

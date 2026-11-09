@@ -54,6 +54,8 @@ Checked on 2026-11-07 with the cycling data built locally with sign regions (see
 
 Checked again on 2026-11-09 on the simulator and the emulator, with mocked rides along 02–06 near Siegburg built from the installed course data, at the largest text sizes and in German and English. Both found layout problems at the largest sizes on iOS, now fixed: the distance sat between the knot and the arrow instead of below the row, and on a guided way the turn's distance was cut to "…". Android's header had the same row order problem in principle (a `FlowRow` wrapping in order); it now takes the same layout, though at Android's largest font the rows still fit in one line.
 
+The maintainer on 2026-11-09, on the way from a start at home: on the Pixel, the guided row with "160 m", "Kronprinzenstra…", "340 m" and › 02 was too tight, the 02 running under Stop; on the iPhone the same header looked good. Android's guided row now leaves out the distance left where the row does not fit with it.
+
 ## For the maintainer
 
 1. **A German ride:** watch the header far from a knot, close to one (the sign plate), at the end, after a wrong turn within the network (the small badge), and after leaving the network (no badge).
