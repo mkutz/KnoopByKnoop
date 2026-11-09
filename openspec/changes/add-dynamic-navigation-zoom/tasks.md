@@ -38,3 +38,7 @@
 
 - Groups 1 to 4 can start on their own. Group 5 waits for `add-junction-pictures`.
 - Start after `add-route-points`, which is changing `NetworkMap` and the navigation core right now.
+
+## Notes
+
+- 5.2 and 6.2, 2026-11-09: the maintainer will verify the feature on the next ride instead of a mocked ride past a doubtful junction; 5.1 is covered by `MapFocusTest`. On that ride, note a zoom at a doubtful junction on a guided way and the battery use.
