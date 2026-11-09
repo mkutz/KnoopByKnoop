@@ -1412,6 +1412,28 @@
         }
       }
     },
+    "Showing %@…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeige %@…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ tonen…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Affichage de %@…"
+          }
+        }
+      }
+    },
     "Start at %@, tap a knot to set the end": {
       "localizations": {
         "de": {

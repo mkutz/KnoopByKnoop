@@ -30,6 +30,14 @@ From the maintainer's first try on the iPhone, 2026-11-09, fixed and checked in 
 - **Reopening showed the text but no places:** the search skipped a query equal to the current one; reopening now searches the text again, and the keyboard's search key does too, at once.
 - **A picked place was slow to show and the map sometimes didn't move:** the map started moving while the sheet came down, which cut the move short, and the rows gave no feedback. The search now closes at once on a tap, the map moves once the sheet has settled, and a row is highlighted while pressed.
 
+From the maintainer's second and third tries on the iPhone, 2026-11-09, read from a timing log the debug build keeps (`DebugTiming`, copied off the phone with `devicectl`):
+
+- **Search answers were not the cause:** merging them took 1 to 16 ms; they are handled off the main thread now anyway.
+- **Each pick was followed by a 250 ms stall:** the waypoint list was rebuilt when the search closed; it now stays built under the search.
+- **Taps that never arrived:** with an idle main thread, seconds passed between hits and a pick. A finger's small movement on the list could start a drag of the sheet; while searching, such touches now scroll the list (`presentationContentInteraction(.scrolls)`).
+- **Amsterdam was slow, Cologne fast:** moving the map 200 km loaded and drew the map along the way, stalling the main thread many times. A hit more than 20 km away is now jumped to, and "Showing Amsterdam Centraal…" with a spinner shows from the tap until the map is idle, as the maintainer asked for feedback. In the simulator: jumped 237 km, idle 1.4 s later, the note shown in between.
+- **The map's buttons** follow the sheet's height only once it rests, not on every frame of its move.
+
 ### Open
 
 - The map's round buttons are not reached by their labels in UI tests, which suggests VoiceOver may not reach them either; that holds for all of them since before this change and is worth its own look.

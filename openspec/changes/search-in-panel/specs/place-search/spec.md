@@ -54,3 +54,18 @@ The map SHALL offer a search field. While the user types, the app SHALL list mat
 #### Scenario: Done typing in landscape on iOS
 - **WHEN** the iPhone is in landscape, shows hits, and the user taps a hit or Cancel
 - **THEN** the keyboard is dismissed, the side panel shows the waypoints again, and the search is the magnifier button again
+
+### Requirement: Jump to a hit
+Tapping a hit SHALL move the map to it, zoomed in far enough that knots are shown and can be tapped, and SHALL mark it with a marker. A hit far from the map's view SHALL be jumped to rather than moved to, so the map draws only where it ends up. On iOS, the map SHALL show at once that it is getting there, until it has drawn the hit. The route being planned SHALL stay as it is.
+
+#### Scenario: Tapping a hit
+- **WHEN** a route is planned and the user taps the hit "Utrecht Centraal"
+- **THEN** the map shows Utrecht Centraal with a marker, the knots around it can be tapped, and the route is unchanged
+
+#### Scenario: Removing the marker
+- **WHEN** a marker is shown and the user clears the search
+- **THEN** the marker is removed
+
+#### Scenario: Showing a far place on iOS
+- **WHEN** the map shows Siegburg and the user taps the hit "Amsterdam Centraal"
+- **THEN** the search closes at once, the map shows "Showing Amsterdam Centraal…" with a spinner, jumps to Amsterdam without moving across the way there, and the note goes when the map has drawn it

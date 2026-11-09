@@ -34,6 +34,9 @@ private let searchHitZoom = 14.0
 
 /// The zoom when navigation begins: close enough to see the next knot and the way to it.
 private let navigationZoom = 15.0
+
+/// A search hit farther than this from the map's center is jumped to rather than moved to.
+private let farHitMeters = 20_000.0
 private let routeWidth: CGFloat = 5
 private let routeWidthCalm: CGFloat = 3
 private let routeWidthAhead: CGFloat = 7
@@ -134,6 +137,8 @@ struct NetworkMapView: UIViewRepresentable {
   var onSearch: (() -> Void)? = nil
   /// How far the sheet reaches up from the bottom of the map: the map's buttons end above it.
   var bottomInset: CGFloat = 0
+  /// Called when the map has moved and drawn everything, e.g. after a search hit.
+  var onIdle: () -> Void = {}
   /// A coming knot to show while navigating, see `knot-navigation` "Showing a coming knot on the
   /// map".
   var shownKnot: ShownKnot? = nil
@@ -346,6 +351,7 @@ struct NetworkMapView: UIViewRepresentable {
     context.coordinator.onShowNearest = onShowNearest
     context.coordinator.showFindingNearest(findingNearest, available: onShowNearest != nil)
     context.coordinator.onSearch = onSearch
+    context.coordinator.onIdle = onIdle
     context.coordinator.searchButton?.isHidden = onSearch == nil
     context.coordinator.searchButton?.accessibilityLabel =
       String(localized: "Search places", bundle: AppLanguage.bundle)
@@ -379,6 +385,9 @@ struct NetworkMapView: UIViewRepresentable {
     weak var nearestButton: UIButton?
     weak var nearestSpinner: UIActivityIndicatorView?
     var onSearch: (() -> Void)?
+    var onIdle: () -> Void = {}
+
+    func mapViewDidBecomeIdle(_ mapView: MLNMapView) { onIdle() }
     weak var searchButton: UIButton?
     /// Keeps the map's buttons above the sheet, see `NetworkMapView.bottomInset`.
     var aboveSheet: NSLayoutConstraint?
@@ -467,9 +476,14 @@ struct NetworkMapView: UIViewRepresentable {
       marker = newMarker
       updateMarker()
       if let newMarker {
-        mapView.setCenter(
-          CLLocationCoordinate2D(latitude: newMarker.latitude, longitude: newMarker.longitude),
-          zoomLevel: searchHitZoom, animated: true)
+        let target = CLLocationCoordinate2D(latitude: newMarker.latitude, longitude: newMarker.longitude)
+        let here = mapView.centerCoordinate
+        let distance = CLLocation(latitude: here.latitude, longitude: here.longitude)
+          .distance(from: CLLocation(latitude: target.latitude, longitude: target.longitude))
+        // A far hit is jumped to: moving there loads and draws the map all along the way, which held
+        // up the phone for seconds on the way to Amsterdam, see `place-search` "Jump to a hit".
+        mapView.setCenter(target, zoomLevel: searchHitZoom, animated: distance < farHitMeters)
+        DebugTiming.note("map to hit, \(Int(distance / 1000)) km, animated: \(distance < farHitMeters)")
       }
     }
 

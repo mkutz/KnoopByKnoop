@@ -1,5 +1,8 @@
 import KnoopByKnoopCore
 import SwiftUI
+import os
+
+private let searchLog = Logger(subsystem: "com.knoopbyknoop", category: "Search")
 
 /// The map with the network, the network switch and the place search, next to the panel with the
 /// waypoints, which also shows the info, see `map-planning`, `network-sync` and `place-search`. In
@@ -19,6 +22,9 @@ struct PlannerView: View {
   @State private var summaryHeight: CGFloat = 0
   /// How far the sheet reaches up from the bottom of the screen, see `searchOverlay`.
   @State private var sheetHeight: CGFloat = 0
+  /// `sheetHeight` once the sheet has come to rest, for the map's buttons: following every frame of
+  /// the sheet's move would lay the map out on every frame.
+  @State private var restingSheetHeight: CGFloat = 0
   /// The height of the number to follow and the progress strip while navigating, see
   /// `navigationDetent`.
   @State private var navigationHeight: CGFloat = 0
@@ -90,6 +96,9 @@ struct PlannerView: View {
           .presentationDetents(
             [navigationDetent ?? planningDetent, .medium, .large], selection: $detent
           )
+          // While searching, a touch on the places found that moves a little scrolls them instead
+          // of dragging the sheet, which swallowed taps on the phone.
+          .presentationContentInteraction(searching ? .scrolls : .automatic)
           // The map stays usable and undimmed below the sheet up to half the screen.
           .presentationBackgroundInteraction(.enabled(upThrough: .medium))
           .interactiveDismissDisabled()
@@ -116,6 +125,11 @@ struct PlannerView: View {
         if detent == previous { detent = planning }
       }
     }
+    .task(id: sheetHeight) {
+      try? await Task.sleep(for: .milliseconds(250))
+      if !Task.isCancelled { restingSheetHeight = sheetHeight }
+    }
+    .onAppear { DebugTiming.start() }
     // The display stays on while navigating with the app open, see `knot-navigation` "Display on
     // while navigating in the app"; iOS applies it only while the app is active.
     .onChange(of: navigator.state != nil, initial: true) { _, navigating in
@@ -128,13 +142,25 @@ struct PlannerView: View {
   /// the panel is a sheet, anything presented from the view behind it is not reliably shown and
   /// dismisses the sheet.
   private var panel: some View {
-    Group {
-      if showInfo {
-        InfoSheet(model: model, onDone: { showInfo = false })
-      } else if searching {
+    ZStack(alignment: .top) {
+      panelContent
+        // Kept under the search rather than rebuilt when it closes, which held up the main thread
+        // for a quarter of a second on the phone.
+        .opacity(searching ? 0 : 1)
+        .allowsHitTesting(!searching)
+        .accessibilityHidden(searching)
+      if searching {
         PlaceSearchView(model: model, onClose: closeSearch, onPick: pick)
           .padding(.horizontal, 16)
           .padding(.top, 20)
+      }
+    }
+  }
+
+  private var panelContent: some View {
+    Group {
+      if showInfo {
+        InfoSheet(model: model, onDone: { showInfo = false })
       } else if let session = model.session, model.layers != nil, !model.loading {
         WaypointSheet(
           // The highest the navigation part was while navigating, so the sheet does not jump when
@@ -212,7 +238,8 @@ struct PlannerView: View {
         nearestKnots: model.nearestKnots,
         onSearch: navigator.state == nil && !searching ? openSearch : nil,
         // Above the sheet, or the bottom safe area in landscape, and the attribution right above it.
-        bottomInset: (landscape ? screen.safeAreaInsets.bottom + 8 : sheetHeight) + attributionHeight + 8,
+        bottomInset: (landscape ? screen.safeAreaInsets.bottom + 8 : restingSheetHeight) + attributionHeight + 8,
+        onIdle: model.mapIdle,
         shownKnot: model.shownKnot,
         offerPlace: model.offer?.offer.position,
         offerFlag: model.offer?.nameOnly != true,
@@ -232,6 +259,17 @@ struct PlannerView: View {
             ? LocalizedStringKey("The knot networks need an internet connection once")
             : model.network == .hiking ? "Loading the hiking knot network…" : "Loading the cycling knot network…"
         )
+        .padding(.top, notesTop)
+      } else if let showing = model.showingHit {
+        // Right after a hit is picked, so the app does not look frozen while the map gets there,
+        // see `place-search` "Showing a far place on iOS".
+        HStack(spacing: 8) {
+          ProgressView()
+          Text("Showing \(showing)…").font(.callout).lineLimit(1)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .floatingBackground(in: Capsule())
         .padding(.top, notesTop)
       } else if !model.status.hasGeometry {
         CoursesNote(online: model.online).padding(.top, notesTop)
@@ -335,6 +373,9 @@ struct PlannerView: View {
   /// down, as the sheet's move would cut the map's short, see `place-search` "Back above the sheet
   /// on iOS".
   private func pick(_ hit: PlaceHit) {
+    searchLog.notice("pick")
+    DebugTiming.note("pick \(hit.name)")
+    model.willShow(hit)
     closeSearch()
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { model.choose(hit) }
   }

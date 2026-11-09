@@ -678,8 +678,16 @@ final class AppModel: ObservableObject {
       async let nearby = PlaceSearchClient.fetch(requests.nearby)
       let responses = await (prominent, nearby)
       guard !Task.isCancelled else { return }
+      // Off the main thread: on the phone, reading the answers takes long enough to hold up taps.
+      nonisolated(unsafe) let network = locator
+      let started = Date()
+      let merged: [PlaceHit]? = await Task.detached {
+        try? PlaceSearch.shared.merge(prominent: responses.0, nearby: responses.1, network: network)
+      }.value
+      DebugTiming.note("search \"\(query)\" merged in \(Int(Date().timeIntervalSince(started) * 1000)) ms")
+      guard !Task.isCancelled else { return }
       // Neither request was answered when merging fails.
-      if let hits = try? PlaceSearch.shared.merge(prominent: responses.0, nearby: responses.1, network: locator) {
+      if let hits = merged {
         searchResult = hits.isEmpty ? .noHits : .hits(hits)
       } else {
         searchResult = .unavailable
@@ -693,6 +701,32 @@ final class AppModel: ObservableObject {
     searchQuery = hit.name
     searchResult = .none
     marker = hit
+  }
+
+  /// Notes on the map that it is about to show `hit`, at once on the tap, until the map is idle.
+  func willShow(_ hit: PlaceHit) {
+    showingHit = hit.name
+    // At the latest, should the map never report being done.
+    let name = hit.name
+    Task {
+      try? await Task.sleep(for: .seconds(10))
+      if showingHit == name { showingHit = nil }
+    }
+  }
+
+  /// While the map moves to a chosen hit and draws it, its name, for a note on the map, see
+  /// `place-search` "Showing a far place on iOS".
+  @Published private(set) var showingHit: String?
+
+  /// The map has come to rest after moving to a hit.
+  func mapIdle() {
+    // Not the idle right after the tap, before the map has started to move.
+    if showingHit != nil, let marker, let center = mapCenter,
+      abs(center.latitude - marker.latitude) < 0.01, abs(center.longitude - marker.longitude) < 0.01
+    {
+      DebugTiming.note("map idle")
+      showingHit = nil
+    }
   }
 
   /// Searches the text in the field again, e.g. when the search opens with it or on the keyboard's
