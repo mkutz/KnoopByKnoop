@@ -25,7 +25,7 @@
 ## 5. Wrap-up
 
 - [x] 5.1 `manual-checks.md` with the scenarios and the maintainer's steps, including a real ride that notes whether each picture helped and whether any was wrong.
-- [ ] 5.2 `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; a CHANGELOG entry under Unreleased.
+- [x] 5.2 `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; a CHANGELOG entry under Unreleased.
 
 ## Workflow follow-up
 
