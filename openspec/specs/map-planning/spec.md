@@ -191,7 +191,7 @@ The waypoint list SHALL show each waypoint in one line as a badge with its numbe
 - **THEN** the panel shows the knot sequence and any ferries, but no waypoint list
 
 ### Requirement: Landscape layout
-In landscape, the app SHALL show the map and the waypoint list side by side, so both can be seen and used at the same time. On Android, while the on-screen keyboard is open for the search, the waypoint list SHALL slide aside, so the map, the search field and its hits get the whole width, and a chip with the route's start, end and distance SHALL show on the map; tapping it SHALL close the keyboard and bring the list back. In portrait, the waypoint list SHALL stay a sheet over the map.
+In landscape, the app SHALL show the map and the waypoint list side by side, so both can be seen and used at the same time. While searching, the search field and its hits SHALL be at the top of the side panel, on both apps, see `place-search`, and the map SHALL keep its width. In portrait, the waypoint list SHALL stay a sheet over the map.
 
 #### Scenario: Planning in landscape
 - **WHEN** the device is in landscape and the user taps knots 12 and 45 on the map
@@ -203,11 +203,11 @@ In landscape, the app SHALL show the map and the waypoint list side by side, so 
 
 #### Scenario: Map controls in landscape
 - **WHEN** the device is in landscape
-- **THEN** the network switch, the zoom buttons, the info button and the attribution stay visible on the map, except on iOS while the user types in the search with the on-screen keyboard, see `place-search`
+- **THEN** the network switch, the zoom buttons, the magnifier button, the info button and the attribution stay visible on the map, also while the user types in the search
 
 #### Scenario: Typing in the search in landscape
-- **WHEN** an Android device is in landscape with a route planned, and the user types "Amsterdam" in the search with the on-screen keyboard
-- **THEN** the waypoint list's panel slides aside, the map, the field and the hits use the whole width, and a chip shows 02 → 80 and the distance; tapping the chip, or closing the keyboard, brings the panel back with the same route
+- **WHEN** an Android device is in landscape with a route planned, and the user taps the magnifier button and types "Amsterdam" with the on-screen keyboard
+- **THEN** the field and the hits show at the top of the side panel, the map keeps its width with the route on it, and picking a hit or Cancel brings the waypoints back with the same route
 
 ### Requirement: Map, knots and courses one after the other
 On start, the app SHALL show the map right away, then the knots and connections of the selected knot network as soon as its graph is read, and then the courses of the connections once its geometry is read. Planning SHALL be possible as soon as the knots are shown.
