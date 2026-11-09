@@ -446,10 +446,23 @@ class PathRouter(private val file: PathSquareSource) {
       )
       .forEach { lines += PictureLine(PictureLineKind.WAY_AFTER, it) }
     val square = PathSquare.of(center.latitude, center.longitude)
+    // Only segments with a point near the junction, checked cheaply first: the squares hold
+    // thousands of them, and comparing them all with each other took minutes.
+    val latitudeReach = PICTURE_REACH_METERS / METERS_PER_DEGREE
+    val longitudeReach = latitudeReach / cos(center.latitude * PI / 180)
+    fun isNear(segment: PathSegment) =
+      segment.points.any {
+        abs(it.latitude - center.latitude) <= latitudeReach &&
+          abs(it.longitude - center.longitude) <= longitudeReach
+      } || crossesNear(segment, center, latitudeReach, longitudeReach)
     val nearby = mutableListOf<PathSegment>()
     (squaresAround(center) + square).forEach { around ->
       segmentsBySquare[around].orEmpty().forEach { segment ->
-        if (nearby.none { it.isSameAs(segment) } && waySegments.none { it.isSameAs(segment) }) {
+        if (
+          isNear(segment) &&
+            nearby.none { it.isSameAs(segment) } &&
+            waySegments.none { it.isSameAs(segment) }
+        ) {
           nearby += segment
         }
       }
@@ -476,6 +489,31 @@ class PathRouter(private val file: PathSquareSource) {
       )
     return JunctionPicture(lines.sortedBy { order.indexOf(it.kind) })
   }
+
+  /**
+   * Whether a straight piece of [segment] passes the box around [center], for long segments whose
+   * points are all outside it, e.g. a motorway crossed between two far points.
+   */
+  private fun crossesNear(
+    segment: PathSegment,
+    center: GeoPoint,
+    latitudeReach: Double,
+    longitudeReach: Double,
+  ): Boolean =
+    segment.points.zipWithNext().any { (from, to) ->
+      val minLatitude = minOf(from.latitude, to.latitude) - latitudeReach
+      val maxLatitude = maxOf(from.latitude, to.latitude) + latitudeReach
+      val minLongitude = minOf(from.longitude, to.longitude) - longitudeReach
+      val maxLongitude = maxOf(from.longitude, to.longitude) + longitudeReach
+      center.latitude in minLatitude..maxLatitude &&
+        center.longitude in minLongitude..maxLongitude &&
+        distanceMeters(
+          center.latitude,
+          center.longitude,
+          nearestOnLine(center, from, to).latitude,
+          nearestOnLine(center, from, to).longitude,
+        ) <= PICTURE_REACH_METERS
+    }
 
   /** [doubts] at junctions along the way, those within [MERGE_METERS] of each other as one. */
   private fun merged(doubts: List<DoubtfulJunction>): List<DoubtfulJunction> {
@@ -863,6 +901,9 @@ class PathRouter(private val file: PathSquareSource) {
      * Lines of a junction picture reach this far from the junction, past the corners of its view.
      */
     const val PICTURE_VIEW_METERS = 70.0
+
+    /** Segments with no part this close to a junction are left out of its picture. */
+    const val PICTURE_REACH_METERS = 80.0
 
     /** Another exit within this of the one taken makes a junction doubtful. */
     const val SIMILAR_EXIT_DEGREES = 35.0

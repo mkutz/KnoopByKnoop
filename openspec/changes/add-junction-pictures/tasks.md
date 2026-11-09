@@ -30,3 +30,7 @@
 ## Workflow follow-up
 
 - Start after `add-offline-paths` has been applied and ridden.
+
+## Found and fixed
+
+- Building the pictures compared every segment of up to five path-data squares with every other one, per doubtful junction, so a way search took 0.6 to 1.6 s on the JVM and much longer on the iPhone, where the way from the start flag was still a straight line after a minute (the maintainer, 2026-11-09). Segments far from the junction are now left out with a cheap check first: 9 to 19 ms on the JVM for the same trips, with the same pictures.
