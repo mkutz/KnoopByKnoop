@@ -129,6 +129,11 @@ struct NetworkMapView: UIViewRepresentable {
   var onShowNearest: (() -> Void)? = nil
   /// Where the map moved for the nearest knots last.
   var nearestKnots: NearestKnots? = nil
+  /// Opens the place search in the panel; `nil` while navigating, which hides the button, see
+  /// `place-search` "Search while typing".
+  var onSearch: (() -> Void)? = nil
+  /// How far the sheet reaches up from the bottom of the map: the map's buttons end above it.
+  var bottomInset: CGFloat = 0
   /// A coming knot to show while navigating, see `knot-navigation` "Showing a coming knot on the
   /// map".
   var shownKnot: ShownKnot? = nil
@@ -264,7 +269,37 @@ struct NetworkMapView: UIViewRepresentable {
     mapView.addSubview(nearest)
     coordinator.nearestButton = nearest
     coordinator.nearestSpinner = nearestSpinner
+    let search = UIButton(type: .system)
+    search.setImage(UIImage(systemName: "magnifyingglass"), for: .normal)
+    search.tintColor = UIColor(Color.knoopGreen)
+    search.backgroundColor = UIColor { $0.userInterfaceStyle == .dark ? UIColor(white: 0.17, alpha: 1) : .white }
+    search.layer.cornerRadius = 20
+    search.layer.shadowOpacity = 0.2
+    search.layer.shadowRadius = 2
+    search.layer.shadowOffset = CGSize(width: 0, height: 1)
+    search.accessibilityLabel = String(localized: "Search places", bundle: AppLanguage.bundle)
+    search.isHidden = true
+    search.translatesAutoresizingMaskIntoConstraints = false
+    search.addTarget(coordinator, action: #selector(Coordinator.search), for: .touchUpInside)
+    mapView.addSubview(search)
+    coordinator.searchButton = search
+    // Centred on the map where there is room, but ending above the sheet, see `place-search` "Field
+    // above the sheet on iOS". The search is first, so it stays reachable when a sheet made tall by
+    // large text leaves too little room and the lower buttons give way.
+    let centred = stack.centerYAnchor.constraint(equalTo: mapView.centerYAnchor)
+    centred.priority = .defaultHigh
+    let aboveSheet = nearest.bottomAnchor.constraint(lessThanOrEqualTo: mapView.bottomAnchor, constant: -12)
+    // Gives way to the top limit when the sheet is pulled up over most of the map.
+    aboveSheet.priority = UILayoutPriority(999)
+    coordinator.aboveSheet = aboveSheet
     NSLayoutConstraint.activate([
+      search.widthAnchor.constraint(equalToConstant: 40),
+      search.heightAnchor.constraint(equalToConstant: 40),
+      search.trailingAnchor.constraint(equalTo: stack.trailingAnchor),
+      search.bottomAnchor.constraint(equalTo: stack.topAnchor, constant: -8),
+      centred,
+      aboveSheet,
+      search.topAnchor.constraint(greaterThanOrEqualTo: mapView.safeAreaLayoutGuide.topAnchor, constant: 60),
       nearest.widthAnchor.constraint(equalToConstant: 40),
       nearest.heightAnchor.constraint(equalToConstant: 40),
       nearest.trailingAnchor.constraint(equalTo: stack.trailingAnchor),
@@ -272,7 +307,6 @@ struct NetworkMapView: UIViewRepresentable {
       nearestSpinner.centerXAnchor.constraint(equalTo: nearest.centerXAnchor),
       nearestSpinner.centerYAnchor.constraint(equalTo: nearest.centerYAnchor),
       stack.trailingAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.trailingAnchor, constant: -12),
-      stack.centerYAnchor.constraint(equalTo: mapView.centerYAnchor),
       recenter.widthAnchor.constraint(equalToConstant: 40),
       recenter.heightAnchor.constraint(equalToConstant: 40),
       recenter.trailingAnchor.constraint(equalTo: stack.trailingAnchor),
@@ -311,6 +345,13 @@ struct NetworkMapView: UIViewRepresentable {
       String(localized: "Show the nearest knots", bundle: AppLanguage.bundle)
     context.coordinator.onShowNearest = onShowNearest
     context.coordinator.showFindingNearest(findingNearest, available: onShowNearest != nil)
+    context.coordinator.onSearch = onSearch
+    context.coordinator.searchButton?.isHidden = onSearch == nil
+    context.coordinator.searchButton?.accessibilityLabel =
+      String(localized: "Search places", bundle: AppLanguage.bundle)
+    if context.coordinator.aboveSheet?.constant != -(bottomInset + 12) {
+      context.coordinator.aboveSheet?.constant = -(bottomInset + 12)
+    }
     context.coordinator.showMyPosition(myPosition, center: myPosition !== nearestKnots?.rider, on: mapView)
     context.coordinator.showNearestKnots(nearestKnots, on: mapView)
     context.coordinator.dark = context.environment.colorScheme == .dark
@@ -337,6 +378,10 @@ struct NetworkMapView: UIViewRepresentable {
     var onShowNearest: (() -> Void)?
     weak var nearestButton: UIButton?
     weak var nearestSpinner: UIActivityIndicatorView?
+    var onSearch: (() -> Void)?
+    weak var searchButton: UIButton?
+    /// Keeps the map's buttons above the sheet, see `NetworkMapView.bottomInset`.
+    var aboveSheet: NSLayoutConstraint?
     private var shownNearest: NearestKnots?
     private var myPosition: Fix?
     private var marker: PlaceHit?
@@ -350,6 +395,8 @@ struct NetworkMapView: UIViewRepresentable {
     }
 
     @objc func showNearest() { onShowNearest?() }
+
+    @objc func search() { onSearch?() }
 
     func showFindingNearest(_ finding: Bool, available: Bool) {
       nearestButton?.isHidden = !available

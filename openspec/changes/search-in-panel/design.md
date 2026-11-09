@@ -10,7 +10,7 @@
 ## Decisions
 
 ### The magnifier button joins the map's buttons
-- A round 40 pt button with `magnifyingglass`, styled like the zoom buttons, placed below the my-position and nearest-knots buttons, hidden while navigating like my position. Its accessibility label is "Search places", in all four languages.
+- A round 40 pt button with `magnifyingglass`, styled like the zoom buttons, at the top of the column, above the zoom buttons, hidden while navigating like my position. **Changed during apply:** the mockup had it at the bottom, but at the largest text size the planning sheet leaves too little room for the column, and the lowest buttons go under the sheet; at the top, the search stays reachable, as the floating field was. Its accessibility label is "Search places", in all four languages.
 - **Why there:** the column is where the map's tools are; the search was the only one floating elsewhere.
 
 ### The button column ends above the sheet
@@ -24,7 +24,7 @@
 - **Alternative:** `.medium`. The keyboard would cover most of the hits.
 
 ### Closing the search
-- Picking a hit, clearing the field, or a tap on the map ends `searching`: focus off, the waypoint list back, and the detent the sheet had before.
+- Picking a hit, Cancel, or a tap on the map ends `searching`; the field's clear button empties it and keeps the search open, as in other iOS apps: focus off, the waypoint list back, and the detent the sheet had before.
 - The attribution stays on the map above the sheet, where the overlay had it; it no longer needs to give way while typing in landscape, as nothing is typed over the map.
 
 ### Offline

@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Search while typing
-The map SHALL offer a search field. While the user types, the app SHALL list matching places, stations, addresses and businesses, each with its name and enough of its address or type to tell similar hits apart. On Android, the field SHALL be shown at the top of the map, with the hits right below it. On iOS, the search SHALL be a round magnifier button in the map's column of buttons while it isn't used, so nothing covers the map's buttons; tapping it SHALL open the search field at the top of the waypoint sheet in portrait, or of the side panel in landscape, with the keyboard, and the hits SHALL be listed in the panel. Picking a hit, clearing the search or tapping the map SHALL close the search back into the button.
+The map SHALL offer a search field. While the user types, the app SHALL list matching places, stations, addresses and businesses, each with its name and enough of its address or type to tell similar hits apart. On Android, the field SHALL be shown at the top of the map, with the hits right below it. On iOS, the search SHALL be a round magnifier button in the map's column of buttons while it isn't used, so nothing covers the map's buttons; tapping it SHALL open the search field at the top of the waypoint sheet in portrait, or of the side panel in landscape, with the keyboard, and the hits SHALL be listed in the panel. Picking a hit, Cancel or tapping the map SHALL close the search back into the button; clearing the field SHALL keep it open to type again.
 
 #### Scenario: Station
 - **WHEN** the user types "Utrecht Centraal"
@@ -40,7 +40,7 @@ The map SHALL offer a search field. While the user types, the app SHALL list mat
 - **THEN** the field and the hits show in the sheet as with the on-screen keyboard
 
 #### Scenario: Back above the sheet on iOS
-- **WHEN** the iPhone shows hits and the user taps a hit, clears the search or taps the map
+- **WHEN** the iPhone shows hits and the user taps a hit, taps Cancel or taps the map
 - **THEN** the keyboard is dismissed, the sheet shows the waypoints again at the height it had, and the search is the magnifier button again
 
 #### Scenario: Searching in landscape on iOS
@@ -52,5 +52,5 @@ The map SHALL offer a search field. While the user types, the app SHALL list mat
 - **THEN** the field and the hits show at the top of the side panel, and the map, the network switch and the attribution stay as they are
 
 #### Scenario: Done typing in landscape on iOS
-- **WHEN** the iPhone is in landscape, shows hits, and the user taps a hit or clears the search
+- **WHEN** the iPhone is in landscape, shows hits, and the user taps a hit or Cancel
 - **THEN** the keyboard is dismissed, the side panel shows the waypoints again, and the search is the magnifier button again

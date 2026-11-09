@@ -31,61 +31,66 @@ enum PlaceSearchClient {
   }
 }
 
-/// The search field floating at the bottom of the map, with the hits above it, so they grow over
-/// the map and the keyboard does not hide them.
+/// The search field with its hits in the panel: the field at the top with Cancel, the hits below it
+/// on the panel's own background, see `place-search` "Search while typing".
 struct PlaceSearchView: View {
 
   @ObservedObject var model: AppModel
-  var focused: FocusState<Bool>.Binding
-  /// The room for the hits and the field together; the field always gets its height, the hits what
-  /// is left, at most 320 points.
-  var maxHeight: CGFloat = .infinity
-  @State private var fieldHeight: CGFloat = 0
-
-  private var maxResultsHeight: CGFloat {
-    min(320, max(maxHeight - fieldHeight - 4, 0))
-  }
+  /// Closes the search: after a hit is picked, or with Cancel.
+  var onClose: () -> Void
+  /// Its own, as a focus set from the view behind the sheet does not reach into it.
+  @FocusState private var focused: Bool
 
   var body: some View {
-    VStack(spacing: 4) {
-      if model.online { results }
-      HStack {
-        Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-        TextField(
-          model.online ? LocalizedStringKey("Search places") : "Search needs an internet connection",
-          text: Binding(get: { model.online ? model.searchQuery : "" }, set: { model.search($0) })
-        )
-        .focused(focused)
-        .submitLabel(.search)
-        .disabled(!model.online)
-        if !model.searchQuery.isEmpty && model.online {
-          Button {
-            model.clearSearch()
-            focused.wrappedValue = false
-          } label: {
-            Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
-          }
+    VStack(alignment: .leading, spacing: 12) {
+      HStack(spacing: 12) {
+        field
+          .padding(10)
+          .background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 12))
+        Button("Cancel") {
+          model.clearSearch()
+          onClose()
         }
       }
-      .padding(10)
-      .floatingBackground(in: RoundedRectangle(cornerRadius: 12))
-      .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { fieldHeight = $0 }
+      if model.online {
+        switch model.searchResult {
+        case .none: EmptyView()
+        case .searching: Text("Searching…").foregroundStyle(.secondary)
+        case .noHits: Text("Nothing found").foregroundStyle(.secondary)
+        case .unavailable: Text("Search is not available right now").foregroundStyle(.secondary)
+        case .hits(let hits): ScrollView { hitRows(hits) }
+        }
+      }
+      Spacer(minLength: 0)
     }
-    .frame(maxWidth: 480)
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+    // Once the sheet has risen, so the keyboard comes up with the field in view, see `place-search`
+    // "Typing on iOS".
+    .task {
+      try? await Task.sleep(for: .milliseconds(400))
+      focused = true
+    }
   }
 
-  @ViewBuilder private var results: some View {
-    switch model.searchResult {
-    case .none: EmptyView()
-    case .searching: message("Searching…")
-    case .noHits: message("Nothing found")
-    case .unavailable: message("Search is not available right now")
-    case .hits(let hits):
-      // As high as the hits, scrolling where there is not enough room for them.
-      ScrollView { hitRows(hits) }
-        .frame(maxHeight: maxResultsHeight)
-        .fixedSize(horizontal: false, vertical: true)
-        .floatingBackground(in: RoundedRectangle(cornerRadius: 12))
+  private var field: some View {
+    HStack {
+      Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+      TextField(
+        model.online ? LocalizedStringKey("Search places") : "Search needs an internet connection",
+        text: Binding(get: { model.online ? model.searchQuery : "" }, set: { model.search($0) })
+      )
+      .focused($focused)
+      .submitLabel(.search)
+      .disabled(!model.online)
+      // Empties the field to type again; Cancel closes the search.
+      if !model.searchQuery.isEmpty && model.online {
+        Button {
+          model.clearSearch()
+        } label: {
+          Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
+        }
+        .accessibilityLabel("Clear")
+      }
     }
   }
 
@@ -95,7 +100,8 @@ struct PlaceSearchView: View {
         if index > 0 { Divider() }
         Button {
           model.choose(hit)
-          focused.wrappedValue = false
+          focused = false
+          onClose()
         } label: {
           VStack(alignment: .leading, spacing: 2) {
             Text(hit.name).foregroundStyle(.primary)
@@ -104,20 +110,12 @@ struct PlaceSearchView: View {
             }
           }
           .frame(maxWidth: .infinity, alignment: .leading)
-          .padding(.horizontal, 12)
-          .padding(.vertical, 8)
+          .padding(.vertical, 10)
           .contentShape(Rectangle())
         }
         // The default style tints the whole label with the accent color.
         .buttonStyle(.plain)
       }
     }
-  }
-
-  private func message(_ text: LocalizedStringKey) -> some View {
-    Text(text)
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(12)
-      .floatingBackground(in: RoundedRectangle(cornerRadius: 12))
   }
 }

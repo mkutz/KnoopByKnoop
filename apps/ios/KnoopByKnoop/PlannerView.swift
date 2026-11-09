@@ -27,7 +27,10 @@ struct PlannerView: View {
   @State private var navigationHeightTypeSize: DynamicTypeSize?
   /// The attribution's height above the search, see `searchOverlay`.
   @State private var attributionHeight: CGFloat = 0
-  @FocusState private var searchFocused: Bool
+  /// Whether the place search is open in the panel, see `place-search` "Search while typing".
+  @State private var searching = false
+  /// The sheet's height before the search opened, to go back to when it closes.
+  @State private var detentBeforeSearch: PresentationDetent?
 
   private static let smallestDetent = PresentationDetent.height(170)
 
@@ -98,7 +101,7 @@ struct PlannerView: View {
       }
       // The keyboard covers the smallest sheet, but not a higher one, which would hide the field.
       .onChange(of: keyboardShown) { _, shown in
-        if shown && !landscape { detent = planningDetent }
+        if shown && !landscape && !searching { detent = planningDetent }
       }
       // Starting navigation brings the sheet to the navigation height whatever its height was, and
       // ending it brings it back to the smallest planning height.
@@ -128,6 +131,10 @@ struct PlannerView: View {
     Group {
       if showInfo {
         InfoSheet(model: model, onDone: { showInfo = false })
+      } else if searching {
+        PlaceSearchView(model: model, onClose: closeSearch)
+          .padding(.horizontal, 16)
+          .padding(.top, 20)
       } else if let session = model.session, model.layers != nil, !model.loading {
         WaypointSheet(
           // The highest the navigation part was while navigating, so the sheet does not jump when
@@ -169,7 +176,14 @@ struct PlannerView: View {
       NetworkMapView(
         places: places,
         graph: model.session?.graph, layers: model.layers, focus: model.session.map(focus) ?? [],
-        onTap: model.tap(latitude:longitude:radiusMeters:at:place:),
+        // A tap on the map closes the search, see `place-search` "Back above the sheet on iOS".
+        onTap: { latitude, longitude, radius, point, place in
+          if searching {
+            closeSearch()
+          } else {
+            model.tap(latitude: latitude, longitude: longitude, radiusMeters: radius, at: point, place: place)
+          }
+        },
         online: model.online,
         initialPlace: model.initialPlace,
         onLeave: model.saveCamera,
@@ -196,6 +210,9 @@ struct PlannerView: View {
         findingNearest: model.findingNearest,
         onShowNearest: showNearestAction,
         nearestKnots: model.nearestKnots,
+        onSearch: navigator.state == nil && !searching ? openSearch : nil,
+        // Above the sheet, or the bottom safe area in landscape, and the attribution right above it.
+        bottomInset: (landscape ? screen.safeAreaInsets.bottom + 8 : sheetHeight) + attributionHeight + 8,
         shownKnot: model.shownKnot,
         offerPlace: model.offer?.offer.position,
         offerFlag: model.offer?.nameOnly != true,
@@ -278,50 +295,48 @@ struct PlannerView: View {
     .padding(.top, 8)
   }
 
-  /// The place search and the attribution, at the bottom of the map: right above the sheet in
-  /// portrait, following it when it is dragged, and right above the on-screen keyboard while typing.
-  /// Hidden while the sheet is pulled up over the map. While typing in landscape, the attribution and
-  /// the network switch give way, so the hits can reach the top of the map.
+  /// The attribution at the bottom of the map: right above the sheet in portrait, following it when
+  /// it is dragged, and hidden while the sheet is pulled up over the map. The place search is in the
+  /// panel, see `place-search` "Search while typing".
   @ViewBuilder private func searchOverlay(landscape: Bool, keyboardShown: Bool, screen: GeometryProxy) -> some View {
     let fullHeight = screen.size.height + screen.safeAreaInsets.top + screen.safeAreaInsets.bottom
-    // At its smallest while planning, the sheet is not pulled up, however high large text makes it:
-    // it cannot go lower, and the search must stay reachable.
     let atSmallestWhilePlanning = navigator.state == nil && detent == planningDetent
-    let sheetUp = !landscape && !keyboardShown && sheetHeight > fullHeight * 0.6 && !atSmallestWhilePlanning
-    let typingInLandscape = landscape && keyboardShown
+    let sheetUp = !landscape && sheetHeight > fullHeight * 0.6 && !atSmallestWhilePlanning
     // This view ends at the bottom safe area, the sheet's height is measured from the screen's
-    // bottom. While typing, the keyboard's safe area already lifts this view above it; with a
-    // hardware keyboard, there is none, and the field stays above the sheet.
-    let bottom = landscape || keyboardShown ? 8 : max(sheetHeight - screen.safeAreaInsets.bottom, 0) + 8
-    // Below the network switch, or below the top safe area while it is hidden.
-    let top = typingInLandscape ? 8 : notesTop
-    if !sheetUp {
-      GeometryReader { area in
-        VStack(alignment: .trailing, spacing: 4) {
-          Spacer(minLength: 0)
-          if !typingInLandscape {
-            Text("© OpenStreetMap contributors")
-              .font(.caption2)
-              // Like the network switch, so large text leaves the credit in full, on one line.
-              .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-              .padding(.horizontal, 6)
-              .padding(.vertical, 2)
-              .floatingBackground(in: Capsule())
-              .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { attributionHeight = $0 }
-          }
-          PlaceSearchView(
-            model: model, focused: $searchFocused,
-            // The hits get what the field leaves; never more than fits, so the field is not
-            // pushed under the keyboard.
-            maxHeight: area.size.height - top - bottom - (typingInLandscape ? 0 : attributionHeight + 4)
-          )
-          .frame(maxWidth: .infinity)
-        }
-        .padding(.top, top)
-        .padding(.horizontal, 12)
-        .padding(.bottom, bottom)
+    // bottom.
+    let bottom = landscape ? 8 : max(sheetHeight - screen.safeAreaInsets.bottom, 0) + 8
+    // In portrait the sheet covers the map while searching; in landscape the map stays as it is.
+    if !sheetUp && (landscape || (!searching && !keyboardShown)) {
+      HStack {
+        Spacer(minLength: 0)
+        Text("© OpenStreetMap contributors")
+          .font(.caption2)
+          // Like the network switch, so large text leaves the credit in full, on one line.
+          .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+          .padding(.horizontal, 6)
+          .padding(.vertical, 2)
+          .floatingBackground(in: Capsule())
+          .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { attributionHeight = $0 }
       }
+      .padding(.horizontal, 12)
+      .padding(.bottom, bottom)
     }
+  }
+
+  /// Opens the place search in the panel, the sheet at its full height, see `place-search` "Typing
+  /// on iOS".
+  private func openSearch() {
+    detentBeforeSearch = detent
+    searching = true
+    detent = .large
+  }
+
+  /// Closes the place search, the sheet back at the height it had, see `place-search` "Back above
+  /// the sheet on iOS".
+  private func closeSearch() {
+    searching = false
+    if let detentBeforeSearch { detent = detentBeforeSearch }
+    detentBeforeSearch = nil
   }
 
   /// A round button like the zoom buttons, see `network-sync` "Info sheet": a bare "i" could be
