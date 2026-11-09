@@ -140,7 +140,9 @@ private data class NotificationContent(
         }
       return NotificationContent(
         title = outside.title,
-        text = outside.line,
+        // At a doubtful junction close ahead, its sentence, as the notification has no room for its
+        // picture, see `knot-navigation` "Text on the Android lock screen".
+        text = (row as? HeaderRow.ToRoute)?.guided?.pictureSentence ?: outside.line,
         chip = outside.chip,
         smallIcon = smallIcon,
         largeIcon = largeIcon,

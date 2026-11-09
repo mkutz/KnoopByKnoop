@@ -13,18 +13,18 @@
 
 ## 3. iOS
 
-- [ ] 3.1 The picture's view in SwiftUI, in the planner's header. A simulator ride with screenshots, in light and dark; "Picture with a screen reader" with VoiceOver's label.
+- [x] 3.1 The picture's view in SwiftUI, in the planner's header. A simulator ride with screenshots, in light and dark; "Picture with a screen reader" with VoiceOver's label.
 - [ ] 3.2 The picture in a real Live Activity on the maintainer's iPhone, using a test junction. **Stop and ask the maintainer if it's unreadable,** before going on. Check the content state's limit against the documentation.
 - [ ] 3.3 Live Activity from the core's state, with the Dynamic Island as text. Checked by the maintainer: "On the iPhone's lock screen", "Dynamic Island at a doubtful junction", "Back to text", "Screen comes on at a junction".
 
 ## 4. Android
 
 - [ ] 4.1 The picture in Compose in the planner's header. A mocked ride on the emulator with screenshots, in light and dark, and TalkBack's label for "Picture with a screen reader".
-- [ ] 4.2 `NavigationService` shows the sentence. On the emulator, "Text on the Android lock screen", also in German and French to check the length.
+- [x] 4.2 `NavigationService` shows the sentence. On the emulator, "Text on the Android lock screen", also in German and French to check the length.
 
 ## 5. Wrap-up
 
-- [ ] 5.1 `manual-checks.md` with the scenarios and the maintainer's steps, including a real ride that notes whether each picture helped and whether any was wrong.
+- [x] 5.1 `manual-checks.md` with the scenarios and the maintainer's steps, including a real ride that notes whether each picture helped and whether any was wrong.
 - [ ] 5.2 `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; a CHANGELOG entry under Unreleased.
 
 ## Workflow follow-up
@@ -32,5 +32,7 @@
 - Start after `add-offline-paths` has been applied and ridden.
 
 ## Found and fixed
+
+- 2026-11-09: a way to a route point lost its doubtful junctions when the network's course was put in front of it, and a picture would have left the panel taller for the rest of the ride; both fixed, see `manual-checks.md`. 4.1 stays open for Android in dark mode.
 
 - Building the pictures compared every segment of up to five path-data squares with every other one, per doubtful junction, so a way search took 0.6 to 1.6 s on the JVM and much longer on the iPhone, where the way from the start flag was still a straight line after a minute (the maintainer, 2026-11-09). Segments far from the junction are now left out with a cheap check first: 9 to 19 ms on the JVM for the same trips, with the same pictures.

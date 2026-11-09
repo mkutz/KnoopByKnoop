@@ -161,9 +161,27 @@ internal fun ledBy(lead: List<GeoPoint>, way: PathWay): PathWay {
   return PathWay(
     points,
     meters,
-    way.turns.map { it.copy(atMeters = it.atMeters + offset) },
+    way.turns.map {
+      it.copy(
+        atMeters = it.atMeters + offset,
+        doubtful =
+          it.doubtful?.let { doubt ->
+            doubt.copy(
+              startMeters = doubt.startMeters + offset,
+              endMeters = doubt.endMeters + offset,
+            )
+          },
+      )
+    },
     startsBack = false,
     firstName = way.firstName,
+    // Kept, so a way to a route point shows its junction pictures too, see `knot-navigation`
+    // "Picture in the app".
+    doubtful =
+      way.doubtful.map {
+        it.copy(startMeters = it.startMeters + offset, endMeters = it.endMeters + offset)
+      },
+    decisionMeters = way.decisionMeters.map { it + offset },
   )
 }
 

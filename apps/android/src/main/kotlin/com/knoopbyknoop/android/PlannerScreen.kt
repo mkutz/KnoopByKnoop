@@ -97,6 +97,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
@@ -211,6 +212,9 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
     // height, see `knot-navigation` "Panel height while navigating".
     val scaffoldState = rememberBottomSheetScaffoldState()
     var navigationHeight by remember { mutableIntStateOf(0) }
+    // Whether a junction picture showed when it was measured: it makes the navigation part taller
+    // only while it shows, see `knot-navigation` "Picture in the app".
+    var navigationHeightPicture by remember { mutableStateOf(false) }
     var summaryHeight by remember { mutableIntStateOf(0) }
     var dragHandleHeight by remember { mutableIntStateOf(0) }
     val density = LocalDensity.current
@@ -272,7 +276,11 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
             // The highest the navigation part was, so the sheet does not jump when the header
             // switches to the number to follow near a knot, see `knot-navigation` "Number to
             // follow".
-            onNavigationHeight = { navigationHeight = maxOf(navigationHeight, it) },
+            onNavigationHeight = { height, picture ->
+              navigationHeight =
+                if (picture == navigationHeightPicture) maxOf(navigationHeight, height) else height
+              navigationHeightPicture = picture
+            },
             onSummaryHeight = { summaryHeight = it },
             // The sheet comes down, so the knot is not hidden by it, see `knot-navigation` "Showing
             // a coming knot on the map".
@@ -526,7 +534,7 @@ private fun MapArea(
 private fun WaypointSheet(
   state: AppState,
   viewModel: AppViewModel,
-  onNavigationHeight: (Int) -> Unit = {},
+  onNavigationHeight: (height: Int, picture: Boolean) -> Unit = { _, _ -> },
   onSummaryHeight: (Int) -> Unit = {},
   onShowKnot: (Knot) -> Unit = {},
 ) {
@@ -541,7 +549,12 @@ private fun WaypointSheet(
       }
     if (navigation != null)
       // Measured for the sheet's smallest height while navigating, see `PlannerScreen`.
-      Column(modifier = Modifier.onSizeChanged { onNavigationHeight(it.height) }) {
+      Column(
+        modifier =
+          Modifier.onSizeChanged {
+            onNavigationHeight(it.height, navigation.guidedWay?.junctionAhead() != null)
+          }
+      ) {
         NavigationHeader(navigation, onStop = viewModel::stopNavigation)
         val current = navigation.navigation
         if (progress != null && current != null)
@@ -867,6 +880,22 @@ private fun NavigationHeader(navigation: NavigationState, onStop: () -> Unit) {
       if (overLockScreen)
         HoldAction(stringResource(R.string.stop_hold), R.drawable.ic_action_stop, onStop)
       else StopIconAction(stringResource(R.string.stop), onStop)
+    }
+  }
+  // The picture of a doubtful junction close ahead, below the row, so the row keeps its height,
+  // see `knot-navigation` "Picture in the app".
+  val guided = (row as? HeaderRow.ToRoute)?.guided
+  val picture = guided?.picture
+  if (picture != null) {
+    val sentence = guided.pictureSentence.orEmpty()
+    Row(
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(12.dp),
+      modifier =
+        Modifier.padding(top = 8.dp).clearAndSetSemantics { contentDescription = sentence },
+    ) {
+      JunctionPictureView(picture, Modifier.size(104.dp))
+      Text(sentence, style = MaterialTheme.typography.titleMedium)
     }
   }
 }

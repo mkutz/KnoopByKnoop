@@ -29,9 +29,9 @@ struct PlannerView: View {
   /// The height of the number to follow and the progress strip while navigating, see
   /// `navigationDetent`.
   @State private var navigationHeight: CGFloat = 0
-  /// The text size `navigationHeight` was measured at: another one gives the navigation part
-  /// another height, also a lower one, so it is measured anew.
-  @State private var navigationHeightTypeSize: DynamicTypeSize?
+  /// The text size `navigationHeight` was measured at, and whether a junction picture was shown:
+  /// another one gives the navigation part another height, also a lower one, so it is measured anew.
+  @State private var navigationHeightKey: NavigationHeightKey?
   /// The attribution's height above the search, see `searchOverlay`.
   @State private var attributionHeight: CGFloat = 0
   /// Whether the place search is open in the panel, see `place-search` "Search while typing".
@@ -189,10 +189,9 @@ struct PlannerView: View {
           // the header switches to the number to follow near a knot, see `knot-navigation` "Number
           // to follow"; 0 again when navigation ends.
           model: model, session: session,
-          onNavigationHeight: { height, typeSize in
-            navigationHeight =
-              navigationHeightTypeSize == typeSize ? max(navigationHeight, height) : height
-            navigationHeightTypeSize = typeSize
+          onNavigationHeight: { height, key in
+            navigationHeight = navigationHeightKey == key ? max(navigationHeight, height) : height
+            navigationHeightKey = key
           },
           onSummaryHeight: { summaryHeight = $0 },
           // The sheet comes down, so the knot is not hidden by it, see `knot-navigation` "Showing a
@@ -436,7 +435,7 @@ private struct WaypointSheet: View {
   @State private var exportedGpx: ExportedGpx?
   /// The height of the number to follow and the progress strip while navigating, 0 otherwise, and
   /// the text size it was measured at.
-  let onNavigationHeight: (CGFloat, DynamicTypeSize) -> Void
+  let onNavigationHeight: (CGFloat, NavigationHeightKey) -> Void
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
   /// The height of the summary and the actions, the knots and the switch while planning.
   let onSummaryHeight: (CGFloat) -> Void
@@ -527,7 +526,10 @@ private struct WaypointSheet: View {
       .padding(.bottom, 8)
       // Measured for the sheet's smallest height, see `PlannerView`.
       .onGeometryChange(for: CGFloat.self) { $0.size.height } action: {
-        onNavigationHeight(navigator.state == nil ? 0 : $0, dynamicTypeSize)
+        onNavigationHeight(
+          navigator.state == nil ? 0 : $0,
+          NavigationHeightKey(
+            typeSize: dynamicTypeSize, picture: navigator.state?.guidedWay?.junctionAhead() != nil))
         if navigator.state == nil { onSummaryHeight($0) }
       }
       List {
@@ -850,6 +852,26 @@ private struct NavigationHeader: View {
       Spacer(minLength: 8)
       StopIconAction(action: onStop)
     }
+    VStack(alignment: .leading, spacing: 8) {
+      header(content, inverted: inverted)
+      // The picture of a doubtful junction close ahead, below the row, so the row keeps its height,
+      // see `knot-navigation` "Picture in the app".
+      if let guided = (row as? HeaderRow.ToRoute)?.guided, let picture = guided.picture {
+        HStack(alignment: .center, spacing: 12) {
+          JunctionPictureView(encoded: picture.encoded())
+            .frame(width: 104, height: 104)
+            .accessibilityHidden(true)
+          if let sentence = guided.pictureSentence {
+            Text(sentence).font(.headline).fixedSize(horizontal: false, vertical: true)
+          }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(guided.pictureSentence ?? "")
+      }
+    }
+  }
+
+  @ViewBuilder private func header(_ content: some View, inverted: Bool) -> some View {
     if inverted {
       content
         .foregroundStyle(colorScheme == .dark ? Color.knoopInk : Color.white)
@@ -1014,4 +1036,12 @@ private struct AttributionOverlay: View {
       .padding(.bottom, bottom)
     }
   }
+}
+
+/// What the navigation part's height depends on besides the route: the text size, and whether a
+/// junction picture shows, which makes it taller only while it does, see `knot-navigation`
+/// "Picture in the app".
+struct NavigationHeightKey: Equatable {
+  let typeSize: DynamicTypeSize
+  let picture: Bool
 }
