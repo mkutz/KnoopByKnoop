@@ -17,7 +17,7 @@ At the default text size neither happens. The maintainer chose to handle this in
 
 ## Out of Scope
 
-- **Android:** not seen there; checked in `search-in-panel` at the default size only, so 2.2 checks it too.
+- **Android:** not seen there; checked in `search-in-panel` at the default size only, so task 2.1 checks it too.
 - **The map's lower buttons under the sheet** at the largest size: accepted in `search-in-panel`.
 
 ## Capabilities
