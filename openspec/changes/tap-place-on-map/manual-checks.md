@@ -17,9 +17,9 @@ Checked on 2026-11-08 with the published network data and the base map's tiles:
 | Place next to a course | unit test | unit test | `NetworkGeometryTest`: no snapping to the course within the tolerance |
 | Knot before a place | unit test | unit test | `NetworkGeometryTest` |
 | Place far from the network | unit test | unit test | `NetworkGeometryTest`: `PlaceOnly` |
-| Place while navigating | ✅ | open | "Bei Ute" while navigating: name only, no flag, the panel unchanged ([Android](screenshots/android-navigating.png)) |
-| Closing the card | ✅ | open | A tap beside it closed it, navigation went on ([Android](screenshots/android-navigating-closed.png)) |
-| Grey places unchanged | ✅ | open | The church Sankt Maria Königin: choices without a name ([Android](screenshots/android-grey.png)). `NetworkGeometryTest` |
+| Place while navigating | ✅ | ✅ simulator | "Bei Ute" while navigating: name only, no flag, the panel unchanged ([Android](screenshots/android-navigating.png)); "Zum Janni" by Siegburg station on iOS ([iOS](screenshots/ios-nav-place.png)) |
+| Closing the card | ✅ | ✅ simulator | A tap beside it closed it, navigation went on ([Android](screenshots/android-navigating-closed.png), [iOS](screenshots/ios-nav-closed.png)) |
+| Grey places unchanged | ✅ | ✅ simulator | The church Sankt Maria Königin: choices without a name ([Android](screenshots/android-grey.png)); the GZ Hotel in Siegburg on iOS ([iOS](screenshots/ios-grey.png)). `NetworkGeometryTest` |
 
 ## For the maintainer
 
@@ -29,5 +29,5 @@ On the iPhone on 2026-11-08 the maintainer checked planning (step 1) and asked f
 
 
 1. ✅ (2026-11-08) **iPhone, planning:** tap a café, a supermarket and a drinking water point: icon and name (or "Drinking water") above the choices. Make one a stop: the flag is at the place.
-2. **iPhone, navigating:** tap a place: the name only, and a tap beside it closes it.
+2. ✅ (2026-11-09, simulator, taps through a throwaway UI test) **iPhone, navigating:** tap a place: the name only, and a tap beside it closes it.
 3. **On a ride, both phones:** tap a toilet or a café you pass, and see whether the name helps you decide.

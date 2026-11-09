@@ -16,7 +16,7 @@
 
 ## 3. iOS
 
-- [ ] 3.1 The same in `NetworkMapView.swift`, `AppModel.swift` and `PlaceOfferMenu`, with the strings in `Localizable.xcstrings`. The project builds; simulator screenshots of "Name of a café" and "Place without a name" (taps through a throwaway UI test, or by the maintainer on the iPhone).
+- [x] 3.1 The same in `NetworkMapView.swift`, `AppModel.swift` and `PlaceOfferMenu`, with the strings in `Localizable.xcstrings`. The project builds; simulator screenshots of "Name of a café" and "Place without a name" (taps through a throwaway UI test, or by the maintainer on the iPhone).
 
 ## 4. Wrap-up
 
