@@ -16,7 +16,7 @@
 
 - [x] 3.1 `NetworkMap`: turn a `MapFocus` into a zoom (circle around the rider, within the limits), set it in one 1 s ease when the kind changes, and pan only while it stays the same. Recenter uses the current focus. Keep `following = false` on hand moves.
 - [x] 3.2 A mocked ride on the emulator through a knot and a zigzag, with screenshots before, at and after each, and a screen recording for "Smooth zoom changes" and "Labels while zoomed in". Covers "Approaching a knot", "Next knot 800 m ahead", "Approaching a zigzag", "Past the spot".
-- [ ] 3.3 On the emulator: "Looking around", "No automatic zoom after looking around", "Recentering near a knot", "Off route", "Both in view".
+- [x] 3.3 On the emulator: "Looking around", "No automatic zoom after looking around", "Recentering near a knot", "Off route", "Both in view".
 
 ## 4. iOS
 
