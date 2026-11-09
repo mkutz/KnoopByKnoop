@@ -235,6 +235,57 @@ class MapFocusTest {
     assertEquals(MapFocus.BASE, past.mapFocus(fix))
   }
 
+  // Doubtful junctions on the guided way
+
+  /** Off route 300 m north of the road at 500 m, after riding it to 450 m. */
+  private fun offRouteNorth(): Pair<Navigation, Fix> {
+    val (onRoad, _) = start().ride(200.0, 300.0, 400.0, 450.0)
+    var navigation = onRoad
+    var last = fix(500.0, 150.0)
+    for (north in listOf(150.0, 300.0, 300.0)) {
+      last = fix(500.0, north)
+      navigation = navigation.update(last).navigation
+    }
+    return navigation to last
+  }
+
+  /**
+   * A guided way from the rider at 500 m, 300 m north, east to 1500 m and then down to the road,
+   * 1.3 km long, with a doubtful junction at [junctionAt] m along it.
+   */
+  private fun guidedWay(junctionAt: Double): GuidedWay {
+    val points = listOf(at(500.0, 300.0), at(1500.0, 300.0), at(1500.0, 0.0))
+    val meters = listOf(0.0, 1000.0, 1300.0)
+    val junction = DoubtfulJunction(junctionAt, junctionAt, setOf(JunctionDoubt.SIMILAR_EXIT))
+    return GuidedWay.of(PathWay(points, meters, listOf(), doubtful = listOf(junction)))
+  }
+
+  @Test
+  fun `doubtful junction off route`() {
+    val (navigation, fix) = offRouteNorth()
+    assertEquals(true, navigation.offRoute)
+
+    val focus = navigation.mapFocus(fix, guidedWay(junctionAt = 120.0))
+
+    assertEquals(MapFocusKind.TRICKY_SPOT, focus.kind)
+    assertEquals(MapFocus.TRICKY_CLOSEST_METERS, focus.closestMeters)
+    near(at(620.0, 300.0), focus.points.first())
+  }
+
+  @Test
+  fun `doubtful junction on the way back`() {
+    val (navigation, fix) = offRouteNorth()
+
+    val far = navigation.mapFocus(fix, guidedWay(junctionAt = 400.0))
+    val close = navigation.mapFocus(fix, guidedWay(junctionAt = 140.0))
+
+    // 400 m ahead it is not yet in view: the rider and the end of the way are.
+    assertEquals(MapFocusKind.OFF_ROUTE, far.kind)
+    // Within 150 m, the junction wins, and the end of the way at 1500 m may leave the view.
+    assertEquals(MapFocusKind.TRICKY_SPOT, close.kind)
+    assertEquals(true, close.points.none { it.longitude > longitude(1000.0) })
+  }
+
   private companion object {
     const val METERS_PER_DEGREE = 6_371_008.8 * PI / 180
 

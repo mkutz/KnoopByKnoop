@@ -245,7 +245,7 @@ struct PlannerView: View {
           state.position.flatMap { state.navigation?.wayToRoute(fix: $0) }
         },
         mapFocus: navigator.state.flatMap { state in
-          state.position.flatMap { state.navigation?.mapFocus(fix: $0) }
+          state.position.flatMap { state.navigation?.mapFocus(fix: $0, guidedWay: state.guidedWay) }
         },
         guidedWay: navigator.state.flatMap { state in
           state.navigation?.guidedLines(guidedWay: state.guidedWay)

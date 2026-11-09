@@ -581,10 +581,31 @@ private constructor(
    * What the map shows while following the rider at [fix], see `knot-navigation` "Zoom while
    * following": a tricky spot wins over the next knot, the knot over the zoom-out after passing
    * one, and that over the navigation zoom. Route points get the navigation zoom, as they have no
-   * signposts.
+   * signposts. A doubtful junction on [guidedWay] counts as a tricky spot, also off route.
    */
-  fun mapFocus(fix: Fix): MapFocus {
+  fun mapFocus(fix: Fix, guidedWay: GuidedWay? = null): MapFocus {
     if (arrived) return MapFocus.BASE
+    // A doubtful junction close ahead on the guided way is a tricky spot, and off route it wins
+    // over keeping the end of the way in view, see "Doubtful junction off route".
+    guidedWay?.let { guided ->
+      val junction =
+        guided.way.doubtful.withIndex().firstOrNull { (_, doubt) ->
+          doubt.startMeters - guided.place <= MapFocus.TRICKY_AHEAD_METERS &&
+            guided.place <= doubt.endMeters + MapFocus.TRICKY_PAST_METERS
+        }
+      if (junction != null)
+        return MapFocus(
+          MapFocusKind.TRICKY_SPOT,
+          GUIDED_TRICKY_KEYS + junction.index,
+          stretchOfLine(
+            guided.way.points,
+            junction.value.startMeters,
+            junction.value.endMeters + MapFocus.TRICKY_AFTER_METERS,
+          ),
+          MapFocus.TRICKY_CLOSEST_METERS,
+          null,
+        )
+    }
     if (offRoute) {
       return MapFocus(MapFocusKind.OFF_ROUTE, nextIndex, listOfNotNull(wayToRoute(fix)), null, null)
     }
@@ -1230,6 +1251,12 @@ private constructor(
      * `knot-navigation` "Direction to the route".
      */
     const val ON_NETWORK_METERS = 30.0
+
+    /**
+     * Keys of the tricky spots on a guided way start here, apart from the route's own, so a change
+     * between them is a change of focus.
+     */
+    private const val GUIDED_TRICKY_KEYS = 100_000
 
     /** How far before and after a knot its turn is measured, see "Turn at the next knot". */
     const val TURN_METERS = 40.0

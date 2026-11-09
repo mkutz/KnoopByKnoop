@@ -407,7 +407,7 @@ private fun MapArea(
         },
       mapFocus =
         state.navigation?.let { navigating ->
-          navigating.position?.let { navigating.navigation?.mapFocus(it) }
+          navigating.position?.let { navigating.navigation?.mapFocus(it, navigating.guidedWay) }
         },
       guidedWay =
         state.navigation?.let { navigating ->
