@@ -56,6 +56,8 @@ struct PlaceSearchView: View {
           onClose()
         }
       }
+      // Like the network switch: at the largest text sizes, Cancel left the field a sliver.
+      .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
       if model.online {
         switch search.result {
         case .none: EmptyView()

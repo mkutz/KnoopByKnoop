@@ -249,11 +249,11 @@ struct PlannerView: View {
         onOfferMoved: { point in DispatchQueue.main.async { model.offerMoved(to: point) } }
       )
       .ignoresSafeArea()
-      // While typing in landscape, the hits need the room up to the top, see `place-search`.
-      // Not while navigating: the route is fixed then, see `knot-navigation` "Switching the network
+      // Also while typing in landscape: the hits are in the side panel, see `map-planning`
+      // "Landscape layout". Not while navigating: the route is fixed then, see `knot-navigation` "Switching the network
       // while navigating", and the info sheet is not needed on the ride, see `network-sync` "Info
       // sheet".
-      if !(landscape && keyboardShown) && navigator.state == nil { networkSwitch }
+      if navigator.state == nil { networkSwitch }
       if model.layers == nil {
         // Only without bundled graphs, e.g. a debug build that was built without internet access,
         // or for the moment it takes to read the graph.
