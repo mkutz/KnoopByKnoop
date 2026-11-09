@@ -3,6 +3,7 @@
 ## Unreleased
 
 - iPhone: the place search is a magnifier button with the map's other buttons; tapping it opens the search at the top of the panel, with the places found below it. No search field floats over the map any more, so it hides none of its buttons, and the map's buttons stay above the panel at any height
+
 ## 0.11.0
 
 - Android: over the lock screen, the stop button is round and as small as the one in the app; hold it until the ring around it closes to stop, and a short tap shows "Hold to stop"
