@@ -138,6 +138,13 @@ The map SHALL offer buttons to zoom in and out, in addition to the gestures of t
 ### Requirement: Route knots stand out
 On the map, knots the route passes SHALL be highlighted, so the route can be followed in dense areas. Start, end and stops SHALL be distinguishable from each other and from passed knots.
 
+A knot's badge SHALL show its plate in the colour of the knot's sign region (see `network-data` "Sign region of each knot"): red for North Rhine-Westphalia, dark green for the Netherlands, blue for Belgium, and the app's green for a knot without a region. The badge SHALL show the knot's role by its fill:
+- **Waypoint** (start, stop, end or round trip): a filled plate with a white number. Knots in North Rhine-Westphalia and Belgium SHALL also have a white ring inside the plate, as on their signs. Dutch knots SHALL have none.
+- **Passed knot:** white, with one ring and the number in the plate colour.
+- **Knot not on the route:** a grey ring and number, whatever its region.
+
+A small dark symbol at the corner of a waypoint's badge SHALL tell the roles apart: ▶ for the start, a flag for a stop, ■ for the end, and a circular arrow for the start and end of a round trip. The waypoint list, the progress strip and the planner panel SHALL show badges as on the map. Red SHALL NOT be used on the map or in the planner panel to mark a problem, so it never reads like a German knot.
+
 #### Scenario: Passed knots
 - **WHEN** the route from 12 to 45 passes knot 7
 - **THEN** knot 7 is highlighted as part of the route, and knots the route does not pass are not
@@ -149,6 +156,38 @@ On the map, knots the route passes SHALL be highlighted, so the route can be fol
 #### Scenario: Round trip on the map
 - **WHEN** the route is a round trip with the waypoints 12, 30 and 12
 - **THEN** the map marks 12 once, in a way that shows it is both start and end
+
+#### Scenario: Route in North Rhine-Westphalia
+- **WHEN** a cycling route around Troisdorf starts at 25, passes 32 and ends at 29
+- **THEN** 25 and 29 are red plates with a white ring and number, 25 with ▶ and 29 with ■ at the corner, and 32 is white with a red ring and number
+
+#### Scenario: Route in the Netherlands
+- **WHEN** a cycling route in Limburg starts at 95 and passes 1
+- **THEN** 95 is a dark green plate with a white number and no ring, and 1 is white with a dark green ring and number
+
+#### Scenario: Route in Belgium
+- **WHEN** a cycling route in Haspengouw starts at 150
+- **THEN** 150 is a blue plate with a white ring and number
+
+#### Scenario: Route across the border
+- **WHEN** a route starts at a Dutch knot and ends at a Belgian knot
+- **THEN** the start is a dark green plate and the end a blue plate
+
+#### Scenario: Knots not on the route
+- **WHEN** a route in North Rhine-Westphalia is shown and knot 77 is not on it
+- **THEN** 77 has a grey ring and number, not red
+
+#### Scenario: Knot without a region
+- **WHEN** a hiking route starts at knot 12
+- **THEN** 12 is a plate in the app's green
+
+#### Scenario: Data from before sign regions
+- **WHEN** the installed network data has no sign regions
+- **THEN** every route knot shows the app's green, with the roles shown by fill and corner symbol as above
+
+#### Scenario: Off route on the map
+- **WHEN** the rider is off route and the map shows the line to the route or a guided way
+- **THEN** the line is dark, not red
 
 ### Requirement: Return to the start
 The user SHALL be able to turn a route into a round trip with one action, which adds the start as the new end.
@@ -451,7 +490,15 @@ The app SHALL follow the appearance chosen in the info sheet, by default the sys
 
 #### Scenario: Off route in dark mode
 - **WHEN** the rider is off route in dark mode
-- **THEN** "Off route, next", the arrow towards the next knot and the rider's dot on the strip are a clear red, readable on the dark panel, not pink
+- **THEN** the panel's header is light with dark text and arrow, and the rider's dot on the strip is a ring with ✕, readable on the dark panel, and none of them is red
+
+#### Scenario: Off route in light mode
+- **WHEN** the rider is off route in light mode
+- **THEN** the panel's header is dark with white text and arrow, and the knot badges in it keep their plate colours
+
+#### Scenario: Knots on the dark map
+- **WHEN** a route in North Rhine-Westphalia is shown on the dark map
+- **THEN** the waypoints are red plates, the passed knots white with a red ring, and the knots not on the route a grey ring and number on a dark disc
 
 #### Scenario: Choosing the appearance in the info sheet
 - **WHEN** the user opens the info sheet on Android and switches between Light and Dark several times

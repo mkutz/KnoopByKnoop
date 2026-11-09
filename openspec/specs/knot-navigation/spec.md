@@ -462,10 +462,10 @@ While navigating, the app SHALL estimate when the rider gets to each ferry still
 
 #### Scenario: Closed at the renewed estimate
 - **WHEN** the rider slows down between two knots so that a ferry ahead is closed at the estimate
-- **THEN** the strip shows the ferry with its red ring and its popover the warning at once, and the spoken warning comes at the next knot passed
+- **THEN** the strip shows the ferry with its clock badge and its popover the warning at once, and the spoken warning comes at the next knot passed
 
 ### Requirement: Ferry warning
-When a ferry ahead is closed at the rider's estimated arrival, or closes within 15 minutes after it, according to its operating times in OpenStreetMap in the ferry region's local time, the app SHALL warn the rider once per ferry with a spoken notice, and the progress strip SHALL show that ferry's badge with a red ring and its arrival in red, and its popover the warning in red. When the operating times do not tell whether the ferry runs then, the app SHALL NOT warn.
+When a ferry ahead is closed at the rider's estimated arrival, or closes within 15 minutes after it, according to its operating times in OpenStreetMap in the ferry region's local time, the app SHALL warn the rider once per ferry with a spoken notice, and the progress strip SHALL show that ferry's badge with a dark clock badge at its corner and its arrival in bold, and its popover the warning in red. The strip SHALL NOT mark the warning with red, so it never reads like a German knot. When the operating times do not tell whether the ferry runs then, the app SHALL NOT warn.
 
 #### Scenario: Closed when the rider gets there
 - **WHEN** the rider starts navigating a cycling route at 18:00 on Wednesday, 16 June 2027, and the ferry Veer Broekhuizen, which runs "Apr-Oct: Mo-Su 07:00-19:00", is 20 km ahead
@@ -517,7 +517,7 @@ When a ferry ahead is closed at the rider's estimated arrival, or closes within 
 
 #### Scenario: Warning in the ferry list
 - **WHEN** the rider navigates a route with a ferry ahead that they get to around 19:15 and that closes at 19:00 on that day
-- **THEN** the ferry's badge on the strip has a red ring, "19:15" below it is red, and its popover shows "At 19:15: closed until tomorrow 07:00" in red
+- **THEN** the ferry's badge on the strip has a clock badge at its corner, "19:15" below it is bold, and its popover shows "At 19:15: closed until tomorrow 07:00" in red
 
 #### Scenario: Closed for the season in the ferry list
 - **WHEN** the rider navigates a route with a ferry ahead that is closed until 1 May at 10:00 and gets there around 18:10
@@ -532,7 +532,7 @@ When a ferry ahead is closed at the rider's estimated arrival, or closes within 
 - **THEN** the ferry warnings are given as online
 
 ### Requirement: Progress strip
-While navigating, the panel SHALL show, below the number to follow, the route as a strip drawn to scale by distance along the route, in place of the knot badge row: the start, the stops, the end and the ferries marked and labeled, the other knots as small marks, the rider's place on the route as a dot, and the part of the route already ridden filled. While the panel is shown, the strip SHALL follow each position.
+While navigating, the panel SHALL show, below the number to follow, the route as a strip drawn to scale by distance along the route, in place of the knot badge row: the start, the stops, the end and the ferries marked and labeled, the start, the stops and the end with badges like on the map, the other knots as small marks, the rider's place on the route as a dot, and the part of the route already ridden filled. While the panel is shown, the strip SHALL follow each position.
 
 #### Scenario: Strip at the start
 - **WHEN** the rider starts navigating a route from 24 via the stop 30 to 31, 12.4 km long, at 24
@@ -552,7 +552,7 @@ While navigating, the panel SHALL show, below the number to follow, the route as
 
 #### Scenario: Off route on the strip
 - **WHEN** the rider is off route
-- **THEN** the dot stays at the last place on the route and is shown as off route
+- **THEN** the dot stays at the last place on the route and is shown as a ring with ✕, not in red
 
 #### Scenario: Progress with a screen reader
 - **WHEN** a screen reader (TalkBack, VoiceOver) reaches the strip after 4.0 of 12.4 km
@@ -971,7 +971,7 @@ While navigating with the network's courses, a rider within 30 m of the course o
 
 #### Scenario: Wrong direction in the panel
 - **WHEN** the rider is riding the wrong way, 2.2 km along the route from 28
-- **THEN** the panel shows "Wrong direction, next 28" in red with 28 as a badge and "2.2 km", the rider's dot on the strip is red, and the map shows no dashed line and keeps following them
+- **THEN** the panel's header is dark (light in dark mode) and shows "Wrong direction, next 28" with 28 as a badge and "2.2 km", none of it in red, the rider's dot on the strip is a ring with ✕, and the map shows no dashed line and keeps following them
 
 #### Scenario: Wrong direction outside the app
 - **WHEN** the rider is riding the wrong way with the screen off or in another app
