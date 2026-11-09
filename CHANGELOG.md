@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Off the route, the way back leads to where it saves the most, e.g. on to where the route goes next instead of back to where you left it
 - At the largest text sizes, the navigation header keeps its badges and arrows in one row with the distance below it, and on a way to the route the turn's distance is no longer cut short on the iPhone
 - iPhone: at the largest text sizes, the map's buttons work on the first tap instead of pulling the panel down, and the panel's top, the route's distance or the search field, is no longer cut off
 - Android: the place search is a magnifier button with the map's other buttons; tapping it opens the search at the top of the panel, with the places found below it. No search field covers the map any more, and there is none while navigating
