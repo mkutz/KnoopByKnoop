@@ -38,7 +38,11 @@ From the maintainer's second and third tries on the iPhone, 2026-11-09, read fro
 - **Amsterdam was slow, Cologne fast:** moving the map 200 km loaded and drew the map along the way, stalling the main thread many times. A hit more than 20 km away is now jumped to, and "Showing Amsterdam Centraal…" with a spinner shows from the tap until the map is idle, as the maintainer asked for feedback. In the simulator: jumped 237 km, idle 1.4 s later, the note shown in between.
 - **The map's buttons** follow the sheet's height only once it rests, not on every frame of its move.
 
+After these, the maintainer's fourth try on the iPhone, 2026-11-09: "Feels much better now". The log shows each pick drawn within about 1.1 s of the tap, jumping 183 to 214 km (Cologne, Brussels, Amsterdam), without long stalls.
+
 ### Open
+
+- While typing, each keystroke stalls the main thread for about 110 to 125 ms on the iPhone: the whole planner, the map included, renders again with the published search text. A follow-up of its own.
 
 - The map's round buttons are not reached by their labels in UI tests, which suggests VoiceOver may not reach them either; that holds for all of them since before this change and is worth its own look.
 
