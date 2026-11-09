@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -31,9 +32,11 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.knoopbyknoop.core.GuidedHeader
 import com.knoopbyknoop.core.HeaderBadge
 import com.knoopbyknoop.core.HeaderRow
 import com.knoopbyknoop.core.TurnDirection
@@ -52,6 +55,13 @@ private val RiderArrowBlue = Color(0xFF1A73E8)
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun HeaderRowView(row: HeaderRow, modifier: Modifier = Modifier) {
+  val guided = (row as? HeaderRow.ToRoute)?.guided
+  if (row is HeaderRow.ToRoute && guided != null) {
+    // On a guided way always one row, so the header keeps its height as the way is found or lost,
+    // see `knot-navigation` "Header of steady height on a guided way".
+    GuidedRow(row, guided, modifier.clearAndSetSemantics { contentDescription = row.spoken })
+    return
+  }
   // The distance moves below the badges where it does not fit next to them, see `knot-navigation`
   // "Number to follow at large text sizes".
   FlowRow(
@@ -89,32 +99,64 @@ fun HeaderRowView(row: HeaderRow, modifier: Modifier = Modifier) {
       }
       is HeaderRow.ToRoute -> {
         ToRouteSymbol(awayFromRoute = row.offRoute, size = 40.dp, tile = !row.offRoute)
-        val guided = row.guided
-        if (guided == null) {
-          Icon(
-            painterResource(R.drawable.ic_action_navigate),
-            contentDescription = null,
-            modifier = Modifier.size(40.dp).rotate(row.arrowDegrees.toFloat()),
-          )
-          Text(row.distance, style = prominent, maxLines = 1)
-        } else {
-          Icon(
-            painterResource(R.drawable.ic_action_navigate),
-            contentDescription = null,
-            modifier = Modifier.size(32.dp).rotate(turnDegrees(guided.turn)),
-          )
-          guided.turnDistance?.let { Text(it, style = secondary, maxLines = 1) }
-          guided.street?.let {
-            Text(it, style = secondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-          }
-          Text(guided.remaining, style = prominent, maxLines = 1)
-        }
+        Icon(
+          painterResource(R.drawable.ic_action_navigate),
+          contentDescription = null,
+          modifier = Modifier.size(40.dp).rotate(row.arrowDegrees.toFloat()),
+        )
+        Text(row.distance, style = prominent, maxLines = 1)
         row.next?.let {
           Row(verticalAlignment = Alignment.CenterVertically) {
             Chevron(18.dp)
             HeaderKnot(it, scale = 1.2f)
           }
         }
+      }
+    }
+  }
+}
+
+/**
+ * The row on a guided way: the tile, the turn with its distance and street, the distance left and
+ * the next knot, in one row whose street is cut short rather than wrapped.
+ */
+@Composable
+private fun GuidedRow(row: HeaderRow.ToRoute, guided: GuidedHeader, modifier: Modifier) {
+  Row(
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
+    modifier = modifier,
+  ) {
+    ToRouteSymbol(awayFromRoute = row.offRoute, size = 40.dp, tile = !row.offRoute)
+    Icon(
+      painterResource(R.drawable.ic_action_navigate),
+      contentDescription = null,
+      modifier = Modifier.size(32.dp).rotate(turnDegrees(guided.turn)),
+    )
+    Column(Modifier.weight(1f, fill = false)) {
+      Text(
+        guided.turnDistance ?: guided.remaining,
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.Bold,
+        maxLines = 1,
+      )
+      guided.street?.let {
+        Text(
+          it,
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+        )
+      }
+    }
+    if (guided.turnDistance != null) {
+      Text(guided.remaining, style = MaterialTheme.typography.titleLarge, maxLines = 1)
+    }
+    row.next?.let {
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        Chevron(18.dp)
+        HeaderKnot(it, scale = 1.2f)
       }
     }
   }

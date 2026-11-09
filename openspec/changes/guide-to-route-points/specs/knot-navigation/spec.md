@@ -15,6 +15,10 @@ When the next route point is joined to the network by a way along paths, navigat
 - **WHEN** the rider turned into Cecilienstraße and the way to the flag turns left into Kronprinzenstraße after 300 m
 - **THEN** the rider hears the turn as on the guided way back to the route, "In 100 m, turn left", and the header shows it with Kronprinzenstraße on the light tile of the way to the route
 
+#### Scenario: Header of steady height on a guided way
+- **WHEN** a way to the flag, or back to the route, is found or lost while the rider follows it, with a turn into a long street name ahead
+- **THEN** the header stays one row of the same height: the turn's arrow, its distance with the street below it, cut short if long, the distance left and the next knot, and it doesn't push the map up
+
 #### Scenario: Missing the turn-off
 - **WHEN** the rider rides on along the course past Cecilienstraße
 - **THEN** they are told a way to the flag from where they are, as off route

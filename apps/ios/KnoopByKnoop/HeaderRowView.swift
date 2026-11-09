@@ -9,11 +9,19 @@ struct HeaderRowView: View {
   let row: HeaderRow
 
   var body: some View {
-    // The distance moves below the badges where it does not fit next to them, see `knot-navigation`
-    // "Number to follow at large text sizes".
-    ViewThatFits(in: .horizontal) {
-      HStack(alignment: .center, spacing: 8) { content }
-      VStack(alignment: .leading, spacing: 4) { content }
+    Group {
+      if let toRoute = row as? HeaderRow.ToRoute, let guided = toRoute.guided {
+        // On a guided way always one row, so the header keeps its height as the way is found or
+        // lost, see `knot-navigation` "Header of steady height on a guided way".
+        GuidedRow(toRoute: toRoute, guided: guided)
+      } else {
+        // The distance moves below the badges where it does not fit next to them, see
+        // `knot-navigation` "Number to follow at large text sizes".
+        ViewThatFits(in: .horizontal) {
+          HStack(alignment: .center, spacing: 8) { content }
+          VStack(alignment: .leading, spacing: 4) { content }
+        }
+      }
     }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(row.spoken)
@@ -41,23 +49,46 @@ struct HeaderRowView: View {
       Text(wrongWay.distance).font(.title.weight(.bold)).lineLimit(1)
     } else if let toRoute = row as? HeaderRow.ToRoute {
       ToRouteSymbol(awayFromRoute: toRoute.offRoute, side: 38, tile: !toRoute.offRoute)
-      if let guided = toRoute.guided {
-        Image(systemName: "location.north.fill")
-          .font(.title2)
-          .rotationEffect(.degrees(Self.turnDegrees(guided.turn)))
-        if let distance = guided.turnDistance { Text(distance).font(.title3).lineLimit(1) }
-        if let street = guided.street { Text(street).font(.callout).lineLimit(1).truncationMode(.tail) }
-        Text(guided.remaining).font(.title.weight(.bold)).lineLimit(1)
-      } else {
-        Image(systemName: "location.north.fill")
-          .font(.title)
-          .rotationEffect(.degrees(toRoute.arrowDegrees))
-        Text(toRoute.distance).font(.title.weight(.bold)).lineLimit(1)
-      }
+      Image(systemName: "location.north.fill")
+        .font(.title)
+        .rotationEffect(.degrees(toRoute.arrowDegrees))
+      Text(toRoute.distance).font(.title.weight(.bold)).lineLimit(1)
       if let next = toRoute.next {
         HStack(spacing: 2) {
           Image(systemName: "chevron.right").font(.caption.bold()).foregroundStyle(.secondary)
           HeaderKnot(badge: next, scale: 1.2)
+        }
+      }
+    }
+  }
+
+  /// The row on a guided way: the tile, the turn with its distance and street, the distance left
+  /// and the next knot, in one row whose street is cut short rather than wrapped.
+  private struct GuidedRow: View {
+    let toRoute: HeaderRow.ToRoute
+    let guided: GuidedHeader
+
+    var body: some View {
+      HStack(alignment: .center, spacing: 8) {
+        ToRouteSymbol(awayFromRoute: toRoute.offRoute, side: 38, tile: !toRoute.offRoute)
+        Image(systemName: "location.north.fill")
+          .font(.title2)
+          .rotationEffect(.degrees(HeaderRowView.turnDegrees(guided.turn)))
+        VStack(alignment: .leading, spacing: 0) {
+          Text(guided.turnDistance ?? guided.remaining).font(.title3.weight(.bold)).lineLimit(1)
+          if let street = guided.street {
+            Text(street).font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.tail)
+          }
+        }
+        .layoutPriority(-1)
+        if guided.turnDistance != nil {
+          Text(guided.remaining).font(.title3).lineLimit(1).minimumScaleFactor(0.7)
+        }
+        if let next = toRoute.next {
+          HStack(spacing: 2) {
+            Image(systemName: "chevron.right").font(.caption.bold()).foregroundStyle(.secondary)
+            HeaderKnot(badge: next, scale: 1.2)
+          }
         }
       }
     }

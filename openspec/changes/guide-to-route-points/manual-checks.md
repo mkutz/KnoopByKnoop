@@ -18,6 +18,10 @@ Found on the emulator and fixed before these checks: the way after the turn-off,
 
 The route point's header badge is the plain flag where the strip shows the place's icon; that is the existing badge, not this change.
 
+### Found and fixed
+
+- **The header grew to five lines on a guided way** (TestFlight feedback on build 25, 9 November 06:33 and 08:06): the row of the tile, turn arrow, turn distance, street, distance left and next knot didn't fit one line, so iOS stacked every item and Android wrapped them, and the header jumped between one and five lines as the way was found. On a guided way the header is now always one row, with the street small under the turn's distance and cut short; checked on the emulator ([screenshot](screenshots/android-guided-header.png)) and in the simulator ([screenshot](screenshots/ios-guided-header.png)), starting away from the route.
+
 ### Steps for the maintainer
 
 1. Plan home → 28 → 02 → home with the start and end flags at home, as on the ride of 2026-11-08.
