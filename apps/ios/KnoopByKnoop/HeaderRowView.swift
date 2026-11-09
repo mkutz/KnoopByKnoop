@@ -17,14 +17,66 @@ struct HeaderRowView: View {
       } else {
         // The distance moves below the badges where it does not fit next to them, see
         // `knot-navigation` "Number to follow at large text sizes".
+        // First the badges and arrows in a row with the distance below it, as the spec puts it; only
+        // where even they do not fit, one below the other.
         ViewThatFits(in: .horizontal) {
           HStack(alignment: .center, spacing: 8) { content }
+          VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .center, spacing: 8) { symbols }
+            distance
+          }
           VStack(alignment: .leading, spacing: 4) { content }
         }
       }
     }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(row.spoken)
+  }
+
+  /// The row's badges, arrows and symbols, without its distance.
+  @ViewBuilder private var symbols: some View {
+    if let close = row as? HeaderRow.Close {
+      HeaderKnot(badge: close.next, scale: 1.4)
+      PlainArrow(size: 26)
+      SignPlate(badge: close.follow, turn: close.turn)
+    } else if let far = row as? HeaderRow.Far {
+      HeaderKnot(badge: far.next, scale: 2)
+      HStack(spacing: 2) {
+        Image(systemName: "chevron.right").font(.caption.bold()).foregroundStyle(.secondary)
+        HeaderKnot(badge: far.follow, scale: 1.2)
+      }
+    } else if let end = row as? HeaderRow.End {
+      HeaderKnot(badge: end.next, scale: 2)
+    } else if let wrongWay = row as? HeaderRow.WrongWay {
+      Image(systemName: "arrow.uturn.down").font(.title.bold())
+      HeaderKnot(badge: wrongWay.next, scale: 1.6)
+    } else if let toRoute = row as? HeaderRow.ToRoute {
+      ToRouteSymbol(awayFromRoute: toRoute.offRoute, side: 38, tile: !toRoute.offRoute)
+      Image(systemName: "location.north.fill")
+        .font(.title)
+        .rotationEffect(.degrees(toRoute.arrowDegrees))
+      if let next = toRoute.next {
+        HStack(spacing: 2) {
+          Image(systemName: "chevron.right").font(.caption.bold()).foregroundStyle(.secondary)
+          HeaderKnot(badge: next, scale: 1.2)
+        }
+      }
+    }
+  }
+
+  /// The row's distance, as it is shown in the row.
+  @ViewBuilder private var distance: some View {
+    if let close = row as? HeaderRow.Close {
+      Text(close.distance).font(.title3.weight(.semibold)).lineLimit(1)
+    } else if let far = row as? HeaderRow.Far {
+      Text(far.distance).font(.title.weight(.bold)).lineLimit(1)
+    } else if let end = row as? HeaderRow.End {
+      Text(end.distance).font(.title.weight(.bold)).lineLimit(1)
+    } else if let wrongWay = row as? HeaderRow.WrongWay {
+      Text(wrongWay.distance).font(.title.weight(.bold)).lineLimit(1)
+    } else if let toRoute = row as? HeaderRow.ToRoute {
+      Text(toRoute.distance).font(.title.weight(.bold)).lineLimit(1)
+    }
   }
 
   @ViewBuilder private var content: some View {
@@ -67,6 +119,7 @@ struct HeaderRowView: View {
   private struct GuidedRow: View {
     let toRoute: HeaderRow.ToRoute
     let guided: GuidedHeader
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
       HStack(alignment: .center, spacing: 8) {
@@ -74,14 +127,18 @@ struct HeaderRowView: View {
         Image(systemName: "location.north.fill")
           .font(.title2)
           .rotationEffect(.degrees(HeaderRowView.turnDegrees(guided.turn)))
+        // The turn's distance always complete, at the largest text sizes too: the street is cut
+        // short first, and at the accessibility sizes the distance left is left out, see
+        // `knot-navigation` "Off route in German".
         VStack(alignment: .leading, spacing: 0) {
           Text(guided.turnDistance ?? guided.remaining).font(.title3.weight(.bold)).lineLimit(1)
+            .fixedSize(horizontal: typeSize.isAccessibilitySize, vertical: false)
           if let street = guided.street {
             Text(street).font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.tail)
           }
         }
         .layoutPriority(-1)
-        if guided.turnDistance != nil {
+        if guided.turnDistance != nil && !typeSize.isAccessibilitySize {
           Text(guided.remaining).font(.title3).lineLimit(1).minimumScaleFactor(0.7)
         }
         if let next = toRoute.next {

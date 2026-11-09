@@ -29,11 +29,13 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.knoopbyknoop.core.GuidedHeader
@@ -62,55 +64,129 @@ fun HeaderRowView(row: HeaderRow, modifier: Modifier = Modifier) {
     GuidedRow(row, guided, modifier.clearAndSetSemantics { contentDescription = row.spoken })
     return
   }
-  // The distance moves below the badges where it does not fit next to them, see `knot-navigation`
-  // "Number to follow at large text sizes".
-  FlowRow(
-    itemVerticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.spacedBy(8.dp),
+  // The whole row where it fits; else the badges and arrows in a row with the distance below it,
+  // see
+  // `knot-navigation` "Number to follow at the largest text size".
+  OneRowOrStacked(
     modifier = modifier.clearAndSetSemantics { contentDescription = row.spoken },
-  ) {
-    val prominent = MaterialTheme.typography.headlineMedium
-    val secondary = MaterialTheme.typography.titleMedium
-    when (row) {
-      is HeaderRow.Close -> {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-          Box(contentAlignment = Alignment.Center) { HeaderKnot(row.next, scale = 1.4f) }
-        }
-        Text(row.distance, style = secondary, maxLines = 1)
-        Arrow(28.dp)
-        SignPlate(row.follow, row.turn)
-      }
-      is HeaderRow.Far -> {
-        HeaderKnot(row.next, scale = 2f)
-        Text(row.distance, style = prominent, maxLines = 1)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-          Chevron(18.dp)
-          HeaderKnot(row.follow, scale = 1.2f)
-        }
-      }
-      is HeaderRow.End -> {
-        HeaderKnot(row.next, scale = 2f)
-        Text(row.distance, style = prominent, maxLines = 1)
-      }
-      is HeaderRow.WrongWay -> {
-        UTurn(36.dp)
-        HeaderKnot(row.next, scale = 1.6f)
-        Text(row.distance, style = prominent, maxLines = 1)
-      }
-      is HeaderRow.ToRoute -> {
-        ToRouteSymbol(awayFromRoute = row.offRoute, size = 40.dp, tile = !row.offRoute)
-        Icon(
-          painterResource(R.drawable.ic_action_navigate),
-          contentDescription = null,
-          modifier = Modifier.size(40.dp).rotate(row.arrowDegrees.toFloat()),
-        )
-        Text(row.distance, style = prominent, maxLines = 1)
-        row.next?.let {
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            Chevron(18.dp)
-            HeaderKnot(it, scale = 1.2f)
+    oneRow = {
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        when (row) {
+          // The distance between the knot and the arrow, as a sign gives it.
+          is HeaderRow.Close -> {
+            HeaderKnot(row.next, scale = 1.4f)
+            Distance(row)
+            Arrow(28.dp)
+            SignPlate(row.follow, row.turn)
+          }
+          is HeaderRow.Far -> {
+            HeaderKnot(row.next, scale = 2f)
+            Distance(row)
+            FollowKnot(row.follow)
+          }
+          else -> {
+            Symbols(row)
+            Distance(row)
           }
         }
+      }
+    },
+    stacked = {
+      Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        FlowRow(
+          itemVerticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+          Symbols(row)
+        }
+        Distance(row)
+      }
+    },
+  )
+}
+
+/** The row's badges, arrows and symbols, without its distance. */
+@Composable
+private fun Symbols(row: HeaderRow) {
+  when (row) {
+    is HeaderRow.Close -> {
+      HeaderKnot(row.next, scale = 1.4f)
+      Arrow(28.dp)
+      SignPlate(row.follow, row.turn)
+    }
+    is HeaderRow.Far -> {
+      HeaderKnot(row.next, scale = 2f)
+      FollowKnot(row.follow)
+    }
+    is HeaderRow.End -> HeaderKnot(row.next, scale = 2f)
+    is HeaderRow.WrongWay -> {
+      UTurn(36.dp)
+      HeaderKnot(row.next, scale = 1.6f)
+    }
+    is HeaderRow.ToRoute -> {
+      ToRouteSymbol(awayFromRoute = row.offRoute, size = 40.dp, tile = !row.offRoute)
+      Icon(
+        painterResource(R.drawable.ic_action_navigate),
+        contentDescription = null,
+        modifier = Modifier.size(40.dp).rotate(row.arrowDegrees.toFloat()),
+      )
+      row.next?.let { FollowKnot(it) }
+    }
+  }
+}
+
+/** The knot after the next one, small and behind a chevron. */
+@Composable
+private fun FollowKnot(badge: HeaderBadge) {
+  Row(verticalAlignment = Alignment.CenterVertically) {
+    Chevron(18.dp)
+    HeaderKnot(badge, scale = 1.2f)
+  }
+}
+
+/** The row's distance, in the size the row gives it. */
+@Composable
+private fun Distance(row: HeaderRow) {
+  val style =
+    if (row is HeaderRow.Close) MaterialTheme.typography.titleMedium
+    else MaterialTheme.typography.headlineMedium
+  val distance =
+    when (row) {
+      is HeaderRow.Close -> row.distance
+      is HeaderRow.Far -> row.distance
+      is HeaderRow.End -> row.distance
+      is HeaderRow.WrongWay -> row.distance
+      is HeaderRow.ToRoute -> row.distance
+    }
+  Text(distance, style = style, maxLines = 1)
+}
+
+/** [oneRow] where it fits the width, else [stacked]. */
+@Composable
+private fun OneRowOrStacked(
+  oneRow: @Composable () -> Unit,
+  stacked: @Composable () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  SubcomposeLayout(modifier) { constraints ->
+    val wide =
+      subcompose("oneRow", oneRow).map {
+        it.measure(constraints.copy(minWidth = 0, maxWidth = Constraints.Infinity))
+      }
+    val fits = wide.all { it.width <= constraints.maxWidth }
+    val placeables =
+      if (fits) wide
+      else subcompose("stacked", stacked).map { it.measure(constraints.copy(minWidth = 0)) }
+    val width = placeables.maxOfOrNull { it.width } ?: 0
+    val height = placeables.sumOf { it.height }
+    layout(width.coerceIn(constraints.minWidth, constraints.maxWidth), height) {
+      var y = 0
+      placeables.forEach {
+        it.placeRelative(0, y)
+        y += it.height
       }
     }
   }

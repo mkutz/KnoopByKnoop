@@ -15,17 +15,17 @@
 
 ## 2. Android
 
-- [ ] 2.1 Lay out the hero row from `HeaderRow` in the navigation header: badges at map size, arrows, distances, the dark background for off route, guided and wrong way, and the to-the-route symbol tile for the way to the route. Make Stop a fixed-size icon button with a content description and a long-press name. Check on the emulator with screenshots in `screenshots/`:
+- [x] 2.1 Lay out the hero row from `HeaderRow` in the navigation header: badges at map size, arrows, distances, the dark background for off route, guided and wrong way, and the to-the-route symbol tile for the way to the route. Make Stop a fixed-size icon button with a content description and a long-press name. Check on the emulator with screenshots in `screenshots/`:
   - every scenario of 1.1 to 1.4
   - "Same layout in every language" (English and German side by side, the same height)
   - "Stop in every language"
   - the strip scenarios of 1.6
-- [ ] 2.2 Large text sizes. Check on the emulator at the largest font: "Number to follow at the largest text size", "Next knot at the largest text size", "Number to follow at the default text size" and "Off route in German".
+- [x] 2.2 Large text sizes. Check on the emulator at the largest font: "Number to follow at the largest text size", "Next knot at the largest text size", "Number to follow at the default text size" and "Off route in German".
 - [ ] 2.3 Screen reader. TalkBack check of the announcements in 1.5 and "Stop with a screen reader".
 
 ## 3. iOS
 
-- [ ] 3.1 The same row in `PlannerView.swift`, with Stop as an icon button with an accessibility label. The project builds, and simulator screenshots cover the scenarios of 2.1.
+- [x] 3.1 The same row in `PlannerView.swift`, with Stop as an icon button with an accessibility label. The project builds, and simulator screenshots cover the scenarios of 2.1.
 - [ ] 3.2 Large text sizes and VoiceOver, as 2.2 and 2.3, in the simulator.
 
 ## 4. Wrap-up
@@ -43,3 +43,7 @@
 - Apply only after `knot-colours-from-signs` is applied, since this change uses its plates, corner symbols and dark off-route header.
 - The maintainer checks it on the Pixel and the iPhone before `/opsx:archive sign-like-header`.
 - `turn-at-knot` then replaces the plain arrow, and `sign-like-lock-screen` brings the row outside the app.
+
+## Notes
+
+- 2.1 to 3.2, 2026-11-09: see `manual-checks.md`. "Dutch knots in the header" is covered by `NavigationTest` only; no Dutch route was ridden on a device. 2.3 and 3.2 stay open for listening: the labels are verified in the accessibility tree, the large text sizes on iOS are done (3.2's first half), and the maintainer's step 5 hears TalkBack and VoiceOver once.
