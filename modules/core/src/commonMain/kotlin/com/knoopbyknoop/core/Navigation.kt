@@ -204,6 +204,8 @@ private constructor(
    * see `app-languages` "Spoken notices in the language".
    */
   private val speechLanguage: Language,
+  /** Where the line back to the route ends, kept while off route, see [wayToRoute]. */
+  private val rejoin: RouteProgress.Rejoin? = null,
 ) {
 
   private val texts = language.texts
@@ -254,8 +256,14 @@ private constructor(
    */
   fun wayToRoute(fix: Fix): GeoPoint? {
     if (!offRoute || arrived) return null
-    return route.nearestAhead(fix, nextIndex, place) ?: headedFor(nextIndex)
+    return route.rejoinAhead(fix, nextIndex, place, rejoin)?.point ?: headedFor(nextIndex)
   }
+
+  /** This navigation with the line back to the route renewed for [fix], see [wayToRoute]. */
+  private fun withRejoin(fix: Fix): Navigation =
+    copy(
+      rejoin = if (offRoute && !arrived) route.rejoinAhead(fix, nextIndex, place, rejoin) else null
+    )
 
   /**
    * What the header shows with the rider at [fix], see `knot-navigation` "Number to follow",
@@ -850,7 +858,8 @@ private constructor(
       guidance?.let { notices += it }
       navigation = guided
     }
-    navigation = navigation.copy(lastPreciseFix = fix, lastFix = fix, confirming = confirming)
+    navigation =
+      navigation.copy(lastPreciseFix = fix, lastFix = fix, confirming = confirming).withRejoin(fix)
     return NavigationUpdate(navigation, notices, navigation.precision(visible))
   }
 
@@ -1177,6 +1186,7 @@ private constructor(
     passedAtMillis: Long? = this.passedAtMillis,
     language: Language = this.language,
     speechLanguage: Language = this.speechLanguage,
+    rejoin: RouteProgress.Rejoin? = this.rejoin,
   ) =
     Navigation(
       knots,
@@ -1210,6 +1220,7 @@ private constructor(
       passedAtMillis,
       language,
       speechLanguage,
+      rejoin,
     )
 
   companion object {

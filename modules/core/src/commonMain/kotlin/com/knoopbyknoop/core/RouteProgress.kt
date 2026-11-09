@@ -168,17 +168,67 @@ private constructor(
   }
 
   /**
-   * The point of the leg's course before the knot at [nextIndex] nearest to [fix], not before
-   * [place], see `knot-navigation` "Way to the route on the map"; `null` before the first knot or
-   * without the leg's course.
+   * A point where the rider is led back to the leg's course, [along] meters along it; [ahead] when
+   * it is not the nearest point but one that saves way.
    */
-  fun nearestAhead(fix: Fix, nextIndex: Int, place: Double): GeoPoint? {
+  data class Rejoin(
+    val point: GeoPoint,
+    val leg: Int,
+    val along: Double,
+    val ahead: Boolean = false,
+  )
+
+  /**
+   * Where to lead the rider at [fix] back to the course of the leg to the knot at [nextIndex],
+   * after [place]: the point where the way back plus the course left to the knot is shortest, see
+   * `knot-navigation` "Way to the route on the map". The nearest point is the target unless another
+   * saves [REJOIN_MARGIN_METERS]; once [kept] leads ahead, it keeps doing so until that saves less
+   * than [REJOIN_KEEP_METERS], so the line doesn't flip between the two. `null` without a course or
+   * before the first knot.
+   */
+  fun rejoinAhead(fix: Fix, nextIndex: Int, place: Double, kept: Rejoin?): Rejoin? {
     if (nextIndex == 0) return null
     val leg = nextIndex - 1
     val course = courses?.getOrNull(leg)?.takeIf { it.size >= 2 } ?: return null
+    val metersPerDegreeLongitude = METERS_PER_DEGREE_LATITUDE * cos(fix.latitude * PI / 180)
+    fun x(point: GeoPoint) = (point.longitude - fix.longitude) * metersPerDegreeLongitude
+    fun y(point: GeoPoint) = (point.latitude - fix.latitude) * METERS_PER_DEGREE_LATITUDE
+    val lengths = course.zipWithNext { from, to -> hypot(x(to) - x(from), y(to) - y(from)) }
+    val total = lengths.sum()
     val fromFraction =
       if (legLength(leg) > 0) ((place - offsets[leg]) / legLength(leg)).coerceIn(0.0, 1.0) else 0.0
-    return nearestAfter(fix.latitude, fix.longitude, course, fromFraction)
+    val fromAlong = fromFraction * total
+    fun pointAt(along: Double): GeoPoint {
+      var start = 0.0
+      for ((index, length) in lengths.withIndex()) {
+        if (start + length >= along || index == lengths.lastIndex) {
+          val share = if (length > 0) ((along - start) / length).coerceIn(0.0, 1.0) else 0.0
+          val (from, to) = course[index] to course[index + 1]
+          return GeoPoint(
+            from.latitude + share * (to.latitude - from.latitude),
+            from.longitude + share * (to.longitude - from.longitude),
+          )
+        }
+        start += length
+      }
+      return course.last()
+    }
+    fun distance(point: GeoPoint) = hypot(x(point), y(point))
+    fun cost(along: Double, point: GeoPoint) =
+      REJOIN_DETOUR_FACTOR * distance(point) + (total - along)
+    // Candidates every few meters along the course after the last place on the route.
+    val candidates =
+      generateSequence(fromAlong) { it + REJOIN_STEP_METERS }
+        .takeWhile { it < total }
+        .plus(total)
+        .map { Rejoin(pointAt(it), leg, it) }
+        .toList()
+    val nearest = candidates.minBy { distance(it.point) }
+    val cheapest = candidates.minBy { cost(it.along, it.point) }
+    val saving = cost(nearest.along, nearest.point) - cost(cheapest.along, cheapest.point)
+    val leadingAhead = kept != null && kept.ahead && kept.leg == leg
+    val threshold = if (leadingAhead) REJOIN_KEEP_METERS else REJOIN_MARGIN_METERS
+    return if (saving >= threshold) cheapest.copy(ahead = true) else nearest
   }
 
   /** The straight distance from [fix] to the signpost used at the knot at [index]. */
@@ -407,6 +457,22 @@ private constructor(
   companion object {
 
     /** The assumed pace until the rider covered 2 km: 16 km/h, 4.5 km/h. */
+    /**
+     * The way back counts this much more than its straight distance: so much that beside a straight
+     * course the nearest point stays the target up to about 550 m off it, see "Back to the route,
+     * not to the knot", while skipping a bend or a loop of the route still pays off.
+     */
+    const val REJOIN_DETOUR_FACTOR = 3.0
+
+    /** How much a point must save to be the target, see "Way to the route on the map". */
+    const val REJOIN_MARGIN_METERS = 100.0
+
+    /** A target ahead stays until it saves less than this, see "Way to the route on the map". */
+    const val REJOIN_KEEP_METERS = 50.0
+
+    /** How far apart the candidate points along the course are. */
+    private const val REJOIN_STEP_METERS = 10.0
+
     private val assumedKilometersPerHour =
       mapOf(NetworkType.CYCLING to 16.0, NetworkType.HIKING to 4.5)
 
@@ -504,53 +570,6 @@ private constructor(
         total += segment
       }
       return if (total > 0) bestAlong / total else 0.0
-    }
-
-    /**
-     * The point of [points] nearest to the position, not before [fromFraction] of their length, in
-     * a local flat projection as [fractionAlong].
-     */
-    private fun nearestAfter(
-      latitude: Double,
-      longitude: Double,
-      points: List<GeoPoint>,
-      fromFraction: Double,
-    ): GeoPoint {
-      val metersPerDegreeLongitude = METERS_PER_DEGREE_LATITUDE * cos(latitude * PI / 180)
-      fun x(point: GeoPoint) = (point.longitude - longitude) * metersPerDegreeLongitude
-      fun y(point: GeoPoint) = (point.latitude - latitude) * METERS_PER_DEGREE_LATITUDE
-      val segments = points.zipWithNext()
-      val lengths = segments.map { (from, to) -> hypot(x(to) - x(from), y(to) - y(from)) }
-      val fromAlong = fromFraction * lengths.sum()
-      var start = 0.0
-      var best = Double.MAX_VALUE
-      var bestPoint = points.last()
-      for ((index, segment) in segments.withIndex()) {
-        val (from, to) = segment
-        val length = lengths[index]
-        val end = start + length
-        if (end >= fromAlong) {
-          val deltaX = x(to) - x(from)
-          val deltaY = y(to) - y(from)
-          val lowest = if (length > 0) ((fromAlong - start) / length).coerceIn(0.0, 1.0) else 0.0
-          val along =
-            if (length == 0.0) lowest
-            else (-(x(from) * deltaX + y(from) * deltaY) / (length * length)).coerceIn(lowest, 1.0)
-          val nearestX = x(from) + along * deltaX
-          val nearestY = y(from) + along * deltaY
-          val distance = nearestX * nearestX + nearestY * nearestY
-          if (distance < best) {
-            best = distance
-            bestPoint =
-              GeoPoint(
-                from.latitude + along * (to.latitude - from.latitude),
-                from.longitude + along * (to.longitude - from.longitude),
-              )
-          }
-        }
-        start = end
-      }
-      return bestPoint
     }
   }
 }

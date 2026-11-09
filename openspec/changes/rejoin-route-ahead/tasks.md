@@ -2,7 +2,7 @@
 
 ## 1. Core
 
-- [ ] 1.1 `RouteProgress`: the cheapest point of the leg's course after `place`, with the cost and the 100 m margin over the nearest point of the design. `Navigation.wayToRoute` keeps its target while off route and replaces it only for 100 m more. Tests in `NavigationTest`: "Walking on to where the route goes", "Cutting a loop short", "Steady target", and the existing "Line to the route", "Route behind the rider" and "Line to the knot" unchanged. `./gradlew :modules:core:jvmTest` passes.
+- [x] 1.1 `RouteProgress`: the cheapest point of the leg's course after `place`, with the cost and the 100 m margin over the nearest point of the design. `Navigation.wayToRoute` keeps its target while off route and replaces it only for 100 m more. Tests in `NavigationTest`: "Walking on to where the route goes", "Cutting a loop short", "Steady target", and the existing "Line to the route", "Route behind the rider" and "Line to the knot" unchanged. `./gradlew :modules:core:jvmTest` passes.
 
 ## 2. Apps
 

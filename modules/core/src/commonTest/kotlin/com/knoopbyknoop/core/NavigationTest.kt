@@ -1373,6 +1373,76 @@ class NavigationTest {
     assertNear(east = 0.0, north = 0.0, assertNotNull(beforeFirst.wayToRoute(fix(-500.0, 300.0))))
   }
 
+  /** The network with the course of 24-45 replaced by [points], given as east and north meters. */
+  private fun withCourse24To45(vararg points: Pair<Double, Double>): NetworkGeometry {
+    val index =
+      graph.connections.indexOfFirst {
+        24L in listOf(it.fromId, it.toId) && 45L in listOf(it.fromId, it.toId)
+      }
+    val courses = geometry.courses.toMutableList()
+    courses[index] = points.map { (east, north) -> at(east, north) }
+    return NetworkGeometry(graph, courses, mapOf())
+  }
+
+  @Test
+  fun `walking on to where the route goes`() {
+    // 500 m east along a river, then 200 m south, then on to 45.
+    val turning =
+      withCourse24To45(0.0 to 0.0, 500.0 to 0.0, 500.0 to -200.0, 1000.0 to -200.0, 1000.0 to 0.0)
+    val (left, _) =
+      start(east = 0.0, geometry = turning).navigation.ride(fix(100.0), fix(400.0, -150.0))
+
+    val (navigation, _) = left.ride(fix(400.0, -150.0))
+
+    assertTrue(navigation.offRoute)
+    val target = assertNotNull(navigation.wayToRoute(navigation.lastFix))
+    // On the southward part, not back north to the river at 400 m.
+    assertEquals(longitude(500.0), target.longitude, 2.0 / METERS_PER_DEGREE, "east")
+    assertTrue(target.latitude < latitude(-100.0), "south of the river: $target")
+  }
+
+  @Test
+  fun `cutting a loop short`() {
+    // A 580 m loop north from 200 m that comes back 80 m further east.
+    val loop =
+      withCourse24To45(
+        0.0 to 0.0,
+        200.0 to 0.0,
+        200.0 to 250.0,
+        280.0 to 250.0,
+        280.0 to 0.0,
+        1000.0 to 0.0,
+      )
+    val (left, _) =
+      start(east = 0.0, geometry = loop).navigation.ride(fix(150.0), fix(240.0, -110.0))
+
+    val (navigation, _) = left.ride(fix(240.0, -110.0))
+
+    assertTrue(navigation.offRoute)
+    val target = assertNotNull(navigation.wayToRoute(navigation.lastFix))
+    // After the loop on the way to 45, not back into it.
+    assertEquals(latitude(0.0), target.latitude, 2.0 / METERS_PER_DEGREE, "north")
+    assertTrue(target.longitude > longitude(270.0), "after the loop: $target")
+  }
+
+  @Test
+  fun `steady target`() {
+    // 500 m east along a river, then 200 m south, then on to 45, as in "walking on".
+    val turning =
+      withCourse24To45(0.0 to 0.0, 500.0 to 0.0, 500.0 to -200.0, 1000.0 to -200.0, 1000.0 to 0.0)
+    val (ahead, _) =
+      start(east = 0.0, geometry = turning)
+        .navigation
+        .ride(fix(100.0), fix(400.0, -150.0), fix(400.0, -150.0))
+    assertTrue(assertNotNull(ahead.wayToRoute(ahead.lastFix)).latitude < latitude(-100.0))
+
+    // Back towards the river, where leading ahead saves only about 70 m: it keeps leading ahead.
+    val (navigation, _) = ahead.ride(fix(380.0, -110.0))
+
+    val target = assertNotNull(navigation.wayToRoute(navigation.lastFix))
+    assertTrue(target.latitude < latitude(-100.0), "still ahead: $target")
+  }
+
   @Test
   fun `no line on the route`() {
     val (navigation, _) = start(east = 0.0).navigation.ride(fix(300.0))

@@ -10,7 +10,7 @@ Both are as specified: "Way to the route on the map" leads to the nearest point 
 
 - Off route, the line back to the route, and the guided way along paths, lead to the point of the leg's course ahead of where the rider left it where the way back plus the route from there to the next knot is shortest, instead of the nearest point.
 - The nearest point stays the target unless another one saves at least 100 m, so a rider beside a straight course is still led straight back.
-- The target only moves when a new one saves another 100 m, so the line doesn't jump between two places from fix to fix.
+- Once the line leads ahead, it keeps doing so until that saves less than 50 m, so it doesn't jump between the nearest point and one ahead from fix to fix.
 
 ## Out of Scope
 
