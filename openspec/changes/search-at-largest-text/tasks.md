@@ -8,9 +8,10 @@
 ## 2. Android and release
 
 - [x] 2.1 On the emulator with the largest font size: "Opening at the largest text size on Android".
-- [ ] 2.2 Changelog line, and a check on the maintainer's iPhone at the largest text size.
+- [x] 2.2 Changelog line, and a check on the maintainer's iPhone at the largest text size.
 
 ## Notes
 
 - 1.2, simulator, 2026-11-09, Accessibility XXXL: after a fresh start, one tap on the magnifier opens the search; field, text and Cancel complete below the grabber; Cancel brings back "15 km" and "about 58 min" complete; pulled lower, the sheet now loses its bottom instead of its top. Default size: the sheet's heights, opening, typing and picking, landscape and navigating look as before.
 - 2.1, emulator, 2026-11-09, font size 2.0: one tap on the magnifier opens the search, field and Cancel complete; back brings the sheet back with the summary complete. Font size reset to 1.0.
+- 2.2, the maintainer, 2026-11-09, on the iPhone at the largest text size: "works well".
