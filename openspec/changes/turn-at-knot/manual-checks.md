@@ -12,17 +12,19 @@ Checked on 2026-11-07 with the locally built cycling data, on the route Troisdor
 
 | Scenario | Android | iOS | Notes |
 |---|---|---|---|
-| Right turn at a knot | unit test | unit test | `NavigationTest`: a route turning south at 45 shows ↱ and the title "45 → ↱60" |
-| Straight on | unit test | unit test | `NavigationTest` |
+| Right turn at a knot | ✅ | ✅ | 04 → 06 → 02, 66 m before 06: 02's plate with →, title "06 → ↱02" ([Android](screenshots/android-06-header.png), [notification](screenshots/android-06-notification.png), [iOS](screenshots/ios-right-at-06.png), [Live Activity](screenshots/ios-live-activity-right.png)). Also: `NavigationTest`: a route turning south at 45 shows ↱ and the title "45 → ↱60" |
+| Straight on | ✅ | ✅ | 06 → 02 → 01 at Siegburg 02: 01's plate with ↑, title "02 → ↑01" ([Android](screenshots/android-02-header.png), [notification](screenshots/android-02-notification.png), [iOS](screenshots/ios-straight-at-02.png), [Live Activity](screenshots/ios-live-activity-straight.png)). Also `NavigationTest` |
 | Slight left | unit test | unit test | `NavigationTest`, 40° to the left |
 | Turning back at an out-and-back knot | ✅ | ✅ | 150 m before 32, the plate around 25 shows the U-turn, in the header and the Pixel's notification icon; title "32 → ↩25" ([Android](screenshots/android-turn-back-at-32.png), [notification](screenshots/android-turn-back-notification.png), [iOS](screenshots/ios-turn-back-at-32.png)). `NavigationTest` |
 | Knot right after the next one | unit test | unit test | `NavigationTest`, 46 10 m after 45 |
-| Knot with several signposts | — | — | Measured from where the route arrives at the knot to where it leaves it, so between two signposts by construction; no test with real signpost courses yet |
+| Knot with several signposts | unit test | unit test | `NetworkGeometryTest` with a built network. With the real data, no route through Siegburg 02 changes signpost: a probe of every pair of 02's neighbours (06, 01, 28) arrives and leaves at the same one, at the river signpost or, for 06 → 02 → 28, at the other |
 | Without courses | unit test | unit test | `NavigationTest`: plain → |
 | Start knot | unit test | unit test | `NavigationTest` |
 | Far from the knot | unit test | unit test | `NavigationTest`: no plate, no turn |
-| Turn on the lock screen | unit test | — | Title with the turn character; the Live Activity's plate takes the same arrow (code, not seen in a real Live Activity) |
+| Turn on the lock screen | ✅ | ✅ (lock screen) | Title with the turn character; the Live Activity's plate takes the same arrow (code, not seen in a real Live Activity) |
 | Turn with a screen reader | unit test | unit test | "At 45 follow 60 to the right, 150 m" |
+
+Checked on 2026-11-09 on the emulator and in the simulator with mocked rides along 04 → 06 → 02 → 01, built from the installed course data. The Dynamic Island could not be seen: the simulator's screenshots leave it empty. A turn seen today and first taken for a bug: on 06 → 02 → 06 the plate at 02 shows a sharp right, not a U-turn, because the route arrives from the north heading south and leaves on another path heading north-west.
 
 ## For the maintainer
 

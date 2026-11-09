@@ -13,7 +13,7 @@
 
 ## 2. Android
 
-- [ ] 2.1 Draw the plate's arrow per turn in the header and in the notification's large icon. Check on the emulator with the published data: a route with a right turn, a straight-on knot, an out-and-back knot and Siegburg 02 (two signposts). Take screenshots of the header and the notification.
+- [x] 2.1 Draw the plate's arrow per turn in the header and in the notification's large icon. Check on the emulator with the published data: a route with a right turn, a straight-on knot, an out-and-back knot and Siegburg 02 (two signposts). Take screenshots of the header and the notification.
 
 ## 3. iOS
 
@@ -27,3 +27,7 @@
 
 - Apply after `sign-like-header` and `sign-like-lock-screen`.
 - If the arrows prove right on rides, a spoken direction in the reminder ("45 ahead, then right to 12") can be its own change.
+
+## Notes
+
+- 3.1, 2026-11-09: the header and the Live Activity on the lock screen checked in the simulator; open is the Dynamic Island, which the simulator's screenshots don't show, for the maintainer's iPhone.
