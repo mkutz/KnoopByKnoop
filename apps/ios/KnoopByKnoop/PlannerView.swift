@@ -20,10 +20,11 @@ struct PlannerView: View {
   /// The height of the summary and the actions, the knots and the switch while planning, with their
   /// padding, see `planningDetent`.
   @State private var summaryHeight: CGFloat = 0
-  /// How far the sheet reaches up from the bottom of the screen, see `searchOverlay`.
-  @State private var sheetHeight: CGFloat = 0
-  /// `sheetHeight` once the sheet has come to rest, for the map's buttons: following every frame of
-  /// the sheet's move would lay the map out on every frame.
+  /// How far the sheet reaches up from the bottom of the screen, on every frame of its move. Not
+  /// observed here, only by the attribution: as this view's state, every frame redrew the planner,
+  /// the map and the waypoints, which made the sheet stutter on the iPhone.
+  @State private var sheet = SheetHeight()
+  /// The sheet's height once it has come to rest, for the map's buttons.
   @State private var restingSheetHeight: CGFloat = 0
   /// The height of the number to follow and the progress strip while navigating, see
   /// `navigationDetent`.
@@ -91,7 +92,13 @@ struct PlannerView: View {
           .ignoresSafeArea(.keyboard)
           // The sheet's content ends above the home indicator; the sheet itself does not.
           .onGeometryChange(for: CGFloat.self) { $0.size.height + $0.safeAreaInsets.bottom } action: {
-            sheetHeight = $0
+            height in
+            sheet.live = height
+            sheet.settle?.cancel()
+            sheet.settle = Task {
+              try? await Task.sleep(for: .milliseconds(120))
+              if !Task.isCancelled, restingSheetHeight != height { restingSheetHeight = height }
+            }
           }
           .presentationDetents(
             [navigationDetent ?? planningDetent, .medium, .large], selection: $detent
@@ -124,10 +131,6 @@ struct PlannerView: View {
       .onChange(of: planningDetent) { previous, planning in
         if detent == previous { detent = planning }
       }
-    }
-    .task(id: sheetHeight) {
-      try? await Task.sleep(for: .milliseconds(120))
-      if !Task.isCancelled { restingSheetHeight = sheetHeight }
     }
     .onAppear { DebugTiming.start() }
     // The display stays on while navigating with the app open, see `knot-navigation` "Display on
@@ -333,32 +336,15 @@ struct PlannerView: View {
     .padding(.top, 8)
   }
 
-  /// The attribution at the bottom of the map: right above the sheet in portrait, following it when
-  /// it is dragged, and hidden while the sheet is pulled up over the map. The place search is in the
-  /// panel, see `place-search` "Search while typing".
+  /// The attribution at the bottom of the map, see `AttributionOverlay`.
   @ViewBuilder private func searchOverlay(landscape: Bool, keyboardShown: Bool, screen: GeometryProxy) -> some View {
-    let fullHeight = screen.size.height + screen.safeAreaInsets.top + screen.safeAreaInsets.bottom
-    let atSmallestWhilePlanning = navigator.state == nil && detent == planningDetent
-    let sheetUp = !landscape && sheetHeight > fullHeight * 0.6 && !atSmallestWhilePlanning
-    // This view ends at the bottom safe area, the sheet's height is measured from the screen's
-    // bottom.
-    let bottom = landscape ? 8 : max(sheetHeight - screen.safeAreaInsets.bottom, 0) + 8
-    // In portrait the sheet covers the map while searching; in landscape the map stays as it is.
-    if !sheetUp && (landscape || (!searching && !keyboardShown)) {
-      HStack {
-        Spacer(minLength: 0)
-        Text("© OpenStreetMap contributors")
-          .font(.caption2)
-          // Like the network switch, so large text leaves the credit in full, on one line.
-          .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-          .padding(.horizontal, 6)
-          .padding(.vertical, 2)
-          .floatingBackground(in: Capsule())
-          .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { attributionHeight = $0 }
-      }
-      .padding(.horizontal, 12)
-      .padding(.bottom, bottom)
-    }
+    AttributionOverlay(
+      sheet: sheet, landscape: landscape,
+      visible: landscape || (!searching && !keyboardShown),
+      atSmallestWhilePlanning: navigator.state == nil && detent == planningDetent,
+      fullHeight: screen.size.height + screen.safeAreaInsets.top + screen.safeAreaInsets.bottom,
+      bottomSafeArea: screen.safeAreaInsets.bottom,
+      onHeight: { attributionHeight = $0 })
   }
 
   /// Opens the place search in the panel, the sheet at its full height, see `place-search` "Typing
@@ -961,6 +947,52 @@ private struct MessageAlert: ViewModifier {
         model.message = nil
         model.messageOpensSettings = false
       }
+    }
+  }
+}
+
+/// The sheet's height on every frame of its move, observed only where it must be followed live.
+@MainActor
+private final class SheetHeight: ObservableObject {
+  @Published var live: CGFloat = 0
+  /// Sets the planner's resting height once the sheet stopped moving.
+  var settle: Task<Void, Never>?
+}
+
+/// The attribution at the bottom of the map: right above the sheet in portrait, following it when
+/// it is dragged, and hidden while the sheet is pulled up over the map. Its own view, so following
+/// the sheet redraws only this, see `SheetHeight`. The place search is in the panel, see
+/// `place-search` "Search while typing".
+private struct AttributionOverlay: View {
+
+  @ObservedObject var sheet: SheetHeight
+  let landscape: Bool
+  /// In portrait the sheet covers the map while searching; in landscape the map stays as it is.
+  let visible: Bool
+  let atSmallestWhilePlanning: Bool
+  let fullHeight: CGFloat
+  let bottomSafeArea: CGFloat
+  let onHeight: (CGFloat) -> Void
+
+  var body: some View {
+    let sheetUp = !landscape && sheet.live > fullHeight * 0.6 && !atSmallestWhilePlanning
+    // This view ends at the bottom safe area, the sheet's height is measured from the screen's
+    // bottom.
+    let bottom = landscape ? 8 : max(sheet.live - bottomSafeArea, 0) + 8
+    if !sheetUp && visible {
+      HStack {
+        Spacer(minLength: 0)
+        Text("© OpenStreetMap contributors")
+          .font(.caption2)
+          // Like the network switch, so large text leaves the credit in full, on one line.
+          .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+          .padding(.horizontal, 6)
+          .padding(.vertical, 2)
+          .floatingBackground(in: Capsule())
+          .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { onHeight($0) }
+      }
+      .padding(.horizontal, 12)
+      .padding(.bottom, bottom)
     }
   }
 }

@@ -15,6 +15,7 @@
 
 ### The button column ends above the sheet
 - **Changed after the maintainer's iPhone check, 2026-11-09:** the column follows the sheet once it rests (120 ms after its last move), not on every frame, which held up the map while dragging; it glides to its place with a short spring rather than jumping, as the jump after a swipe looked rough. Not animated with Reduce Motion.
+- **Also after that check:** the sheet itself stuttered, with a 160 to 190 ms stall per swipe in the iPhone's timing log. Its height was the planner's own state, set on every frame to place the attribution, so every frame redrew the planner, the map and the waypoints. The live height now sits in an object only the attribution observes; the planner gets the resting height. In the simulator, the planner redrew once or twice per swipe instead of on every frame.
 - The column of map buttons is anchored with its bottom a little above the sheet's top edge in portrait, moving with the sheet, instead of being centred on the map, so the extra button and a tall sheet cover none of them. In landscape it stays where it is, beside the side panel.
 - **Why:** with the floating field gone, a column centred on the map would still reach under a tall sheet, now one button longer.
 
