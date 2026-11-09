@@ -355,8 +355,17 @@ struct NetworkMapView: UIViewRepresentable {
     context.coordinator.searchButton?.isHidden = onSearch == nil
     context.coordinator.searchButton?.accessibilityLabel =
       String(localized: "Search places", bundle: AppLanguage.bundle)
-    if context.coordinator.aboveSheet?.constant != -(bottomInset + 12) {
-      context.coordinator.aboveSheet?.constant = -(bottomInset + 12)
+    if let aboveSheet = context.coordinator.aboveSheet, aboveSheet.constant != -(bottomInset + 12) {
+      aboveSheet.constant = -(bottomInset + 12)
+      // The buttons follow the sheet once it rests; they glide there rather than jump, as the
+      // maintainer found the jump after a swipe not smooth. Not before the map is laid out, and not
+      // with Reduce Motion.
+      if mapView.window != nil, !UIAccessibility.isReduceMotionEnabled {
+        UIView.animate(
+          withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.9, initialSpringVelocity: 0,
+          options: [.allowUserInteraction, .beginFromCurrentState]
+        ) { mapView.layoutIfNeeded() }
+      }
     }
     context.coordinator.showMyPosition(myPosition, center: myPosition !== nearestKnots?.rider, on: mapView)
     context.coordinator.showNearestKnots(nearestKnots, on: mapView)

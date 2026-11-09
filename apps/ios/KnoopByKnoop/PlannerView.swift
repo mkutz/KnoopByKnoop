@@ -126,7 +126,7 @@ struct PlannerView: View {
       }
     }
     .task(id: sheetHeight) {
-      try? await Task.sleep(for: .milliseconds(250))
+      try? await Task.sleep(for: .milliseconds(120))
       if !Task.isCancelled { restingSheetHeight = sheetHeight }
     }
     .onAppear { DebugTiming.start() }

@@ -14,6 +14,7 @@
 - **Why there:** the column is where the map's tools are; the search was the only one floating elsewhere.
 
 ### The button column ends above the sheet
+- **Changed after the maintainer's iPhone check, 2026-11-09:** the column follows the sheet once it rests (120 ms after its last move), not on every frame, which held up the map while dragging; it glides to its place with a short spring rather than jumping, as the jump after a swipe looked rough. Not animated with Reduce Motion.
 - The column of map buttons is anchored with its bottom a little above the sheet's top edge in portrait, moving with the sheet, instead of being centred on the map, so the extra button and a tall sheet cover none of them. In landscape it stays where it is, beside the side panel.
 - **Why:** with the floating field gone, a column centred on the map would still reach under a tall sheet, now one button longer.
 
