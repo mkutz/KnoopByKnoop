@@ -23,8 +23,8 @@ Checked on 2026-11-07 with the cycling data built locally with sign regions (see
 | German knots in the header | ✅ | ✅ | Troisdorf |
 | Picked knot in the header | ✅ | ✅ | 32 with the stop's flag |
 | Same layout in every language | ✅ | ✅ | English and German look the same, apart from the decimal comma ([German](screenshots/android-on-the-way-german.png)) |
-| Far from the next knot with a screen reader | label | label | The header is one element labelled "Next 06, 5.5 km, then 02" (iOS) and "Next 02, 5.6 km, then the end" (Android), read from the accessibility tree; TalkBack ran on the emulator but logs no spoken text, so listening is the maintainer's step 5 |
-| Close to the next knot with a screen reader | label | label | "At 06 follow 02 back, 205 m", "At 02 follow 06 sharply to the right, 390 m"; German "Bei 06 folge 02 zurück, 205 m" |
+| Far from the next knot with a screen reader | ✅ TalkBack | label | The header is one element labelled "Next 06, 5.5 km, then 02" (iOS) and "Next 02, 5.6 km, then the end" (Android), read from the accessibility tree; TalkBack ran on the emulator but logs no spoken text, so listening is the maintainer's step 5 |
+| Close to the next knot with a screen reader | ✅ TalkBack | label | "At 06 follow 02 back, 205 m", "At 02 follow 06 sharply to the right, 390 m"; German "Bei 06 folge 02 zurück, 205 m" |
 | Direction in the header | ✅ | ✅ | Dark header, to-the-route symbol, arrow, "420 m" ([Android](screenshots/android-off-route.png), [iOS](screenshots/ios-off-route.png)) |
 | Back to the route, not to the knot | unit test | unit test | `NavigationTest` |
 | Off the network | ✅ | ✅ | No badge east of the Agger |
@@ -50,11 +50,13 @@ Checked on 2026-11-07 with the cycling data built locally with sign regions (see
 | On the way with a screen reader | unit test | unit test | |
 | Stop stands out | ✅ | ✅ | A round red icon button |
 | Stop in every language | ✅ | ✅ | Same size in German, named "Beenden" ([iOS German](screenshots/ios-close-german.png), [English](screenshots/ios-close-english.png)) |
-| Stop with a screen reader | label | label | "Stop", in German "Beenden", in the accessibility tree on both; not yet heard |
+| Stop with a screen reader | ✅ TalkBack | label | "Stop", in German "Beenden", in the accessibility tree on both; not yet heard |
 
 Checked again on 2026-11-09 on the simulator and the emulator, with mocked rides along 02–06 near Siegburg built from the installed course data, at the largest text sizes and in German and English. Both found layout problems at the largest sizes on iOS, now fixed: the distance sat between the knot and the arrow instead of below the row, and on a guided way the turn's distance was cut to "…". Android's header had the same row order problem in principle (a `FlowRow` wrapping in order); it now takes the same layout, though at Android's largest font the rows still fit in one line.
 
 The maintainer on 2026-11-09, on the way from a start at home: on the Pixel, the guided row with "160 m", "Kronprinzenstra…", "340 m" and › 02 was too tight, the 02 running under Stop; on the iPhone the same header looked good. Android's guided row now leaves out the distance left where the row does not fit with it. The header also keeps a 12 dp gap before Stop, as the badge's corner symbol touched it even where the row fit; the maintainer: "Looks good now".
+
+The maintainer on 2026-11-09: TalkBack on the Pixel "works as expected" for the header and Stop. VoiceOver on the iPhone is still to hear.
 
 ## For the maintainer
 

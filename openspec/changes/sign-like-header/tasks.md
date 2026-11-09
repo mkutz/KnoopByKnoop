@@ -21,7 +21,7 @@
   - "Stop in every language"
   - the strip scenarios of 1.6
 - [x] 2.2 Large text sizes. Check on the emulator at the largest font: "Number to follow at the largest text size", "Next knot at the largest text size", "Number to follow at the default text size" and "Off route in German".
-- [ ] 2.3 Screen reader. TalkBack check of the announcements in 1.5 and "Stop with a screen reader".
+- [x] 2.3 Screen reader. TalkBack check of the announcements in 1.5 and "Stop with a screen reader".
 
 ## 3. iOS
 
