@@ -59,7 +59,25 @@ private struct LockScreenCard: View {
     // Stop only beside the knots, so the bar has the card's whole width.
     VStack(alignment: .leading, spacing: 8) {
       HStack(alignment: .center, spacing: 12) {
-        RowView(state: state, color: color, scale: 1)
+        if let picture = state.row?.picture {
+          // A doubtful junction close ahead: its picture next to the sentence and the distance
+          // left, in place of the row, see `knot-navigation` "Picture on the iPhone lock screen".
+          JunctionPictureView(encoded: picture)
+            .frame(width: 96, height: 96)
+            .accessibilityHidden(true)
+          VStack(alignment: .leading, spacing: 4) {
+            if let sentence = state.row?.pictureSentence {
+              Text(sentence).font(.headline).foregroundStyle(color).lineLimit(3)
+                .minimumScaleFactor(0.8)
+            }
+            if let remaining = state.row?.remaining ?? state.row?.distance as String? {
+              Text(remaining).font(.subheadline).foregroundStyle(color.opacity(0.7))
+            }
+          }
+          .accessibilityElement(children: .combine)
+        } else {
+          RowView(state: state, color: color, scale: 1)
+        }
         Spacer(minLength: 0)
         StopButton(words: state.words)
       }

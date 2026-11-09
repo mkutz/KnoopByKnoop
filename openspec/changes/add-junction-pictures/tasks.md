@@ -33,6 +33,7 @@
 
 ## Found and fixed
 
+- 2026-11-09, 3.2: the picture in the Live Activity is built; a debug-only launch switch, `-junctionTest YES`, shows a test junction on the lock screen ([simulator](screenshots/ios-live-activity-test-junction.png)). Waiting for the maintainer's look on the iPhone before 3.3. Remove the switch with 3.3.
 - 2026-11-09: a way to a route point lost its doubtful junctions when the network's course was put in front of it, and a picture would have left the panel taller for the rest of the ride; both fixed, see `manual-checks.md`. 4.1 stays open for Android in dark mode.
 
 - Building the pictures compared every segment of up to five path-data squares with every other one, per doubtful junction, so a way search took 0.6 to 1.6 s on the JVM and much longer on the iPhone, where the way from the start flag was still a straight line after a minute (the maintainer, 2026-11-09). Segments far from the junction are now left out with a cheap check first: 9 to 19 ms on the JVM for the same trips, with the same pictures.

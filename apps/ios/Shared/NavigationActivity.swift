@@ -70,6 +70,10 @@ struct NavigationActivityAttributes: ActivityAttributes {
     var offRoute = false
     /// The arrival at the end, e.g. `19:05`.
     var endArrival: String? = nil
+    /// On a guided way, the doubtful junction close ahead as encoded lines, and its sentence, see
+    /// `knot-navigation` "Picture on the iPhone lock screen".
+    var picture: String? = nil
+    var pictureSentence: String? = nil
   }
 
   /// A stop or ferry on the bar along the route.

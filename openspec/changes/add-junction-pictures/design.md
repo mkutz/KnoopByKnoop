@@ -39,7 +39,8 @@ From the sketches: about 95 m across, with the junction's start at two thirds of
 This is done once per way in the core, not on every fix. Similar exits are within 35°, as in the test.
 
 ### Live Activity content
-The picture goes into the content state with the other values, simplified and with short coordinates, at most 1 KB, as the state's limit is about 4 KB (from memory, to be checked against the documentation when implementing). The state changes when the picture appears and when it goes, so it adds only two updates per junction.
+The picture goes into the content state with the other values, simplified and with short coordinates, at most 1 KB. **Checked 2026-11-09:** Apple documents a 4 KB limit for a Live Activity's data (`ActivityAuthorizationError.attributesTooLarge`); a developer reports that it counts after the JSON is re-serialized, so the 1 KB picture keeps the state well below it.
+- **On the lock screen** the picture, 96 pt, takes the row's place next to the sentence and the distance left, so the card stays within the Live Activity's height. The Dynamic Island stays as it is. The state changes when the picture appears and when it goes, so it adds only two updates per junction.
 
 ### Sentences have a fixed set of forms
 "Cross the main road, then…", "Take the cycle path on the…", and "Keep … at the fork", each with left, right or straight on, in every app language. This is simple enough to translate and speak. The first matching one wins, in that order.
