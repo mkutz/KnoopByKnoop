@@ -7,9 +7,10 @@
 
 ## 2. Release
 
-- [ ] 2.1 Changelog line, and a check on the maintainer's iPhone: a search in German reads "Köln".
+- [x] 2.1 Changelog line, and a check on the maintainer's iPhone: a search in German reads "Köln".
 
 ## Notes
 
 - 1.1, simulator, phone in English, app set to German, 2026-11-09: "Nederland" reads "Niederlande", "Cologne" reads "Köln".
 - 1.2, emulator, 2026-11-09: English app, "Koln" (adb can't type "ö") reads "Cologne"; Dutch app, "Netherlands" reads "Nederland". Typing right after the app started, before the network was loaded, gave no hits until the next letter, on Android as before this change.
+- 2.1, the maintainer, 2026-11-09: checked on the Pixel in German and the iPhone in English, "Works well".
