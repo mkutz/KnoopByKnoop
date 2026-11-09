@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- iPhone: typing in the place search no longer redraws the map and the route with each letter, so the letters show without delay
+
 ## 0.11.1
 
 - Ways along paths are found within moments again: in 0.11.0 they could take a minute or more on the iPhone, so the way from a start flag stayed a straight line and there was no guidance along it, and guided ways back to the route came late

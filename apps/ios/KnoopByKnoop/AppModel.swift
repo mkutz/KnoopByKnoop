@@ -126,8 +126,8 @@ final class AppModel: ObservableObject {
   /// Where the map moved for the nearest knots last.
   @Published private(set) var nearestKnots: NearestKnots?
   private let positionFinder = PositionFinder()
-  @Published private(set) var searchQuery = ""
-  @Published private(set) var searchResult: SearchResult = .none
+  /// The place search's text and hits, not published here, see `PlaceSearchModel`.
+  let placeSearch = PlaceSearchModel()
   /// The chosen search hit, shown with a marker on the map.
   @Published private(set) var marker: PlaceHit?
   /// The coming knot last tapped, shown on the map, see `knot-navigation` "Showing a coming knot on
@@ -151,6 +151,14 @@ final class AppModel: ObservableObject {
   private var restored = false
 
   init() {
+    defer {
+      placeSearch.context = { [weak self] in
+        guard let self, let locator = self.loaded?.locator, let graph = self.session?.graph,
+          let area = GeoBounds.companion.of(graph: graph)
+        else { return nil }
+        return PlaceSearchModel.Context(locator: locator, area: area, center: self.mapCenter ?? self.initialPlace)
+      }
+    }
     downloads.onChange = { [weak self] in self?.installFinished() }
     downloads.reconnect()
     pathMonitor.pathUpdateHandler = { [weak self] path in
@@ -634,7 +642,6 @@ final class AppModel: ObservableObject {
 
   // MARK: Place search, see `place-search`
 
-  private var searchTask: Task<Void, Never>?
   private var mapCenter: CameraPlace?
   private var mapArea: GeoBounds?
 
@@ -651,55 +658,9 @@ final class AppModel: ObservableObject {
     if none != noKnotsInView { noKnotsInView = none }
   }
 
-  /// Searches `query` once the user stopped typing for a moment; newer queries replace older ones.
-  func search(_ query: String) {
-    // The field passes its text again when it loses the focus, e.g. after a hit was chosen, which
-    // must not bring the hits back.
-    guard query != searchQuery else { return }
-    searchTask?.cancel()
-    searchQuery = query
-    guard query.trimmingCharacters(in: .whitespaces).count >= Int(PlaceSearch.shared.MIN_QUERY_LENGTH),
-      let locator = loaded?.locator, let graph = session?.graph, let area = GeoBounds.companion.of(graph: graph)
-    else {
-      searchResult = .none
-      return
-    }
-    let center = mapCenter ?? initialPlace
-    searchTask = Task {
-      try? await Task.sleep(for: .milliseconds(300))
-      guard !Task.isCancelled else { return }
-      searchResult = .searching
-      let requests = PlaceSearch.shared.requests(
-        query: query,
-        centerLatitude: center?.latitude ?? (area.minLatitude + area.maxLatitude) / 2,
-        centerLongitude: center?.longitude ?? (area.minLongitude + area.maxLongitude) / 2,
-        area: area, language: Locale.current.language.languageCode?.identifier ?? "en")
-      async let prominent = PlaceSearchClient.fetch(requests.prominent)
-      async let nearby = PlaceSearchClient.fetch(requests.nearby)
-      let responses = await (prominent, nearby)
-      guard !Task.isCancelled else { return }
-      // Off the main thread: on the phone, reading the answers takes long enough to hold up taps.
-      nonisolated(unsafe) let network = locator
-      let started = Date()
-      let merged: [PlaceHit]? = await Task.detached {
-        try? PlaceSearch.shared.merge(prominent: responses.0, nearby: responses.1, network: network)
-      }.value
-      DebugTiming.note("search \"\(query)\" merged in \(Int(Date().timeIntervalSince(started) * 1000)) ms")
-      guard !Task.isCancelled else { return }
-      // Neither request was answered when merging fails.
-      if let hits = merged {
-        searchResult = hits.isEmpty ? .noHits : .hits(hits)
-      } else {
-        searchResult = .unavailable
-      }
-    }
-  }
-
   /// Moves the map to `hit` and marks it; the route stays as it is.
   func choose(_ hit: PlaceHit) {
-    searchTask?.cancel()
-    searchQuery = hit.name
-    searchResult = .none
+    placeSearch.chosen(hit.name)
     marker = hit
   }
 
@@ -729,18 +690,8 @@ final class AppModel: ObservableObject {
     }
   }
 
-  /// Searches the text in the field again, e.g. when the search opens with it or on the keyboard's
-  /// search key, see `place-search` "Typing on iOS".
-  func searchAgain() {
-    let query = searchQuery
-    searchQuery = ""
-    search(query)
-  }
-
   func clearSearch() {
-    searchTask?.cancel()
-    searchQuery = ""
-    searchResult = .none
+    placeSearch.clear()
     marker = nil
   }
 

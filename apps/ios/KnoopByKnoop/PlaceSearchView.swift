@@ -36,6 +36,8 @@ enum PlaceSearchClient {
 struct PlaceSearchView: View {
 
   @ObservedObject var model: AppModel
+  /// The text and hits, observed here alone, see `PlaceSearchModel`.
+  @ObservedObject var search: PlaceSearchModel
   /// Closes the search, with Cancel.
   var onClose: () -> Void
   /// Picks a hit: the search closes at once and the map follows.
@@ -55,7 +57,7 @@ struct PlaceSearchView: View {
         }
       }
       if model.online {
-        switch model.searchResult {
+        switch search.result {
         case .none: EmptyView()
         case .searching: Text("Searching…").foregroundStyle(.secondary)
         case .noHits: Text("Nothing found").foregroundStyle(.secondary)
@@ -70,7 +72,7 @@ struct PlaceSearchView: View {
     // "Typing on iOS".
     .task {
       // The text from the last time, with its hits again.
-      if !model.searchQuery.isEmpty { model.searchAgain() }
+      if !search.query.isEmpty { search.searchAgain() }
       try? await Task.sleep(for: .milliseconds(400))
       focused = true
     }
@@ -81,15 +83,15 @@ struct PlaceSearchView: View {
       Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
       TextField(
         model.online ? LocalizedStringKey("Search places") : "Search needs an internet connection",
-        text: Binding(get: { model.online ? model.searchQuery : "" }, set: { model.search($0) })
+        text: Binding(get: { model.online ? search.query : "" }, set: { search.search($0) })
       )
       .focused($focused)
       .submitLabel(.search)
       // At once, without waiting for the pause after typing.
-      .onSubmit { model.searchAgain() }
+      .onSubmit { search.searchAgain() }
       .disabled(!model.online)
       // Empties the field to type again; Cancel closes the search.
-      if !model.searchQuery.isEmpty && model.online {
+      if !search.query.isEmpty && model.online {
         Button {
           model.clearSearch()
         } label: {

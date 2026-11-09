@@ -2,7 +2,7 @@ import QuartzCore
 import UIKit
 
 /// Debug builds only: a timing log in the app's documents, to find what makes the app slow on a
-/// real phone. Records events and every moment the main thread stalls for more than 100 ms.
+/// real phone. Records events and every moment the main thread stalls for more than 50 ms.
 /// Copied off the phone with `xcrun devicectl device copy from`.
 enum DebugTiming {
   #if DEBUG
@@ -42,7 +42,7 @@ enum DebugTiming {
 }
 
 #if DEBUG
-  /// Notes frames that came more than 100 ms after the one before.
+  /// Notes frames that came more than 50 ms after the one before.
   private final class StallWatcher: NSObject {
     private var link: CADisplayLink?
     private var last: CFTimeInterval = 0
@@ -55,7 +55,7 @@ enum DebugTiming {
     }
 
     @objc private func tick(_ link: CADisplayLink) {
-      if last > 0, link.timestamp - last > 0.1 {
+      if last > 0, link.timestamp - last > 0.05 {
         DebugTiming.note("main thread stalled \(Int((link.timestamp - last) * 1000)) ms")
       }
       last = link.timestamp

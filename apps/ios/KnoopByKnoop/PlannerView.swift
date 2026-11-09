@@ -150,7 +150,7 @@ struct PlannerView: View {
         .allowsHitTesting(!searching)
         .accessibilityHidden(searching)
       if searching {
-        PlaceSearchView(model: model, onClose: closeSearch, onPick: pick)
+        PlaceSearchView(model: model, search: model.placeSearch, onClose: closeSearch, onPick: pick)
           .padding(.horizontal, 16)
           .padding(.top, 20)
       }
