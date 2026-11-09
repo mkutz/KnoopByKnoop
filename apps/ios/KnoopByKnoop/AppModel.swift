@@ -695,6 +695,14 @@ final class AppModel: ObservableObject {
     marker = hit
   }
 
+  /// Searches the text in the field again, e.g. when the search opens with it or on the keyboard's
+  /// search key, see `place-search` "Typing on iOS".
+  func searchAgain() {
+    let query = searchQuery
+    searchQuery = ""
+    search(query)
+  }
+
   func clearSearch() {
     searchTask?.cancel()
     searchQuery = ""

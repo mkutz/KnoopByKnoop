@@ -25,6 +25,11 @@ Checked 2026-11-09 in the simulator (iPhone 18 Pro, iOS 27), debug build, a rout
 - **The magnifier under the attribution and, in landscape, at the bottom edge:** the column now ends above the attribution, and above the bottom safe area in landscape.
 - **The magnifier under the sheet at the largest text size:** it moved from the bottom to the top of the column, see the design; this differs from the mockup.
 
+From the maintainer's first try on the iPhone, 2026-11-09, fixed and checked in the simulator ([search, pick, reopen](screenshots/ios-search-pick-reopen.png)):
+
+- **Reopening showed the text but no places:** the search skipped a query equal to the current one; reopening now searches the text again, and the keyboard's search key does too, at once.
+- **A picked place was slow to show and the map sometimes didn't move:** the map started moving while the sheet came down, which cut the move short, and the rows gave no feedback. The search now closes at once on a tap, the map moves once the sheet has settled, and a row is highlighted while pressed.
+
 ### Open
 
 - The map's round buttons are not reached by their labels in UI tests, which suggests VoiceOver may not reach them either; that holds for all of them since before this change and is worth its own look.

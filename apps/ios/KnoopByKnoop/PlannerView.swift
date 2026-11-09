@@ -132,7 +132,7 @@ struct PlannerView: View {
       if showInfo {
         InfoSheet(model: model, onDone: { showInfo = false })
       } else if searching {
-        PlaceSearchView(model: model, onClose: closeSearch)
+        PlaceSearchView(model: model, onClose: closeSearch, onPick: pick)
           .padding(.horizontal, 16)
           .padding(.top, 20)
       } else if let session = model.session, model.layers != nil, !model.loading {
@@ -329,6 +329,14 @@ struct PlannerView: View {
     detentBeforeSearch = detent
     searching = true
     detent = .large
+  }
+
+  /// Picks a hit: the search closes at once, and the map moves to the hit once the sheet has come
+  /// down, as the sheet's move would cut the map's short, see `place-search` "Back above the sheet
+  /// on iOS".
+  private func pick(_ hit: PlaceHit) {
+    closeSearch()
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { model.choose(hit) }
   }
 
   /// Closes the place search, the sheet back at the height it had, see `place-search` "Back above

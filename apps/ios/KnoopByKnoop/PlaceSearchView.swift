@@ -36,8 +36,10 @@ enum PlaceSearchClient {
 struct PlaceSearchView: View {
 
   @ObservedObject var model: AppModel
-  /// Closes the search: after a hit is picked, or with Cancel.
+  /// Closes the search, with Cancel.
   var onClose: () -> Void
+  /// Picks a hit: the search closes at once and the map follows.
+  var onPick: (PlaceHit) -> Void
   /// Its own, as a focus set from the view behind the sheet does not reach into it.
   @FocusState private var focused: Bool
 
@@ -67,6 +69,8 @@ struct PlaceSearchView: View {
     // Once the sheet has risen, so the keyboard comes up with the field in view, see `place-search`
     // "Typing on iOS".
     .task {
+      // The text from the last time, with its hits again.
+      if !model.searchQuery.isEmpty { model.searchAgain() }
       try? await Task.sleep(for: .milliseconds(400))
       focused = true
     }
@@ -81,6 +85,8 @@ struct PlaceSearchView: View {
       )
       .focused($focused)
       .submitLabel(.search)
+      // At once, without waiting for the pause after typing.
+      .onSubmit { model.searchAgain() }
       .disabled(!model.online)
       // Empties the field to type again; Cancel closes the search.
       if !model.searchQuery.isEmpty && model.online {
@@ -99,9 +105,8 @@ struct PlaceSearchView: View {
       ForEach(Array(hits.enumerated()), id: \.offset) { index, hit in
         if index > 0 { Divider() }
         Button {
-          model.choose(hit)
           focused = false
-          onClose()
+          onPick(hit)
         } label: {
           VStack(alignment: .leading, spacing: 2) {
             Text(hit.name).foregroundStyle(.primary)
@@ -111,11 +116,22 @@ struct PlaceSearchView: View {
           }
           .frame(maxWidth: .infinity, alignment: .leading)
           .padding(.vertical, 10)
+          .padding(.horizontal, 8)
           .contentShape(Rectangle())
         }
-        // The default style tints the whole label with the accent color.
-        .buttonStyle(.plain)
+        .buttonStyle(HitRowStyle())
       }
     }
+  }
+}
+
+/// A hit's row: highlighted while pressed, so a tap shows at once, without the accent color the
+/// default style tints the whole label with.
+private struct HitRowStyle: ButtonStyle {
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .background(
+        RoundedRectangle(cornerRadius: 8)
+          .fill(configuration.isPressed ? Color(.systemFill) : .clear))
   }
 }
