@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- iPhone: at the largest text sizes, the map's buttons work on the first tap instead of pulling the panel down, and the panel's top, the route's distance or the search field, is no longer cut off
 - Android: the place search is a magnifier button with the map's other buttons; tapping it opens the search at the top of the panel, with the places found below it. No search field covers the map any more, and there is none while navigating
 - The places found are named in the app's language, in German, English or French, whatever language you search in; in Dutch as named on the spot, e.g. "Köln", as the search service has no Dutch names
 - iPhone: typing in the place search no longer redraws the map and the route with each letter, so the letters show without delay
