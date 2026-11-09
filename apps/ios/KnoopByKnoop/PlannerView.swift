@@ -44,6 +44,12 @@ struct PlannerView: View {
   /// The smallest sheet while planning: at least the summary and the actions, which are below it at
   /// large text sizes, see `map-planning` "Route summary at large text sizes". The 24 points are the
   /// space above the summary.
+  /// Whether the planning height is taller than the sheet's medium height, half the screen.
+  private func planningAboveMedium(_ screen: GeometryProxy) -> Bool {
+    let fullHeight = screen.size.height + screen.safeAreaInsets.top + screen.safeAreaInsets.bottom
+    return navigationDetent == nil && summaryHeight + 34 > fullHeight / 2
+  }
+
   private var planningDetent: PresentationDetent {
     // Plus the home indicator's area, which the sheet's content ends above.
     summaryHeight + 34 > 170 ? .height((summaryHeight + 34).rounded(.up)) : Self.smallestDetent
@@ -106,8 +112,12 @@ struct PlannerView: View {
           // While searching, a touch on the places found that moves a little scrolls them instead
           // of dragging the sheet, which swallowed taps on the phone.
           .presentationContentInteraction(searching ? .scrolls : .automatic)
-          // The map stays usable and undimmed below the sheet up to half the screen.
-          .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+          // The map stays usable and undimmed below the sheet up to half the screen, or up to the
+          // planning height if that is taller, as at the largest text sizes: above the heights
+          // given here, the system swallowed the first tap on the map and its buttons and pulled
+          // the sheet down, see `place-search` "Search at the largest text size".
+          .presentationBackgroundInteraction(
+            .enabled(upThrough: planningAboveMedium(geometry) ? planningDetent : .medium))
           .interactiveDismissDisabled()
           // A sheet keeps the system's appearance unless told otherwise.
           .appAppearance()
@@ -145,6 +155,15 @@ struct PlannerView: View {
   /// the panel is a sheet, anything presented from the view behind it is not reliably shown and
   /// dismisses the sheet.
   private var panel: some View {
+    // Pinned to the top: at the largest text sizes the content is taller than the sheet, and
+    // centred it lost its top, the search field and the route's distance, under the grabber, see
+    // `place-search` "Search at the largest text size".
+    GeometryReader { space in
+      panelStack.frame(width: space.size.width, height: space.size.height, alignment: .top)
+    }
+  }
+
+  private var panelStack: some View {
     ZStack(alignment: .top) {
       panelContent
         // Kept under the search rather than rebuilt when it closes, which held up the main thread
