@@ -14,10 +14,11 @@
 
 ## 3. Release
 
-- [ ] 3.1 Changelog line, and a manual check on the iPhone: search a place, pick it, and check the map's buttons with the sheet at different heights.
+- [x] 3.1 Changelog line, and a manual check on the iPhone: search a place, pick it, and check the map's buttons with the sheet at different heights.
 - [ ] 3.2 Changelog line for Android, and a check on the Pixel: open the search from the button, pick a place, close it with back, and see there is no search while navigating.
 
 ## Notes
 
 - 2.3, emulator, 2026-11-09: the magnifier at the top of the column, no field on the map, at the sheet's smallest and medium height no button covered; typing "Utrecht" raises the sheet with the field, keyboard and hits; picking "Utrecht Centraal" jumps there with the marker and brings the sheet back to its height; reopening searches the text again; back closes the keyboard, then the search. Landscape: the field and hits at the top of the side panel, the map, the switch and the attribution stay, a tap on the map closes the search without adding a knot. Navigating: no magnifier, no field. Dark mode fine; offline the field is disabled with "Search needs an internet connection". The emulator ran out of memory once, reloading the network after stopping navigation, as noted before in the memory of "Hiking out of memory"; not touched by this change.
 - 3.1, the maintainer's iPhone, 2026-11-09: the buttons' final place is right with the sheet at its smallest and medium height and in landscape; the full sheet covers them, which is fine. Swiping the sheet up was not smooth: the buttons jumped once the sheet rested. They now glide there.
+- 3.1, the maintainer, 2026-11-09, after the course fix (release build): "smooth enough now".
