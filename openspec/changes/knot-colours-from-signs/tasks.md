@@ -37,13 +37,13 @@
   - "Knots on the dark map"
   - the waypoint list showing the same badges
 - [x] 3.2 `NetworkMap.kt`: the way-to-route line, the guided way, the unreachable leg and the search-hit marker change from red to dark, in light and dark mode. Screenshot check of "Off route on the map" with a simulated off-route position on the emulator.
-- [ ] 3.3 Panel: off route and riding the wrong way, the header area turns dark (light in dark mode) and the strip dot becomes a ring with ✕ (`ProgressPanel.kt`). A ferry warning gets the clock badge and a bold arrival (`ProgressPanel.kt`, `RouteFerries.kt`). Extend `FerryArrivalClockTest` for the arrival's style per state. Check on the emulator: "Off route in light mode", "Wrong direction in the panel", "Off route in dark mode", "Off route on the strip", "Warning in the ferry list" and "Closed at the renewed estimate", with a ferry route and a time set past its closing.
+- [x] 3.3 Panel: off route and riding the wrong way, the header area turns dark (light in dark mode) and the strip dot becomes a ring with ✕ (`ProgressPanel.kt`). A ferry warning gets the clock badge and a bold arrival (`ProgressPanel.kt`, `RouteFerries.kt`). Extend `FerryArrivalClockTest` for the arrival's style per state. Check on the emulator: "Off route in light mode", "Wrong direction in the panel", "Off route in dark mode", "Off route on the strip", "Warning in the ferry list" and "Closed at the renewed estimate", with a ferry route and a time set past its closing.
 
 ## 4. iOS
 
 - [x] 4.1 `KnotBadges.swift`: a new `PlateBadge` with the same plates, fills, corner symbols and image names. `Shared/Badges.swift` stays as it is for the widget. The project builds, and simulator screenshots show the same scenarios as 3.1.
 - [x] 4.2 `NetworkMapView.swift`: the same line and marker colours as 3.2. Checked by a simulator screenshot while off route.
-- [ ] 4.3 `PlannerView.swift`, `ProgressPanel.swift`, `RouteFerries.swift`: the same panel changes as 3.3. Simulator screenshots of the same scenarios, and the Live Activity unchanged.
+- [x] 4.3 `PlannerView.swift`, `ProgressPanel.swift`, `RouteFerries.swift`: the same panel changes as 3.3. Simulator screenshots of the same scenarios, and the Live Activity unchanged.
 
 ## 5. Wrap-up
 
@@ -54,3 +54,7 @@
 - The regions reach the phones with the next data publication after the commit, or a manual run of Update Network Data.
 - The maintainer checks it on the Pixel and the iPhone before `/opsx:archive knot-colours-from-signs`.
 - Then `sign-like-header` builds on the dark off-route header and the clock badge.
+
+## Notes
+
+- 3.3 and 4.3, 2026-11-09: off route and the wrong way checked on the emulator and in the simulator, light and dark. The ferry scenarios rest on `FerryArrivalClockTest` and the code on both apps, at the maintainer's choice. The Live Activity is unchanged: this change's commits touch no widget or shared file.

@@ -38,8 +38,8 @@ Checked on 2026-11-07:
 | Off route in dark mode | ✅ | ✅ | Light header with dark text; on iOS no salmon, Stop red ([iOS](screenshots/ios-dark-off.png)) |
 | Off route on the strip | ✅ | ✅ | A ring with ✕ in place of the dot. Badges on the strip stay round ([navigating](screenshots/android-navigating-strip.png)) |
 | Wrong direction in the panel | ✅ | ✅ | Riding 300 m back along the route: the dark header with the U-turn and the ring with ✕ on the strip ([Android](screenshots/android-wrong-way.png), [iOS light](screenshots/ios-light-wrong.png), [iOS dark](screenshots/ios-dark-wrong.png)) |
-| Warning in the ferry list | open | open | Clock badge and bold arrival. `FerryArrivalClockTest` covers the arrival's look per state |
-| Closed at the renewed estimate | open | open | As above |
+| Warning in the ferry list | unit test | unit test | Clock badge and bold arrival in code on both; `FerryArrivalClockTest` covers the arrival's look per state. Not seen on a device: the maintainer chose the unit tests over a faked clock (2026-11-09); a late ride across a ferry would show it |
+| Closed at the renewed estimate | unit test | unit test | As above |
 
 On iOS, navigation can't be started in the simulator without tapping Navigate, so the navigation scenarios wait for a throwaway UI test or the maintainer.
 
