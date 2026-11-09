@@ -12,6 +12,7 @@
 
 ## 3. First iOS releases
 
-- [ ] 3.1 Verify "Successful release", "Build numbers increase" and "Release notes" with two releases to TestFlight, including the Live Activity widget
+- [x] 3.1 Verify "Successful release", "Build numbers increase" and "Release notes" with two releases to TestFlight, including the Live Activity widget
 
 Progress on 3.1, 2026-11-06: first release to TestFlight, 0.10.0 (24), run 42227321864, green on the first try ("Successful release"). Installed from TestFlight on the maintainer's iPhone; the Live Activity works. Open: "Release notes" ("What to Test" stayed empty; d26a9f8 passes it for en-US and logs what Apple stored) and "Build numbers increase", both with the next release.
+Done 2026-11-09, from the next two releases, 0.11.0 (run 42524641297) and 0.11.1 (run 42596807017), both green: "Successful release": iOS builds 25 and 26 VALID on TestFlight, each with `KnoopByKnoopWidgets.appex`, the Android bundles on internal testing. "Build numbers increase": 24, 25, 26 on TestFlight, and 25, 26 on Android, from the run number. "Release notes": TestFlight's "What to Test" (en-US, read through the App Store Connect API) and the Play notes in the logs hold each version's changelog section.
