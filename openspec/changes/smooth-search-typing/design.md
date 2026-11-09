@@ -15,7 +15,7 @@
 - **Alternative:** `@Observable` (Observation framework) for `AppModel`, which tracks properties per view. It would fix this and more, but it changes the whole model and every view; a separate model is a contained change.
 
 ### Measuring
-- The `DebugTiming` log's stall threshold is lowered to 50 ms for the check, as the target is 50 ms per keystroke.
+- The `DebugTiming` log's stall threshold is lowered to 50 ms, to see stalls well below the target. The target was 50 ms per keystroke at first; after the maintainer's check (a single stall of 52 ms, typing felt smooth) it is 100 ms, so it isn't optimized past what can be felt, while the 110 to 125 ms from before still count as too slow.
 
 ## Risks / Trade-offs
 
