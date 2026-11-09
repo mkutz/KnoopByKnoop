@@ -21,7 +21,7 @@
 ## 4. iOS
 
 - [x] 4.1 `NetworkMapView`: the same as 3.1.
-- [ ] 4.2 A throwaway XCUITest ride in the simulator through a knot and a zigzag, with screenshots, for the same scenarios as 3.2 and 3.3.
+- [x] 4.2 A throwaway XCUITest ride in the simulator through a knot and a zigzag, with screenshots, for the same scenarios as 3.2 and 3.3.
 
 ## 5. Doubtful junctions (after `add-junction-pictures`)
 

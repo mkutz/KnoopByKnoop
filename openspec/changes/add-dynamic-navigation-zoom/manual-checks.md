@@ -23,8 +23,8 @@ iOS checked in the simulator (iPhone 18 Pro, iOS 27), debug build, round trip 02
 | Approaching a zigzag | ✅ emulator | ✅ simulator | TRICKY_SPOT, 200 m across ([Android](screenshots/android-zigzag-siegburg.png), [iOS](screenshots/ios-zigzag.png)) |
 | Past the spot | ✅ emulator | ✅ simulator | Back to the navigation zoom |
 | Smooth zoom changes, Labels while zoomed in | ✅ emulator | — | Screen recordings of both rides: one even move per change, labels steady while following; not kept in the repository |
-| Looking around, No automatic zoom after looking around | ✅ emulator | — | Dragged before 02: no zoom at 02, the recenter button stays ([screenshot](screenshots/android-looking-around.png)) |
-| Recentering near a knot | ✅ emulator | — | 2026-11-09 on 04 → 06 → 02: dragged away, 156 m before 06 no zoom, then Recenter zoomed in on 06 and the route after it ([looking around](screenshots/android-looking-around-near-06.png), [recentered](screenshots/android-recentered-near-06.png)); earlier also at the zigzag |
+| Looking around, No automatic zoom after looking around | ✅ emulator | ✅ simulator | Dragged before 02: no zoom at 02, the recenter button stays ([screenshot](screenshots/android-looking-around.png)) |
+| Recentering near a knot | ✅ emulator | ✅ simulator | 2026-11-09 on 04 → 06 → 02: dragged away, 156 m before 06 no zoom, then Recenter zoomed in on 06 and the route after it ([looking around](screenshots/android-looking-around-near-06.png), [recentered](screenshots/android-recentered-near-06.png)); earlier also at the zigzag |
 | Both in view | ✅ emulator | ✅ iPhone | Unchanged; on the walk of 2026-11-09, off route south of the Sieg, the map kept the rider and the end of the line in view; on the emulator 400 m east of the leg 06 → 02 on a guided way, the rider and where the way meets the route both in view ([screenshot](screenshots/android-off-route-400m.png)) |
 
 ### Steps for the maintainer
