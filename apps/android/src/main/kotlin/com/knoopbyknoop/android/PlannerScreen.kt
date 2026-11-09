@@ -859,7 +859,8 @@ private fun NavigationHeader(navigation: NavigationState, onStop: () -> Unit) {
           modifier = Modifier.weight(1f),
         )
       } else {
-        HeaderRowView(row, Modifier.weight(1f))
+        // A gap before Stop, so a badge's corner symbol does not touch it.
+        HeaderRowView(row, Modifier.weight(1f).padding(end = 12.dp))
       }
       // Over the lock screen, a touch in the pocket shouldn't end the ride.
       val overLockScreen by Navigating.overLockScreen.collectAsState()
