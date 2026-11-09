@@ -17,7 +17,7 @@ The style B drawing was first seen with a hand-made test picture behind a tempor
 | Picture with a screen reader | ✅ label | ✅ label | The picture with its sentence is one element labelled "In 90 m, keep left at the fork" in the accessibility tree; not yet heard |
 | Approaching a doubtful junction in the app | ✅ light | ✅ light and dark | Below the header row the picture and the sentence, the row keeping its height ([iOS](screenshots/ios-fork-light.png), [iOS dark](screenshots/ios-fork-dark.png), [Android](screenshots/android-fork.png), [Android French](screenshots/android-fork-french.png)). Android dark not seen: on the dark run the app found another way, with the fork beyond 150 m |
 | After the junction, Leaving the way before the junction, No picture on an easy turn | unit test | unit test | `JunctionPictureTimingTest` on the core's state |
-| On the iPhone's lock screen, Dynamic Island at a doubtful junction, Back to text, Screen comes on at a junction | — | open | Tasks 3.2 and 3.3: the Live Activity waits for the maintainer's check of a test picture on the real lock screen |
+| On the iPhone's lock screen, Dynamic Island at a doubtful junction, Back to text, Screen comes on at a junction | — | open | A test junction on the maintainer's lock screen, 96 pt next to the sentence ([simulator](screenshots/ios-live-activity-test-junction.png)): "might work but it's hard to tell without seeing the reality". On a ride |
 
 ## Found and fixed
 
@@ -30,3 +30,4 @@ The style B drawing was first seen with a hand-made test picture behind a tempor
 2. **The Pixel's notification** at such a junction: the sentence instead of the usual line.
 3. **Once with TalkBack or VoiceOver:** the picture is read as its sentence.
 4. **Wet or in bright sun:** whether the picture can be read.
+5. **iPhone locked at such a junction:** the lock screen shows the picture with its sentence in place of the header row, the Dynamic Island text only, and after the junction the row again. Whether 96 pt is big enough when compared with the real junction.

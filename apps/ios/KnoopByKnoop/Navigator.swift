@@ -380,15 +380,6 @@ final class Navigator: NSObject, ObservableObject {
     row: NavigationActivityAttributes.HeaderRowState? = nil
   ) {
     let roles = route?.roles ?? []
-    var row = row
-    #if DEBUG
-      // A test junction on the lock screen, to judge the picture's size there before the rest of
-      // the work, see `add-junction-pictures` task 3.2. Launched with `-junctionTest YES`.
-      if UserDefaults.standard.bool(forKey: "junctionTest"), row != nil {
-        row?.picture = "M-47,0 47,0|M30,32 30,-63|S0,0 0,30|C-8,0 -40,14|B0,-34 0,0|A0,0 26,0 30,4 40,4"
-        row?.pictureSentence = "In 90 m, cross the main road, then turn right"
-      }
-    #endif
     // The bar moves with the line, about every 100 m, not with every fix.
     let current = activity?.content.state
     let renewBar = current?.progress != progress || current?.offRoute != display.offRoute
