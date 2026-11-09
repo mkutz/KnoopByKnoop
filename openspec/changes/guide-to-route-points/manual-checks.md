@@ -26,6 +26,8 @@ The route point's header badge is the plain flag where the strip shows the place
 
 ### Steps for the maintainer
 
+The maintainer's walk home → gym in Siegburg on 2026-11-09 (iPhone, dark mode, a route of a start and an end flag, path data installed): the voice guidance "works great now". Near the end flag by the station, a short white guided line was drawn beside the route although the maintainer followed it, against "The guided way on the map" (drawn only where it differs). Not investigated yet; it goes to the change on the guided way's look. The turn back north-east off route is `rejoin-route-ahead`.
+
 1. Plan home → 28 → 02 → home with the start and end flags at home, as on the ride of 2026-11-08.
 2. Start at home: each turn to the network is told, and at the network "Turn left now onto the route towards 02" (or right, as it is there).
 3. After 28: "Next 02, then towards 06"; after 02: "Towards 06, then the end".

@@ -16,7 +16,7 @@ Checked on 2026-11-07 with the locally built cycling data with sign regions, on 
 | Lock screen | ✅ | ✅ views | Android "32 → 25", "172 m · ■ 16:55" with the 25 plate as large icon ([close](screenshots/android-close.png)); iOS card A |
 | Far from the next knot outside the app | ✅ | ✅ views | "32 · 4.4 km › 25", "■ 17:05", 32 as large icon ([far](screenshots/android-far.png)); iOS card B |
 | Dynamic Island | — | ✅ views | Compact: 32 → plate 25 and "150 m" |
-| Dynamic Island with room for one number | — | ✅ views | Minimal: the 25 plate close, 32 far, the light tile off route |
+| Dynamic Island with room for one number | — | ✅ iPhone | Minimal: the 25 plate close, 32 far, the light tile off route |
 | Off route outside the app | ✅ | ✅ views | Android: guided title "↗ 80 m · 600 m", the symbol on a dark disc ([off route](screenshots/android-off-route.png)); iOS card C inverted, light on the dark system |
 | Off route in the Dynamic Island | — | ✅ views | The arrow on a light tile, › 02 and "1.7 km" |
 | On the way to the route outside the app | ✅ | ✅ views | "↰ 340 m · 2.0 km" with the symbol on a light disc ([on the way](screenshots/android-on-the-way.png)); iOS card D in its usual appearance |
@@ -40,6 +40,8 @@ TalkBack on the notification: not checked yet. The title is made of arrow charac
 ## Found and fixed
 
 - **The compact Dynamic Island tried to show too much.** On the maintainer's ride of 8 November, with a podcast sharing the island, the compact view showed two cut badges and "2....": the miniature row (next knot, arrow, number to follow) and the distance don't fit its room. The compact island now shows one element on the leading side, the same as the minimal one (the plate close to a knot, the next knot far from it, the tile off route), and the distance scales down instead of being cut off. The project builds; the simulator did not show the Live Activity, so the check is on the iPhone (step 2 below).
+
+The maintainer's walk home → gym in Siegburg on 2026-11-09 (iPhone, dark mode, a route of a start and an end flag, path data installed): with a radio podcast sharing the Dynamic Island, the app's part showed the end flag and "1.1 km" alone, nothing cut off (step 2). On the ride of 2026-11-08 it had shown two cut badges.
 
 ## For the maintainer
 

@@ -58,6 +58,8 @@ The maintainer on 2026-11-09, on the way from a start at home: on the Pixel, the
 
 The maintainer on 2026-11-09: TalkBack on the Pixel "works as expected" for the header and Stop. VoiceOver on the iPhone is still to hear.
 
+The maintainer's walk home → gym in Siegburg on 2026-11-09 (iPhone, dark mode, a route of a start and an end flag, path data installed): the neutral tile with the arrow on the way from home until the route (step 2), and off route on a guided way the turn arrow, its distance and the distance left (step 4; the path had no street name). Off route the header was light on the dark map, as specified.
+
 ## For the maintainer
 
 1. **A German ride:** watch the header far from a knot, close to one (the sign plate), at the end, after a wrong turn within the network (the small badge), and after leaving the network (no badge).

@@ -10,7 +10,7 @@ iOS checked in the simulator (iPhone 18 Pro, iOS 27), debug build, round trip 02
 |---|---|---|---|
 | Riding between knots | ✅ emulator | ✅ simulator | Navigation zoom between the spots |
 | Tricky spot at a knot | unit test | unit test | |
-| Off route | unit test | unit test | The off-route camera is unchanged; the mocked departure stayed within 100 m of the bending course, so it was not shown |
+| Off route | unit test | ✅ iPhone | The off-route camera is unchanged; the mocked departure stayed within 100 m of the bending course, so it was not shown |
 | Approaching a knot | ✅ emulator | unit test | KNOT, 342 m across, with 02 and the route after it ([frames](screenshots/android-knot-02-frames.png)) |
 | Coming closer | ✅ emulator | unit test | One zoom from the reminder to passing |
 | Knot at the end of the route | unit test | unit test | |
@@ -25,7 +25,7 @@ iOS checked in the simulator (iPhone 18 Pro, iOS 27), debug build, round trip 02
 | Smooth zoom changes, Labels while zoomed in | ✅ emulator | — | Screen recordings of both rides: one even move per change, labels steady while following; not kept in the repository |
 | Looking around, No automatic zoom after looking around | ✅ emulator | — | Dragged before 02: no zoom at 02, the recenter button stays ([screenshot](screenshots/android-looking-around.png)) |
 | Recentering near a knot | partly | — | Recentering applies the current focus; shown at the zigzag ([screenshot](screenshots/android-recentered-at-zigzag.png)), as 02's first signpost was passed before the mocked rider got there |
-| Both in view | unit test | unit test | Unchanged |
+| Both in view | unit test | ✅ iPhone | Unchanged; on the walk of 2026-11-09, off route south of the Sieg, the map kept the rider and the end of the line in view |
 
 ### Steps for the maintainer
 
