@@ -635,6 +635,32 @@ private constructor(
     return MapFocus.BASE
   }
 
+  /**
+   * The lines of [guidedWay] to draw on the map, see `knot-navigation` "Way to the route on the
+   * map": off route the whole way ahead; on route only where it differs from the planned route,
+   * more than [DIFFERS_METERS] from the leg's course, joined to the course at both ends, as the
+   * route already shows the rest.
+   */
+  fun guidedLines(guidedWay: GuidedWay?): List<List<GeoPoint>> {
+    val points = guidedWay?.pointsAhead()?.takeIf { it.size >= 2 } ?: return listOf()
+    if (offRoute || arrived) return listOf(points)
+    val course = courses?.getOrNull(nextIndex - 1)?.takeIf { it.size >= 2 } ?: return listOf(points)
+    val dense = densified(points, DENSE_METERS)
+    val far = dense.map { distanceToPolyline(it.latitude, it.longitude, course) > DIFFERS_METERS }
+    val lines = mutableListOf<List<GeoPoint>>()
+    var start = -1
+    for (index in 0..dense.size) {
+      val isFar = index < dense.size && far[index]
+      if (isFar && start < 0) start = index
+      if (!isFar && start >= 0) {
+        val line = dense.subList((start - 1).coerceAtLeast(0), (index + 1).coerceAtMost(dense.size))
+        if (line.size >= 2) lines += line.toList()
+        start = -1
+      }
+    }
+    return lines
+  }
+
   /** How precisely to sample next; [visible] is whether the app is on screen. */
   fun precision(visible: Boolean): Precision =
     when {
@@ -1206,6 +1232,12 @@ private constructor(
      */
     const val TOWARDS_MIN_METERS = 30.0
 
+    /** On route, a guided way farther than this from the course is drawn, see [guidedLines]. */
+    const val DIFFERS_METERS = 20.0
+
+    /** How finely [guidedLines] compares the guided way with the course. */
+    private const val DENSE_METERS = 10.0
+
     /** A knot counts as passed within this distance, see `knot-navigation` "Passing a knot". */
     const val PASS_RADIUS_METERS = 30.0
 
@@ -1549,4 +1581,22 @@ private fun pointAlong(points: Sequence<GeoPoint>, meters: Double): GeoPoint? {
     left -= step
   }
   return previous
+}
+
+/** [points] with points added so none are more than [step] meters apart. */
+private fun densified(points: List<GeoPoint>, step: Double): List<GeoPoint> {
+  val result = mutableListOf(points.first())
+  for ((from, to) in points.zipWithNext()) {
+    val length = meters(from, to)
+    val parts = (length / step).toInt().coerceAtLeast(1)
+    for (part in 1..parts) {
+      val share = part.toDouble() / parts
+      result +=
+        GeoPoint(
+          from.latitude + (to.latitude - from.latitude) * share,
+          from.longitude + (to.longitude - from.longitude) * share,
+        )
+    }
+  }
+  return result
 }

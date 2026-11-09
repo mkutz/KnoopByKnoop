@@ -110,8 +110,9 @@ struct NetworkMapView: UIViewRepresentable {
   var wayToRoute: GeoPoint? = nil
   /// What the map shows while following the rider, see `knot-navigation` "Zoom while following".
   var mapFocus: MapFocus? = nil
-  /// Off route, the way along paths, see `knot-navigation` "Guided way back to the route".
-  var guidedWay: [GeoPoint]? = nil
+  /// The lines of the guided way to draw, see `knot-navigation` "Guided way back to the route" and
+  /// `Navigation.guidedLines`.
+  var guidedWay: [[GeoPoint]]? = nil
   /// The track ridden while navigating, see `knot-navigation` "Ridden track".
   var track: RiddenTrack? = nil
   /// The riding direction, see `knot-navigation` "Riding direction on the map".
@@ -428,7 +429,7 @@ struct NetworkMapView: UIViewRepresentable {
     private var position: Fix?
     private var nextKnot: Knot?
     private var wayToRoute: GeoPoint?
-    private var guidedWay: [GeoPoint]?
+    private var guidedWay: [[GeoPoint]]?
 
     /// Whether the map moves to the rider with the next position, e.g. after the app was opened.
     var findRider = false
@@ -550,7 +551,7 @@ struct NetworkMapView: UIViewRepresentable {
     /// Shows the rider and the next knot; when navigation begins or the app is opened while
     /// navigating, the map moves to the rider, see `knot-navigation` "Looking at the map".
     func showNavigation(
-      position newPosition: Fix?, nextKnot newNextKnot: Knot?, wayToRoute newWayToRoute: GeoPoint?, guidedWay newGuidedWay: [GeoPoint]?, direction newDirection: Double?,
+      position newPosition: Fix?, nextKnot newNextKnot: Knot?, wayToRoute newWayToRoute: GeoPoint?, guidedWay newGuidedWay: [[GeoPoint]]?, direction newDirection: Double?,
       focus newFocus: MapFocus? = nil, on mapView: MLNMapView
     ) {
       guard newPosition !== position || newNextKnot !== nextKnot || newWayToRoute != wayToRoute || newGuidedWay != guidedWay || newFocus != mapFocus else { return }
@@ -627,7 +628,7 @@ struct NetworkMapView: UIViewRepresentable {
       // Off route, the straight way back to the route, see `knot-navigation` "Way to the route on
       // the map".
       var way: MLNShape? = nil
-      if let position, let wayToRoute, guidedWay == nil {
+      if let position, let wayToRoute, guidedWay?.isEmpty ?? true {
         var coordinates = [
           CLLocationCoordinate2D(latitude: position.latitude, longitude: position.longitude),
           CLLocationCoordinate2D(latitude: wayToRoute.latitude, longitude: wayToRoute.longitude),
@@ -636,10 +637,11 @@ struct NetworkMapView: UIViewRepresentable {
       }
       (style?.source(withIdentifier: "way-to-route") as? MLNShapeSource)?.shape = way
       var guided: MLNShape? = nil
-      if let guidedWay, guidedWay.count >= 2 {
-        var coordinates = guidedWay.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
-        guided = MLNPolylineFeature(coordinates: &coordinates, count: UInt(coordinates.count))
+      let lines: [MLNPolylineFeature] = (guidedWay ?? []).filter { $0.count >= 2 }.map { line in
+        var coordinates = line.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+        return MLNPolylineFeature(coordinates: &coordinates, count: UInt(coordinates.count))
       }
+      if !lines.isEmpty { guided = MLNShapeCollectionFeature(shapes: lines) }
       (style?.source(withIdentifier: "guided-way") as? MLNShapeSource)?.shape = guided
     }
 

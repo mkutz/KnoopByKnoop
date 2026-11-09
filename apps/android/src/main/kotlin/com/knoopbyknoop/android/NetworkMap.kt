@@ -251,8 +251,11 @@ fun NetworkMap(
   wayToRoute: GeoPoint? = null,
   /** What the map shows while following the rider, see `knot-navigation` "Zoom while following". */
   mapFocus: MapFocus? = null,
-  /** Off route, the way along paths, see `knot-navigation` "Guided way back to the route". */
-  guidedWay: List<GeoPoint>? = null,
+  /**
+   * The lines of the guided way to draw, see `knot-navigation` "Guided way back to the route" and
+   * `Navigation.guidedLines`.
+   */
+  guidedWay: List<List<GeoPoint>>? = null,
   /** The position found on request while planning, see `map-planning` "Show my position". */
   myPosition: Fix? = null,
   /** Whether the position is being found. */
@@ -886,7 +889,7 @@ private class MapHolder {
   private var position: Fix? = null
   private var nextKnot: Knot? = null
   private var wayToRoute: GeoPoint? = null
-  private var guidedWay: List<GeoPoint>? = null
+  private var guidedWay: List<List<GeoPoint>>? = null
 
   /** Whether the map moves to the rider with the next position, e.g. after the app was opened. */
   var findRider = false
@@ -915,7 +918,7 @@ private class MapHolder {
     newNextKnot: Knot?,
     newWayToRoute: GeoPoint? = null,
     newDirection: Double? = null,
-    newGuidedWay: List<GeoPoint>? = null,
+    newGuidedWay: List<List<GeoPoint>>? = null,
     newFocus: MapFocus? = null,
   ) {
     mapFocus = newFocus
@@ -1168,7 +1171,7 @@ private class MapHolder {
     style
       .getSourceAs<GeoJsonSource>("way-to-route")
       ?.setGeoJson(
-        if (fix != null && end != null && guidedWay == null)
+        if (fix != null && end != null && guidedWay.isNullOrEmpty())
           """{"type": "LineString", "coordinates": [[${fix.longitude}, ${fix.latitude}], [${end.longitude}, ${end.latitude}]]}"""
         else empty
       )
@@ -1176,13 +1179,9 @@ private class MapHolder {
     style
       .getSourceAs<GeoJsonSource>("guided-way")
       ?.setGeoJson(
-        if (way != null)
-          way.joinToString(
-            ",",
-            """{"type": "LineString", "coordinates": [""",
-            "]}",
-          ) {
-            "[${it.longitude}, ${it.latitude}]"
+        if (!way.isNullOrEmpty())
+          way.joinToString(",", """{"type": "MultiLineString", "coordinates": [""", "]}") { line ->
+            line.joinToString(",", "[", "]") { "[${it.longitude}, ${it.latitude}]" }
           }
         else empty
       )

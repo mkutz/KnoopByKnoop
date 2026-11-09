@@ -260,6 +260,53 @@ class RoutePointGuidanceTest {
     )
   }
 
+  // Requirement: Way to the route on the map
+
+  @Test
+  fun `a guided way along the planned way is not drawn again`() {
+    val ride =
+      start(knot45, end, east = 1000.0)
+        .along(1000.0, 1500.0) { toTheFlag(it) }
+        .north(1500.0, 0.0, 60.0) { toTheFlag(it) }
+
+    assertNotNull(guide.way)
+    assertTrue(ride.navigation.guidedLines(guide.way).isEmpty())
+  }
+
+  @Test
+  fun `a guided way that differs is drawn where it differs`() {
+    // The way found goes round the block to the east: 80 m from the planned way.
+    val detour = { search: WaySearch ->
+      wayOf(
+        search.from,
+        at(1500.0, 60.0),
+        at(1580.0, 60.0),
+        at(1580.0, 200.0),
+        at(1500.0, 200.0),
+        at(1350.0, 200.0),
+      )
+    }
+    val ride =
+      start(knot45, end, east = 1000.0)
+        .along(1000.0, 1500.0, found = detour)
+        .north(1500.0, 0.0, 40.0, found = detour)
+
+    val lines = ride.navigation.guidedLines(guide.way)
+    val line = lines.single()
+    assertTrue(line.any { it.longitude > at(1570.0).longitude })
+    assertTrue(line.none { it.latitude > at(0.0, 201.0).latitude })
+    assertTrue(line.none { it.longitude < at(1490.0).longitude })
+  }
+
+  @Test
+  fun `off route the whole guided way is drawn`() {
+    val offRoute = start(knot45, end, east = 1000.0).north(1200.0, 0.0, 300.0) { toTheFlag(it) }
+
+    assertTrue(offRoute.navigation.offRoute)
+    val way = assertNotNull(guide.way)
+    assertEquals(listOf(way.pointsAhead()), offRoute.navigation.guidedLines(way))
+  }
+
   @Test
   fun `missing the turn-off`() {
     val pastTurnOff = start(knot45, end, east = 1000.0).along(1000.0, 1500.0) { toTheFlag(it) }

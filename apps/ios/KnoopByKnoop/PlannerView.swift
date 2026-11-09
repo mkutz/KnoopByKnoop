@@ -185,7 +185,9 @@ struct PlannerView: View {
         mapFocus: navigator.state.flatMap { state in
           state.position.flatMap { state.navigation?.mapFocus(fix: $0) }
         },
-        guidedWay: navigator.state?.guidedWay?.pointsAhead(),
+        guidedWay: navigator.state.flatMap { state in
+          state.navigation?.guidedLines(guidedWay: state.guidedWay)
+        },
         track: navigator.state?.track,
         direction: navigator.state?.direction,
         myPosition: navigator.state == nil ? model.myPosition : nil,

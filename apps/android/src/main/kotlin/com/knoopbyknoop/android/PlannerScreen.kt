@@ -399,7 +399,10 @@ private fun MapArea(
         state.navigation?.let { navigating ->
           navigating.position?.let { navigating.navigation?.mapFocus(it) }
         },
-      guidedWay = state.navigation?.guidedWay?.pointsAhead(),
+      guidedWay =
+        state.navigation?.let { navigating ->
+          navigating.navigation?.guidedLines(navigating.guidedWay)
+        },
       myPosition = state.myPosition.takeUnless { state.navigating },
       locating = state.locating,
       onLocate = locate.takeUnless { state.navigating },

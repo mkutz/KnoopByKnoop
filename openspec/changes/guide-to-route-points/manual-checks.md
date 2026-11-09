@@ -22,6 +22,8 @@ The route point's header badge is the plain flag where the strip shows the place
 
 - **The header grew to five lines on a guided way** (TestFlight feedback on build 25, 9 November 06:33 and 08:06): the row of the tile, turn arrow, turn distance, street, distance left and next knot didn't fit one line, so iOS stacked every item and Android wrapped them, and the header jumped between one and five lines as the way was found. On a guided way the header is now always one row, with the street small under the turn's distance and cut short; checked on the emulator ([screenshot](screenshots/android-guided-header.png)) and in the simulator ([screenshot](screenshots/ios-guided-header.png)), starting away from the route.
 
+- **A second line beside the route** (TestFlight feedback on build 25, 9 November 06:35): on route the guided way was drawn along the planned way too, a white line beside the orange one on the dark map. Of the two options the maintainer chose from [mockups](screenshots/mockup-guided-line.png), on route the guided way is now drawn only where it is more than 20 m from the planned way, joined to it at both ends; off route the whole way shows as before. Unit tests in `RoutePointGuidanceTest`; on the emulator the found way along An der Ziegelei shows where it differs ([screenshot](screenshots/android-guided-line-differs.png)).
+
 ### Steps for the maintainer
 
 1. Plan home → 28 → 02 → home with the start and end flags at home, as on the ride of 2026-11-08.

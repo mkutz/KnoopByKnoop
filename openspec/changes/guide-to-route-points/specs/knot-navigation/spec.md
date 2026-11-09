@@ -19,6 +19,10 @@ When the next route point is joined to the network by a way along paths, navigat
 - **WHEN** a way to the flag, or back to the route, is found or lost while the rider follows it, with a turn into a long street name ahead
 - **THEN** the header stays one row of the same height: the turn's arrow, its distance with the street below it, cut short if long, the distance left and the next knot, and it doesn't push the map up
 
+#### Scenario: The guided way on the map
+- **WHEN** the rider follows the way to the flag on route, and the way found runs along the planned way except for a block where it takes another street
+- **THEN** the map shows the guided way's line only along that other street, joined to the route at both ends, and not beside the route where they are the same; off route the whole guided way shows, as before
+
 #### Scenario: Missing the turn-off
 - **WHEN** the rider rides on along the course past Cecilienstraße
 - **THEN** they are told a way to the flag from where they are, as off route
