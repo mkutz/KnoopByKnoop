@@ -1,8 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.11.1
 
-- iPhone: the place search is a magnifier button with the map's other buttons; tapping it opens the search at the top of the panel, with the places found below it. No search field floats over the map any more, so it hides none of its buttons, and the map's buttons stay above the panel at any height
+- Ways along paths are found within moments again: in 0.11.0 they could take a minute or more on the iPhone, so the way from a start flag stayed a straight line and there was no guidance along it, and guided ways back to the route came late
+- On a guided way, the top of the panel stays one row of the same height: the turn and its distance with the street below, the distance left and the next knot, instead of growing to five lines and pushing the map up
+- On the way from or to a start, stop or end off the network, the map draws the guided way only where it differs from the route, instead of a second line beside it
+- iPhone: the place search is a magnifier button with the map's other buttons; tapping it opens the search at the top of the panel, with the places found below it. No search field floats over the map any more, so it hides none of its buttons, and the map's buttons stay above the panel at any height. A picked place far away is jumped to, with "Showing …" on the map until it is drawn
 
 ## 0.11.0
 
