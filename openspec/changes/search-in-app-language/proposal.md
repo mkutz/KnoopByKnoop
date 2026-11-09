@@ -10,11 +10,11 @@ The iPhone asks the search for the system's language (`Locale.current`), not the
 
 - Both apps ask the search for the app's language, the same one their own texts are in.
 - The search service, Photon, names places in German, English and French. For Dutch, and so far for any other language, it gives the names used on the spot: "Köln" rather than the Dutch "Keulen", "Bruxelles - Brussel" for Brussels. Getting Dutch names would need another service; out of scope.
-- Searching stays possible in any language.
+- Searching stays possible in German, English, French and the names on the spot, whatever the app's language. Dutch names that differ, such as "Keulen", are not found today either: Photon doesn't know them.
 
 ## Out of Scope
 
-- **Dutch names** such as "Keulen": Photon doesn't offer Dutch; local names instead.
+- **Dutch names** such as "Keulen", shown or searched: Photon doesn't know Dutch names; local names instead.
 - **Names on the map:** the map's labels are not touched.
 
 ## Capabilities

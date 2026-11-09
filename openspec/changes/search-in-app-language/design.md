@@ -9,7 +9,7 @@
 ## Decisions
 
 - **The app's language, from where the texts take it:** `AppLanguage.code` on iOS, the configuration's language as in `AppViewModel` on Android, so hits and texts always agree, also right after the language is changed.
-- **Dutch stays `default`:** Photon answers `lang=nl` with an error. Local names are closer to Dutch than English ones for the places a Dutch rider looks for in the Netherlands and Belgium.
+- **Dutch stays `default`:** Photon answers `lang=nl` with an error, and searching "Keulen" finds a butcher, not Köln, in any language: it doesn't know Dutch names at all. Local names are closer to Dutch than English ones for the places a Dutch rider looks for in the Netherlands and Belgium.
 - **Alternative:** Nominatim names places in any language (`accept-language`), but allows one request per second and no search while typing; not for this.
 
 ## Risks / Trade-offs
