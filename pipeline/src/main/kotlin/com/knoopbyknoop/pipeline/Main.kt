@@ -47,7 +47,9 @@ private const val USAGE =
                                                             check the data in <dir> before publishing it
   pipeline bundle [--allow-unavailable] <base-url> <output-dir>
                                                             fetch and verify the published graphs for the apps
-  pipeline dark-style <liberty-url-or-file> <output.json>   generate the dark map from OpenFreeMap's liberty"""
+  pipeline dark-style <liberty-url-or-file> <output.json>   generate the dark map from OpenFreeMap's liberty
+  pipeline cut <published-dir> <south> <west> <north> <east> <output-dir>
+                                                            write the cycling data of an area, for tests"""
 
 /** Turns OpenStreetMap node network data into the graph files the apps download. */
 fun main(args: Array<String>) {
@@ -57,6 +59,12 @@ fun main(args: Array<String>) {
     "index" if args.size == 2 -> index(Path(args[1]))
     "bundle" if args.size == 3 -> bundle(args[1], Path(args[2]))
     "dark-style" if args.size == 3 -> DarkStyle.generate(args[1], Path(args[2]))
+    "cut" if args.size == 7 ->
+      cut(
+        Path(args[1]),
+        Box(args[2].toDouble(), args[3].toDouble(), args[4].toDouble(), args[5].toDouble()),
+        Path(args[6]),
+      )
     "verify" if args.size in 2..4 -> {
       val allowDrop = args[1] == "--allow-drop"
       val rest = args.drop(if (allowDrop) 2 else 1)

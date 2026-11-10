@@ -1,0 +1,16 @@
+The files in this directory are cut-outs of Knoop by Knoop's published cycling network data of
+2026-11-08 (graph, courses and path data), made with `pipeline cut` for the tests in
+`RealRideTest`, see the change `replay-rides-on-real-data`.
+
+They are derived from OpenStreetMap data:
+© OpenStreetMap contributors, available under the Open Database License (ODbL) 1.0,
+https://www.openstreetmap.org/copyright
+
+Unlike the rest of this repository, which is under the Apache License 2.0, these files are under
+the ODbL.
+
+Areas (south, west, north, east):
+- titz             50.985, 6.40,  51.02,  6.51    06 → 08
+- siegburg-zange   50.765, 7.145, 50.81,  7.24    01, 02 (two signposts at the Sieg bridge), 28
+- rhine-luelsdorf  50.755, 6.965, 50.835, 7.135   83, 12, 21, the ferry Lülsdorf–Wesseling, 20
+- veluwe-43        52.14,  5.865, 52.195, 5.935   43, a knot tagged on four nodes
