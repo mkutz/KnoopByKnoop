@@ -28,7 +28,7 @@ class BarMarksTest {
     )
 
   @Test
-  fun `closed ferries first, then stops, then ferries, only ahead of the rider`() {
+  fun `closed ferries first then stops then ferries and only ahead of the rider`() {
     val marks = strip.barMarks(limit = 8)
 
     assertEquals(
@@ -43,7 +43,7 @@ class BarMarksTest {
   }
 
   @Test
-  fun `at most the limit, the most important kept`() {
+  fun `at most the limit with the most important kept`() {
     val marks = strip.barMarks(limit = 2)
 
     assertEquals(listOf(0.6, 0.4), marks.map { it.fraction })

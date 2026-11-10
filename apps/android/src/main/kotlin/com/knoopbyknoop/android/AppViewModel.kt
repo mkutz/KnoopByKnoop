@@ -35,6 +35,8 @@ import com.knoopbyknoop.core.Language
 import com.knoopbyknoop.core.MapFeatures
 import com.knoopbyknoop.core.MapPlace
 import com.knoopbyknoop.core.MapTap
+import com.knoopbyknoop.core.NavigationRoute
+import com.knoopbyknoop.core.NavigationState
 import com.knoopbyknoop.core.NetworkCatalog
 import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkStatus
@@ -42,16 +44,15 @@ import com.knoopbyknoop.core.NetworkType
 import com.knoopbyknoop.core.NewKnots
 import com.knoopbyknoop.core.PathDataStatus
 import com.knoopbyknoop.core.PathDownloader
-import com.knoopbyknoop.core.PathRouter
 import com.knoopbyknoop.core.PathSquares
 import com.knoopbyknoop.core.PlaceHit
 import com.knoopbyknoop.core.PlaceSearch
 import com.knoopbyknoop.core.PlanningSession
 import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteKnot
-import com.knoopbyknoop.core.RoutePointWays
 import com.knoopbyknoop.core.RouteSnapshot
 import com.knoopbyknoop.core.RouteSummary
+import com.knoopbyknoop.core.WayFinder
 import com.knoopbyknoop.core.hasStraightLines
 import com.knoopbyknoop.core.reattached
 import com.knoopbyknoop.core.routePointFor
@@ -711,8 +712,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
   /** Finds ways along paths in one place at a time, as the router is not thread safe. */
   private val wayFinding = Mutex()
-  private val pathRouter by lazy { PathRouter(paths) }
-  private var pathRouterVersion = -1
+  private val wayFinder by lazy { WayFinder(paths) }
 
   /**
    * Replaces the straight lines of the route points by ways along paths where the installed path
@@ -725,13 +725,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     viewModelScope.launch {
       val found = wayFinding.withLock {
         withContext(Dispatchers.IO) {
-          // Squares arrived since: the router read them as missing, see "While the path data
-          // loads".
-          if (pathRouterVersion != paths.version) {
-            pathRouter.forgetSquares()
-            pathRouterVersion = paths.version
-          }
-          val ways = RoutePointWays(pathRouter, geometry)
+          // Squares arrived since are read again, see "While the path data loads".
+          val ways = wayFinder.routePointWays(geometry)
           session.routePoints.filter { it.routePoint?.straight == true }.mapNotNull(ways::wayFor)
         }
       }

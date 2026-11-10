@@ -239,7 +239,7 @@ private fun GuidedRowContent(
     Icon(
       painterResource(R.drawable.ic_action_navigate),
       contentDescription = null,
-      modifier = Modifier.size(32.dp).rotate(turnDegrees(guided.turn)),
+      modifier = Modifier.size(32.dp).rotate((guided.turn?.degrees ?: 0.0).toFloat()),
     )
     Column(if (probe) Modifier else Modifier.weight(1f, fill = false)) {
       Text(
@@ -300,23 +300,9 @@ private fun SignPlate(badge: HeaderBadge, turn: TurnDirection?) {
     // `knot-navigation` "Turn at the next knot".
     val arrowColor = if (dutch) plate else Color.White
     if (turn == TurnDirection.BACK) UTurn(26.dp, arrowColor)
-    else Arrow(26.dp, color = arrowColor, degrees = turn?.let { turnDegrees(it) })
+    else Arrow(26.dp, color = arrowColor, degrees = turn?.degrees?.toFloat())
   }
 }
-
-/** The angle a turn on the guided way turns the arrow, from straight ahead. */
-internal fun turnDegrees(turn: TurnDirection?): Float =
-  when (turn) {
-    null,
-    TurnDirection.STRAIGHT -> 0f
-    TurnDirection.SLIGHT_LEFT -> -45f
-    TurnDirection.LEFT -> -90f
-    TurnDirection.SHARP_LEFT -> -135f
-    TurnDirection.SLIGHT_RIGHT -> 45f
-    TurnDirection.RIGHT -> 90f
-    TurnDirection.SHARP_RIGHT -> 135f
-    TurnDirection.BACK -> 180f
-  }
 
 /** A plain → between the knot and the number to follow, until it shows the turn. */
 @Composable

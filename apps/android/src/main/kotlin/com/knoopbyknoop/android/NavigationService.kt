@@ -31,7 +31,7 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
-import com.knoopbyknoop.core.FerryArrivalState
+import com.knoopbyknoop.core.BarMarkKind
 import com.knoopbyknoop.core.Fix
 import com.knoopbyknoop.core.GuidedWay
 import com.knoopbyknoop.core.HeaderBadge
@@ -40,15 +40,18 @@ import com.knoopbyknoop.core.KnotPlate
 import com.knoopbyknoop.core.KnotRole
 import com.knoopbyknoop.core.Language
 import com.knoopbyknoop.core.Navigation
-import com.knoopbyknoop.core.NavigationUpdate
+import com.knoopbyknoop.core.NavigationRoute
+import com.knoopbyknoop.core.NavigationSession
+import com.knoopbyknoop.core.NavigationState
 import com.knoopbyknoop.core.NetworkGeometry
-import com.knoopbyknoop.core.PathRouter
 import com.knoopbyknoop.core.Precision
-import com.knoopbyknoop.core.ProgressMarkKind
-import com.knoopbyknoop.core.RiddenTrack
+import com.knoopbyknoop.core.SessionEnd
+import com.knoopbyknoop.core.SessionStep
 import com.knoopbyknoop.core.TurnDirection
+import com.knoopbyknoop.core.WayFinder
 import com.knoopbyknoop.core.WayGuide
 import com.knoopbyknoop.core.WaySearch
+import com.knoopbyknoop.core.barMarks
 import com.knoopbyknoop.core.outside
 import java.time.Instant
 import kotlin.math.roundToInt
@@ -113,19 +116,15 @@ private data class NotificationContent(
       val row = navigation.header(fix, direction, guidedWay, geometry)
       val outside = row.outside(navigation.endArrival(fix, guidedWay))
       fun onBar(fraction: Double) = (fraction * PROGRESS_SCALE).roundToInt()
-      val ranked =
-        strip.marks.mapNotNull { mark ->
-          when {
-            mark.fraction <= strip.rider -> null
-            mark.kind == ProgressMarkKind.FERRY && mark.state == FerryArrivalState.WARNING ->
+      val marks =
+        strip.barMarks(MAX_MARKS).map { mark ->
+          onBar(mark.fraction) to
+            when (mark.kind) {
               // Dark, not red, so it never reads like a German knot.
-              Triple(0, onBar(mark.fraction), Ink.toArgb())
-            mark.kind == ProgressMarkKind.STOP ->
-              Triple(1, onBar(mark.fraction), mark.plate.color.toArgb())
-            mark.kind == ProgressMarkKind.FERRY ->
-              Triple(2, onBar(mark.fraction), android.graphics.Color.BLUE)
-            else -> null
-          }
+              BarMarkKind.CLOSED_FERRY -> Ink.toArgb()
+              BarMarkKind.STOP -> mark.mark.plate.color.toArgb()
+              BarMarkKind.FERRY -> android.graphics.Color.BLUE
+            }
         }
       val (smallIcon, largeIcon) =
         when (row) {
@@ -148,7 +147,7 @@ private data class NotificationContent(
         largeIcon = largeIcon,
         place = onBar(strip.rider) / (PROGRESS_SCALE / 100) * (PROGRESS_SCALE / 100),
         offRoute = navigation.offRoute || navigation.wrongWay,
-        marks = ranked.sortedBy { it.first }.take(MAX_MARKS).map { it.second to it.third },
+        marks = marks,
         end = navigation.knots.last().ref,
       )
     }
@@ -179,23 +178,15 @@ class NavigationService : Service() {
   private lateinit var locations: FusedLocationProviderClient
   private lateinit var speaker: Speaker
   private var route: NavigationRoute? = null
-  private var navigation: Navigation? = null
+
+  /** The navigation running, see [NavigationSession]; `null` once stopped. */
+  private var session: NavigationSession? = null
 
   /** What the notification shows now. */
   private var notified: NotificationContent? = null
-  /** Kept here, not in the map, so it includes the stretches ridden with the screen off. */
-  private var track = RiddenTrack()
   private var precision: Precision? = null
-  private var stopping = false
 
-  /** The way back to the route, see `knot-navigation` "Guided way back to the route". */
-  private val wayGuide = WayGuide()
-  private val guidedWay: GuidedWay?
-    get() = wayGuide.way
-
-  private val pathStore by lazy { PathData.store(this) }
-  private val pathRouter by lazy { PathRouter(pathStore) }
-  private var pathRouterVersion = -1
+  private val wayFinder by lazy { WayFinder(PathData.store(this)) }
   private val debuggable by lazy { applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0 }
 
   private val callback =
@@ -227,18 +218,27 @@ class NavigationService : Service() {
           return START_NOT_STICKY
         }
     route = newRoute
+    session =
+      NavigationSession(
+        newRoute,
+        { ferryMoment(Instant.ofEpochMilli(it)) },
+        // The texts in the app's language, the notices in the language there is a voice for, see
+        // `app-languages` "Spoken notices in the language".
+        Language.of(resources.configuration.locales[0].language),
+        speaker.language,
+      )
     ServiceCompat.startForeground(
       this,
       NOTIFICATION_ID,
       notification(getString(R.string.starting_navigation)),
       ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION,
     )
-    Navigating.update(NavigationState(navigation = null, position = null))
+    session?.let { Navigating.update(it.state) }
     // The first fix decides where navigation begins, so it is sampled precisely.
     request(Precision.FINE)
     scope.launch {
       Navigating.visible.drop(1).collect { visible ->
-        navigation?.let { request(it.precision(visible)) }
+        session?.state?.navigation?.let { request(it.precision(visible)) }
       }
     }
     return START_NOT_STICKY
@@ -253,30 +253,32 @@ class NavigationService : Service() {
   }
 
   private fun onLocation(location: Location) {
-    if (stopping) return
+    val current = session ?: return
     val fix =
       Fix(location.latitude, location.longitude, location.accuracy.toDouble(), location.time)
-    val visible = Navigating.visible.value
-    val current = navigation
-    val update =
-      if (current != null) current.update(fix, visible)
-      else {
-        val newRoute = route ?: return
-        Navigation.start(
-          newRoute.knots,
-          newRoute.graph,
-          newRoute.geometry,
-          fix,
-          visible,
-          newRoute.stops,
-          { ferryMoment(Instant.ofEpochMilli(it)) },
-          // The texts in the app's language, the notices in the language there is a voice for, see
-          // `app-languages` "Spoken notices in the language".
-          Language.of(resources.configuration.locales[0].language),
-          speaker.language,
-        ) ?: return stop()
+    act(current.onFix(fix, Navigating.visible.value, SystemClock.elapsedRealtime()))
+  }
+
+  /** Does what [step] says, see [NavigationSession]. */
+  private fun act(step: SessionStep) {
+    step.search?.let(::findWay)
+    step.notices.forEach {
+      Log.i(LOG_TAG, "notice: ${it.text}, spoken in ${speaker.language}: ${it.speech}")
+      speaker.speak(it.speech)
+    }
+    step.state?.let(Navigating::update)
+    when (step.end) {
+      SessionEnd.NOW -> stop()
+      SessionEnd.AFTER_SPEECH -> {
+        // "You've arrived" is spoken before navigation ends, see `knot-navigation` "Arriving".
+        locations.removeLocationUpdates(callback)
+        speaker.whenSilent { scope.launch { stop() } }
       }
-    apply(update, fix)
+      SessionEnd.NONE -> {
+        step.state?.let(::notifyOfChange)
+        step.precision?.let(::request)
+      }
+    }
   }
 
   /**
@@ -305,55 +307,13 @@ class NavigationService : Service() {
   override fun onConfigurationChanged(newConfig: Configuration) {
     super.onConfigurationChanged(newConfig)
     createChannel()
-    val current = navigation ?: return
+    val current = session ?: return
     val locale = newConfig.locales[0]
     val language = Language.of(locale.language)
     if (language == current.language) return
     speaker.useLocale(locale)
-    val fix = current.lastFix
-    val newNavigation = current.inLanguage(language, speaker.language, fix)
     Log.i(LOG_TAG, "language: $language, spoken in ${speaker.language}")
-    navigation = newNavigation
-    publish(newNavigation, fix)
-    if (!newNavigation.arrived) notifyOfChange(newNavigation, fix)
-  }
-
-  private fun apply(update: NavigationUpdate, fix: Fix) {
-    val newNavigation = update.navigation
-    navigation = newNavigation
-    val step =
-      wayGuide.onFix(
-        newNavigation,
-        update.notices,
-        fix,
-        route?.graph?.network,
-        track.directionAt(fix),
-        SystemClock.elapsedRealtime(),
-        speaker.language,
-      )
-    step.search?.let(::findWay)
-    step.notices.forEach {
-      Log.i(LOG_TAG, "notice: ${it.text}, spoken in ${speaker.language}: ${it.speech}")
-      speaker.speak(it.speech)
-    }
-    // The route's network sets the speed a fix may not exceed, see `knot-navigation` "Ridden
-    // track".
-    route?.graph?.network?.takeIf { it != track.network }?.let { track = track.copy(network = it) }
-    track = track.add(fix)
-    publish(newNavigation, fix)
-    if (newNavigation.arrived) {
-      // "You've arrived" is spoken before navigation ends, see `knot-navigation` "Arriving".
-      stopping = true
-      locations.removeLocationUpdates(callback)
-      speaker.whenSilent { scope.launch { stop() } }
-      return
-    }
-    notifyOfChange(newNavigation, fix)
-    request(update.precision)
-  }
-
-  private fun publish(newNavigation: Navigation, fix: Fix) {
-    Navigating.update(NavigationState(newNavigation, fix, track, track.directionAt(fix), guidedWay))
+    act(current.inLanguage(language, speaker.language))
   }
 
   /** Looks for a way off the main thread, see [WayGuide]. */
@@ -361,17 +321,12 @@ class NavigationService : Service() {
     scope.launch {
       val found =
         withContext(Dispatchers.Default) {
-          val router = pathRouter
-          // Squares may have arrived or gone, see `knot-navigation` "Path data arrives on the way".
-          if (pathRouterVersion != pathStore.version) {
-            router.forgetSquares()
-            pathRouterVersion = pathStore.version
-          }
+          val router = wayFinder
           val started = SystemClock.elapsedRealtime()
           // Other failures give no way already, see `path-routing` "Broken path data".
           val way =
             try {
-              router.way(search.from, search.to, search.heading)
+              router.way(search)
             } catch (error: OutOfMemoryError) {
               // A long way in a dense area can take a lot, see `path-routing` "No way found".
               router.forgetSquares()
@@ -398,17 +353,15 @@ class NavigationService : Service() {
             }
           way
         }
-      val latest = navigation
-      wayGuide.found(found, latest.takeUnless { stopping })
-      if (stopping || latest == null || !latest.offRoute || latest.arrived) return@launch
-      publish(latest, latest.lastFix)
-      notifyOfChange(latest, latest.lastFix)
+      session?.let { act(it.onWay(found)) }
     }
   }
 
-  private fun notifyOfChange(newNavigation: Navigation, fix: Fix) {
+  private fun notifyOfChange(state: NavigationState) {
+    val navigation = state.navigation ?: return
+    val fix = state.position ?: return
     val content =
-      NotificationContent.of(newNavigation, fix, guidedWay, track.directionAt(fix), route?.geometry)
+      NotificationContent.of(navigation, fix, state.guidedWay, state.direction, route?.geometry)
     // Only on a change: the position comes every second while the app is visible.
     if (content != notified) {
       notified = content
@@ -441,7 +394,7 @@ class NavigationService : Service() {
   }
 
   private fun stop() {
-    stopping = true
+    session = null
     locations.removeLocationUpdates(callback)
     Navigating.update(null)
     ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
@@ -477,7 +430,7 @@ class NavigationService : Service() {
                 if (icon.onPlate)
                   signPlateBitmap(
                     icon.badge,
-                    icon.turn?.let { turnDegrees(it) },
+                    icon.turn?.degrees?.toFloat(),
                     if (icon.turn == TurnDirection.BACK) getDrawable(R.drawable.ic_u_turn)
                     else null,
                   )

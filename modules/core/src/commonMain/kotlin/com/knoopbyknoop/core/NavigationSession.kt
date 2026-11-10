@@ -78,9 +78,17 @@ class SessionStep(
 class NavigationSession(
   private val route: NavigationRoute,
   private val localTime: ((Long) -> LocalMoment)? = null,
-  private var language: Language = Language.EN,
-  private var speechLanguage: Language = language,
+  language: Language = Language.EN,
+  speechLanguage: Language = language,
 ) {
+
+  /** The language of the texts. */
+  var language: Language = language
+    private set
+
+  /** The language the notices are spoken in. */
+  var speechLanguage: Language = speechLanguage
+    private set
 
   /** What the navigation shows now. */
   var state: NavigationState = NavigationState(null, null, RiddenTrack(network = network))
