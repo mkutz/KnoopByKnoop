@@ -1,0 +1,12 @@
+precision: FINE
+notice: Next 08
+precision: LIVE
+notice: Off route, next 08, 3.0 km to the east
+guided way: 140 m, 0 turns
+notice: Turn back now
+guided way: 357 m, 1 turns
+guided way: 486 m, 1 turns
+guided way: 527 m, 1 turns
+guided way: 380 m, 1 turns
+guided way: 152 m, 0 turns
+notice: Back on route, next 08

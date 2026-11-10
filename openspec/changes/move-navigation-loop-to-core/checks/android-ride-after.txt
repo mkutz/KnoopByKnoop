@@ -1,0 +1,13 @@
+precision: FINE
+notice: Next 08, spoken in EN: Next 8
+precision: LIVE
+notice: Off route, next 08, 3.0 km to the east, spoken in EN: Off route, next 8, 3.0 kilometers to the east
+guided way: 160 m, 0 turns
+notice: Turn back now, spoken in EN: Turn back now
+guided way: 384 m, 1 turns
+guided way: 535 m, 1 turns
+guided way: 460 m, 1 turns
+guided way: 226 m, 0 turns
+notice: Back on route, next 08, spoken in EN: Back on route, next 8
+notice: 08 ahead, the end, spoken in EN: 8 ahead, the end
+notice: You've arrived, spoken in EN: You've arrived

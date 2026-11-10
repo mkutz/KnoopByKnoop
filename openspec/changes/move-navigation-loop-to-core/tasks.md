@@ -16,15 +16,15 @@
 
 ## 2. Android
 
-- [ ] 2.1 `NavigationService` on `NavigationSession` and `WayFinder`; `AppViewModel`'s route point ways on `WayFinder`; bar marks and turn angles from the core; `NavigationState` of `Navigating.kt` removed. `./gradlew check` and `:apps:android:assembleDebug` pass. Emulator: a mocked ride along route 06 → 08 with a detour off route and arriving, notices and lock screen compared with the build before (logcat of notices, screenshots).
+- [x] 2.1 `NavigationService` on `NavigationSession` and `WayFinder`; `AppViewModel`'s route point ways on `WayFinder`; bar marks and turn angles from the core; `NavigationState` of `Navigating.kt` removed. `./gradlew check` and `:apps:android:assembleDebug` pass. Emulator: a mocked ride along route 06 → 08 with a detour off route and arriving, notices and lock screen compared with the build before (logcat of notices, screenshots).
 
 ## 3. iOS
 
-- [ ] 3.1 `Navigator.swift` on `NavigationSession` and `WayFinder`; `AppModel.findWays` on `WayFinder`; bar marks and turn angles from the core; the `NavigationState` struct removed. The app builds (`xcodebuild` as in the Build workflow). Simulator: the same mocked ride with `simctl location` and a throwaway UI test to start navigation, notices from the log compared with the build before.
+- [x] 3.1 `Navigator.swift` on `NavigationSession` and `WayFinder`; `AppModel.findWays` on `WayFinder`; bar marks and turn angles from the core; the `NavigationState` struct removed. The app builds (`xcodebuild` as in the Build workflow). Simulator: the same mocked ride with `simctl location` and a throwaway UI test to start navigation, notices from the log compared with the build before.
 
 ## 4. Wrap-up
 
-- [ ] 4.1 `manual-checks.md` with every check above and the ride steps for the maintainer: a ride on each phone with a wrong turn, a way back, and arriving. `./gradlew check` and `npx @fission-ai/openspec validate --all` pass. No CHANGELOG entry unless the ride finds a difference, as nothing is meant to change for riders.
+- [x] 4.1 `manual-checks.md` with every check above and the ride steps for the maintainer: a ride on each phone with a wrong turn, a way back, and arriving. `./gradlew check` and `npx @fission-ai/openspec validate --all` pass. No CHANGELOG entry unless the ride finds a difference, as nothing is meant to change for riders.
 
 ## Workflow follow-up
 
