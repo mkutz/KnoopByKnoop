@@ -2,8 +2,8 @@
 
 ## 1. Shared geometry
 
-- [ ] 1.1 `Geo.kt` with `Polyline` (`meters`, `length`, `pointAt`, `stretch`, `nearest`), `METERS_PER_DEGREE`, `boxAround`, `bearing`, `signedAngle`, `angleBetween`; `distanceMeters` public. Tests in `GeoTest`: ends clamped, zero-length segments, reversed stretches, nearest before the start and past the end, a position beside a corner, bearings in all four quadrants and across north, signed angles across ±180°.
-- [ ] 1.2 Before replacing anything: run the replay (`openspec/changes/archive/…-move-navigation-loop-to-core/checks/Replay.kt`, or its copy if that change is not archived yet) on the current build and keep its output, and write the published geometry files through `read` and `toBytes` and keep the bytes.
+- [x] 1.1 `Geo.kt` with `Polyline` (`meters`, `length`, `pointAt`, `stretch`, `nearest`), `METERS_PER_DEGREE`, `boxAround`, `bearing`, `signedAngle`, `angleBetween`; `distanceMeters` public. Tests in `GeoTest`: ends clamped, zero-length segments, reversed stretches, nearest before the start and past the end, a position beside a corner, bearings in all four quadrants and across north, signed angles across ±180°.
+- [x] 1.2 Before replacing anything: run the replay (`openspec/changes/archive/…-move-navigation-loop-to-core/checks/Replay.kt`, or its copy if that change is not archived yet) on the current build and keep its output, and write the published geometry files through `read` and `toBytes` and keep the bytes.
 
 ## 2. Use it
 

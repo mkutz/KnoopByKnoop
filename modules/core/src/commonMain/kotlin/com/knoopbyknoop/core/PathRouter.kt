@@ -960,14 +960,6 @@ internal fun heading(from: GeoPoint, to: GeoPoint): Double {
   return atan2(x, y) * 180 / PI
 }
 
-/** From [from] to [to] in degrees: negative to the left, positive to the right. */
-internal fun signedAngle(from: Double, to: Double): Double {
-  var angle = (to - from) % 360
-  if (angle > 180) angle -= 360
-  if (angle < -180) angle += 360
-  return angle
-}
-
 /** The point on the line from [from] to [to] nearest to [place], in a local flat projection. */
 internal fun nearestOnLine(place: GeoPoint, from: GeoPoint, to: GeoPoint): GeoPoint {
   val scale = cos(place.latitude * PI / 180)

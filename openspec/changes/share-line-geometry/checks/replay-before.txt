@@ -1,0 +1,908 @@
+notice: Next 08
+line: 4.6 km to the end | 08 is the end | rider 0.000 | way -
+precision: LIVE
+line: 4.6 km to the end | 08 is the end | rider 0.003 | way -
+precision: LIVE
+line: 4.6 km to the end | 08 is the end | rider 0.005 | way -
+precision: LIVE
+line: 4.6 km to the end | 08 is the end | rider 0.008 | way -
+precision: LIVE
+line: 4.6 km to the end | 08 is the end | rider 0.010 | way -
+precision: LIVE
+line: 4.6 km to the end | 08 is the end | rider 0.013 | way -
+precision: LIVE
+line: 4.6 km to the end | 08 is the end | rider 0.016 | way -
+precision: LIVE
+line: 4.6 km to the end | 08 is the end | rider 0.018 | way -
+precision: LIVE
+line: 4.6 km to the end | 08 is the end | rider 0.021 | way -
+precision: LIVE
+line: 4.5 km to the end | 08 is the end | rider 0.024 | way -
+precision: LIVE
+line: 4.5 km to the end | 08 is the end | rider 0.026 | way -
+precision: LIVE
+line: 4.5 km to the end | 08 is the end | rider 0.029 | way -
+precision: LIVE
+line: 4.5 km to the end | 08 is the end | rider 0.031 | way -
+precision: LIVE
+line: 4.5 km to the end | 08 is the end | rider 0.034 | way -
+precision: LIVE
+line: 4.5 km to the end | 08 is the end | rider 0.037 | way -
+precision: LIVE
+line: 4.5 km to the end | 08 is the end | rider 0.039 | way -
+precision: LIVE
+line: 4.5 km to the end | 08 is the end | rider 0.042 | way -
+precision: LIVE
+line: 4.5 km to the end | 08 is the end | rider 0.045 | way -
+precision: LIVE
+line: 4.4 km to the end | 08 is the end | rider 0.047 | way -
+precision: LIVE
+line: 4.4 km to the end | 08 is the end | rider 0.050 | way -
+precision: LIVE
+line: 4.4 km to the end | 08 is the end | rider 0.052 | way -
+precision: LIVE
+line: 4.4 km to the end | 08 is the end | rider 0.055 | way -
+precision: LIVE
+line: 4.4 km to the end | 08 is the end | rider 0.058 | way -
+precision: LIVE
+line: 4.4 km to the end | 08 is the end | rider 0.060 | way -
+precision: LIVE
+line: 4.4 km to the end | 08 is the end | rider 0.063 | way -
+precision: LIVE
+line: 4.4 km to the end | 08 is the end | rider 0.066 | way -
+precision: LIVE
+line: 4.4 km to the end | 08 is the end | rider 0.068 | way -
+precision: LIVE
+line: 4.3 km to the end | 08 is the end | rider 0.071 | way -
+precision: LIVE
+line: 4.3 km to the end | 08 is the end | rider 0.073 | way -
+precision: LIVE
+line: 4.3 km to the end | 08 is the end | rider 0.076 | way -
+precision: LIVE
+line: 4.3 km to the end | 08 is the end | rider 0.079 | way -
+precision: LIVE
+line: 4.3 km to the end | 08 is the end | rider 0.081 | way -
+precision: LIVE
+line: 4.3 km to the end | 08 is the end | rider 0.084 | way -
+precision: LIVE
+line: 4.3 km to the end | 08 is the end | rider 0.087 | way -
+precision: LIVE
+line: 4.3 km to the end | 08 is the end | rider 0.089 | way -
+precision: LIVE
+line: 4.3 km to the end | 08 is the end | rider 0.092 | way -
+precision: LIVE
+line: 4.1 km to the end | 08 is the end | rider 0.094 | way -
+precision: LIVE
+line: 4.1 km to the end | 08 is the end | rider 0.097 | way -
+precision: LIVE
+line: 4.1 km to the end | 08 is the end | rider 0.100 | way -
+precision: LIVE
+line: 4.1 km to the end | 08 is the end | rider 0.102 | way -
+precision: LIVE
+line: 4.1 km to the end | 08 is the end | rider 0.105 | way -
+precision: LIVE
+line: 4.1 km to the end | 08 is the end | rider 0.108 | way -
+precision: LIVE
+line: 4.1 km to the end | 08 is the end | rider 0.110 | way -
+precision: LIVE
+line: 4.1 km to the end | 08 is the end | rider 0.113 | way -
+precision: LIVE
+line: 4.1 km to the end | 08 is the end | rider 0.115 | way -
+precision: LIVE
+line: 4.0 km to the end | 08 is the end | rider 0.118 | way -
+precision: LIVE
+line: 4.0 km to the end | 08 is the end | rider 0.121 | way -
+precision: LIVE
+line: 4.0 km to the end | 08 is the end | rider 0.123 | way -
+precision: LIVE
+line: 4.0 km to the end | 08 is the end | rider 0.126 | way -
+precision: LIVE
+line: 4.0 km to the end | 08 is the end | rider 0.129 | way -
+precision: LIVE
+line: 4.0 km to the end | 08 is the end | rider 0.131 | way -
+precision: LIVE
+line: 4.0 km to the end | 08 is the end | rider 0.134 | way -
+precision: LIVE
+line: 4.0 km to the end | 08 is the end | rider 0.136 | way -
+precision: LIVE
+line: 4.0 km to the end | 08 is the end | rider 0.139 | way -
+precision: LIVE
+line: 3.9 km to the end | 08 is the end | rider 0.142 | way -
+precision: LIVE
+line: 3.9 km to the end | 08 is the end | rider 0.144 | way -
+precision: LIVE
+line: 3.9 km to the end | 08 is the end | rider 0.147 | way -
+precision: LIVE
+line: 3.9 km to the end | 08 is the end | rider 0.150 | way -
+precision: LIVE
+line: 3.9 km to the end | 08 is the end | rider 0.152 | way -
+precision: LIVE
+line: 3.9 km to the end | 08 is the end | rider 0.155 | way -
+precision: LIVE
+line: 3.9 km to the end | 08 is the end | rider 0.157 | way -
+precision: LIVE
+line: 3.9 km to the end | 08 is the end | rider 0.160 | way -
+precision: LIVE
+line: 3.9 km to the end | 08 is the end | rider 0.163 | way -
+precision: LIVE
+line: 3.8 km to the end | 08 is the end | rider 0.165 | way -
+precision: LIVE
+line: 3.8 km to the end | 08 is the end | rider 0.168 | way -
+precision: LIVE
+line: 3.8 km to the end | 08 is the end | rider 0.171 | way -
+precision: LIVE
+line: 3.8 km to the end | 08 is the end | rider 0.173 | way -
+precision: LIVE
+line: 3.8 km to the end | 08 is the end | rider 0.176 | way -
+precision: LIVE
+line: 3.8 km to the end | 08 is the end | rider 0.178 | way -
+precision: LIVE
+line: 3.8 km to the end | 08 is the end | rider 0.181 | way -
+precision: LIVE
+line: 3.8 km to the end | 08 is the end | rider 0.184 | way -
+precision: LIVE
+line: 3.8 km to the end | 08 is the end | rider 0.186 | way -
+precision: LIVE
+line: 3.7 km to the end | 08 is the end | rider 0.189 | way -
+precision: LIVE
+line: 3.7 km to the end | 08 is the end | rider 0.192 | way -
+precision: LIVE
+line: 3.7 km to the end | 08 is the end | rider 0.194 | way -
+precision: LIVE
+line: 3.7 km to the end | 08 is the end | rider 0.197 | way -
+precision: LIVE
+line: 3.7 km to the end | 08 is the end | rider 0.199 | way -
+precision: LIVE
+line: 3.7 km to the end | 08 is the end | rider 0.202 | way -
+precision: LIVE
+line: 3.7 km to the end | 08 is the end | rider 0.205 | way -
+precision: LIVE
+line: 3.7 km to the end | 08 is the end | rider 0.207 | way -
+precision: LIVE
+line: 3.7 km to the end | 08 is the end | rider 0.210 | way -
+precision: LIVE
+line: 3.6 km to the end | 08 is the end | rider 0.213 | way -
+precision: LIVE
+line: 3.6 km to the end | 08 is the end | rider 0.215 | way -
+precision: LIVE
+line: 3.6 km to the end | 08 is the end | rider 0.218 | way -
+precision: LIVE
+line: 3.6 km to the end | 08 is the end | rider 0.220 | way -
+precision: LIVE
+line: 3.6 km to the end | 08 is the end | rider 0.223 | way -
+precision: LIVE
+line: 3.6 km to the end | 08 is the end | rider 0.226 | way -
+precision: LIVE
+line: 3.6 km to the end | 08 is the end | rider 0.228 | way -
+precision: LIVE
+line: 3.6 km to the end | 08 is the end | rider 0.231 | way -
+precision: LIVE
+line: 3.6 km to the end | 08 is the end | rider 0.233 | way -
+precision: LIVE
+line: 3.5 km to the end | 08 is the end | rider 0.236 | way -
+precision: LIVE
+line: 3.5 km to the end | 08 is the end | rider 0.239 | way -
+precision: LIVE
+line: 3.5 km to the end | 08 is the end | rider 0.241 | way -
+precision: LIVE
+line: 3.5 km to the end | 08 is the end | rider 0.244 | way -
+precision: LIVE
+line: 3.5 km to the end | 08 is the end | rider 0.247 | way -
+precision: LIVE
+line: 3.5 km to the end | 08 is the end | rider 0.249 | way -
+precision: LIVE
+line: 3.5 km to the end | 08 is the end | rider 0.252 | way -
+precision: LIVE
+line: 3.5 km to the end | 08 is the end | rider 0.254 | way -
+precision: LIVE
+line: 3.5 km to the end | 08 is the end | rider 0.257 | way -
+precision: LIVE
+line: 3.4 km to the end | 08 is the end | rider 0.260 | way -
+precision: LIVE
+line: 3.4 km to the end | 08 is the end | rider 0.262 | way -
+precision: LIVE
+line: 3.4 km to the end | 08 is the end | rider 0.263 | way -
+precision: LIVE
+line: 3.4 km to the end | 08 is the end | rider 0.263 | way -
+precision: LIVE
+line: 3.4 km to the end | 08 is the end | rider 0.263 | way -
+precision: LIVE
+line: 3.4 km to the end | 08 is the end | rider 0.264 | way -
+precision: LIVE
+line: 3.4 km to the end | 08 is the end | rider 0.264 | way -
+precision: LIVE
+line: 3.4 km to the end | 08 is the end | rider 0.264 | way -
+precision: LIVE
+line: 3.4 km to the end | 08 is the end | rider 0.264 | way -
+precision: LIVE
+line: 3.4 km to the end | 08 is the end | rider 0.265 | way -
+precision: LIVE
+notice: Off route, next 08, 3.0 km to the east
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way -
+precision: LIVE
+way: 140 m, 0 turns
+shown: way
+notice: Turn back now
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 140 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 160 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 180 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 190 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 200 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 210 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 220 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 240 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 250 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 260 m
+precision: LIVE
+way: 357 m, 1 turns
+shown: way
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 360 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 380 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 390 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 410 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 420 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 430 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 440 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 450 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 470 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 480 m
+precision: LIVE
+way: 513 m, 1 turns
+shown: way
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 510 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 540 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 550 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 560 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 550 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 540 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 510 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 510 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 510 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 530 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 550 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Turn back · 560 m
+precision: LIVE
+way: 449 m, 1 turns
+shown: way
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Left in 380 m · 450 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Left in 400 m · 470 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Left in 410 m · 480 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Left in 420 m · 490 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Left in 430 m · 500 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Left in 450 m · 520 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Left in 450 m · 520 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Left in 440 m · 520 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Left in 440 m · 510 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Left in 440 m · 510 m
+precision: LIVE
+way: 217 m, 0 turns
+shown: way
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Follow the way · 210 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Follow the way · 190 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Follow the way · 180 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Follow the way · 170 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Follow the way · 160 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Follow the way · 150 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Follow the way · 130 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Follow the way · 120 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Follow the way · 110 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Follow the way · 100 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Follow the way · 110 m
+precision: LIVE
+line: 3.0 km east to 08 | 08 is the end | rider 0.265 | way Follow the way · 100 m
+precision: LIVE
+notice: Back on route, next 08
+line: 3.4 km to the end | 08 is the end | rider 0.263 | way -
+precision: LIVE
+line: 3.4 km to the end | 08 is the end | rider 0.263 | way -
+precision: LIVE
+line: 3.4 km to the end | 08 is the end | rider 0.262 | way -
+precision: LIVE
+line: 3.4 km to the end | 08 is the end | rider 0.265 | way -
+precision: LIVE
+line: 3.4 km to the end | 08 is the end | rider 0.268 | way -
+precision: LIVE
+line: 3.4 km to the end | 08 is the end | rider 0.270 | way -
+precision: LIVE
+line: 3.4 km to the end | 08 is the end | rider 0.273 | way -
+precision: LIVE
+line: 3.4 km to the end | 08 is the end | rider 0.275 | way -
+precision: LIVE
+line: 3.4 km to the end | 08 is the end | rider 0.278 | way -
+precision: LIVE
+line: 3.4 km to the end | 08 is the end | rider 0.281 | way -
+precision: LIVE
+line: 3.4 km to the end | 08 is the end | rider 0.283 | way -
+precision: LIVE
+line: 3.3 km to the end | 08 is the end | rider 0.286 | way -
+precision: LIVE
+line: 3.3 km to the end | 08 is the end | rider 0.289 | way -
+precision: LIVE
+line: 3.3 km to the end | 08 is the end | rider 0.291 | way -
+precision: LIVE
+line: 3.3 km to the end | 08 is the end | rider 0.294 | way -
+precision: LIVE
+line: 3.3 km to the end | 08 is the end | rider 0.296 | way -
+precision: LIVE
+line: 3.3 km to the end | 08 is the end | rider 0.299 | way -
+precision: LIVE
+line: 3.3 km to the end | 08 is the end | rider 0.302 | way -
+precision: LIVE
+line: 3.3 km to the end | 08 is the end | rider 0.304 | way -
+precision: LIVE
+line: 3.3 km to the end | 08 is the end | rider 0.307 | way -
+precision: LIVE
+line: 3.2 km to the end | 08 is the end | rider 0.310 | way -
+precision: LIVE
+line: 3.2 km to the end | 08 is the end | rider 0.312 | way -
+precision: LIVE
+line: 3.2 km to the end | 08 is the end | rider 0.315 | way -
+precision: LIVE
+line: 3.2 km to the end | 08 is the end | rider 0.317 | way -
+precision: LIVE
+line: 3.2 km to the end | 08 is the end | rider 0.320 | way -
+precision: LIVE
+line: 3.2 km to the end | 08 is the end | rider 0.323 | way -
+precision: LIVE
+line: 3.2 km to the end | 08 is the end | rider 0.325 | way -
+precision: LIVE
+line: 3.2 km to the end | 08 is the end | rider 0.328 | way -
+precision: LIVE
+line: 3.2 km to the end | 08 is the end | rider 0.331 | way -
+precision: LIVE
+line: 3.1 km to the end | 08 is the end | rider 0.333 | way -
+precision: LIVE
+line: 3.1 km to the end | 08 is the end | rider 0.336 | way -
+precision: LIVE
+line: 3.1 km to the end | 08 is the end | rider 0.338 | way -
+precision: LIVE
+line: 3.1 km to the end | 08 is the end | rider 0.341 | way -
+precision: LIVE
+line: 3.1 km to the end | 08 is the end | rider 0.344 | way -
+precision: LIVE
+line: 3.1 km to the end | 08 is the end | rider 0.346 | way -
+precision: LIVE
+line: 3.1 km to the end | 08 is the end | rider 0.349 | way -
+precision: LIVE
+line: 3.1 km to the end | 08 is the end | rider 0.352 | way -
+precision: LIVE
+line: 3.1 km to the end | 08 is the end | rider 0.354 | way -
+precision: LIVE
+line: 2.9 km to the end | 08 is the end | rider 0.357 | way -
+precision: LIVE
+line: 2.9 km to the end | 08 is the end | rider 0.359 | way -
+precision: LIVE
+line: 2.9 km to the end | 08 is the end | rider 0.362 | way -
+precision: LIVE
+line: 2.9 km to the end | 08 is the end | rider 0.365 | way -
+precision: LIVE
+line: 2.9 km to the end | 08 is the end | rider 0.367 | way -
+precision: LIVE
+line: 2.9 km to the end | 08 is the end | rider 0.370 | way -
+precision: LIVE
+line: 2.9 km to the end | 08 is the end | rider 0.373 | way -
+precision: LIVE
+line: 2.9 km to the end | 08 is the end | rider 0.375 | way -
+precision: LIVE
+line: 2.9 km to the end | 08 is the end | rider 0.378 | way -
+precision: LIVE
+line: 2.8 km to the end | 08 is the end | rider 0.380 | way -
+precision: LIVE
+line: 2.8 km to the end | 08 is the end | rider 0.383 | way -
+precision: LIVE
+line: 2.8 km to the end | 08 is the end | rider 0.386 | way -
+precision: LIVE
+line: 2.8 km to the end | 08 is the end | rider 0.388 | way -
+precision: LIVE
+line: 2.8 km to the end | 08 is the end | rider 0.391 | way -
+precision: LIVE
+line: 2.8 km to the end | 08 is the end | rider 0.394 | way -
+precision: LIVE
+line: 2.8 km to the end | 08 is the end | rider 0.396 | way -
+precision: LIVE
+line: 2.8 km to the end | 08 is the end | rider 0.399 | way -
+precision: LIVE
+line: 2.8 km to the end | 08 is the end | rider 0.401 | way -
+precision: LIVE
+line: 2.7 km to the end | 08 is the end | rider 0.404 | way -
+precision: LIVE
+line: 2.7 km to the end | 08 is the end | rider 0.407 | way -
+precision: LIVE
+line: 2.7 km to the end | 08 is the end | rider 0.409 | way -
+precision: LIVE
+line: 2.7 km to the end | 08 is the end | rider 0.412 | way -
+precision: LIVE
+line: 2.7 km to the end | 08 is the end | rider 0.415 | way -
+precision: LIVE
+line: 2.7 km to the end | 08 is the end | rider 0.417 | way -
+precision: LIVE
+line: 2.7 km to the end | 08 is the end | rider 0.420 | way -
+precision: LIVE
+line: 2.7 km to the end | 08 is the end | rider 0.422 | way -
+precision: LIVE
+line: 2.7 km to the end | 08 is the end | rider 0.425 | way -
+precision: LIVE
+line: 2.6 km to the end | 08 is the end | rider 0.428 | way -
+precision: LIVE
+line: 2.6 km to the end | 08 is the end | rider 0.430 | way -
+precision: LIVE
+line: 2.6 km to the end | 08 is the end | rider 0.433 | way -
+precision: LIVE
+line: 2.6 km to the end | 08 is the end | rider 0.436 | way -
+precision: LIVE
+line: 2.6 km to the end | 08 is the end | rider 0.438 | way -
+precision: LIVE
+line: 2.6 km to the end | 08 is the end | rider 0.441 | way -
+precision: LIVE
+line: 2.6 km to the end | 08 is the end | rider 0.443 | way -
+precision: LIVE
+line: 2.6 km to the end | 08 is the end | rider 0.446 | way -
+precision: LIVE
+line: 2.6 km to the end | 08 is the end | rider 0.449 | way -
+precision: LIVE
+line: 2.5 km to the end | 08 is the end | rider 0.451 | way -
+precision: LIVE
+line: 2.5 km to the end | 08 is the end | rider 0.454 | way -
+precision: LIVE
+line: 2.5 km to the end | 08 is the end | rider 0.457 | way -
+precision: LIVE
+line: 2.5 km to the end | 08 is the end | rider 0.459 | way -
+precision: LIVE
+line: 2.5 km to the end | 08 is the end | rider 0.462 | way -
+precision: LIVE
+line: 2.5 km to the end | 08 is the end | rider 0.464 | way -
+precision: LIVE
+line: 2.5 km to the end | 08 is the end | rider 0.467 | way -
+precision: LIVE
+line: 2.5 km to the end | 08 is the end | rider 0.470 | way -
+precision: LIVE
+line: 2.5 km to the end | 08 is the end | rider 0.472 | way -
+precision: LIVE
+line: 2.4 km to the end | 08 is the end | rider 0.475 | way -
+precision: LIVE
+line: 2.4 km to the end | 08 is the end | rider 0.477 | way -
+precision: LIVE
+line: 2.4 km to the end | 08 is the end | rider 0.480 | way -
+precision: LIVE
+line: 2.4 km to the end | 08 is the end | rider 0.483 | way -
+precision: LIVE
+line: 2.4 km to the end | 08 is the end | rider 0.485 | way -
+precision: LIVE
+line: 2.4 km to the end | 08 is the end | rider 0.488 | way -
+precision: LIVE
+line: 2.4 km to the end | 08 is the end | rider 0.491 | way -
+precision: LIVE
+line: 2.4 km to the end | 08 is the end | rider 0.493 | way -
+precision: LIVE
+line: 2.4 km to the end | 08 is the end | rider 0.496 | way -
+precision: LIVE
+line: 2.3 km to the end | 08 is the end | rider 0.498 | way -
+precision: LIVE
+line: 2.3 km to the end | 08 is the end | rider 0.501 | way -
+precision: LIVE
+line: 2.3 km to the end | 08 is the end | rider 0.504 | way -
+precision: LIVE
+line: 2.3 km to the end | 08 is the end | rider 0.506 | way -
+precision: LIVE
+line: 2.3 km to the end | 08 is the end | rider 0.509 | way -
+precision: LIVE
+line: 2.3 km to the end | 08 is the end | rider 0.512 | way -
+precision: LIVE
+line: 2.3 km to the end | 08 is the end | rider 0.514 | way -
+precision: LIVE
+line: 2.3 km to the end | 08 is the end | rider 0.517 | way -
+precision: LIVE
+line: 2.3 km to the end | 08 is the end | rider 0.519 | way -
+precision: LIVE
+line: 2.2 km to the end | 08 is the end | rider 0.522 | way -
+precision: LIVE
+line: 2.2 km to the end | 08 is the end | rider 0.525 | way -
+precision: LIVE
+line: 2.2 km to the end | 08 is the end | rider 0.527 | way -
+precision: LIVE
+line: 2.2 km to the end | 08 is the end | rider 0.530 | way -
+precision: LIVE
+line: 2.2 km to the end | 08 is the end | rider 0.533 | way -
+precision: LIVE
+line: 2.2 km to the end | 08 is the end | rider 0.535 | way -
+precision: LIVE
+line: 2.2 km to the end | 08 is the end | rider 0.538 | way -
+precision: LIVE
+line: 2.2 km to the end | 08 is the end | rider 0.540 | way -
+precision: LIVE
+line: 2.2 km to the end | 08 is the end | rider 0.543 | way -
+precision: LIVE
+line: 2.1 km to the end | 08 is the end | rider 0.546 | way -
+precision: LIVE
+line: 2.1 km to the end | 08 is the end | rider 0.548 | way -
+precision: LIVE
+line: 2.1 km to the end | 08 is the end | rider 0.551 | way -
+precision: LIVE
+line: 2.1 km to the end | 08 is the end | rider 0.554 | way -
+precision: LIVE
+line: 2.1 km to the end | 08 is the end | rider 0.556 | way -
+precision: LIVE
+line: 2.1 km to the end | 08 is the end | rider 0.559 | way -
+precision: LIVE
+line: 2.1 km to the end | 08 is the end | rider 0.561 | way -
+precision: LIVE
+line: 2.1 km to the end | 08 is the end | rider 0.564 | way -
+precision: LIVE
+line: 2.1 km to the end | 08 is the end | rider 0.567 | way -
+precision: LIVE
+line: 2.0 km to the end | 08 is the end | rider 0.569 | way -
+precision: LIVE
+line: 2.0 km to the end | 08 is the end | rider 0.572 | way -
+precision: LIVE
+line: 2.0 km to the end | 08 is the end | rider 0.575 | way -
+precision: LIVE
+line: 2.0 km to the end | 08 is the end | rider 0.577 | way -
+precision: LIVE
+line: 2.0 km to the end | 08 is the end | rider 0.580 | way -
+precision: LIVE
+line: 2.0 km to the end | 08 is the end | rider 0.582 | way -
+precision: LIVE
+line: 2.0 km to the end | 08 is the end | rider 0.585 | way -
+precision: LIVE
+line: 2.0 km to the end | 08 is the end | rider 0.588 | way -
+precision: LIVE
+line: 2.0 km to the end | 08 is the end | rider 0.590 | way -
+precision: LIVE
+line: 1.9 km to the end | 08 is the end | rider 0.593 | way -
+precision: LIVE
+line: 1.9 km to the end | 08 is the end | rider 0.596 | way -
+precision: LIVE
+line: 1.9 km to the end | 08 is the end | rider 0.598 | way -
+precision: LIVE
+line: 1.9 km to the end | 08 is the end | rider 0.601 | way -
+precision: LIVE
+line: 1.9 km to the end | 08 is the end | rider 0.603 | way -
+precision: LIVE
+line: 1.9 km to the end | 08 is the end | rider 0.606 | way -
+precision: LIVE
+line: 1.9 km to the end | 08 is the end | rider 0.609 | way -
+precision: LIVE
+line: 1.9 km to the end | 08 is the end | rider 0.611 | way -
+precision: LIVE
+line: 1.9 km to the end | 08 is the end | rider 0.614 | way -
+precision: LIVE
+line: 1.8 km to the end | 08 is the end | rider 0.617 | way -
+precision: LIVE
+line: 1.8 km to the end | 08 is the end | rider 0.619 | way -
+precision: LIVE
+line: 1.8 km to the end | 08 is the end | rider 0.622 | way -
+precision: LIVE
+line: 1.8 km to the end | 08 is the end | rider 0.624 | way -
+precision: LIVE
+line: 1.8 km to the end | 08 is the end | rider 0.627 | way -
+precision: LIVE
+line: 1.8 km to the end | 08 is the end | rider 0.630 | way -
+precision: LIVE
+line: 1.8 km to the end | 08 is the end | rider 0.632 | way -
+precision: LIVE
+line: 1.8 km to the end | 08 is the end | rider 0.635 | way -
+precision: LIVE
+line: 1.8 km to the end | 08 is the end | rider 0.638 | way -
+precision: LIVE
+line: 1.6 km to the end | 08 is the end | rider 0.640 | way -
+precision: LIVE
+line: 1.6 km to the end | 08 is the end | rider 0.643 | way -
+precision: LIVE
+line: 1.6 km to the end | 08 is the end | rider 0.645 | way -
+precision: LIVE
+line: 1.6 km to the end | 08 is the end | rider 0.648 | way -
+precision: LIVE
+line: 1.6 km to the end | 08 is the end | rider 0.651 | way -
+precision: LIVE
+line: 1.6 km to the end | 08 is the end | rider 0.653 | way -
+precision: LIVE
+line: 1.6 km to the end | 08 is the end | rider 0.656 | way -
+precision: LIVE
+line: 1.6 km to the end | 08 is the end | rider 0.659 | way -
+precision: LIVE
+line: 1.6 km to the end | 08 is the end | rider 0.661 | way -
+precision: LIVE
+line: 1.5 km to the end | 08 is the end | rider 0.664 | way -
+precision: LIVE
+line: 1.5 km to the end | 08 is the end | rider 0.666 | way -
+precision: LIVE
+line: 1.5 km to the end | 08 is the end | rider 0.669 | way -
+precision: LIVE
+line: 1.5 km to the end | 08 is the end | rider 0.672 | way -
+precision: LIVE
+line: 1.5 km to the end | 08 is the end | rider 0.674 | way -
+precision: LIVE
+line: 1.5 km to the end | 08 is the end | rider 0.677 | way -
+precision: LIVE
+line: 1.5 km to the end | 08 is the end | rider 0.679 | way -
+precision: LIVE
+line: 1.5 km to the end | 08 is the end | rider 0.682 | way -
+precision: LIVE
+line: 1.5 km to the end | 08 is the end | rider 0.685 | way -
+precision: LIVE
+line: 1.4 km to the end | 08 is the end | rider 0.687 | way -
+precision: LIVE
+line: 1.4 km to the end | 08 is the end | rider 0.690 | way -
+precision: LIVE
+line: 1.4 km to the end | 08 is the end | rider 0.693 | way -
+precision: LIVE
+line: 1.4 km to the end | 08 is the end | rider 0.695 | way -
+precision: LIVE
+line: 1.4 km to the end | 08 is the end | rider 0.698 | way -
+precision: LIVE
+line: 1.4 km to the end | 08 is the end | rider 0.700 | way -
+precision: LIVE
+line: 1.4 km to the end | 08 is the end | rider 0.703 | way -
+precision: LIVE
+line: 1.4 km to the end | 08 is the end | rider 0.706 | way -
+precision: LIVE
+line: 1.4 km to the end | 08 is the end | rider 0.708 | way -
+precision: LIVE
+line: 1.3 km to the end | 08 is the end | rider 0.711 | way -
+precision: LIVE
+line: 1.3 km to the end | 08 is the end | rider 0.714 | way -
+precision: LIVE
+line: 1.3 km to the end | 08 is the end | rider 0.716 | way -
+precision: LIVE
+line: 1.3 km to the end | 08 is the end | rider 0.719 | way -
+precision: LIVE
+line: 1.3 km to the end | 08 is the end | rider 0.721 | way -
+precision: LIVE
+line: 1.3 km to the end | 08 is the end | rider 0.724 | way -
+precision: LIVE
+line: 1.3 km to the end | 08 is the end | rider 0.727 | way -
+precision: LIVE
+line: 1.3 km to the end | 08 is the end | rider 0.729 | way -
+precision: LIVE
+line: 1.3 km to the end | 08 is the end | rider 0.732 | way -
+precision: LIVE
+line: 1.2 km to the end | 08 is the end | rider 0.735 | way -
+precision: LIVE
+line: 1.2 km to the end | 08 is the end | rider 0.737 | way -
+precision: LIVE
+line: 1.2 km to the end | 08 is the end | rider 0.740 | way -
+precision: LIVE
+line: 1.2 km to the end | 08 is the end | rider 0.742 | way -
+precision: LIVE
+line: 1.2 km to the end | 08 is the end | rider 0.745 | way -
+precision: LIVE
+line: 1.2 km to the end | 08 is the end | rider 0.748 | way -
+precision: LIVE
+line: 1.2 km to the end | 08 is the end | rider 0.750 | way -
+precision: LIVE
+line: 1.2 km to the end | 08 is the end | rider 0.753 | way -
+precision: LIVE
+line: 1.2 km to the end | 08 is the end | rider 0.756 | way -
+precision: LIVE
+line: 1.1 km to the end | 08 is the end | rider 0.758 | way -
+precision: LIVE
+line: 1.1 km to the end | 08 is the end | rider 0.761 | way -
+precision: LIVE
+line: 1.1 km to the end | 08 is the end | rider 0.763 | way -
+precision: LIVE
+line: 1.1 km to the end | 08 is the end | rider 0.766 | way -
+precision: LIVE
+line: 1.1 km to the end | 08 is the end | rider 0.769 | way -
+precision: LIVE
+line: 1.1 km to the end | 08 is the end | rider 0.771 | way -
+precision: LIVE
+line: 1.1 km to the end | 08 is the end | rider 0.774 | way -
+precision: LIVE
+line: 1.1 km to the end | 08 is the end | rider 0.777 | way -
+precision: LIVE
+line: 1.1 km to the end | 08 is the end | rider 0.779 | way -
+precision: LIVE
+line: 998 m to the end | 08 is the end | rider 0.782 | way -
+precision: LIVE
+line: 998 m to the end | 08 is the end | rider 0.784 | way -
+precision: LIVE
+line: 998 m to the end | 08 is the end | rider 0.787 | way -
+precision: LIVE
+line: 998 m to the end | 08 is the end | rider 0.790 | way -
+precision: LIVE
+line: 998 m to the end | 08 is the end | rider 0.792 | way -
+precision: LIVE
+line: 998 m to the end | 08 is the end | rider 0.795 | way -
+precision: LIVE
+line: 998 m to the end | 08 is the end | rider 0.798 | way -
+precision: LIVE
+line: 998 m to the end | 08 is the end | rider 0.800 | way -
+precision: LIVE
+line: 998 m to the end | 08 is the end | rider 0.803 | way -
+precision: LIVE
+line: 890 m to the end | 08 is the end | rider 0.805 | way -
+precision: LIVE
+line: 890 m to the end | 08 is the end | rider 0.808 | way -
+precision: LIVE
+line: 890 m to the end | 08 is the end | rider 0.811 | way -
+precision: LIVE
+line: 890 m to the end | 08 is the end | rider 0.813 | way -
+precision: LIVE
+line: 890 m to the end | 08 is the end | rider 0.816 | way -
+precision: LIVE
+line: 890 m to the end | 08 is the end | rider 0.819 | way -
+precision: LIVE
+line: 890 m to the end | 08 is the end | rider 0.821 | way -
+precision: LIVE
+line: 890 m to the end | 08 is the end | rider 0.824 | way -
+precision: LIVE
+line: 890 m to the end | 08 is the end | rider 0.826 | way -
+precision: LIVE
+line: 782 m to the end | 08 is the end | rider 0.829 | way -
+precision: LIVE
+line: 782 m to the end | 08 is the end | rider 0.832 | way -
+precision: LIVE
+line: 782 m to the end | 08 is the end | rider 0.834 | way -
+precision: LIVE
+line: 782 m to the end | 08 is the end | rider 0.837 | way -
+precision: LIVE
+line: 782 m to the end | 08 is the end | rider 0.840 | way -
+precision: LIVE
+line: 782 m to the end | 08 is the end | rider 0.842 | way -
+precision: LIVE
+line: 782 m to the end | 08 is the end | rider 0.845 | way -
+precision: LIVE
+line: 782 m to the end | 08 is the end | rider 0.847 | way -
+precision: LIVE
+line: 782 m to the end | 08 is the end | rider 0.850 | way -
+precision: LIVE
+line: 674 m to the end | 08 is the end | rider 0.853 | way -
+precision: LIVE
+line: 674 m to the end | 08 is the end | rider 0.855 | way -
+precision: LIVE
+line: 674 m to the end | 08 is the end | rider 0.858 | way -
+precision: LIVE
+line: 674 m to the end | 08 is the end | rider 0.861 | way -
+precision: LIVE
+line: 674 m to the end | 08 is the end | rider 0.863 | way -
+precision: LIVE
+line: 674 m to the end | 08 is the end | rider 0.866 | way -
+precision: LIVE
+line: 674 m to the end | 08 is the end | rider 0.868 | way -
+precision: LIVE
+line: 674 m to the end | 08 is the end | rider 0.871 | way -
+precision: LIVE
+line: 674 m to the end | 08 is the end | rider 0.874 | way -
+precision: LIVE
+line: 566 m to the end | 08 is the end | rider 0.876 | way -
+precision: LIVE
+line: 566 m to the end | 08 is the end | rider 0.879 | way -
+precision: LIVE
+line: 566 m to the end | 08 is the end | rider 0.881 | way -
+precision: LIVE
+line: 566 m to the end | 08 is the end | rider 0.884 | way -
+precision: LIVE
+line: 566 m to the end | 08 is the end | rider 0.887 | way -
+precision: LIVE
+line: 566 m to the end | 08 is the end | rider 0.889 | way -
+precision: LIVE
+line: 566 m to the end | 08 is the end | rider 0.892 | way -
+precision: LIVE
+line: 566 m to the end | 08 is the end | rider 0.895 | way -
+precision: LIVE
+line: 566 m to the end | 08 is the end | rider 0.897 | way -
+precision: LIVE
+line: 458 m to the end | 08 is the end | rider 0.900 | way -
+precision: LIVE
+line: 458 m to the end | 08 is the end | rider 0.902 | way -
+precision: LIVE
+line: 458 m to the end | 08 is the end | rider 0.905 | way -
+precision: LIVE
+line: 458 m to the end | 08 is the end | rider 0.908 | way -
+precision: LIVE
+line: 458 m to the end | 08 is the end | rider 0.910 | way -
+precision: LIVE
+line: 458 m to the end | 08 is the end | rider 0.913 | way -
+precision: LIVE
+line: 458 m to the end | 08 is the end | rider 0.916 | way -
+precision: LIVE
+line: 458 m to the end | 08 is the end | rider 0.918 | way -
+precision: LIVE
+line: 458 m to the end | 08 is the end | rider 0.921 | way -
+precision: LIVE
+line: 350 m to the end | 08 is the end | rider 0.923 | way -
+precision: LIVE
+line: 350 m to the end | 08 is the end | rider 0.926 | way -
+precision: LIVE
+line: 350 m to the end | 08 is the end | rider 0.929 | way -
+precision: LIVE
+line: 350 m to the end | 08 is the end | rider 0.931 | way -
+precision: LIVE
+line: 350 m to the end | 08 is the end | rider 0.934 | way -
+precision: LIVE
+line: 350 m to the end | 08 is the end | rider 0.937 | way -
+precision: LIVE
+line: 350 m to the end | 08 is the end | rider 0.939 | way -
+precision: LIVE
+line: 350 m to the end | 08 is the end | rider 0.942 | way -
+precision: LIVE
+line: 350 m to the end | 08 is the end | rider 0.944 | way -
+precision: LIVE
+line: 242 m to the end | 08 is the end | rider 0.947 | way -
+precision: LIVE
+line: 242 m to the end | 08 is the end | rider 0.950 | way -
+precision: LIVE
+line: 242 m to the end | 08 is the end | rider 0.952 | way -
+precision: LIVE
+line: 242 m to the end | 08 is the end | rider 0.955 | way -
+precision: LIVE
+notice: 08 ahead, the end
+line: 242 m to the end | 08 is the end | rider 0.958 | way -
+precision: LIVE
+line: 242 m to the end | 08 is the end | rider 0.960 | way -
+precision: LIVE
+line: 242 m to the end | 08 is the end | rider 0.963 | way -
+precision: LIVE
+line: 242 m to the end | 08 is the end | rider 0.965 | way -
+precision: LIVE
+line: 242 m to the end | 08 is the end | rider 0.968 | way -
+precision: LIVE
+line: 134 m to the end | 08 is the end | rider 0.971 | way -
+precision: LIVE
+line: 134 m to the end | 08 is the end | rider 0.973 | way -
+precision: LIVE
+line: 134 m to the end | 08 is the end | rider 0.976 | way -
+precision: LIVE
+line: 134 m to the end | 08 is the end | rider 0.979 | way -
+precision: LIVE
+line: 134 m to the end | 08 is the end | rider 0.981 | way -
+precision: LIVE
+line: 134 m to the end | 08 is the end | rider 0.984 | way -
+precision: LIVE
+line: 134 m to the end | 08 is the end | rider 0.986 | way -
+precision: LIVE
+line: 134 m to the end | 08 is the end | rider 0.989 | way -
+precision: LIVE
+line: 134 m to the end | 08 is the end | rider 0.992 | way -
+precision: LIVE
+notice: You've arrived
+line: 134 m to the end | 08 is the end | rider 0.992 | way -
+end after speech

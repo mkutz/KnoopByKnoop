@@ -1577,12 +1577,6 @@ private fun bearing(fix: Fix, point: GeoPoint): Double {
   return (atan2(y, x) * 180 / PI + 360) % 360
 }
 
-/** The smaller angle between two bearings. */
-private fun angleBetween(first: Double, second: Double): Double {
-  val difference = abs(first - second) % 360
-  return if (difference > 180) 360 - difference else difference
-}
-
 private fun wayTo(fix: Fix, point: GeoPoint, language: Language): Guidance {
   val bearing = bearing(fix, point)
   val distance = MapFeatures.formatDistance(distanceTo(fix, point).roundToInt(), language)

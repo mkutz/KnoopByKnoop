@@ -1,11 +1,8 @@
 package com.knoopbyknoop.core
 
 import kotlin.math.PI
-import kotlin.math.asin
 import kotlin.math.cos
 import kotlin.math.floor
-import kotlin.math.sin
-import kotlin.math.sqrt
 
 /**
  * Finds the knot nearest to a tapped position, see `map-planning`.
@@ -103,25 +100,4 @@ class KnotLocator(private val knots: Collection<Knot>) {
   private companion object {
     const val CELL_DEGREES = 0.01
   }
-}
-
-private const val EARTH_RADIUS_METERS = 6_371_008.8
-
-private const val METERS_PER_DEGREE = EARTH_RADIUS_METERS * PI / 180
-
-/** The great-circle distance between two positions. */
-internal fun distanceMeters(
-  fromLatitude: Double,
-  fromLongitude: Double,
-  toLatitude: Double,
-  toLongitude: Double,
-): Double {
-  val deltaLatitude = (toLatitude - fromLatitude) * PI / 180
-  val deltaLongitude = (toLongitude - fromLongitude) * PI / 180
-  val a =
-    sin(deltaLatitude / 2).let { it * it } +
-      cos(fromLatitude * PI / 180) *
-        cos(toLatitude * PI / 180) *
-        sin(deltaLongitude / 2).let { it * it }
-  return 2 * EARTH_RADIUS_METERS * asin(sqrt(a))
 }
