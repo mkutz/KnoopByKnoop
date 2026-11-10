@@ -1,0 +1,14 @@
+# Siegburg-Zange, 02 → 28, leaving the route to the south-west and going on 200 m beside it, near
+# paths, before joining it again further on: the way back to where the rider left rather than
+# ahead (walk 2026-11-09).
+area siegburg-zange
+route 81468719 59469043 1336813155
+along 0 1
+leg 1 0 750
+line 50.79008 7.18651
+line 50.79180 7.18408
+line 50.79301 7.18208
+line 50.79436 7.17862
+line 50.79582 7.17605
+line 50.79865 7.17578
+leg 1 2250 2990

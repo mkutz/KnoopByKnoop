@@ -1,0 +1,5 @@
+# Rhine at Lülsdorf, 15 → 83 → 27 → 83 → 30: a route visiting 83 twice, out to 27 and back; the
+# later visit must not be taken while passing it the first time (ride 2026-11-08).
+area rhine-luelsdorf
+route 248902813 796289866 249707327 796289866 1460235774
+along 0 4

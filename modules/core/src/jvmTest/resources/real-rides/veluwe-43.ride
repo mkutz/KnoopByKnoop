@@ -1,0 +1,6 @@
+# Veluwe, 42 → 43 → 06 with fixes scattered by up to 4 m: passing 43, a Dutch knot tagged on four
+# nodes.
+area veluwe-43
+route 26813679 26851924 27008348
+noise 4
+along 0 2

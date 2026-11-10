@@ -1,0 +1,5 @@
+# Titz, 06 → 08: the 448 fixes of change 3's replay, with a 400 m detour; the guided way back and
+# arriving. The same fixes as change 4's full-data replay, see task 3.1.
+area titz
+route 427779798 2518992736
+fixes titz-06-08.fixes

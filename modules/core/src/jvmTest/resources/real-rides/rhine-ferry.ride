@@ -1,0 +1,6 @@
+# Rhine at Lülsdorf, 12 → 21 → ferry → 20: the ferry Lülsdorf–Wesseling on the strip and in the
+# notices, the river crossed on the ferry's course (ride 2026-11-08: "Take the ferry to 20" idea).
+area rhine-luelsdorf
+clock 2027-06-16 18:35   # a Wednesday; the ferry runs until 19:00 on weekdays
+route 258347119 258347663 2032120439
+along 0 2

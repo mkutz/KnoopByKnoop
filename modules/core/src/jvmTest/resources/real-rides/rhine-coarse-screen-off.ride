@@ -1,0 +1,11 @@
+# Rhine at Lülsdorf, 12 → 21 with the screen off: a coarse fix of 80 m and one of 40 m accuracy,
+# both 120 m east of the course, while the rider stays on it; off route only with a precise fix
+# (ride 2026-11-08, false "off route" twice near 12/21).
+area rhine-luelsdorf
+route 258347119 258347663
+screen off
+leg 0 0 1500
+coarse 50.80730 7.02882
+leg 0 1500 2000
+coarse 50.81196 7.02766 40
+leg 0 2000 5583

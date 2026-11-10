@@ -40,6 +40,16 @@ Behavior is specified with OpenSpec before it is implemented:
 # iOS project (needs Xcode and XcodeGen)
 xcodegen --spec apps/ios/project.yml
 
+# Whole rides recorded as text (part of jvmTest): NavigationReplayTest on a synthetic network,
+# RealRideTest as scripted rides on cut-outs of the real data. After a deliberate change in what
+# riders get, delete the affected text in modules/core/src/jvmTest/resources/{navigation-rides,real-rides}/,
+# run the tests again (the first run records and fails) and review the difference.
+./gradlew :modules:core:jvmTest --tests 'com.knoopbyknoop.core.RealRideTest'
+
+# Cut an area of the published data again (boxes in modules/core/src/jvmTest/resources/real-areas/NOTICE)
+./gradlew :pipeline:installDist
+pipeline/build/install/pipeline/bin/pipeline cut <published-dir> <south> <west> <north> <east> modules/core/src/jvmTest/resources/real-areas/<area>
+
 # Validate specs, and check that every scenario has a test (also part of check)
 npx @fission-ai/openspec validate --all
 ./gradlew checkScenarios

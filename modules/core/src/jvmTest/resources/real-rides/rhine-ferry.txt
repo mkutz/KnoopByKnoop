@@ -1,0 +1,620 @@
+0 50.79402,7.02743 ±5 | NEXT Next 21, then 20; FERRY The ferry Personenfähre Lülsdorf-Wesseling closes at 19:00, shortly after you get there around 18:55 | LIVE | Next 21, 5.6 km, then 20 | 5.6 km to 21 · end around 19:00
+1 50.79411,7.02741 ±5 | LIVE | Next 21, 5.6 km, then 20 | 5.6 km to 21 · end around 19:00
+2 50.79420,7.02739 ±5 | LIVE | Next 21, 5.6 km, then 20 | 5.6 km to 21 · end around 19:00
+3 50.79429,7.02737 ±5 | LIVE | Next 21, 5.5 km, then 20 | 5.6 km to 21 · end around 19:00
+4 50.79437,7.02735 ±5 | LIVE | Next 21, 5.5 km, then 20 | 5.6 km to 21 · end around 19:00
+5 50.79446,7.02734 ±5 | LIVE | Next 21, 5.5 km, then 20 | 5.6 km to 21 · end around 19:00
+6 50.79455,7.02732 ±5 | LIVE | Next 21, 5.5 km, then 20 | 5.6 km to 21 · end around 19:00
+7 50.79464,7.02730 ±5 | LIVE | Next 21, 5.5 km, then 20 | 5.6 km to 21 · end around 19:00
+8 50.79473,7.02728 ±5 | LIVE | Next 21, 5.5 km, then 20 | 5.6 km to 21 · end around 19:00
+9 50.79482,7.02726 ±5 | LIVE | Next 21, 5.5 km, then 20 | 5.5 km to 21 · end around 19:00
+10 50.79491,7.02725 ±5 | LIVE | Next 21, 5.5 km, then 20 | 5.5 km to 21 · end around 19:00
+11 50.79500,7.02723 ±5 | LIVE | Next 21, 5.5 km, then 20 | 5.5 km to 21 · end around 19:00
+12 50.79509,7.02721 ±5 | LIVE | Next 21, 5.5 km, then 20 | 5.5 km to 21 · end around 19:00
+13 50.79518,7.02719 ±5 | LIVE | Next 21, 5.4 km, then 20 | 5.5 km to 21 · end around 19:00
+14 50.79527,7.02717 ±5 | LIVE | Next 21, 5.4 km, then 20 | 5.5 km to 21 · end around 19:00
+15 50.79536,7.02716 ±5 | LIVE | Next 21, 5.4 km, then 20 | 5.5 km to 21 · end around 19:00
+16 50.79545,7.02714 ±5 | LIVE | Next 21, 5.4 km, then 20 | 5.5 km to 21 · end around 19:00
+17 50.79553,7.02712 ±5 | LIVE | Next 21, 5.4 km, then 20 | 5.5 km to 21 · end around 19:00
+18 50.79562,7.02710 ±5 | LIVE | Next 21, 5.4 km, then 20 | 5.5 km to 21 · end around 19:00
+19 50.79571,7.02708 ±5 | LIVE | Next 21, 5.4 km, then 20 | 5.4 km to 21 · end around 19:00
+20 50.79580,7.02707 ±5 | LIVE | Next 21, 5.4 km, then 20 | 5.4 km to 21 · end around 19:00
+21 50.79589,7.02705 ±5 | LIVE | Next 21, 5.4 km, then 20 | 5.4 km to 21 · end around 19:00
+22 50.79598,7.02703 ±5 | LIVE | Next 21, 5.4 km, then 20 | 5.4 km to 21 · end around 19:00
+23 50.79607,7.02701 ±5 | LIVE | Next 21, 5.3 km, then 20 | 5.4 km to 21 · end around 19:00
+24 50.79616,7.02699 ±5 | LIVE | Next 21, 5.3 km, then 20 | 5.4 km to 21 · end around 19:00
+25 50.79625,7.02698 ±5 | LIVE | Next 21, 5.3 km, then 20 | 5.4 km to 21 · end around 19:00
+26 50.79634,7.02696 ±5 | LIVE | Next 21, 5.3 km, then 20 | 5.4 km to 21 · end around 19:00
+27 50.79643,7.02695 ±5 | LIVE | Next 21, 5.3 km, then 20 | 5.4 km to 21 · end around 19:00
+28 50.79652,7.02695 ±5 | LIVE | Next 21, 5.3 km, then 20 | 5.4 km to 21 · end around 19:00
+29 50.79661,7.02694 ±5 | LIVE | Next 21, 5.3 km, then 20 | 5.3 km to 21 · end around 19:00
+30 50.79670,7.02694 ±5 | LIVE | Next 21, 5.3 km, then 20 | 5.3 km to 21 · end around 19:00
+31 50.79679,7.02694 ±5 | LIVE | Next 21, 5.3 km, then 20 | 5.3 km to 21 · end around 19:00
+32 50.79688,7.02693 ±5 | LIVE | Next 21, 5.3 km, then 20 | 5.3 km to 21 · end around 19:00
+33 50.79697,7.02693 ±5 | LIVE | Next 21, 5.2 km, then 20 | 5.3 km to 21 · end around 19:00
+34 50.79706,7.02693 ±5 | LIVE | Next 21, 5.2 km, then 20 | 5.3 km to 21 · end around 19:00
+35 50.79715,7.02693 ±5 | LIVE | Next 21, 5.2 km, then 20 | 5.3 km to 21 · end around 19:00
+36 50.79724,7.02692 ±5 | LIVE | Next 21, 5.2 km, then 20 | 5.3 km to 21 · end around 19:00
+37 50.79733,7.02692 ±5 | LIVE | Next 21, 5.2 km, then 20 | 5.3 km to 21 · end around 19:00
+38 50.79742,7.02692 ±5 | LIVE | Next 21, 5.2 km, then 20 | 5.3 km to 21 · end around 19:00
+39 50.79751,7.02692 ±5 | LIVE | Next 21, 5.2 km, then 20 | 5.2 km to 21 · end around 19:00
+40 50.79760,7.02691 ±5 | LIVE | Next 21, 5.2 km, then 20 | 5.2 km to 21 · end around 19:00
+41 50.79769,7.02691 ±5 | LIVE | Next 21, 5.2 km, then 20 | 5.2 km to 21 · end around 19:00
+42 50.79778,7.02691 ±5 | LIVE | Next 21, 5.2 km, then 20 | 5.2 km to 21 · end around 19:00
+43 50.79787,7.02690 ±5 | LIVE | Next 21, 5.1 km, then 20 | 5.2 km to 21 · end around 19:00
+44 50.79796,7.02690 ±5 | LIVE | Next 21, 5.1 km, then 20 | 5.2 km to 21 · end around 19:00
+45 50.79805,7.02690 ±5 | LIVE | Next 21, 5.1 km, then 20 | 5.2 km to 21 · end around 19:00
+46 50.79814,7.02690 ±5 | LIVE | Next 21, 5.1 km, then 20 | 5.2 km to 21 · end around 19:00
+47 50.79823,7.02689 ±5 | LIVE | Next 21, 5.1 km, then 20 | 5.2 km to 21 · end around 19:00
+48 50.79832,7.02689 ±5 | LIVE | Next 21, 5.1 km, then 20 | 5.2 km to 21 · end around 19:00
+49 50.79841,7.02689 ±5 | LIVE | Next 21, 5.1 km, then 20 | 5.1 km to 21 · end around 19:00
+50 50.79850,7.02689 ±5 | LIVE | Next 21, 5.1 km, then 20 | 5.1 km to 21 · end around 19:00
+51 50.79859,7.02688 ±5 | LIVE | Next 21, 5.1 km, then 20 | 5.1 km to 21 · end around 19:00
+52 50.79868,7.02688 ±5 | LIVE | Next 21, 5.1 km, then 20 | 5.1 km to 21 · end around 19:00
+53 50.79877,7.02688 ±5 | LIVE | Next 21, 5.0 km, then 20 | 5.1 km to 21 · end around 19:00
+54 50.79886,7.02688 ±5 | LIVE | Next 21, 5.0 km, then 20 | 5.1 km to 21 · end around 19:00
+55 50.79895,7.02687 ±5 | LIVE | Next 21, 5.0 km, then 20 | 5.1 km to 21 · end around 19:00
+56 50.79904,7.02687 ±5 | LIVE | Next 21, 5.0 km, then 20 | 5.1 km to 21 · end around 19:00
+57 50.79913,7.02687 ±5 | LIVE | Next 21, 5.0 km, then 20 | 5.1 km to 21 · end around 19:00
+58 50.79922,7.02686 ±5 | LIVE | Next 21, 5.0 km, then 20 | 5.1 km to 21 · end around 19:00
+59 50.79931,7.02686 ±5 | LIVE | Next 21, 5.0 km, then 20 | 5.0 km to 21 · end around 19:00
+60 50.79939,7.02681 ±5 | LIVE | Next 21, 5.0 km, then 20 | 5.0 km to 21 · end around 19:00
+61 50.79947,7.02675 ±5 | LIVE | Next 21, 5.0 km, then 20 | 5.0 km to 21 · end around 19:00
+62 50.79955,7.02669 ±5 | LIVE | Next 21, 5.0 km, then 20 | 5.0 km to 21 · end around 19:00
+63 50.79964,7.02663 ±5 | LIVE | Next 21, 4.9 km, then 20 | 5.0 km to 21 · end around 19:00
+64 50.79971,7.02667 ±5 | LIVE | Next 21, 4.9 km, then 20 | 5.0 km to 21 · end around 19:00
+65 50.79978,7.02676 ±5 | LIVE | Next 21, 4.9 km, then 20 | 5.0 km to 21 · end around 19:00
+66 50.79985,7.02685 ±5 | LIVE | Next 21, 4.9 km, then 20 | 5.0 km to 21 · end around 19:00
+67 50.79992,7.02694 ±5 | LIVE | Next 21, 4.9 km, then 20 | 5.0 km to 21 · end around 19:00
+68 50.79999,7.02703 ±5 | LIVE | Next 21, 4.9 km, then 20 | 5.0 km to 21 · end around 19:00
+69 50.80007,7.02706 ±5 | LIVE | Next 21, 4.9 km, then 20 | 4.9 km to 21 · end around 19:00
+70 50.80016,7.02707 ±5 | LIVE | Next 21, 4.9 km, then 20 | 4.9 km to 21 · end around 19:00
+71 50.80025,7.02707 ±5 | LIVE | Next 21, 4.9 km, then 20 | 4.9 km to 21 · end around 19:00
+72 50.80034,7.02708 ±5 | LIVE | Next 21, 4.9 km, then 20 | 4.9 km to 21 · end around 19:00
+73 50.80043,7.02708 ±5 | LIVE | Next 21, 4.8 km, then 20 | 4.9 km to 21 · end around 19:00
+74 50.80052,7.02709 ±5 | LIVE | Next 21, 4.8 km, then 20 | 4.9 km to 21 · end around 19:00
+75 50.80061,7.02709 ±5 | LIVE | Next 21, 4.8 km, then 20 | 4.9 km to 21 · end around 19:00
+76 50.80070,7.02710 ±5 | LIVE | Next 21, 4.8 km, then 20 | 4.9 km to 21 · end around 19:00
+77 50.80079,7.02710 ±5 | LIVE | Next 21, 4.8 km, then 20 | 4.9 km to 21 · end around 19:00
+78 50.80088,7.02711 ±5 | LIVE | Next 21, 4.8 km, then 20 | 4.9 km to 21 · end around 19:00
+79 50.80097,7.02711 ±5 | LIVE | Next 21, 4.8 km, then 20 | 4.8 km to 21 · end around 19:00
+80 50.80106,7.02712 ±5 | LIVE | Next 21, 4.8 km, then 20 | 4.8 km to 21 · end around 19:00
+81 50.80115,7.02712 ±5 | LIVE | Next 21, 4.8 km, then 20 | 4.8 km to 21 · end around 19:00
+82 50.80124,7.02713 ±5 | LIVE | Next 21, 4.8 km, then 20 | 4.8 km to 21 · end around 19:00
+83 50.80133,7.02713 ±5 | LIVE | Next 21, 4.7 km, then 20 | 4.8 km to 21 · end around 19:00
+84 50.80142,7.02714 ±5 | LIVE | Next 21, 4.7 km, then 20 | 4.8 km to 21 · end around 19:00
+85 50.80151,7.02715 ±5 | LIVE | Next 21, 4.7 km, then 20 | 4.8 km to 21 · end around 19:00
+86 50.80160,7.02715 ±5 | LIVE | Next 21, 4.7 km, then 20 | 4.8 km to 21 · end around 19:00
+87 50.80169,7.02716 ±5 | LIVE | Next 21, 4.7 km, then 20 | 4.8 km to 21 · end around 19:00
+88 50.80178,7.02716 ±5 | LIVE | Next 21, 4.7 km, then 20 | 4.8 km to 21 · end around 19:00
+89 50.80187,7.02717 ±5 | LIVE | Next 21, 4.7 km, then 20 | 4.7 km to 21 · end around 19:00
+90 50.80196,7.02717 ±5 | LIVE | Next 21, 4.7 km, then 20 | 4.7 km to 21 · end around 19:00
+91 50.80205,7.02718 ±5 | LIVE | Next 21, 4.7 km, then 20 | 4.7 km to 21 · end around 19:00
+92 50.80214,7.02718 ±5 | LIVE | Next 21, 4.7 km, then 20 | 4.7 km to 21 · end around 19:00
+93 50.80223,7.02719 ±5 | LIVE | Next 21, 4.6 km, then 20 | 4.7 km to 21 · end around 19:00
+94 50.80232,7.02719 ±5 | LIVE | Next 21, 4.6 km, then 20 | 4.7 km to 21 · end around 19:00
+95 50.80241,7.02720 ±5 | LIVE | Next 21, 4.6 km, then 20 | 4.7 km to 21 · end around 19:00
+96 50.80250,7.02720 ±5 | LIVE | Next 21, 4.6 km, then 20 | 4.7 km to 21 · end around 19:00
+97 50.80259,7.02721 ±5 | LIVE | Next 21, 4.6 km, then 20 | 4.7 km to 21 · end around 19:00
+98 50.80268,7.02721 ±5 | LIVE | Next 21, 4.6 km, then 20 | 4.7 km to 21 · end around 19:00
+99 50.80277,7.02722 ±5 | LIVE | Next 21, 4.6 km, then 20 | 4.6 km to 21 · end around 19:00
+100 50.80286,7.02722 ±5 | LIVE | Next 21, 4.6 km, then 20 | 4.6 km to 21 · end around 19:00
+101 50.80295,7.02723 ±5 | LIVE | Next 21, 4.6 km, then 20 | 4.6 km to 21 · end around 19:00
+102 50.80304,7.02723 ±5 | LIVE | Next 21, 4.6 km, then 20 | 4.6 km to 21 · end around 19:00
+103 50.80313,7.02724 ±5 | LIVE | Next 21, 4.5 km, then 20 | 4.6 km to 21 · end around 19:00
+104 50.80322,7.02724 ±5 | LIVE | Next 21, 4.5 km, then 20 | 4.6 km to 21 · end around 19:00
+105 50.80331,7.02725 ±5 | LIVE | Next 21, 4.5 km, then 20 | 4.6 km to 21 · end around 19:00
+106 50.80340,7.02725 ±5 | LIVE | Next 21, 4.5 km, then 20 | 4.6 km to 21 · end around 19:00
+107 50.80349,7.02726 ±5 | LIVE | Next 21, 4.5 km, then 20 | 4.6 km to 21 · end around 19:00
+108 50.80358,7.02727 ±5 | LIVE | Next 21, 4.5 km, then 20 | 4.6 km to 21 · end around 19:00
+109 50.80367,7.02727 ±5 | LIVE | Next 21, 4.5 km, then 20 | 4.5 km to 21 · end around 19:00
+110 50.80376,7.02728 ±5 | LIVE | Next 21, 4.5 km, then 20 | 4.5 km to 21 · end around 19:00
+111 50.80385,7.02728 ±5 | LIVE | Next 21, 4.5 km, then 20 | 4.5 km to 21 · end around 19:00
+112 50.80394,7.02729 ±5 | LIVE | Next 21, 4.5 km, then 20 | 4.5 km to 21 · end around 19:00
+113 50.80403,7.02729 ±5 | LIVE | Next 21, 4.4 km, then 20 | 4.5 km to 21 · end around 19:00
+114 50.80412,7.02730 ±5 | LIVE | Next 21, 4.4 km, then 20 | 4.5 km to 21 · end around 19:00
+115 50.80421,7.02730 ±5 | LIVE | Next 21, 4.4 km, then 20 | 4.5 km to 21 · end around 19:00
+116 50.80430,7.02731 ±5 | LIVE | Next 21, 4.4 km, then 20 | 4.5 km to 21 · end around 19:00
+117 50.80439,7.02730 ±5 | LIVE | Next 21, 4.4 km, then 20 | 4.5 km to 21 · end around 19:00
+118 50.80448,7.02730 ±5 | LIVE | Next 21, 4.4 km, then 20 | 4.5 km to 21 · end around 19:00
+119 50.80457,7.02729 ±5 | LIVE | Next 21, 4.4 km, then 20 | 4.4 km to 21 · end around 19:00
+120 50.80466,7.02729 ±5 | LIVE | Next 21, 4.4 km, then 20 | 4.4 km to 21 · end around 19:00
+121 50.80475,7.02728 ±5 | LIVE | Next 21, 4.4 km, then 20 | 4.4 km to 21 · end around 19:00
+122 50.80484,7.02727 ±5 | LIVE | Next 21, 4.4 km, then 20 | 4.4 km to 21 · end around 19:00
+123 50.80493,7.02727 ±5 | LIVE | Next 21, 4.3 km, then 20 | 4.4 km to 21 · end around 19:00
+124 50.80502,7.02726 ±5 | LIVE | Next 21, 4.3 km, then 20 | 4.4 km to 21 · end around 19:00
+125 50.80511,7.02726 ±5 | LIVE | Next 21, 4.3 km, then 20 | 4.4 km to 21 · end around 19:00
+126 50.80519,7.02725 ±5 | LIVE | Next 21, 4.3 km, then 20 | 4.4 km to 21 · end around 19:00
+127 50.80528,7.02724 ±5 | LIVE | Next 21, 4.3 km, then 20 | 4.4 km to 21 · end around 19:00
+128 50.80537,7.02724 ±5 | LIVE | Next 21, 4.3 km, then 20 | 4.4 km to 21 · end around 19:00
+129 50.80546,7.02723 ±5 | LIVE | Next 21, 4.3 km, then 20 | 4.3 km to 21 · end around 19:00
+130 50.80555,7.02723 ±5 | LIVE | Next 21, 4.3 km, then 20 | 4.3 km to 21 · end around 19:00
+131 50.80564,7.02722 ±5 | LIVE | Next 21, 4.3 km, then 20 | 4.3 km to 21 · end around 19:00
+132 50.80573,7.02721 ±5 | LIVE | Next 21, 4.3 km, then 20 | 4.3 km to 21 · end around 19:00
+133 50.80582,7.02721 ±5 | LIVE | Next 21, 4.2 km, then 20 | 4.3 km to 21 · end around 19:00
+134 50.80591,7.02720 ±5 | LIVE | Next 21, 4.2 km, then 20 | 4.3 km to 21 · end around 19:00
+135 50.80600,7.02719 ±5 | LIVE | Next 21, 4.2 km, then 20 | 4.3 km to 21 · end around 19:00
+136 50.80609,7.02719 ±5 | LIVE | Next 21, 4.2 km, then 20 | 4.3 km to 21 · end around 19:00
+137 50.80618,7.02718 ±5 | LIVE | Next 21, 4.2 km, then 20 | 4.3 km to 21 · end around 19:00
+138 50.80627,7.02718 ±5 | LIVE | Next 21, 4.2 km, then 20 | 4.3 km to 21 · end around 19:00
+139 50.80636,7.02717 ±5 | LIVE | Next 21, 4.2 km, then 20 | 4.2 km to 21 · end around 19:00
+140 50.80645,7.02716 ±5 | LIVE | Next 21, 4.2 km, then 20 | 4.2 km to 21 · end around 19:00
+141 50.80654,7.02716 ±5 | LIVE | Next 21, 4.2 km, then 20 | 4.2 km to 21 · end around 19:00
+142 50.80663,7.02715 ±5 | LIVE | Next 21, 4.2 km, then 20 | 4.2 km to 21 · end around 19:00
+143 50.80672,7.02715 ±5 | LIVE | Next 21, 4.1 km, then 20 | 4.2 km to 21 · end around 19:00
+144 50.80681,7.02714 ±5 | LIVE | Next 21, 4.1 km, then 20 | 4.2 km to 21 · end around 19:00
+145 50.80690,7.02713 ±5 | LIVE | Next 21, 4.1 km, then 20 | 4.2 km to 21 · end around 19:00
+146 50.80699,7.02713 ±5 | LIVE | Next 21, 4.1 km, then 20 | 4.2 km to 21 · end around 19:00
+147 50.80708,7.02712 ±5 | LIVE | Next 21, 4.1 km, then 20 | 4.2 km to 21 · end around 19:00
+148 50.80717,7.02712 ±5 | LIVE | Next 21, 4.1 km, then 20 | 4.2 km to 21 · end around 19:00
+149 50.80726,7.02711 ±5 | LIVE | Next 21, 4.1 km, then 20 | 4.1 km to 21 · end around 19:00
+150 50.80735,7.02710 ±5 | LIVE | Next 21, 4.1 km, then 20 | 4.1 km to 21 · end around 19:00
+151 50.80744,7.02710 ±5 | LIVE | Next 21, 4.1 km, then 20 | 4.1 km to 21 · end around 19:00
+152 50.80753,7.02709 ±5 | LIVE | Next 21, 4.1 km, then 20 | 4.1 km to 21 · end around 19:00
+153 50.80762,7.02709 ±5 | LIVE | Next 21, 4.0 km, then 20 | 4.1 km to 21 · end around 19:00
+154 50.80771,7.02708 ±5 | LIVE | Next 21, 4.0 km, then 20 | 4.1 km to 21 · end around 19:00
+155 50.80780,7.02707 ±5 | LIVE | Next 21, 4.0 km, then 20 | 4.1 km to 21 · end around 19:00
+156 50.80789,7.02707 ±5 | LIVE | Next 21, 4.0 km, then 20 | 4.1 km to 21 · end around 19:00
+157 50.80798,7.02706 ±5 | LIVE | Next 21, 4.0 km, then 20 | 4.1 km to 21 · end around 19:00
+158 50.80807,7.02706 ±5 | LIVE | Next 21, 4.0 km, then 20 | 4.1 km to 21 · end around 19:00
+159 50.80816,7.02705 ±5 | LIVE | Next 21, 4.0 km, then 20 | 4.0 km to 21 · end around 19:00
+160 50.80825,7.02704 ±5 | LIVE | Next 21, 4.0 km, then 20 | 4.0 km to 21 · end around 19:00
+161 50.80834,7.02703 ±5 | LIVE | Next 21, 4.0 km, then 20 | 4.0 km to 21 · end around 19:00
+162 50.80843,7.02701 ±5 | LIVE | Next 21, 4.0 km, then 20 | 4.0 km to 21 · end around 19:00
+163 50.80852,7.02699 ±5 | LIVE | Next 21, 3.9 km, then 20 | 4.0 km to 21 · end around 19:00
+164 50.80861,7.02697 ±5 | LIVE | Next 21, 3.9 km, then 20 | 4.0 km to 21 · end around 19:00
+165 50.80870,7.02695 ±5 | LIVE | Next 21, 3.9 km, then 20 | 4.0 km to 21 · end around 19:00
+166 50.80879,7.02693 ±5 | LIVE | Next 21, 3.9 km, then 20 | 4.0 km to 21 · end around 19:00
+167 50.80888,7.02692 ±5 | LIVE | Next 21, 3.9 km, then 20 | 4.0 km to 21 · end around 19:00
+168 50.80897,7.02690 ±5 | LIVE | Next 21, 3.9 km, then 20 | 4.0 km to 21 · end around 19:00
+169 50.80905,7.02688 ±5 | LIVE | Next 21, 3.9 km, then 20 | 3.9 km to 21 · end around 19:00
+170 50.80914,7.02686 ±5 | LIVE | Next 21, 3.9 km, then 20 | 3.9 km to 21 · end around 19:00
+171 50.80923,7.02684 ±5 | LIVE | Next 21, 3.9 km, then 20 | 3.9 km to 21 · end around 19:00
+172 50.80932,7.02682 ±5 | LIVE | Next 21, 3.9 km, then 20 | 3.9 km to 21 · end around 19:00
+173 50.80941,7.02680 ±5 | LIVE | Next 21, 3.8 km, then 20 | 3.9 km to 21 · end around 19:00
+174 50.80950,7.02679 ±5 | LIVE | Next 21, 3.8 km, then 20 | 3.9 km to 21 · end around 19:00
+175 50.80959,7.02677 ±5 | LIVE | Next 21, 3.8 km, then 20 | 3.9 km to 21 · end around 19:00
+176 50.80968,7.02675 ±5 | LIVE | Next 21, 3.8 km, then 20 | 3.9 km to 21 · end around 19:00
+177 50.80977,7.02673 ±5 | LIVE | Next 21, 3.8 km, then 20 | 3.9 km to 21 · end around 19:00
+178 50.80986,7.02671 ±5 | LIVE | Next 21, 3.8 km, then 20 | 3.9 km to 21 · end around 19:00
+179 50.80995,7.02669 ±5 | LIVE | Next 21, 3.8 km, then 20 | 3.8 km to 21 · end around 19:00
+180 50.81004,7.02668 ±5 | LIVE | Next 21, 3.8 km, then 20 | 3.8 km to 21 · end around 19:00
+181 50.81013,7.02666 ±5 | LIVE | Next 21, 3.8 km, then 20 | 3.8 km to 21 · end around 19:00
+182 50.81021,7.02663 ±5 | LIVE | Next 21, 3.8 km, then 20 | 3.8 km to 21 · end around 19:00
+183 50.81030,7.02659 ±5 | LIVE | Next 21, 3.7 km, then 20 | 3.8 km to 21 · end around 19:00
+184 50.81039,7.02655 ±5 | LIVE | Next 21, 3.7 km, then 20 | 3.8 km to 21 · end around 19:00
+185 50.81047,7.02652 ±5 | LIVE | Next 21, 3.7 km, then 20 | 3.8 km to 21 · end around 19:00
+186 50.81056,7.02648 ±5 | LIVE | Next 21, 3.7 km, then 20 | 3.8 km to 21 · end around 19:00
+187 50.81065,7.02644 ±5 | LIVE | Next 21, 3.7 km, then 20 | 3.8 km to 21 · end around 19:00
+188 50.81073,7.02641 ±5 | LIVE | Next 21, 3.7 km, then 20 | 3.8 km to 21 · end around 19:00
+189 50.81082,7.02637 ±5 | LIVE | Next 21, 3.7 km, then 20 | 3.7 km to 21 · end around 19:00
+190 50.81091,7.02633 ±5 | LIVE | Next 21, 3.7 km, then 20 | 3.7 km to 21 · end around 19:00
+191 50.81100,7.02630 ±5 | LIVE | Next 21, 3.7 km, then 20 | 3.7 km to 21 · end around 19:00
+192 50.81108,7.02626 ±5 | LIVE | Next 21, 3.7 km, then 20 | 3.7 km to 21 · end around 19:00
+193 50.81117,7.02622 ±5 | LIVE | Next 21, 3.6 km, then 20 | 3.7 km to 21 · end around 19:00
+194 50.81126,7.02619 ±5 | LIVE | Next 21, 3.6 km, then 20 | 3.7 km to 21 · end around 19:00
+195 50.81134,7.02615 ±5 | LIVE | Next 21, 3.6 km, then 20 | 3.7 km to 21 · end around 19:00
+196 50.81143,7.02611 ±5 | LIVE | Next 21, 3.6 km, then 20 | 3.7 km to 21 · end around 19:00
+197 50.81152,7.02608 ±5 | LIVE | Next 21, 3.6 km, then 20 | 3.7 km to 21 · end around 19:00
+198 50.81160,7.02604 ±5 | LIVE | Next 21, 3.6 km, then 20 | 3.7 km to 21 · end around 19:00
+199 50.81169,7.02600 ±5 | LIVE | Next 21, 3.6 km, then 20 | 3.6 km to 21 · end around 18:55
+200 50.81178,7.02596 ±5 | LIVE | Next 21, 3.6 km, then 20 | 3.6 km to 21 · end around 18:55
+201 50.81186,7.02593 ±5 | LIVE | Next 21, 3.6 km, then 20 | 3.6 km to 21 · end around 18:55
+202 50.81195,7.02589 ±5 | LIVE | Next 21, 3.6 km, then 20 | 3.6 km to 21 · end around 18:55
+203 50.81204,7.02585 ±5 | LIVE | Next 21, 3.5 km, then 20 | 3.6 km to 21 · end around 18:55
+204 50.81213,7.02582 ±5 | LIVE | Next 21, 3.5 km, then 20 | 3.6 km to 21 · end around 18:55
+205 50.81221,7.02578 ±5 | LIVE | Next 21, 3.5 km, then 20 | 3.6 km to 21 · end around 18:55
+206 50.81230,7.02574 ±5 | LIVE | Next 21, 3.5 km, then 20 | 3.6 km to 21 · end around 18:55
+207 50.81239,7.02571 ±5 | LIVE | Next 21, 3.5 km, then 20 | 3.6 km to 21 · end around 18:55
+208 50.81247,7.02567 ±5 | LIVE | Next 21, 3.5 km, then 20 | 3.6 km to 21 · end around 18:55
+209 50.81256,7.02563 ±5 | LIVE | Next 21, 3.5 km, then 20 | 3.5 km to 21 · end around 18:55
+210 50.81265,7.02560 ±5 | LIVE | Next 21, 3.5 km, then 20 | 3.5 km to 21 · end around 18:55
+211 50.81273,7.02556 ±5 | LIVE | Next 21, 3.5 km, then 20 | 3.5 km to 21 · end around 18:55
+212 50.81282,7.02552 ±5 | LIVE | Next 21, 3.5 km, then 20 | 3.5 km to 21 · end around 18:55
+213 50.81291,7.02549 ±5 | LIVE | Next 21, 3.4 km, then 20 | 3.5 km to 21 · end around 18:55
+214 50.81299,7.02545 ±5 | LIVE | Next 21, 3.4 km, then 20 | 3.5 km to 21 · end around 18:55
+215 50.81308,7.02541 ±5 | LIVE | Next 21, 3.4 km, then 20 | 3.5 km to 21 · end around 18:55
+216 50.81317,7.02538 ±5 | LIVE | Next 21, 3.4 km, then 20 | 3.5 km to 21 · end around 18:55
+217 50.81326,7.02534 ±5 | LIVE | Next 21, 3.4 km, then 20 | 3.5 km to 21 · end around 18:55
+218 50.81334,7.02530 ±5 | LIVE | Next 21, 3.4 km, then 20 | 3.5 km to 21 · end around 18:55
+219 50.81343,7.02527 ±5 | LIVE | Next 21, 3.4 km, then 20 | 3.4 km to 21 · end around 18:55
+220 50.81352,7.02523 ±5 | LIVE | Next 21, 3.4 km, then 20 | 3.4 km to 21 · end around 18:55
+221 50.81360,7.02518 ±5 | LIVE | Next 21, 3.4 km, then 20 | 3.4 km to 21 · end around 18:55
+222 50.81368,7.02513 ±5 | LIVE | Next 21, 3.4 km, then 20 | 3.4 km to 21 · end around 18:55
+223 50.81377,7.02508 ±5 | LIVE | Next 21, 3.3 km, then 20 | 3.4 km to 21 · end around 18:55
+224 50.81385,7.02503 ±5 | LIVE | Next 21, 3.3 km, then 20 | 3.4 km to 21 · end around 18:55
+225 50.81394,7.02498 ±5 | LIVE | Next 21, 3.3 km, then 20 | 3.4 km to 21 · end around 18:55
+226 50.81402,7.02493 ±5 | LIVE | Next 21, 3.3 km, then 20 | 3.4 km to 21 · end around 18:55
+227 50.81411,7.02488 ±5 | LIVE | Next 21, 3.3 km, then 20 | 3.4 km to 21 · end around 18:55
+228 50.81419,7.02483 ±5 | LIVE | Next 21, 3.3 km, then 20 | 3.4 km to 21 · end around 18:55
+229 50.81428,7.02478 ±5 | LIVE | Next 21, 3.3 km, then 20 | 3.3 km to 21 · end around 18:55
+230 50.81436,7.02473 ±5 | LIVE | Next 21, 3.3 km, then 20 | 3.3 km to 21 · end around 18:55
+231 50.81444,7.02467 ±5 | LIVE | Next 21, 3.3 km, then 20 | 3.3 km to 21 · end around 18:55
+232 50.81452,7.02461 ±5 | LIVE | Next 21, 3.3 km, then 20 | 3.3 km to 21 · end around 18:55
+233 50.81460,7.02455 ±5 | LIVE | Next 21, 3.2 km, then 20 | 3.3 km to 21 · end around 18:55
+234 50.81469,7.02449 ±5 | LIVE | Next 21, 3.2 km, then 20 | 3.3 km to 21 · end around 18:55
+235 50.81477,7.02443 ±5 | LIVE | Next 21, 3.2 km, then 20 | 3.3 km to 21 · end around 18:55
+236 50.81485,7.02437 ±5 | LIVE | Next 21, 3.2 km, then 20 | 3.3 km to 21 · end around 18:55
+237 50.81493,7.02431 ±5 | LIVE | Next 21, 3.2 km, then 20 | 3.3 km to 21 · end around 18:55
+238 50.81501,7.02425 ±5 | LIVE | Next 21, 3.2 km, then 20 | 3.3 km to 21 · end around 18:55
+239 50.81509,7.02419 ±5 | LIVE | Next 21, 3.2 km, then 20 | 3.2 km to 21 · end around 18:55
+240 50.81518,7.02413 ±5 | LIVE | Next 21, 3.2 km, then 20 | 3.2 km to 21 · end around 18:55
+241 50.81526,7.02407 ±5 | LIVE | Next 21, 3.2 km, then 20 | 3.2 km to 21 · end around 18:55
+242 50.81534,7.02401 ±5 | LIVE | Next 21, 3.2 km, then 20 | 3.2 km to 21 · end around 18:55
+243 50.81542,7.02395 ±5 | LIVE | Next 21, 3.1 km, then 20 | 3.2 km to 21 · end around 18:55
+244 50.81550,7.02389 ±5 | LIVE | Next 21, 3.1 km, then 20 | 3.2 km to 21 · end around 18:55
+245 50.81558,7.02383 ±5 | LIVE | Next 21, 3.1 km, then 20 | 3.2 km to 21 · end around 18:55
+246 50.81567,7.02377 ±5 | LIVE | Next 21, 3.1 km, then 20 | 3.2 km to 21 · end around 18:55
+247 50.81575,7.02371 ±5 | LIVE | Next 21, 3.1 km, then 20 | 3.2 km to 21 · end around 18:55
+248 50.81583,7.02365 ±5 | LIVE | Next 21, 3.1 km, then 20 | 3.2 km to 21 · end around 18:55
+249 50.81591,7.02359 ±5 | LIVE | Next 21, 3.1 km, then 20 | 3.1 km to 21 · end around 18:55
+250 50.81599,7.02353 ±5 | LIVE | Next 21, 3.1 km, then 20 | 3.1 km to 21 · end around 18:55
+251 50.81607,7.02347 ±5 | LIVE | Next 21, 3.1 km, then 20 | 3.1 km to 21 · end around 18:55
+252 50.81616,7.02341 ±5 | LIVE | Next 21, 3.1 km, then 20 | 3.1 km to 21 · end around 18:55
+253 50.81624,7.02335 ±5 | LIVE | Next 21, 3.0 km, then 20 | 3.1 km to 21 · end around 18:55
+254 50.81632,7.02329 ±5 | LIVE | Next 21, 3.0 km, then 20 | 3.1 km to 21 · end around 18:55
+255 50.81640,7.02323 ±5 | LIVE | Next 21, 3.0 km, then 20 | 3.1 km to 21 · end around 18:55
+256 50.81648,7.02317 ±5 | LIVE | Next 21, 3.0 km, then 20 | 3.1 km to 21 · end around 18:55
+257 50.81656,7.02310 ±5 | LIVE | Next 21, 3.0 km, then 20 | 3.1 km to 21 · end around 18:55
+258 50.81664,7.02303 ±5 | LIVE | Next 21, 3.0 km, then 20 | 3.1 km to 21 · end around 18:55
+259 50.81672,7.02296 ±5 | LIVE | Next 21, 3.0 km, then 20 | 3.0 km to 21 · end around 18:55
+260 50.81679,7.02289 ±5 | LIVE | Next 21, 3.0 km, then 20 | 3.0 km to 21 · end around 18:55
+261 50.81687,7.02282 ±5 | LIVE | Next 21, 3.0 km, then 20 | 3.0 km to 21 · end around 18:55
+262 50.81695,7.02274 ±5 | LIVE | Next 21, 3.0 km, then 20 | 3.0 km to 21 · end around 18:55
+263 50.81703,7.02267 ±5 | LIVE | Next 21, 2.9 km, then 20 | 3.0 km to 21 · end around 18:55
+264 50.81710,7.02260 ±5 | LIVE | Next 21, 2.9 km, then 20 | 3.0 km to 21 · end around 18:55
+265 50.81718,7.02253 ±5 | LIVE | Next 21, 2.9 km, then 20 | 3.0 km to 21 · end around 18:55
+266 50.81726,7.02246 ±5 | LIVE | Next 21, 2.9 km, then 20 | 3.0 km to 21 · end around 18:55
+267 50.81734,7.02239 ±5 | LIVE | Next 21, 2.9 km, then 20 | 3.0 km to 21 · end around 18:55
+268 50.81741,7.02231 ±5 | LIVE | Next 21, 2.9 km, then 20 | 3.0 km to 21 · end around 18:55
+269 50.81749,7.02224 ±5 | LIVE | Next 21, 2.9 km, then 20 | 2.9 km to 21 · end around 18:55
+270 50.81757,7.02217 ±5 | LIVE | Next 21, 2.9 km, then 20 | 2.9 km to 21 · end around 18:55
+271 50.81765,7.02210 ±5 | LIVE | Next 21, 2.9 km, then 20 | 2.9 km to 21 · end around 18:55
+272 50.81772,7.02203 ±5 | LIVE | Next 21, 2.9 km, then 20 | 2.9 km to 21 · end around 18:55
+273 50.81780,7.02195 ±5 | LIVE | Next 21, 2.8 km, then 20 | 2.9 km to 21 · end around 18:55
+274 50.81788,7.02188 ±5 | LIVE | Next 21, 2.8 km, then 20 | 2.9 km to 21 · end around 18:55
+275 50.81796,7.02181 ±5 | LIVE | Next 21, 2.8 km, then 20 | 2.9 km to 21 · end around 18:55
+276 50.81803,7.02173 ±5 | LIVE | Next 21, 2.8 km, then 20 | 2.9 km to 21 · end around 18:55
+277 50.81810,7.02163 ±5 | LIVE | Next 21, 2.8 km, then 20 | 2.9 km to 21 · end around 18:55
+278 50.81816,7.02153 ±5 | LIVE | Next 21, 2.8 km, then 20 | 2.9 km to 21 · end around 18:55
+279 50.81823,7.02144 ±5 | LIVE | Next 21, 2.8 km, then 20 | 2.8 km to 21 · end around 18:55
+280 50.81829,7.02134 ±5 | LIVE | Next 21, 2.8 km, then 20 | 2.8 km to 21 · end around 18:55
+281 50.81836,7.02124 ±5 | LIVE | Next 21, 2.8 km, then 20 | 2.8 km to 21 · end around 18:55
+282 50.81843,7.02115 ±5 | LIVE | Next 21, 2.8 km, then 20 | 2.8 km to 21 · end around 18:55
+283 50.81849,7.02105 ±5 | LIVE | Next 21, 2.7 km, then 20 | 2.8 km to 21 · end around 18:55
+284 50.81856,7.02095 ±5 | LIVE | Next 21, 2.7 km, then 20 | 2.8 km to 21 · end around 18:55
+285 50.81863,7.02086 ±5 | LIVE | Next 21, 2.7 km, then 20 | 2.8 km to 21 · end around 18:55
+286 50.81869,7.02076 ±5 | LIVE | Next 21, 2.7 km, then 20 | 2.8 km to 21 · end around 18:55
+287 50.81876,7.02066 ±5 | LIVE | Next 21, 2.7 km, then 20 | 2.8 km to 21 · end around 18:55
+288 50.81882,7.02057 ±5 | LIVE | Next 21, 2.7 km, then 20 | 2.8 km to 21 · end around 18:55
+289 50.81889,7.02047 ±5 | LIVE | Next 21, 2.7 km, then 20 | 2.7 km to 21 · end around 18:55
+290 50.81896,7.02038 ±5 | LIVE | Next 21, 2.7 km, then 20 | 2.7 km to 21 · end around 18:55
+291 50.81902,7.02028 ±5 | LIVE | Next 21, 2.7 km, then 20 | 2.7 km to 21 · end around 18:55
+292 50.81909,7.02018 ±5 | LIVE | Next 21, 2.7 km, then 20 | 2.7 km to 21 · end around 18:55
+293 50.81916,7.02009 ±5 | LIVE | Next 21, 2.6 km, then 20 | 2.7 km to 21 · end around 18:55
+294 50.81921,7.01997 ±5 | LIVE | Next 21, 2.6 km, then 20 | 2.7 km to 21 · end around 18:55
+295 50.81926,7.01985 ±5 | LIVE | Next 21, 2.6 km, then 20 | 2.7 km to 21 · end around 18:55
+296 50.81931,7.01974 ±5 | LIVE | Next 21, 2.6 km, then 20 | 2.7 km to 21 · end around 18:55
+297 50.81936,7.01962 ±5 | LIVE | Next 21, 2.6 km, then 20 | 2.7 km to 21 · end around 18:55
+298 50.81941,7.01950 ±5 | LIVE | Next 21, 2.6 km, then 20 | 2.7 km to 21 · end around 18:55
+299 50.81947,7.01939 ±5 | LIVE | Next 21, 2.6 km, then 20 | 2.6 km to 21 · end around 18:55
+300 50.81952,7.01927 ±5 | LIVE | Next 21, 2.6 km, then 20 | 2.6 km to 21 · end around 18:55
+301 50.81957,7.01915 ±5 | LIVE | Next 21, 2.6 km, then 20 | 2.6 km to 21 · end around 18:55
+302 50.81962,7.01904 ±5 | LIVE | Next 21, 2.6 km, then 20 | 2.6 km to 21 · end around 18:55
+303 50.81967,7.01892 ±5 | LIVE | Next 21, 2.5 km, then 20 | 2.6 km to 21 · end around 18:55
+304 50.81973,7.01881 ±5 | LIVE | Next 21, 2.5 km, then 20 | 2.6 km to 21 · end around 18:55
+305 50.81978,7.01869 ±5 | LIVE | Next 21, 2.5 km, then 20 | 2.6 km to 21 · end around 18:55
+306 50.81983,7.01857 ±5 | LIVE | Next 21, 2.5 km, then 20 | 2.6 km to 21 · end around 18:55
+307 50.81988,7.01846 ±5 | LIVE | Next 21, 2.5 km, then 20 | 2.6 km to 21 · end around 18:55
+308 50.81993,7.01834 ±5 | LIVE | Next 21, 2.5 km, then 20 | 2.6 km to 21 · end around 18:55
+309 50.81998,7.01822 ±5 | LIVE | Next 21, 2.5 km, then 20 | 2.5 km to 21 · end around 18:55
+310 50.82004,7.01811 ±5 | LIVE | Next 21, 2.5 km, then 20 | 2.5 km to 21 · end around 18:55
+311 50.82009,7.01799 ±5 | LIVE | Next 21, 2.5 km, then 20 | 2.5 km to 21 · end around 18:55
+312 50.82014,7.01787 ±5 | LIVE | Next 21, 2.5 km, then 20 | 2.5 km to 21 · end around 18:55
+313 50.82019,7.01776 ±5 | LIVE | Next 21, 2.4 km, then 20 | 2.5 km to 21 · end around 18:55
+314 50.82024,7.01764 ±5 | LIVE | Next 21, 2.4 km, then 20 | 2.5 km to 21 · end around 18:55
+315 50.82030,7.01752 ±5 | LIVE | Next 21, 2.4 km, then 20 | 2.5 km to 21 · end around 18:55
+316 50.82034,7.01740 ±5 | LIVE | Next 21, 2.4 km, then 20 | 2.5 km to 21 · end around 18:55
+317 50.82038,7.01728 ±5 | LIVE | Next 21, 2.4 km, then 20 | 2.5 km to 21 · end around 18:55
+318 50.82043,7.01715 ±5 | LIVE | Next 21, 2.4 km, then 20 | 2.5 km to 21 · end around 18:55
+319 50.82047,7.01703 ±5 | LIVE | Next 21, 2.4 km, then 20 | 2.4 km to 21 · end around 18:55
+320 50.82051,7.01690 ±5 | LIVE | Next 21, 2.4 km, then 20 | 2.4 km to 21 · end around 18:55
+321 50.82055,7.01677 ±5 | LIVE | Next 21, 2.4 km, then 20 | 2.4 km to 21 · end around 18:55
+322 50.82060,7.01665 ±5 | LIVE | Next 21, 2.4 km, then 20 | 2.4 km to 21 · end around 18:55
+323 50.82064,7.01652 ±5 | LIVE | Next 21, 2.3 km, then 20 | 2.4 km to 21 · end around 18:55
+324 50.82068,7.01640 ±5 | LIVE | Next 21, 2.3 km, then 20 | 2.4 km to 21 · end around 18:55
+325 50.82072,7.01627 ±5 | LIVE | Next 21, 2.3 km, then 20 | 2.4 km to 21 · end around 18:55
+326 50.82076,7.01615 ±5 | LIVE | Next 21, 2.3 km, then 20 | 2.4 km to 21 · end around 18:55
+327 50.82081,7.01602 ±5 | LIVE | Next 21, 2.3 km, then 20 | 2.4 km to 21 · end around 18:55
+328 50.82084,7.01589 ±5 | LIVE | Next 21, 2.3 km, then 20 | 2.4 km to 21 · end around 18:55
+329 50.82088,7.01576 ±5 | LIVE | Next 21, 2.3 km, then 20 | 2.3 km to 21 · end around 18:55
+330 50.82091,7.01562 ±5 | LIVE | Next 21, 2.3 km, then 20 | 2.3 km to 21 · end around 18:55
+331 50.82094,7.01549 ±5 | LIVE | Next 21, 2.3 km, then 20 | 2.3 km to 21 · end around 18:55
+332 50.82098,7.01536 ±5 | LIVE | Next 21, 2.3 km, then 20 | 2.3 km to 21 · end around 18:55
+333 50.82101,7.01523 ±5 | LIVE | Next 21, 2.2 km, then 20 | 2.3 km to 21 · end around 18:55
+334 50.82104,7.01510 ±5 | LIVE | Next 21, 2.2 km, then 20 | 2.3 km to 21 · end around 18:55
+335 50.82108,7.01496 ±5 | LIVE | Next 21, 2.2 km, then 20 | 2.3 km to 21 · end around 18:55
+336 50.82111,7.01483 ±5 | LIVE | Next 21, 2.2 km, then 20 | 2.3 km to 21 · end around 18:55
+337 50.82115,7.01470 ±5 | LIVE | Next 21, 2.2 km, then 20 | 2.3 km to 21 · end around 18:55
+338 50.82118,7.01457 ±5 | LIVE | Next 21, 2.2 km, then 20 | 2.3 km to 21 · end around 18:55
+339 50.82121,7.01444 ±5 | LIVE | Next 21, 2.2 km, then 20 | 2.2 km to 21 · end around 18:55
+340 50.82125,7.01430 ±5 | LIVE | Next 21, 2.2 km, then 20 | 2.2 km to 21 · end around 18:55
+341 50.82128,7.01417 ±5 | LIVE | Next 21, 2.2 km, then 20 | 2.2 km to 21 · end around 18:55
+342 50.82131,7.01404 ±5 | LIVE | Next 21, 2.2 km, then 20 | 2.2 km to 21 · end around 18:55
+343 50.82135,7.01391 ±5 | LIVE | Next 21, 2.1 km, then 20 | 2.2 km to 21 · end around 18:55
+344 50.82138,7.01378 ±5 | LIVE | Next 21, 2.1 km, then 20 | 2.2 km to 21 · end around 18:55
+345 50.82141,7.01364 ±5 | LIVE | Next 21, 2.1 km, then 20 | 2.2 km to 21 · end around 18:55
+346 50.82145,7.01351 ±5 | LIVE | Next 21, 2.1 km, then 20 | 2.2 km to 21 · end around 18:55
+347 50.82148,7.01338 ±5 | LIVE | Next 21, 2.1 km, then 20 | 2.2 km to 21 · end around 18:55
+348 50.82152,7.01325 ±5 | LIVE | Next 21, 2.1 km, then 20 | 2.2 km to 21 · end around 18:55
+349 50.82155,7.01312 ±5 | LIVE | Next 21, 2.1 km, then 20 | 2.1 km to 21 · end around 18:55
+350 50.82158,7.01298 ±5 | LIVE | Next 21, 2.1 km, then 20 | 2.1 km to 21 · end around 18:55
+351 50.82162,7.01285 ±5 | LIVE | Next 21, 2.1 km, then 20 | 2.1 km to 21 · end around 18:55
+352 50.82164,7.01272 ±5 | LIVE | Next 21, 2.1 km, then 20 | 2.1 km to 21 · end around 18:55
+353 50.82167,7.01258 ±5 | LIVE | Next 21, 2.0 km, then 20 | 2.1 km to 21 · end around 18:55
+354 50.82169,7.01244 ±5 | LIVE | Next 21, 2.0 km, then 20 | 2.1 km to 21 · end around 18:55
+355 50.82171,7.01230 ±5 | LIVE | Next 21, 2.0 km, then 20 | 2.1 km to 21 · end around 18:55
+356 50.82173,7.01216 ±5 | LIVE | Next 21, 2.0 km, then 20 | 2.1 km to 21 · end around 18:55
+357 50.82176,7.01203 ±5 | LIVE | Next 21, 2.0 km, then 20 | 2.1 km to 21 · end around 18:55
+358 50.82178,7.01189 ±5 | LIVE | Next 21, 2.0 km, then 20 | 2.1 km to 21 · end around 18:55
+359 50.82180,7.01175 ±5 | LIVE | Next 21, 2.0 km, then 20 | 2.0 km to 21 · end around 18:55
+360 50.82182,7.01161 ±5 | LIVE | Next 21, 2.0 km, then 20 | 2.0 km to 21 · end around 18:55
+361 50.82185,7.01147 ±5 | LIVE | Next 21, 2.0 km, then 20 | 2.0 km to 21 · end around 18:55
+362 50.82187,7.01134 ±5 | LIVE | Next 21, 2.0 km, then 20 | 2.0 km to 21 · end around 18:55
+363 50.82189,7.01120 ±5 | LIVE | Next 21, 1.9 km, then 20 | 2.0 km to 21 · end around 18:55
+364 50.82191,7.01106 ±5 | LIVE | Next 21, 1.9 km, then 20 | 2.0 km to 21 · end around 18:55
+365 50.82192,7.01092 ±5 | LIVE | Next 21, 1.9 km, then 20 | 2.0 km to 21 · end around 18:55
+366 50.82194,7.01078 ±5 | LIVE | Next 21, 1.9 km, then 20 | 2.0 km to 21 · end around 18:55
+367 50.82195,7.01064 ±5 | LIVE | Next 21, 1.9 km, then 20 | 2.0 km to 21 · end around 18:55
+368 50.82196,7.01050 ±5 | LIVE | Next 21, 1.9 km, then 20 | 2.0 km to 21 · end around 18:55
+369 50.82197,7.01035 ±5 | LIVE | Next 21, 1.9 km, then 20 | 1.9 km to 21 · end around 18:55
+370 50.82198,7.01021 ±5 | LIVE | Next 21, 1.9 km, then 20 | 1.9 km to 21 · end around 18:55
+371 50.82200,7.01007 ±5 | LIVE | Next 21, 1.9 km, then 20 | 1.9 km to 21 · end around 18:55
+372 50.82201,7.00993 ±5 | LIVE | Next 21, 1.9 km, then 20 | 1.9 km to 21 · end around 18:55
+373 50.82202,7.00979 ±5 | LIVE | Next 21, 1.8 km, then 20 | 1.9 km to 21 · end around 18:55
+374 50.82201,7.00965 ±5 | LIVE | Next 21, 1.8 km, then 20 | 1.9 km to 21 · end around 18:55
+375 50.82199,7.00951 ±5 | LIVE | Next 21, 1.8 km, then 20 | 1.9 km to 21 · end around 18:55
+376 50.82198,7.00937 ±5 | LIVE | Next 21, 1.8 km, then 20 | 1.9 km to 21 · end around 18:55
+377 50.82197,7.00923 ±5 | LIVE | Next 21, 1.8 km, then 20 | 1.9 km to 21 · end around 18:55
+378 50.82196,7.00908 ±5 | LIVE | Next 21, 1.8 km, then 20 | 1.9 km to 21 · end around 18:55
+379 50.82194,7.00894 ±5 | LIVE | Next 21, 1.8 km, then 20 | 1.8 km to 21 · end around 18:55
+380 50.82193,7.00880 ±5 | LIVE | Next 21, 1.8 km, then 20 | 1.8 km to 21 · end around 18:55
+381 50.82192,7.00866 ±5 | LIVE | Next 21, 1.8 km, then 20 | 1.8 km to 21 · end around 18:55
+382 50.82191,7.00852 ±5 | LIVE | Next 21, 1.8 km, then 20 | 1.8 km to 21 · end around 18:55
+383 50.82189,7.00838 ±5 | LIVE | Next 21, 1.7 km, then 20 | 1.8 km to 21 · end around 18:55
+384 50.82188,7.00824 ±5 | LIVE | Next 21, 1.7 km, then 20 | 1.8 km to 21 · end around 18:55
+385 50.82187,7.00810 ±5 | LIVE | Next 21, 1.7 km, then 20 | 1.8 km to 21 · end around 18:55
+386 50.82186,7.00796 ±5 | LIVE | Next 21, 1.7 km, then 20 | 1.8 km to 21 · end around 18:55
+387 50.82184,7.00782 ±5 | LIVE | Next 21, 1.7 km, then 20 | 1.8 km to 21 · end around 18:55
+388 50.82183,7.00767 ±5 | LIVE | Next 21, 1.7 km, then 20 | 1.8 km to 21 · end around 18:55
+389 50.82182,7.00753 ±5 | LIVE | Next 21, 1.7 km, then 20 | 1.7 km to 21 · end around 18:55
+390 50.82181,7.00739 ±5 | LIVE | Next 21, 1.7 km, then 20 | 1.7 km to 21 · end around 18:55
+391 50.82181,7.00725 ±5 | LIVE | Next 21, 1.7 km, then 20 | 1.7 km to 21 · end around 18:55
+392 50.82180,7.00711 ±5 | LIVE | Next 21, 1.7 km, then 20 | 1.7 km to 21 · end around 18:55
+393 50.82180,7.00696 ±5 | LIVE | Next 21, 1.6 km, then 20 | 1.7 km to 21 · end around 18:55
+394 50.82180,7.00682 ±5 | LIVE | Next 21, 1.6 km, then 20 | 1.7 km to 21 · end around 18:55
+395 50.82180,7.00668 ±5 | LIVE | Next 21, 1.6 km, then 20 | 1.7 km to 21 · end around 18:55
+396 50.82179,7.00654 ±5 | LIVE | Next 21, 1.6 km, then 20 | 1.7 km to 21 · end around 18:55
+397 50.82179,7.00640 ±5 | LIVE | Next 21, 1.6 km, then 20 | 1.7 km to 21 · end around 18:55
+398 50.82179,7.00625 ±5 | LIVE | Next 21, 1.6 km, then 20 | 1.7 km to 21 · end around 18:55
+399 50.82179,7.00611 ±5 | LIVE | Next 21, 1.6 km, then 20 | 1.6 km to 21 · end around 18:55
+400 50.82178,7.00597 ±5 | LIVE | Next 21, 1.6 km, then 20 | 1.6 km to 21 · end around 18:55
+401 50.82178,7.00583 ±5 | LIVE | Next 21, 1.6 km, then 20 | 1.6 km to 21 · end around 18:55
+402 50.82178,7.00568 ±5 | LIVE | Next 21, 1.6 km, then 20 | 1.6 km to 21 · end around 18:55
+403 50.82178,7.00554 ±5 | LIVE | Next 21, 1.5 km, then 20 | 1.6 km to 21 · end around 18:55
+404 50.82178,7.00540 ±5 | LIVE | Next 21, 1.5 km, then 20 | 1.6 km to 21 · end around 18:55
+405 50.82179,7.00526 ±5 | LIVE | Next 21, 1.5 km, then 20 | 1.6 km to 21 · end around 18:55
+406 50.82180,7.00511 ±5 | LIVE | Next 21, 1.5 km, then 20 | 1.6 km to 21 · end around 18:55
+407 50.82180,7.00497 ±5 | LIVE | Next 21, 1.5 km, then 20 | 1.6 km to 21 · end around 18:55
+408 50.82181,7.00483 ±5 | LIVE | Next 21, 1.5 km, then 20 | 1.6 km to 21 · end around 18:55
+409 50.82181,7.00469 ±5 | LIVE | Next 21, 1.5 km, then 20 | 1.5 km to 21 · end around 18:55
+410 50.82182,7.00455 ±5 | LIVE | Next 21, 1.5 km, then 20 | 1.5 km to 21 · end around 18:55
+411 50.82182,7.00440 ±5 | LIVE | Next 21, 1.5 km, then 20 | 1.5 km to 21 · end around 18:55
+412 50.82183,7.00426 ±5 | LIVE | Next 21, 1.5 km, then 20 | 1.5 km to 21 · end around 18:55
+413 50.82184,7.00412 ±5 | LIVE | Next 21, 1.4 km, then 20 | 1.5 km to 21 · end around 18:55
+414 50.82184,7.00398 ±5 | LIVE | Next 21, 1.4 km, then 20 | 1.5 km to 21 · end around 18:55
+415 50.82185,7.00384 ±5 | LIVE | Next 21, 1.4 km, then 20 | 1.5 km to 21 · end around 18:55
+416 50.82185,7.00369 ±5 | LIVE | Next 21, 1.4 km, then 20 | 1.5 km to 21 · end around 18:55
+417 50.82186,7.00355 ±5 | LIVE | Next 21, 1.4 km, then 20 | 1.5 km to 21 · end around 18:55
+418 50.82187,7.00341 ±5 | LIVE | Next 21, 1.4 km, then 20 | 1.5 km to 21 · end around 18:55
+419 50.82187,7.00327 ±5 | LIVE | Next 21, 1.4 km, then 20 | 1.4 km to 21 · end around 18:55
+420 50.82188,7.00312 ±5 | LIVE | Next 21, 1.4 km, then 20 | 1.4 km to 21 · end around 18:55
+421 50.82188,7.00298 ±5 | LIVE | Next 21, 1.4 km, then 20 | 1.4 km to 21 · end around 18:55
+422 50.82189,7.00284 ±5 | LIVE | Next 21, 1.4 km, then 20 | 1.4 km to 21 · end around 18:55
+423 50.82190,7.00270 ±5 | LIVE | Next 21, 1.3 km, then 20 | 1.4 km to 21 · end around 18:55
+424 50.82190,7.00256 ±5 | LIVE | Next 21, 1.3 km, then 20 | 1.4 km to 21 · end around 18:55
+425 50.82191,7.00241 ±5 | LIVE | Next 21, 1.3 km, then 20 | 1.4 km to 21 · end around 18:55
+426 50.82191,7.00227 ±5 | LIVE | Next 21, 1.3 km, then 20 | 1.4 km to 21 · end around 18:55
+427 50.82192,7.00213 ±5 | LIVE | Next 21, 1.3 km, then 20 | 1.4 km to 21 · end around 18:55
+428 50.82193,7.00199 ±5 | LIVE | Next 21, 1.3 km, then 20 | 1.4 km to 21 · end around 18:55
+429 50.82193,7.00185 ±5 | LIVE | Next 21, 1.3 km, then 20 | 1.3 km to 21 · end around 18:55
+430 50.82193,7.00170 ±5 | LIVE | Next 21, 1.3 km, then 20 | 1.3 km to 21 · end around 18:55
+431 50.82193,7.00156 ±5 | LIVE | Next 21, 1.3 km, then 20 | 1.3 km to 21 · end around 18:55
+432 50.82193,7.00142 ±5 | LIVE | Next 21, 1.3 km, then 20 | 1.3 km to 21 · end around 18:55
+433 50.82193,7.00128 ±5 | LIVE | Next 21, 1.2 km, then 20 | 1.3 km to 21 · end around 18:55
+434 50.82193,7.00113 ±5 | LIVE | Next 21, 1.2 km, then 20 | 1.3 km to 21 · end around 18:55
+435 50.82193,7.00099 ±5 | LIVE | Next 21, 1.2 km, then 20 | 1.3 km to 21 · end around 18:55
+436 50.82193,7.00085 ±5 | LIVE | Next 21, 1.2 km, then 20 | 1.3 km to 21 · end around 18:55
+437 50.82192,7.00071 ±5 | LIVE | Next 21, 1.2 km, then 20 | 1.3 km to 21 · end around 18:55
+438 50.82192,7.00056 ±5 | LIVE | Next 21, 1.2 km, then 20 | 1.3 km to 21 · end around 18:55
+439 50.82192,7.00042 ±5 | LIVE | Next 21, 1.2 km, then 20 | 1.2 km to 21 · end around 18:55
+440 50.82193,7.00028 ±5 | LIVE | Next 21, 1.2 km, then 20 | 1.2 km to 21 · end around 18:55
+441 50.82193,7.00014 ±5 | LIVE | Next 21, 1.2 km, then 20 | 1.2 km to 21 · end around 18:55
+442 50.82194,7.00000 ±5 | LIVE | Next 21, 1.2 km, then 20 | 1.2 km to 21 · end around 18:55
+443 50.82195,6.99985 ±5 | LIVE | Next 21, 1.1 km, then 20 | 1.2 km to 21 · end around 18:55
+444 50.82196,6.99971 ±5 | LIVE | Next 21, 1.1 km, then 20 | 1.2 km to 21 · end around 18:55
+445 50.82197,6.99957 ±5 | LIVE | Next 21, 1.1 km, then 20 | 1.2 km to 21 · end around 18:55
+446 50.82198,6.99943 ±5 | LIVE | Next 21, 1.1 km, then 20 | 1.2 km to 21 · end around 18:55
+447 50.82199,6.99929 ±5 | LIVE | Next 21, 1.1 km, then 20 | 1.2 km to 21 · end around 18:55
+448 50.82200,6.99915 ±5 | LIVE | Next 21, 1.1 km, then 20 | 1.2 km to 21 · end around 18:55
+449 50.82200,6.99900 ±5 | LIVE | Next 21, 1.1 km, then 20 | 1.1 km to 21 · end around 18:55
+450 50.82201,6.99886 ±5 | LIVE | Next 21, 1.1 km, then 20 | 1.1 km to 21 · end around 18:55
+451 50.82202,6.99872 ±5 | LIVE | Next 21, 1.1 km, then 20 | 1.1 km to 21 · end around 18:55
+452 50.82203,6.99858 ±5 | LIVE | Next 21, 1.1 km, then 20 | 1.1 km to 21 · end around 18:55
+453 50.82204,6.99844 ±5 | LIVE | Next 21, 1.0 km, then 20 | 1.1 km to 21 · end around 18:55
+454 50.82205,6.99830 ±5 | LIVE | Next 21, 1.0 km, then 20 | 1.1 km to 21 · end around 18:55
+455 50.82206,6.99815 ±5 | LIVE | Next 21, 1.0 km, then 20 | 1.1 km to 21 · end around 18:55
+456 50.82207,6.99801 ±5 | LIVE | Next 21, 1.0 km, then 20 | 1.1 km to 21 · end around 18:55
+457 50.82207,6.99787 ±5 | LIVE | Next 21, 1.0 km, then 20 | 1.1 km to 21 · end around 18:55
+458 50.82208,6.99773 ±5 | LIVE | Next 21, 991 m, then 20 | 1.1 km to 21 · end around 18:55
+459 50.82209,6.99759 ±5 | LIVE | Next 21, 981 m, then 20 | 981 m to 21 · end around 18:55
+460 50.82210,6.99744 ±5 | LIVE | Next 21, 971 m, then 20 | 981 m to 21 · end around 18:55
+461 50.82211,6.99730 ±5 | LIVE | Next 21, 961 m, then 20 | 981 m to 21 · end around 18:55
+462 50.82212,6.99716 ±5 | LIVE | Next 21, 951 m, then 20 | 981 m to 21 · end around 18:55
+463 50.82213,6.99702 ±5 | LIVE | Next 21, 941 m, then 20 | 981 m to 21 · end around 18:55
+464 50.82214,6.99688 ±5 | LIVE | Next 21, 931 m, then 20 | 981 m to 21 · end around 18:55
+465 50.82214,6.99674 ±5 | LIVE | Next 21, 921 m, then 20 | 981 m to 21 · end around 18:55
+466 50.82215,6.99659 ±5 | LIVE | Next 21, 911 m, then 20 | 981 m to 21 · end around 18:55
+467 50.82216,6.99645 ±5 | LIVE | Next 21, 901 m, then 20 | 981 m to 21 · end around 18:55
+468 50.82217,6.99631 ±5 | LIVE | Next 21, 891 m, then 20 | 981 m to 21 · end around 18:55
+469 50.82218,6.99617 ±5 | LIVE | Next 21, 881 m, then 20 | 881 m to 21 · end around 18:55
+470 50.82219,6.99603 ±5 | LIVE | Next 21, 871 m, then 20 | 881 m to 21 · end around 18:55
+471 50.82220,6.99589 ±5 | LIVE | Next 21, 861 m, then 20 | 881 m to 21 · end around 18:55
+472 50.82221,6.99574 ±5 | LIVE | Next 21, 851 m, then 20 | 881 m to 21 · end around 18:55
+473 50.82222,6.99560 ±5 | LIVE | Next 21, 841 m, then 20 | 881 m to 21 · end around 18:55
+474 50.82222,6.99546 ±5 | LIVE | Next 21, 831 m, then 20 | 881 m to 21 · end around 18:55
+475 50.82223,6.99532 ±5 | LIVE | Next 21, 821 m, then 20 | 881 m to 21 · end around 18:55
+476 50.82224,6.99518 ±5 | LIVE | Next 21, 811 m, then 20 | 881 m to 21 · end around 18:55
+477 50.82225,6.99503 ±5 | LIVE | Next 21, 801 m, then 20 | 881 m to 21 · end around 18:55
+478 50.82226,6.99489 ±5 | LIVE | Next 21, 791 m, then 20 | 881 m to 21 · end around 18:55
+479 50.82227,6.99475 ±5 | LIVE | Next 21, 781 m, then 20 | 781 m to 21 · end around 18:55
+480 50.82228,6.99461 ±5 | LIVE | Next 21, 771 m, then 20 | 781 m to 21 · end around 18:55
+481 50.82229,6.99447 ±5 | LIVE | Next 21, 761 m, then 20 | 781 m to 21 · end around 18:55
+482 50.82231,6.99433 ±5 | LIVE | Next 21, 751 m, then 20 | 781 m to 21 · end around 18:55
+483 50.82232,6.99419 ±5 | LIVE | Next 21, 741 m, then 20 | 781 m to 21 · end around 18:55
+484 50.82234,6.99405 ±5 | LIVE | Next 21, 731 m, then 20 | 781 m to 21 · end around 18:55
+485 50.82235,6.99391 ±5 | LIVE | Next 21, 721 m, then 20 | 781 m to 21 · end around 18:55
+486 50.82237,6.99377 ±5 | LIVE | Next 21, 711 m, then 20 | 781 m to 21 · end around 18:55
+487 50.82239,6.99363 ±5 | LIVE | Next 21, 701 m, then 20 | 781 m to 21 · end around 18:55
+488 50.82240,6.99349 ±5 | LIVE | Next 21, 691 m, then 20 | 781 m to 21 · end around 18:55
+489 50.82242,6.99335 ±5 | LIVE | Next 21, 681 m, then 20 | 681 m to 21 · end around 18:55
+490 50.82244,6.99321 ±5 | LIVE | Next 21, 671 m, then 20 | 681 m to 21 · end around 18:55
+491 50.82246,6.99307 ±5 | LIVE | Next 21, 661 m, then 20 | 681 m to 21 · end around 18:55
+492 50.82249,6.99294 ±5 | LIVE | Next 21, 651 m, then 20 | 681 m to 21 · end around 18:55
+493 50.82252,6.99280 ±5 | LIVE | Next 21, 641 m, then 20 | 681 m to 21 · end around 18:55
+494 50.82255,6.99267 ±5 | LIVE | Next 21, 631 m, then 20 | 681 m to 21 · end around 18:55
+495 50.82258,6.99253 ±5 | LIVE | Next 21, 621 m, then 20 | 681 m to 21 · end around 18:55
+496 50.82261,6.99240 ±5 | LIVE | Next 21, 611 m, then 20 | 681 m to 21 · end around 18:55
+497 50.82263,6.99226 ±5 | LIVE | Next 21, 601 m, then 20 | 681 m to 21 · end around 18:55
+498 50.82266,6.99213 ±5 | LIVE | Next 21, 591 m, then 20 | 681 m to 21 · end around 18:55
+499 50.82269,6.99199 ±5 | LIVE | Next 21, 581 m, then 20 | 581 m to 21 · end around 18:55
+500 50.82272,6.99186 ±5 | LIVE | Next 21, 571 m, then 20 | 581 m to 21 · end around 18:55
+501 50.82275,6.99172 ±5 | LIVE | Next 21, 561 m, then 20 | 581 m to 21 · end around 18:55
+502 50.82277,6.99159 ±5 | LIVE | Next 21, 551 m, then 20 | 581 m to 21 · end around 18:55
+503 50.82280,6.99145 ±5 | LIVE | Next 21, 541 m, then 20 | 581 m to 21 · end around 18:55
+504 50.82284,6.99132 ±5 | LIVE | Next 21, 531 m, then 20 | 581 m to 21 · end around 18:55
+505 50.82288,6.99119 ±5 | LIVE | Next 21, 521 m, then 20 | 581 m to 21 · end around 18:55
+506 50.82292,6.99106 ±5 | LIVE | Next 21, 511 m, then 20 | 581 m to 21 · end around 18:55
+507 50.82296,6.99093 ±5 | LIVE | Next 21, 501 m, then 20 | 581 m to 21 · end around 18:55
+508 50.82299,6.99081 ±5 | LIVE | Next 21, 491 m, then 20 | 581 m to 21 · end around 18:55
+509 50.82303,6.99068 ±5 | LIVE | Next 21, 481 m, then 20 | 481 m to 21 · end around 18:55
+510 50.82307,6.99055 ±5 | LIVE | Next 21, 471 m, then 20 | 481 m to 21 · end around 18:55
+511 50.82311,6.99042 ±5 | LIVE | Next 21, 461 m, then 20 | 481 m to 21 · end around 18:55
+512 50.82315,6.99029 ±5 | LIVE | Next 21, 451 m, then 20 | 481 m to 21 · end around 18:55
+513 50.82320,6.99017 ±5 | LIVE | Next 21, 441 m, then 20 | 481 m to 21 · end around 18:55
+514 50.82325,6.99005 ±5 | LIVE | Next 21, 431 m, then 20 | 481 m to 21 · end around 18:55
+515 50.82330,6.98994 ±5 | LIVE | Next 21, 421 m, then 20 | 481 m to 21 · end around 18:55
+516 50.82335,6.98982 ±5 | LIVE | Next 21, 411 m, then 20 | 481 m to 21 · end around 18:55
+517 50.82340,6.98970 ±5 | LIVE | Next 21, 401 m, then 20 | 481 m to 21 · end around 18:55
+518 50.82345,6.98958 ±5 | LIVE | Next 21, 391 m, then 20 | 481 m to 21 · end around 18:55
+519 50.82350,6.98946 ±5 | LIVE | Next 21, 381 m, then 20 | 381 m to 21 · end around 18:55
+520 50.82355,6.98934 ±5 | LIVE | Next 21, 371 m, then 20 | 381 m to 21 · end around 18:55
+521 50.82360,6.98922 ±5 | LIVE | Next 21, 361 m, then 20 | 381 m to 21 · end around 18:55
+522 50.82367,6.98916 ±5 | LIVE | Next 21, 351 m, then 20 | 381 m to 21 · end around 18:55
+523 50.82376,6.98913 ±5 | LIVE | Next 21, 340 m, then 20 | 381 m to 21 · end around 18:55
+524 50.82385,6.98910 ±5 | LIVE | Next 21, 330 m, then 20 | 381 m to 21 · end around 18:55
+525 50.82393,6.98904 ±5 | LIVE | Next 21, 320 m, then 20 | 381 m to 21 · end around 18:55
+526 50.82399,6.98895 ±5 | LIVE | Next 21, 310 m, then 20 | 381 m to 21 · end around 18:55
+527 50.82406,6.98885 ±5 | LIVE | Next 21, 300 m, then 20 | 381 m to 21 · end around 18:55
+528 50.82413,6.98876 ±5 | LIVE | Next 21, 290 m, then 20 | 381 m to 21 · end around 18:55
+529 50.82420,6.98867 ±5 | LIVE | Next 21, 280 m, then 20 | 280 m to 21 · end around 18:55
+530 50.82426,6.98857 ±5 | LIVE | Next 21, 270 m, then 20 | 280 m to 21 · end around 18:55
+531 50.82430,6.98845 ±5 | LIVE | Next 21, 260 m, then 20 | 280 m to 21 · end around 18:55
+532 50.82431,6.98831 ±5 | LIVE | Next 21, 250 m, then 20 | 280 m to 21 · end around 18:55
+533 50.82433,6.98817 ±5 | LIVE | Next 21, 240 m, then 20 | 280 m to 21 · end around 18:55
+534 50.82435,6.98803 ±5 | LIVE | Next 21, 230 m, then 20 | 280 m to 21 · end around 18:55
+535 50.82436,6.98789 ±5 | LIVE | Next 21, 220 m, then 20 | 280 m to 21 · end around 18:55
+536 50.82442,6.98777 ±5 | LIVE | Next 21, 210 m, then 20 | 280 m to 21 · end around 18:55
+537 50.82447,6.98766 ±5 | LIVE | Next 21, 200 m, then 20 | 280 m to 21 · end around 18:55
+538 50.82453,6.98755 ±5 | REMINDER 21 ahead, then 20 | LIVE | At 21 follow 20 sharply to the right, 190 m | 280 m to 21 · end around 18:55
+539 50.82459,6.98744 ±5 | LIVE | At 21 follow 20 sharply to the right, 180 m | 180 m to 21 · end around 18:55
+540 50.82464,6.98733 ±5 | LIVE | At 21 follow 20 sharply to the right, 170 m | 180 m to 21 · end around 18:55
+541 50.82470,6.98722 ±5 | LIVE | At 21 follow 20 sharply to the right, 160 m | 180 m to 21 · end around 18:55
+542 50.82476,6.98711 ±5 | LIVE | At 21 follow 20 sharply to the right, 150 m | 180 m to 21 · end around 18:55
+543 50.82482,6.98700 ±5 | LIVE | At 21 follow 20 sharply to the right, 140 m | 180 m to 21 · end around 18:55
+544 50.82487,6.98689 ±5 | LIVE | At 21 follow 20 sharply to the right, 130 m | 180 m to 21 · end around 18:55
+545 50.82493,6.98678 ±5 | LIVE | At 21 follow 20 sharply to the right, 120 m | 180 m to 21 · end around 18:55
+546 50.82499,6.98667 ±5 | LIVE | At 21 follow 20 sharply to the right, 110 m | 180 m to 21 · end around 18:55
+547 50.82504,6.98656 ±5 | LIVE | At 21 follow 20 sharply to the right, 100 m | 180 m to 21 · end around 18:55
+548 50.82510,6.98645 ±5 | LIVE | At 21 follow 20 sharply to the right, 90 m | 180 m to 21 · end around 18:55
+549 50.82516,6.98634 ±5 | LIVE | At 21 follow 20 sharply to the right, 80 m | 80 m to 21 · end around 18:55
+550 50.82521,6.98623 ±5 | LIVE | At 21 follow 20 sharply to the right, 70 m | 80 m to 21 · end around 18:55
+551 50.82527,6.98612 ±5 | LIVE | At 21 follow 20 sharply to the right, 60 m | 80 m to 21 · end around 18:55
+552 50.82533,6.98601 ±5 | LIVE | At 21 follow 20 sharply to the right, 50 m | 80 m to 21 · end around 18:55
+553 50.82539,6.98590 ±5 | LIVE | At 21 follow 20 sharply to the right, 40 m | 80 m to 21 · end around 18:55
+554 50.82544,6.98579 ±5 | LIVE | At 21 follow 20 sharply to the right, 30 m | 80 m to 21 · end around 18:55
+555 50.82550,6.98568 ±5 | NEXT Next 20 | LIVE | 20 is the end, 611 m | 642 m to the end, around 18:55
+556 50.82556,6.98557 ±5 | LIVE | 20 is the end, 641 m | 642 m to the end, around 18:55
+557 50.82561,6.98546 ±5 | LIVE | 20 is the end, 642 m | 642 m to the end, around 18:55
+558 50.82568,6.98555 ±5 | LIVE | 20 is the end, 632 m | 642 m to the end, around 18:55
+559 50.82565,6.98566 ±5 | LIVE | 20 is the end, 622 m | 642 m to the end, around 18:55
+560 50.82559,6.98577 ±5 | LIVE | 20 is the end, 612 m | 642 m to the end, around 18:55
+561 50.82553,6.98588 ±5 | LIVE | 20 is the end, 602 m | 642 m to the end, around 18:55
+562 50.82548,6.98600 ±5 | LIVE | 20 is the end, 592 m | 642 m to the end, around 18:55
+563 50.82542,6.98611 ±5 | LIVE | 20 is the end, 582 m | 642 m to the end, around 18:55
+564 50.82549,6.98620 ±5 | LIVE | 20 is the end, 572 m | 642 m to the end, around 18:55
+565 50.82556,6.98629 ±5 | LIVE | 20 is the end, 562 m | 642 m to the end, around 18:55
+566 50.82563,6.98638 ±5 | LIVE | 20 is the end, 552 m | 642 m to the end, around 18:55
+567 50.82567,6.98650 ±5 | LIVE | 20 is the end, 542 m | 542 m to the end, around 18:55
+568 50.82571,6.98663 ±5 | LIVE | 20 is the end, 532 m | 542 m to the end, around 18:55
+569 50.82575,6.98676 ±5 | LIVE | 20 is the end, 522 m | 542 m to the end, around 18:55
+570 50.82579,6.98689 ±5 | LIVE | 20 is the end, 512 m | 542 m to the end, around 18:55
+571 50.82583,6.98702 ±5 | LIVE | 20 is the end, 502 m | 542 m to the end, around 18:55
+572 50.82587,6.98715 ±5 | LIVE | 20 is the end, 492 m | 542 m to the end, around 18:55
+573 50.82591,6.98727 ±5 | LIVE | 20 is the end, 482 m | 542 m to the end, around 18:55
+574 50.82595,6.98740 ±5 | LIVE | 20 is the end, 471 m | 542 m to the end, around 18:55
+575 50.82599,6.98753 ±5 | LIVE | 20 is the end, 461 m | 542 m to the end, around 18:55
+576 50.82603,6.98766 ±5 | LIVE | 20 is the end, 451 m | 542 m to the end, around 18:55
+577 50.82607,6.98779 ±5 | LIVE | 20 is the end, 441 m | 441 m to the end, around 18:55
+578 50.82610,6.98792 ±5 | LIVE | 20 is the end, 431 m | 441 m to the end, around 18:55
+579 50.82614,6.98804 ±5 | LIVE | 20 is the end, 421 m | 441 m to the end, around 18:55
+580 50.82618,6.98817 ±5 | LIVE | 20 is the end, 411 m | 441 m to the end, around 18:55
+581 50.82622,6.98830 ±5 | LIVE | 20 is the end, 401 m | 441 m to the end, around 18:55
+582 50.82626,6.98843 ±5 | LIVE | 20 is the end, 391 m | 441 m to the end, around 18:55
+583 50.82630,6.98856 ±5 | LIVE | 20 is the end, 381 m | 441 m to the end, around 18:55
+584 50.82634,6.98869 ±5 | LIVE | 20 is the end, 371 m | 441 m to the end, around 18:55
+585 50.82638,6.98881 ±5 | LIVE | 20 is the end, 361 m | 441 m to the end, around 18:55
+586 50.82642,6.98894 ±5 | LIVE | 20 is the end, 351 m | 441 m to the end, around 18:55
+587 50.82646,6.98907 ±5 | LIVE | 20 is the end, 341 m | 341 m to the end, around 18:55
+588 50.82650,6.98920 ±5 | LIVE | 20 is the end, 331 m | 341 m to the end, around 18:55
+589 50.82654,6.98933 ±5 | LIVE | 20 is the end, 321 m | 341 m to the end, around 18:55
+590 50.82658,6.98946 ±5 | LIVE | 20 is the end, 311 m | 341 m to the end, around 18:55
+591 50.82662,6.98958 ±5 | LIVE | 20 is the end, 301 m | 341 m to the end, around 18:55
+592 50.82666,6.98971 ±5 | LIVE | 20 is the end, 291 m | 341 m to the end, around 18:55
+593 50.82670,6.98984 ±5 | LIVE | 20 is the end, 281 m | 341 m to the end, around 18:55
+594 50.82674,6.98997 ±5 | LIVE | 20 is the end, 271 m | 341 m to the end, around 18:55
+595 50.82678,6.99010 ±5 | LIVE | 20 is the end, 261 m | 341 m to the end, around 18:55
+596 50.82682,6.99023 ±5 | LIVE | 20 is the end, 251 m | 341 m to the end, around 18:55
+597 50.82686,6.99035 ±5 | LIVE | 20 is the end, 241 m | 241 m to the end, around 18:55
+598 50.82689,6.99048 ±5 | LIVE | 20 is the end, 231 m | 241 m to the end, around 18:55
+599 50.82693,6.99061 ±5 | LIVE | 20 is the end, 221 m | 241 m to the end, around 18:55
+600 50.82697,6.99074 ±5 | LIVE | 20 is the end, 211 m | 241 m to the end, around 18:55
+601 50.82701,6.99087 ±5 | REMINDER 20 ahead, the end | LIVE | 20 is the end, 201 m | 241 m to the end, around 18:55
+602 50.82705,6.99100 ±5 | LIVE | 20 is the end, 191 m | 241 m to the end, around 18:55
+603 50.82709,6.99112 ±5 | LIVE | 20 is the end, 181 m | 241 m to the end, around 18:55
+604 50.82713,6.99125 ±5 | LIVE | 20 is the end, 171 m | 241 m to the end, around 18:55
+605 50.82717,6.99138 ±5 | LIVE | 20 is the end, 160 m | 241 m to the end, around 18:55
+606 50.82721,6.99151 ±5 | LIVE | 20 is the end, 150 m | 241 m to the end, around 18:55
+607 50.82725,6.99164 ±5 | LIVE | 20 is the end, 140 m | 140 m to the end, around 18:55
+608 50.82729,6.99177 ±5 | LIVE | 20 is the end, 130 m | 140 m to the end, around 18:55
+609 50.82733,6.99190 ±5 | LIVE | 20 is the end, 120 m | 140 m to the end, around 18:55
+610 50.82737,6.99202 ±5 | LIVE | 20 is the end, 110 m | 140 m to the end, around 18:55
+611 50.82741,6.99215 ±5 | LIVE | 20 is the end, 100 m | 140 m to the end, around 18:55
+612 50.82744,6.99228 ±5 | LIVE | 20 is the end, 90 m | 140 m to the end, around 18:55
+613 50.82744,6.99243 ±5 | LIVE | 20 is the end, 80 m | 140 m to the end, around 18:55
+614 50.82744,6.99257 ±5 | LIVE | 20 is the end, 70 m | 140 m to the end, around 18:55
+615 50.82744,6.99271 ±5 | LIVE | 20 is the end, 60 m | 140 m to the end, around 18:55
+616 50.82744,6.99286 ±5 | LIVE | 20 is the end, 50 m | 140 m to the end, around 18:55
+617 50.82744,6.99300 ±5 | LIVE | 20 is the end, 40 m | 40 m to the end, around 18:55
+618 50.82744,6.99314 ±5 | LIVE | 20 is the end, 30 m | 40 m to the end, around 18:55
+619 50.82744,6.99328 ±5 | ARRIVED You've arrived | null | 20 is the end, 30 m | 40 m to the end, around 18:55 | end AFTER_SPEECH

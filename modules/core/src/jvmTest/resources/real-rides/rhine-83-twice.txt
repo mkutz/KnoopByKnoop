@@ -1,0 +1,726 @@
+0 50.77294,7.06975 ±5 | NEXT Next 83, then 27 | LIVE | Next 83, 2.8 km, then 27 | 2.8 km to 83
+1 50.77291,7.06988 ±5 | LIVE | Next 83, 2.8 km, then 27 | 2.8 km to 83
+2 50.77288,7.07001 ±5 | LIVE | Next 83, 2.8 km, then 27 | 2.8 km to 83
+3 50.77285,7.07015 ±5 | LIVE | Next 83, 2.8 km, then 27 | 2.8 km to 83
+4 50.77281,7.07028 ±5 | LIVE | Next 83, 2.8 km, then 27 | 2.8 km to 83
+5 50.77278,7.07041 ±5 | LIVE | Next 83, 2.8 km, then 27 | 2.8 km to 83
+6 50.77275,7.07054 ±5 | LIVE | Next 83, 2.7 km, then 27 | 2.8 km to 83
+7 50.77271,7.07068 ±5 | LIVE | Next 83, 2.7 km, then 27 | 2.8 km to 83
+8 50.77268,7.07081 ±5 | LIVE | Next 83, 2.7 km, then 27 | 2.8 km to 83
+9 50.77265,7.07094 ±5 | LIVE | Next 83, 2.7 km, then 27 | 2.7 km to 83
+10 50.77261,7.07107 ±5 | LIVE | Next 83, 2.7 km, then 27 | 2.7 km to 83
+11 50.77258,7.07121 ±5 | LIVE | Next 83, 2.7 km, then 27 | 2.7 km to 83
+12 50.77255,7.07134 ±5 | LIVE | Next 83, 2.7 km, then 27 | 2.7 km to 83
+13 50.77252,7.07147 ±5 | LIVE | Next 83, 2.7 km, then 27 | 2.7 km to 83
+14 50.77248,7.07160 ±5 | LIVE | Next 83, 2.7 km, then 27 | 2.7 km to 83
+15 50.77245,7.07174 ±5 | LIVE | Next 83, 2.7 km, then 27 | 2.7 km to 83
+16 50.77242,7.07187 ±5 | LIVE | Next 83, 2.6 km, then 27 | 2.7 km to 83
+17 50.77238,7.07200 ±5 | LIVE | Next 83, 2.6 km, then 27 | 2.7 km to 83
+18 50.77235,7.07213 ±5 | LIVE | Next 83, 2.6 km, then 27 | 2.7 km to 83
+19 50.77232,7.07227 ±5 | LIVE | Next 83, 2.6 km, then 27 | 2.6 km to 83
+20 50.77228,7.07240 ±5 | LIVE | Next 83, 2.6 km, then 27 | 2.6 km to 83
+21 50.77226,7.07253 ±5 | LIVE | Next 83, 2.6 km, then 27 | 2.6 km to 83
+22 50.77227,7.07268 ±5 | LIVE | Next 83, 2.6 km, then 27 | 2.6 km to 83
+23 50.77228,7.07282 ±5 | LIVE | Next 83, 2.6 km, then 27 | 2.6 km to 83
+24 50.77229,7.07296 ±5 | LIVE | Next 83, 2.6 km, then 27 | 2.6 km to 83
+25 50.77230,7.07310 ±5 | LIVE | Next 83, 2.6 km, then 27 | 2.6 km to 83
+26 50.77231,7.07324 ±5 | LIVE | Next 83, 2.5 km, then 27 | 2.6 km to 83
+27 50.77232,7.07338 ±5 | LIVE | Next 83, 2.5 km, then 27 | 2.6 km to 83
+28 50.77232,7.07353 ±5 | LIVE | Next 83, 2.5 km, then 27 | 2.6 km to 83
+29 50.77233,7.07367 ±5 | LIVE | Next 83, 2.5 km, then 27 | 2.5 km to 83
+30 50.77234,7.07381 ±5 | LIVE | Next 83, 2.5 km, then 27 | 2.5 km to 83
+31 50.77235,7.07395 ±5 | LIVE | Next 83, 2.5 km, then 27 | 2.5 km to 83
+32 50.77236,7.07409 ±5 | LIVE | Next 83, 2.5 km, then 27 | 2.5 km to 83
+33 50.77236,7.07423 ±5 | LIVE | Next 83, 2.5 km, then 27 | 2.5 km to 83
+34 50.77235,7.07438 ±5 | LIVE | Next 83, 2.5 km, then 27 | 2.5 km to 83
+35 50.77234,7.07452 ±5 | LIVE | Next 83, 2.5 km, then 27 | 2.5 km to 83
+36 50.77234,7.07466 ±5 | LIVE | Next 83, 2.4 km, then 27 | 2.5 km to 83
+37 50.77233,7.07480 ±5 | LIVE | Next 83, 2.4 km, then 27 | 2.5 km to 83
+38 50.77232,7.07494 ±5 | LIVE | Next 83, 2.4 km, then 27 | 2.5 km to 83
+39 50.77231,7.07509 ±5 | LIVE | Next 83, 2.4 km, then 27 | 2.4 km to 83
+40 50.77231,7.07523 ±5 | LIVE | Next 83, 2.4 km, then 27 | 2.4 km to 83
+41 50.77230,7.07537 ±5 | LIVE | Next 83, 2.4 km, then 27 | 2.4 km to 83
+42 50.77229,7.07551 ±5 | LIVE | Next 83, 2.4 km, then 27 | 2.4 km to 83
+43 50.77229,7.07565 ±5 | LIVE | Next 83, 2.4 km, then 27 | 2.4 km to 83
+44 50.77235,7.07576 ±5 | LIVE | Next 83, 2.4 km, then 27 | 2.4 km to 83
+45 50.77241,7.07586 ±5 | LIVE | Next 83, 2.4 km, then 27 | 2.4 km to 83
+46 50.77247,7.07597 ±5 | LIVE | Next 83, 2.3 km, then 27 | 2.4 km to 83
+47 50.77253,7.07608 ±5 | LIVE | Next 83, 2.3 km, then 27 | 2.4 km to 83
+48 50.77259,7.07619 ±5 | LIVE | Next 83, 2.3 km, then 27 | 2.4 km to 83
+49 50.77265,7.07629 ±5 | LIVE | Next 83, 2.3 km, then 27 | 2.3 km to 83
+50 50.77271,7.07640 ±5 | LIVE | Next 83, 2.3 km, then 27 | 2.3 km to 83
+51 50.77276,7.07651 ±5 | LIVE | Next 83, 2.3 km, then 27 | 2.3 km to 83
+52 50.77282,7.07661 ±5 | LIVE | Next 83, 2.3 km, then 27 | 2.3 km to 83
+53 50.77288,7.07672 ±5 | LIVE | Next 83, 2.3 km, then 27 | 2.3 km to 83
+54 50.77294,7.07683 ±5 | LIVE | Next 83, 2.3 km, then 27 | 2.3 km to 83
+55 50.77300,7.07694 ±5 | LIVE | Next 83, 2.3 km, then 27 | 2.3 km to 83
+56 50.77306,7.07704 ±5 | LIVE | Next 83, 2.2 km, then 27 | 2.3 km to 83
+57 50.77312,7.07715 ±5 | LIVE | Next 83, 2.2 km, then 27 | 2.3 km to 83
+58 50.77318,7.07726 ±5 | LIVE | Next 83, 2.2 km, then 27 | 2.3 km to 83
+59 50.77324,7.07736 ±5 | LIVE | Next 83, 2.2 km, then 27 | 2.2 km to 83
+60 50.77330,7.07747 ±5 | LIVE | Next 83, 2.2 km, then 27 | 2.2 km to 83
+61 50.77336,7.07758 ±5 | LIVE | Next 83, 2.2 km, then 27 | 2.2 km to 83
+62 50.77342,7.07769 ±5 | LIVE | Next 83, 2.2 km, then 27 | 2.2 km to 83
+63 50.77348,7.07779 ±5 | LIVE | Next 83, 2.2 km, then 27 | 2.2 km to 83
+64 50.77354,7.07790 ±5 | LIVE | Next 83, 2.2 km, then 27 | 2.2 km to 83
+65 50.77354,7.07804 ±5 | LIVE | Next 83, 2.1 km, then 27 | 2.2 km to 83
+66 50.77354,7.07819 ±5 | LIVE | Next 83, 2.1 km, then 27 | 2.2 km to 83
+67 50.77354,7.07833 ±5 | LIVE | Next 83, 2.1 km, then 27 | 2.2 km to 83
+68 50.77354,7.07847 ±5 | LIVE | Next 83, 2.1 km, then 27 | 2.2 km to 83
+69 50.77354,7.07861 ±5 | LIVE | Next 83, 2.1 km, then 27 | 2.1 km to 83
+70 50.77354,7.07876 ±5 | LIVE | Next 83, 2.1 km, then 27 | 2.1 km to 83
+71 50.77354,7.07890 ±5 | LIVE | Next 83, 2.1 km, then 27 | 2.1 km to 83
+72 50.77354,7.07904 ±5 | LIVE | Next 83, 2.1 km, then 27 | 2.1 km to 83
+73 50.77354,7.07918 ±5 | LIVE | Next 83, 2.1 km, then 27 | 2.1 km to 83
+74 50.77354,7.07933 ±5 | LIVE | Next 83, 2.1 km, then 27 | 2.1 km to 83
+75 50.77353,7.07947 ±5 | LIVE | Next 83, 2.0 km, then 27 | 2.1 km to 83
+76 50.77352,7.07961 ±5 | LIVE | Next 83, 2.0 km, then 27 | 2.1 km to 83
+77 50.77350,7.07975 ±5 | LIVE | Next 83, 2.0 km, then 27 | 2.1 km to 83
+78 50.77349,7.07989 ±5 | LIVE | Next 83, 2.0 km, then 27 | 2.1 km to 83
+79 50.77347,7.08003 ±5 | LIVE | Next 83, 2.0 km, then 27 | 2.0 km to 83
+80 50.77346,7.08017 ±5 | LIVE | Next 83, 2.0 km, then 27 | 2.0 km to 83
+81 50.77345,7.08031 ±5 | LIVE | Next 83, 2.0 km, then 27 | 2.0 km to 83
+82 50.77340,7.08043 ±5 | LIVE | Next 83, 2.0 km, then 27 | 2.0 km to 83
+83 50.77335,7.08055 ±5 | LIVE | Next 83, 2.0 km, then 27 | 2.0 km to 83
+84 50.77330,7.08067 ±5 | LIVE | Next 83, 2.0 km, then 27 | 2.0 km to 83
+85 50.77325,7.08079 ±5 | LIVE | Next 83, 1.9 km, then 27 | 2.0 km to 83
+86 50.77320,7.08091 ±5 | LIVE | Next 83, 1.9 km, then 27 | 2.0 km to 83
+87 50.77315,7.08103 ±5 | LIVE | Next 83, 1.9 km, then 27 | 2.0 km to 83
+88 50.77309,7.08113 ±5 | LIVE | Next 83, 1.9 km, then 27 | 2.0 km to 83
+89 50.77302,7.08123 ±5 | LIVE | Next 83, 1.9 km, then 27 | 1.9 km to 83
+90 50.77296,7.08133 ±5 | LIVE | Next 83, 1.9 km, then 27 | 1.9 km to 83
+91 50.77289,7.08143 ±5 | LIVE | Next 83, 1.9 km, then 27 | 1.9 km to 83
+92 50.77283,7.08153 ±5 | LIVE | Next 83, 1.9 km, then 27 | 1.9 km to 83
+93 50.77277,7.08163 ±5 | LIVE | Next 83, 1.9 km, then 27 | 1.9 km to 83
+94 50.77270,7.08173 ±5 | LIVE | Next 83, 1.9 km, then 27 | 1.9 km to 83
+95 50.77264,7.08183 ±5 | LIVE | Next 83, 1.8 km, then 27 | 1.9 km to 83
+96 50.77259,7.08194 ±5 | LIVE | Next 83, 1.8 km, then 27 | 1.9 km to 83
+97 50.77263,7.08206 ±5 | LIVE | Next 83, 1.8 km, then 27 | 1.9 km to 83
+98 50.77268,7.08218 ±5 | LIVE | Next 83, 1.8 km, then 27 | 1.9 km to 83
+99 50.77272,7.08231 ±5 | LIVE | Next 83, 1.8 km, then 27 | 1.8 km to 83
+100 50.77277,7.08243 ±5 | LIVE | Next 83, 1.8 km, then 27 | 1.8 km to 83
+101 50.77281,7.08256 ±5 | LIVE | Next 83, 1.8 km, then 27 | 1.8 km to 83
+102 50.77285,7.08268 ±5 | LIVE | Next 83, 1.8 km, then 27 | 1.8 km to 83
+103 50.77290,7.08280 ±5 | LIVE | Next 83, 1.8 km, then 27 | 1.8 km to 83
+104 50.77294,7.08293 ±5 | LIVE | Next 83, 1.8 km, then 27 | 1.8 km to 83
+105 50.77299,7.08305 ±5 | LIVE | Next 83, 1.7 km, then 27 | 1.8 km to 83
+106 50.77303,7.08317 ±5 | LIVE | Next 83, 1.7 km, then 27 | 1.8 km to 83
+107 50.77308,7.08330 ±5 | LIVE | Next 83, 1.7 km, then 27 | 1.8 km to 83
+108 50.77311,7.08343 ±5 | LIVE | Next 83, 1.7 km, then 27 | 1.8 km to 83
+109 50.77314,7.08357 ±5 | LIVE | Next 83, 1.7 km, then 27 | 1.7 km to 83
+110 50.77316,7.08370 ±5 | LIVE | Next 83, 1.7 km, then 27 | 1.7 km to 83
+111 50.77319,7.08384 ±5 | LIVE | Next 83, 1.7 km, then 27 | 1.7 km to 83
+112 50.77321,7.08398 ±5 | LIVE | Next 83, 1.7 km, then 27 | 1.7 km to 83
+113 50.77324,7.08411 ±5 | LIVE | Next 83, 1.7 km, then 27 | 1.7 km to 83
+114 50.77326,7.08425 ±5 | LIVE | Next 83, 1.7 km, then 27 | 1.7 km to 83
+115 50.77328,7.08439 ±5 | LIVE | Next 83, 1.6 km, then 27 | 1.7 km to 83
+116 50.77329,7.08453 ±5 | LIVE | Next 83, 1.6 km, then 27 | 1.7 km to 83
+117 50.77330,7.08467 ±5 | LIVE | Next 83, 1.6 km, then 27 | 1.7 km to 83
+118 50.77330,7.08481 ±5 | LIVE | Next 83, 1.6 km, then 27 | 1.7 km to 83
+119 50.77329,7.08496 ±5 | LIVE | Next 83, 1.6 km, then 27 | 1.6 km to 83
+120 50.77329,7.08510 ±5 | LIVE | Next 83, 1.6 km, then 27 | 1.6 km to 83
+121 50.77329,7.08524 ±5 | LIVE | Next 83, 1.6 km, then 27 | 1.6 km to 83
+122 50.77329,7.08538 ±5 | LIVE | Next 83, 1.6 km, then 27 | 1.6 km to 83
+123 50.77329,7.08553 ±5 | LIVE | Next 83, 1.6 km, then 27 | 1.6 km to 83
+124 50.77328,7.08567 ±5 | LIVE | Next 83, 1.6 km, then 27 | 1.6 km to 83
+125 50.77328,7.08581 ±5 | LIVE | Next 83, 1.5 km, then 27 | 1.6 km to 83
+126 50.77328,7.08595 ±5 | LIVE | Next 83, 1.5 km, then 27 | 1.6 km to 83
+127 50.77328,7.08610 ±5 | LIVE | Next 83, 1.5 km, then 27 | 1.6 km to 83
+128 50.77328,7.08624 ±5 | LIVE | Next 83, 1.5 km, then 27 | 1.6 km to 83
+129 50.77326,7.08638 ±5 | LIVE | Next 83, 1.5 km, then 27 | 1.5 km to 83
+130 50.77324,7.08652 ±5 | LIVE | Next 83, 1.5 km, then 27 | 1.5 km to 83
+131 50.77322,7.08666 ±5 | LIVE | Next 83, 1.5 km, then 27 | 1.5 km to 83
+132 50.77320,7.08680 ±5 | LIVE | Next 83, 1.5 km, then 27 | 1.5 km to 83
+133 50.77318,7.08694 ±5 | LIVE | Next 83, 1.5 km, then 27 | 1.5 km to 83
+134 50.77317,7.08707 ±5 | LIVE | Next 83, 1.5 km, then 27 | 1.5 km to 83
+135 50.77315,7.08721 ±5 | LIVE | Next 83, 1.4 km, then 27 | 1.5 km to 83
+136 50.77313,7.08735 ±5 | LIVE | Next 83, 1.4 km, then 27 | 1.5 km to 83
+137 50.77311,7.08749 ±5 | LIVE | Next 83, 1.4 km, then 27 | 1.5 km to 83
+138 50.77309,7.08763 ±5 | LIVE | Next 83, 1.4 km, then 27 | 1.5 km to 83
+139 50.77307,7.08777 ±5 | LIVE | Next 83, 1.4 km, then 27 | 1.4 km to 83
+140 50.77305,7.08791 ±5 | LIVE | Next 83, 1.4 km, then 27 | 1.4 km to 83
+141 50.77303,7.08805 ±5 | LIVE | Next 83, 1.4 km, then 27 | 1.4 km to 83
+142 50.77300,7.08818 ±5 | LIVE | Next 83, 1.4 km, then 27 | 1.4 km to 83
+143 50.77298,7.08832 ±5 | LIVE | Next 83, 1.4 km, then 27 | 1.4 km to 83
+144 50.77295,7.08846 ±5 | LIVE | Next 83, 1.4 km, then 27 | 1.4 km to 83
+145 50.77293,7.08859 ±5 | LIVE | Next 83, 1.3 km, then 27 | 1.4 km to 83
+146 50.77290,7.08873 ±5 | LIVE | Next 83, 1.3 km, then 27 | 1.4 km to 83
+147 50.77287,7.08887 ±5 | LIVE | Next 83, 1.3 km, then 27 | 1.4 km to 83
+148 50.77285,7.08900 ±5 | LIVE | Next 83, 1.3 km, then 27 | 1.4 km to 83
+149 50.77282,7.08914 ±5 | LIVE | Next 83, 1.3 km, then 27 | 1.3 km to 83
+150 50.77280,7.08928 ±5 | LIVE | Next 83, 1.3 km, then 27 | 1.3 km to 83
+151 50.77277,7.08941 ±5 | LIVE | Next 83, 1.3 km, then 27 | 1.3 km to 83
+152 50.77275,7.08955 ±5 | LIVE | Next 83, 1.3 km, then 27 | 1.3 km to 83
+153 50.77272,7.08969 ±5 | LIVE | Next 83, 1.3 km, then 27 | 1.3 km to 83
+154 50.77269,7.08982 ±5 | LIVE | Next 83, 1.3 km, then 27 | 1.3 km to 83
+155 50.77267,7.08996 ±5 | LIVE | Next 83, 1.2 km, then 27 | 1.3 km to 83
+156 50.77264,7.09009 ±5 | LIVE | Next 83, 1.2 km, then 27 | 1.3 km to 83
+157 50.77262,7.09023 ±5 | LIVE | Next 83, 1.2 km, then 27 | 1.3 km to 83
+158 50.77260,7.09037 ±5 | LIVE | Next 83, 1.2 km, then 27 | 1.3 km to 83
+159 50.77262,7.09051 ±5 | LIVE | Next 83, 1.2 km, then 27 | 1.2 km to 83
+160 50.77260,7.09064 ±5 | LIVE | Next 83, 1.2 km, then 27 | 1.2 km to 83
+161 50.77256,7.09078 ±5 | LIVE | Next 83, 1.2 km, then 27 | 1.2 km to 83
+162 50.77253,7.09091 ±5 | LIVE | Next 83, 1.2 km, then 27 | 1.2 km to 83
+163 50.77249,7.09104 ±5 | LIVE | Next 83, 1.2 km, then 27 | 1.2 km to 83
+164 50.77246,7.09117 ±5 | LIVE | Next 83, 1.2 km, then 27 | 1.2 km to 83
+165 50.77243,7.09130 ±5 | LIVE | Next 83, 1.1 km, then 27 | 1.2 km to 83
+166 50.77239,7.09144 ±5 | LIVE | Next 83, 1.1 km, then 27 | 1.2 km to 83
+167 50.77236,7.09157 ±5 | LIVE | Next 83, 1.1 km, then 27 | 1.2 km to 83
+168 50.77232,7.09170 ±5 | LIVE | Next 83, 1.1 km, then 27 | 1.2 km to 83
+169 50.77229,7.09183 ±5 | LIVE | Next 83, 1.1 km, then 27 | 1.1 km to 83
+170 50.77226,7.09196 ±5 | LIVE | Next 83, 1.1 km, then 27 | 1.1 km to 83
+171 50.77222,7.09209 ±5 | LIVE | Next 83, 1.1 km, then 27 | 1.1 km to 83
+172 50.77219,7.09223 ±5 | LIVE | Next 83, 1.1 km, then 27 | 1.1 km to 83
+173 50.77215,7.09236 ±5 | LIVE | Next 83, 1.1 km, then 27 | 1.1 km to 83
+174 50.77212,7.09249 ±5 | LIVE | Next 83, 1.1 km, then 27 | 1.1 km to 83
+175 50.77209,7.09262 ±5 | LIVE | Next 83, 1.0 km, then 27 | 1.1 km to 83
+176 50.77207,7.09276 ±5 | LIVE | Next 83, 1.0 km, then 27 | 1.1 km to 83
+177 50.77205,7.09290 ±5 | LIVE | Next 83, 1.0 km, then 27 | 1.1 km to 83
+178 50.77204,7.09304 ±5 | LIVE | Next 83, 1.0 km, then 27 | 1.1 km to 83
+179 50.77202,7.09318 ±5 | LIVE | Next 83, 1.0 km, then 27 | 1.0 km to 83
+180 50.77200,7.09332 ±5 | LIVE | Next 83, 994 m, then 27 | 1.0 km to 83
+181 50.77198,7.09346 ±5 | LIVE | Next 83, 984 m, then 27 | 1.0 km to 83
+182 50.77196,7.09360 ±5 | LIVE | Next 83, 974 m, then 27 | 1.0 km to 83
+183 50.77194,7.09374 ±5 | LIVE | Next 83, 964 m, then 27 | 1.0 km to 83
+184 50.77194,7.09388 ±5 | LIVE | Next 83, 954 m, then 27 | 1.0 km to 83
+185 50.77197,7.09401 ±5 | LIVE | Next 83, 944 m, then 27 | 1.0 km to 83
+186 50.77199,7.09415 ±5 | LIVE | Next 83, 934 m, then 27 | 1.0 km to 83
+187 50.77202,7.09429 ±5 | LIVE | Next 83, 924 m, then 27 | 1.0 km to 83
+188 50.77205,7.09442 ±5 | LIVE | Next 83, 914 m, then 27 | 1.0 km to 83
+189 50.77207,7.09456 ±5 | LIVE | Next 83, 904 m, then 27 | 904 m to 83
+190 50.77207,7.09470 ±5 | LIVE | Next 83, 894 m, then 27 | 904 m to 83
+191 50.77208,7.09484 ±5 | LIVE | Next 83, 884 m, then 27 | 904 m to 83
+192 50.77208,7.09499 ±5 | LIVE | Next 83, 874 m, then 27 | 904 m to 83
+193 50.77209,7.09513 ±5 | LIVE | Next 83, 864 m, then 27 | 904 m to 83
+194 50.77209,7.09527 ±5 | LIVE | Next 83, 854 m, then 27 | 904 m to 83
+195 50.77210,7.09541 ±5 | LIVE | Next 83, 844 m, then 27 | 904 m to 83
+196 50.77210,7.09555 ±5 | LIVE | Next 83, 834 m, then 27 | 904 m to 83
+197 50.77211,7.09570 ±5 | LIVE | Next 83, 824 m, then 27 | 904 m to 83
+198 50.77213,7.09583 ±5 | LIVE | Next 83, 813 m, then 27 | 904 m to 83
+199 50.77217,7.09594 ±5 | LIVE | Next 83, 803 m, then 27 | 803 m to 83
+200 50.77212,7.09607 ±5 | LIVE | Next 83, 793 m, then 27 | 803 m to 83
+201 50.77208,7.09619 ±5 | LIVE | Next 83, 783 m, then 27 | 803 m to 83
+202 50.77203,7.09632 ±5 | LIVE | Next 83, 773 m, then 27 | 803 m to 83
+203 50.77199,7.09644 ±5 | LIVE | Next 83, 763 m, then 27 | 803 m to 83
+204 50.77195,7.09656 ±5 | LIVE | Next 83, 753 m, then 27 | 803 m to 83
+205 50.77190,7.09669 ±5 | LIVE | Next 83, 743 m, then 27 | 803 m to 83
+206 50.77186,7.09681 ±5 | LIVE | Next 83, 733 m, then 27 | 803 m to 83
+207 50.77181,7.09694 ±5 | LIVE | Next 83, 723 m, then 27 | 803 m to 83
+208 50.77177,7.09706 ±5 | LIVE | Next 83, 713 m, then 27 | 803 m to 83
+209 50.77173,7.09719 ±5 | LIVE | Next 83, 703 m, then 27 | 703 m to 83
+210 50.77168,7.09731 ±5 | LIVE | Next 83, 693 m, then 27 | 703 m to 83
+211 50.77164,7.09743 ±5 | LIVE | Next 83, 683 m, then 27 | 703 m to 83
+212 50.77159,7.09756 ±5 | LIVE | Next 83, 673 m, then 27 | 703 m to 83
+213 50.77155,7.09768 ±5 | LIVE | Next 83, 663 m, then 27 | 703 m to 83
+214 50.77150,7.09781 ±5 | LIVE | Next 83, 653 m, then 27 | 703 m to 83
+215 50.77146,7.09793 ±5 | LIVE | Next 83, 643 m, then 27 | 703 m to 83
+216 50.77141,7.09805 ±5 | LIVE | Next 83, 633 m, then 27 | 703 m to 83
+217 50.77135,7.09815 ±5 | LIVE | Next 83, 623 m, then 27 | 703 m to 83
+218 50.77129,7.09826 ±5 | LIVE | Next 83, 613 m, then 27 | 703 m to 83
+219 50.77123,7.09836 ±5 | LIVE | Next 83, 603 m, then 27 | 603 m to 83
+220 50.77116,7.09846 ±5 | LIVE | Next 83, 593 m, then 27 | 603 m to 83
+221 50.77110,7.09856 ±5 | LIVE | Next 83, 582 m, then 27 | 603 m to 83
+222 50.77104,7.09867 ±5 | LIVE | Next 83, 572 m, then 27 | 603 m to 83
+223 50.77098,7.09877 ±5 | LIVE | Next 83, 562 m, then 27 | 603 m to 83
+224 50.77091,7.09887 ±5 | LIVE | Next 83, 552 m, then 27 | 603 m to 83
+225 50.77085,7.09898 ±5 | LIVE | Next 83, 542 m, then 27 | 603 m to 83
+226 50.77079,7.09908 ±5 | LIVE | Next 83, 532 m, then 27 | 603 m to 83
+227 50.77073,7.09918 ±5 | LIVE | Next 83, 522 m, then 27 | 603 m to 83
+228 50.77066,7.09928 ±5 | LIVE | Next 83, 512 m, then 27 | 603 m to 83
+229 50.77060,7.09939 ±5 | LIVE | Next 83, 502 m, then 27 | 502 m to 83
+230 50.77054,7.09949 ±5 | LIVE | Next 83, 492 m, then 27 | 502 m to 83
+231 50.77048,7.09959 ±5 | LIVE | Next 83, 482 m, then 27 | 502 m to 83
+232 50.77041,7.09969 ±5 | LIVE | Next 83, 472 m, then 27 | 502 m to 83
+233 50.77035,7.09980 ±5 | LIVE | Next 83, 462 m, then 27 | 502 m to 83
+234 50.77029,7.09990 ±5 | LIVE | Next 83, 452 m, then 27 | 502 m to 83
+235 50.77023,7.10000 ±5 | LIVE | Next 83, 442 m, then 27 | 502 m to 83
+236 50.77016,7.10011 ±5 | LIVE | Next 83, 432 m, then 27 | 502 m to 83
+237 50.77010,7.10021 ±5 | LIVE | Next 83, 422 m, then 27 | 502 m to 83
+238 50.77004,7.10031 ±5 | LIVE | Next 83, 412 m, then 27 | 502 m to 83
+239 50.76998,7.10041 ±5 | LIVE | Next 83, 402 m, then 27 | 402 m to 83
+240 50.76992,7.10052 ±5 | LIVE | Next 83, 392 m, then 27 | 402 m to 83
+241 50.76985,7.10062 ±5 | LIVE | Next 83, 382 m, then 27 | 402 m to 83
+242 50.76979,7.10072 ±5 | LIVE | Next 83, 372 m, then 27 | 402 m to 83
+243 50.76973,7.10082 ±5 | LIVE | Next 83, 362 m, then 27 | 402 m to 83
+244 50.76967,7.10093 ±5 | LIVE | Next 83, 351 m, then 27 | 402 m to 83
+245 50.76960,7.10103 ±5 | LIVE | Next 83, 341 m, then 27 | 402 m to 83
+246 50.76954,7.10113 ±5 | LIVE | Next 83, 331 m, then 27 | 402 m to 83
+247 50.76948,7.10124 ±5 | LIVE | Next 83, 321 m, then 27 | 402 m to 83
+248 50.76942,7.10134 ±5 | LIVE | Next 83, 311 m, then 27 | 402 m to 83
+249 50.76935,7.10144 ±5 | LIVE | Next 83, 301 m, then 27 | 301 m to 83
+250 50.76929,7.10154 ±5 | LIVE | Next 83, 291 m, then 27 | 301 m to 83
+251 50.76923,7.10165 ±5 | LIVE | Next 83, 281 m, then 27 | 301 m to 83
+252 50.76917,7.10175 ±5 | LIVE | Next 83, 271 m, then 27 | 301 m to 83
+253 50.76910,7.10185 ±5 | LIVE | Next 83, 261 m, then 27 | 301 m to 83
+254 50.76904,7.10195 ±5 | LIVE | Next 83, 251 m, then 27 | 301 m to 83
+255 50.76898,7.10206 ±5 | LIVE | Next 83, 241 m, then 27 | 301 m to 83
+256 50.76892,7.10216 ±5 | LIVE | Next 83, 231 m, then 27 | 301 m to 83
+257 50.76885,7.10226 ±5 | LIVE | Next 83, 221 m, then 27 | 301 m to 83
+258 50.76879,7.10237 ±5 | LIVE | Next 83, 211 m, then 27 | 301 m to 83
+259 50.76873,7.10247 ±5 | REMINDER 83 ahead, then 27 | LIVE | At 83 follow 27 sharply to the right, 201 m | 201 m to 83
+260 50.76867,7.10257 ±5 | LIVE | At 83 follow 27 sharply to the right, 191 m | 201 m to 83
+261 50.76860,7.10267 ±5 | LIVE | At 83 follow 27 sharply to the right, 181 m | 201 m to 83
+262 50.76854,7.10277 ±5 | LIVE | At 83 follow 27 sharply to the right, 171 m | 201 m to 83
+263 50.76847,7.10287 ±5 | LIVE | At 83 follow 27 sharply to the right, 161 m | 201 m to 83
+264 50.76841,7.10297 ±5 | LIVE | At 83 follow 27 sharply to the right, 151 m | 201 m to 83
+265 50.76834,7.10306 ±5 | LIVE | At 83 follow 27 sharply to the right, 141 m | 201 m to 83
+266 50.76828,7.10316 ±5 | LIVE | At 83 follow 27 sharply to the right, 131 m | 201 m to 83
+267 50.76821,7.10326 ±5 | LIVE | At 83 follow 27 sharply to the right, 121 m | 201 m to 83
+268 50.76815,7.10336 ±5 | LIVE | At 83 follow 27 sharply to the right, 110 m | 201 m to 83
+269 50.76808,7.10345 ±5 | LIVE | At 83 follow 27 sharply to the right, 100 m | 100 m to 83
+270 50.76801,7.10355 ±5 | LIVE | At 83 follow 27 sharply to the right, 90 m | 100 m to 83
+271 50.76795,7.10365 ±5 | LIVE | At 83 follow 27 sharply to the right, 80 m | 100 m to 83
+272 50.76788,7.10375 ±5 | LIVE | At 83 follow 27 sharply to the right, 70 m | 100 m to 83
+273 50.76782,7.10385 ±5 | LIVE | At 83 follow 27 sharply to the right, 60 m | 100 m to 83
+274 50.76775,7.10394 ±5 | LIVE | At 83 follow 27 sharply to the right, 50 m | 100 m to 83
+275 50.76769,7.10404 ±5 | LIVE | At 83 follow 27 sharply to the right, 40 m | 100 m to 83
+276 50.76764,7.10416 ±5 | LIVE | At 83 follow 27 sharply to the right, 30 m | 100 m to 83
+277 50.76759,7.10428 ±5 | NEXT Next 27, then 83 | LIVE | Next 27, 774 m, then 83 | 819 m to 27
+278 50.76754,7.10440 ±5 | LIVE | Next 27, 819 m, then 83 | 819 m to 27
+279 50.76749,7.10452 ±5 | LIVE | Next 27, 819 m, then 83 | 819 m to 27
+280 50.76741,7.10458 ±5 | LIVE | Next 27, 809 m, then 83 | 819 m to 27
+281 50.76739,7.10453 ±5 | LIVE | Next 27, 799 m, then 83 | 819 m to 27
+282 50.76742,7.10439 ±5 | LIVE | Next 27, 789 m, then 83 | 819 m to 27
+283 50.76746,7.10426 ±5 | LIVE | Next 27, 779 m, then 83 | 819 m to 27
+284 50.76749,7.10413 ±5 | LIVE | Next 27, 768 m, then 83 | 819 m to 27
+285 50.76753,7.10400 ±5 | LIVE | Next 27, 758 m, then 83 | 819 m to 27
+286 50.76756,7.10386 ±5 | LIVE | Next 27, 748 m, then 83 | 819 m to 27
+287 50.76756,7.10383 ±5 | LIVE | Next 27, 738 m, then 83 | 819 m to 27
+288 50.76751,7.10395 ±5 | LIVE | Next 27, 728 m, then 83 | 819 m to 27
+289 50.76746,7.10406 ±5 | LIVE | Next 27, 718 m, then 83 | 718 m to 27
+290 50.76741,7.10418 ±5 | LIVE | Next 27, 708 m, then 83 | 718 m to 27
+291 50.76735,7.10430 ±5 | LIVE | Next 27, 698 m, then 83 | 718 m to 27
+292 50.76730,7.10441 ±5 | LIVE | Next 27, 688 m, then 83 | 718 m to 27
+293 50.76724,7.10453 ±5 | LIVE | Next 27, 677 m, then 83 | 718 m to 27
+294 50.76719,7.10464 ±5 | LIVE | Next 27, 667 m, then 83 | 718 m to 27
+295 50.76713,7.10475 ±5 | LIVE | Next 27, 657 m, then 83 | 718 m to 27
+296 50.76708,7.10487 ±5 | LIVE | Next 27, 647 m, then 83 | 718 m to 27
+297 50.76702,7.10498 ±5 | LIVE | Next 27, 637 m, then 83 | 718 m to 27
+298 50.76697,7.10509 ±5 | LIVE | Next 27, 627 m, then 83 | 718 m to 27
+299 50.76691,7.10521 ±5 | LIVE | Next 27, 617 m, then 83 | 617 m to 27
+300 50.76685,7.10532 ±5 | LIVE | Next 27, 607 m, then 83 | 617 m to 27
+301 50.76680,7.10544 ±5 | LIVE | Next 27, 597 m, then 83 | 617 m to 27
+302 50.76674,7.10555 ±5 | LIVE | Next 27, 586 m, then 83 | 617 m to 27
+303 50.76669,7.10566 ±5 | LIVE | Next 27, 576 m, then 83 | 617 m to 27
+304 50.76663,7.10578 ±5 | LIVE | Next 27, 566 m, then 83 | 617 m to 27
+305 50.76658,7.10589 ±5 | LIVE | Next 27, 556 m, then 83 | 617 m to 27
+306 50.76652,7.10600 ±5 | LIVE | Next 27, 546 m, then 83 | 617 m to 27
+307 50.76647,7.10612 ±5 | LIVE | Next 27, 536 m, then 83 | 617 m to 27
+308 50.76641,7.10623 ±5 | LIVE | Next 27, 526 m, then 83 | 617 m to 27
+309 50.76636,7.10635 ±5 | LIVE | Next 27, 516 m, then 83 | 516 m to 27
+310 50.76630,7.10646 ±5 | LIVE | Next 27, 506 m, then 83 | 516 m to 27
+311 50.76624,7.10657 ±5 | LIVE | Next 27, 495 m, then 83 | 516 m to 27
+312 50.76619,7.10669 ±5 | LIVE | Next 27, 485 m, then 83 | 516 m to 27
+313 50.76613,7.10680 ±5 | LIVE | Next 27, 475 m, then 83 | 516 m to 27
+314 50.76608,7.10691 ±5 | LIVE | Next 27, 465 m, then 83 | 516 m to 27
+315 50.76602,7.10703 ±5 | LIVE | Next 27, 455 m, then 83 | 516 m to 27
+316 50.76597,7.10714 ±5 | LIVE | Next 27, 445 m, then 83 | 516 m to 27
+317 50.76591,7.10726 ±5 | LIVE | Next 27, 435 m, then 83 | 516 m to 27
+318 50.76586,7.10737 ±5 | LIVE | Next 27, 425 m, then 83 | 516 m to 27
+319 50.76580,7.10748 ±5 | LIVE | Next 27, 415 m, then 83 | 415 m to 27
+320 50.76574,7.10760 ±5 | LIVE | Next 27, 404 m, then 83 | 415 m to 27
+321 50.76569,7.10771 ±5 | LIVE | Next 27, 394 m, then 83 | 415 m to 27
+322 50.76563,7.10782 ±5 | LIVE | Next 27, 384 m, then 83 | 415 m to 27
+323 50.76558,7.10793 ±5 | LIVE | Next 27, 374 m, then 83 | 415 m to 27
+324 50.76551,7.10804 ±5 | LIVE | Next 27, 364 m, then 83 | 415 m to 27
+325 50.76545,7.10815 ±5 | LIVE | Next 27, 354 m, then 83 | 415 m to 27
+326 50.76539,7.10825 ±5 | LIVE | Next 27, 344 m, then 83 | 415 m to 27
+327 50.76533,7.10836 ±5 | LIVE | Next 27, 334 m, then 83 | 415 m to 27
+328 50.76527,7.10846 ±5 | LIVE | Next 27, 324 m, then 83 | 415 m to 27
+329 50.76521,7.10857 ±5 | LIVE | Next 27, 313 m, then 83 | 313 m to 27
+330 50.76515,7.10868 ±5 | LIVE | Next 27, 303 m, then 83 | 313 m to 27
+331 50.76508,7.10878 ±5 | LIVE | Next 27, 293 m, then 83 | 313 m to 27
+332 50.76502,7.10889 ±5 | LIVE | Next 27, 283 m, then 83 | 313 m to 27
+333 50.76496,7.10899 ±5 | LIVE | Next 27, 273 m, then 83 | 313 m to 27
+334 50.76490,7.10910 ±5 | LIVE | Next 27, 263 m, then 83 | 313 m to 27
+335 50.76484,7.10920 ±5 | LIVE | Next 27, 253 m, then 83 | 313 m to 27
+336 50.76478,7.10931 ±5 | LIVE | Next 27, 243 m, then 83 | 313 m to 27
+337 50.76471,7.10942 ±5 | LIVE | Next 27, 233 m, then 83 | 313 m to 27
+338 50.76465,7.10952 ±5 | LIVE | Next 27, 222 m, then 83 | 313 m to 27
+339 50.76459,7.10963 ±5 | LIVE | Next 27, 212 m, then 83 | 212 m to 27
+340 50.76453,7.10973 ±5 | LIVE | Next 27, 202 m, then 83 | 212 m to 27
+341 50.76447,7.10984 ±5 | REMINDER 27 ahead, then 83 | LIVE | At 27 follow 83 back, 192 m | 212 m to 27
+342 50.76440,7.10993 ±5 | LIVE | At 27 follow 83 back, 182 m | 212 m to 27
+343 50.76434,7.11003 ±5 | LIVE | At 27 follow 83 back, 172 m | 212 m to 27
+344 50.76427,7.11013 ±5 | LIVE | At 27 follow 83 back, 162 m | 212 m to 27
+345 50.76420,7.11023 ±5 | LIVE | At 27 follow 83 back, 152 m | 212 m to 27
+346 50.76414,7.11033 ±5 | LIVE | At 27 follow 83 back, 142 m | 212 m to 27
+347 50.76407,7.11043 ±5 | LIVE | At 27 follow 83 back, 131 m | 212 m to 27
+348 50.76401,7.11053 ±5 | LIVE | At 27 follow 83 back, 121 m | 212 m to 27
+349 50.76394,7.11063 ±5 | LIVE | At 27 follow 83 back, 111 m | 111 m to 27
+350 50.76388,7.11073 ±5 | LIVE | At 27 follow 83 back, 101 m | 111 m to 27
+351 50.76381,7.11083 ±5 | LIVE | At 27 follow 83 back, 91 m | 111 m to 27
+352 50.76375,7.11093 ±5 | LIVE | At 27 follow 83 back, 81 m | 111 m to 27
+353 50.76368,7.11103 ±5 | LIVE | At 27 follow 83 back, 71 m | 111 m to 27
+354 50.76362,7.11113 ±5 | LIVE | At 27 follow 83 back, 61 m | 111 m to 27
+355 50.76355,7.11123 ±5 | LIVE | At 27 follow 83 back, 51 m | 111 m to 27
+356 50.76348,7.11133 ±5 | LIVE | At 27 follow 83 back, 40 m | 111 m to 27
+357 50.76342,7.11143 ±5 | LIVE | At 27 follow 83 back, 30 m | 111 m to 27
+358 50.76335,7.11152 ±5 | NEXT Next 83, then 30 | LIVE | Next 83, 799 m, then 30 | 819 m to 83
+359 50.76328,7.11162 ±5 | LIVE | Next 83, 809 m, then 30 | 819 m to 83
+360 50.76321,7.11171 ±5 | LIVE | Next 83, 819 m, then 30 | 819 m to 83
+361 50.76328,7.11162 ±5 | LIVE | Next 83, 809 m, then 30 | 819 m to 83
+362 50.76335,7.11152 ±5 | LIVE | Next 83, 799 m, then 30 | 819 m to 83
+363 50.76342,7.11143 ±5 | LIVE | Next 83, 789 m, then 30 | 819 m to 83
+364 50.76348,7.11133 ±5 | LIVE | Next 83, 779 m, then 30 | 819 m to 83
+365 50.76355,7.11123 ±5 | LIVE | Next 83, 768 m, then 30 | 819 m to 83
+366 50.76362,7.11113 ±5 | LIVE | Next 83, 758 m, then 30 | 819 m to 83
+367 50.76368,7.11103 ±5 | LIVE | Next 83, 748 m, then 30 | 819 m to 83
+368 50.76375,7.11093 ±5 | LIVE | Next 83, 738 m, then 30 | 819 m to 83
+369 50.76381,7.11083 ±5 | LIVE | Next 83, 728 m, then 30 | 819 m to 83
+370 50.76388,7.11073 ±5 | LIVE | Next 83, 718 m, then 30 | 718 m to 83
+371 50.76394,7.11063 ±5 | LIVE | Next 83, 708 m, then 30 | 718 m to 83
+372 50.76401,7.11053 ±5 | LIVE | Next 83, 698 m, then 30 | 718 m to 83
+373 50.76407,7.11043 ±5 | LIVE | Next 83, 688 m, then 30 | 718 m to 83
+374 50.76414,7.11033 ±5 | LIVE | Next 83, 677 m, then 30 | 718 m to 83
+375 50.76420,7.11023 ±5 | LIVE | Next 83, 667 m, then 30 | 718 m to 83
+376 50.76427,7.11013 ±5 | LIVE | Next 83, 657 m, then 30 | 718 m to 83
+377 50.76434,7.11003 ±5 | LIVE | Next 83, 647 m, then 30 | 718 m to 83
+378 50.76440,7.10993 ±5 | LIVE | Next 83, 637 m, then 30 | 718 m to 83
+379 50.76447,7.10984 ±5 | LIVE | Next 83, 627 m, then 30 | 718 m to 83
+380 50.76453,7.10973 ±5 | LIVE | Next 83, 617 m, then 30 | 617 m to 83
+381 50.76459,7.10963 ±5 | LIVE | Next 83, 607 m, then 30 | 617 m to 83
+382 50.76465,7.10952 ±5 | LIVE | Next 83, 597 m, then 30 | 617 m to 83
+383 50.76471,7.10942 ±5 | LIVE | Next 83, 586 m, then 30 | 617 m to 83
+384 50.76478,7.10931 ±5 | LIVE | Next 83, 576 m, then 30 | 617 m to 83
+385 50.76484,7.10920 ±5 | LIVE | Next 83, 566 m, then 30 | 617 m to 83
+386 50.76490,7.10910 ±5 | LIVE | Next 83, 556 m, then 30 | 617 m to 83
+387 50.76496,7.10899 ±5 | LIVE | Next 83, 546 m, then 30 | 617 m to 83
+388 50.76502,7.10889 ±5 | LIVE | Next 83, 536 m, then 30 | 617 m to 83
+389 50.76508,7.10878 ±5 | LIVE | Next 83, 526 m, then 30 | 617 m to 83
+390 50.76515,7.10868 ±5 | LIVE | Next 83, 516 m, then 30 | 516 m to 83
+391 50.76521,7.10857 ±5 | LIVE | Next 83, 506 m, then 30 | 516 m to 83
+392 50.76527,7.10846 ±5 | LIVE | Next 83, 495 m, then 30 | 516 m to 83
+393 50.76533,7.10836 ±5 | LIVE | Next 83, 485 m, then 30 | 516 m to 83
+394 50.76539,7.10825 ±5 | LIVE | Next 83, 475 m, then 30 | 516 m to 83
+395 50.76545,7.10815 ±5 | LIVE | Next 83, 465 m, then 30 | 516 m to 83
+396 50.76551,7.10804 ±5 | LIVE | Next 83, 455 m, then 30 | 516 m to 83
+397 50.76558,7.10793 ±5 | LIVE | Next 83, 445 m, then 30 | 516 m to 83
+398 50.76563,7.10782 ±5 | LIVE | Next 83, 435 m, then 30 | 516 m to 83
+399 50.76569,7.10771 ±5 | LIVE | Next 83, 425 m, then 30 | 516 m to 83
+400 50.76574,7.10760 ±5 | LIVE | Next 83, 415 m, then 30 | 415 m to 83
+401 50.76580,7.10748 ±5 | LIVE | Next 83, 404 m, then 30 | 415 m to 83
+402 50.76586,7.10737 ±5 | LIVE | Next 83, 394 m, then 30 | 415 m to 83
+403 50.76591,7.10726 ±5 | LIVE | Next 83, 384 m, then 30 | 415 m to 83
+404 50.76597,7.10714 ±5 | LIVE | Next 83, 374 m, then 30 | 415 m to 83
+405 50.76602,7.10703 ±5 | LIVE | Next 83, 364 m, then 30 | 415 m to 83
+406 50.76608,7.10691 ±5 | LIVE | Next 83, 354 m, then 30 | 415 m to 83
+407 50.76613,7.10680 ±5 | LIVE | Next 83, 344 m, then 30 | 415 m to 83
+408 50.76619,7.10669 ±5 | LIVE | Next 83, 334 m, then 30 | 415 m to 83
+409 50.76624,7.10657 ±5 | LIVE | Next 83, 324 m, then 30 | 415 m to 83
+410 50.76630,7.10646 ±5 | REMINDER 83 ahead, then 30 | LIVE | At 83 follow 30 to the left, 313 m | 313 m to 83
+411 50.76636,7.10635 ±5 | LIVE | At 83 follow 30 to the left, 303 m | 313 m to 83
+412 50.76641,7.10623 ±5 | LIVE | At 83 follow 30 to the left, 293 m | 313 m to 83
+413 50.76647,7.10612 ±5 | LIVE | At 83 follow 30 to the left, 283 m | 313 m to 83
+414 50.76652,7.10600 ±5 | LIVE | At 83 follow 30 to the left, 273 m | 313 m to 83
+415 50.76658,7.10589 ±5 | LIVE | At 83 follow 30 to the left, 263 m | 313 m to 83
+416 50.76663,7.10578 ±5 | LIVE | At 83 follow 30 to the left, 253 m | 313 m to 83
+417 50.76669,7.10566 ±5 | LIVE | At 83 follow 30 to the left, 243 m | 313 m to 83
+418 50.76674,7.10555 ±5 | LIVE | At 83 follow 30 to the left, 233 m | 313 m to 83
+419 50.76680,7.10544 ±5 | LIVE | At 83 follow 30 to the left, 222 m | 313 m to 83
+420 50.76685,7.10532 ±5 | LIVE | At 83 follow 30 to the left, 212 m | 212 m to 83
+421 50.76691,7.10521 ±5 | LIVE | At 83 follow 30 to the left, 202 m | 212 m to 83
+422 50.76697,7.10509 ±5 | LIVE | At 83 follow 30 to the left, 192 m | 212 m to 83
+423 50.76702,7.10498 ±5 | LIVE | At 83 follow 30 to the left, 182 m | 212 m to 83
+424 50.76708,7.10487 ±5 | LIVE | At 83 follow 30 to the left, 172 m | 212 m to 83
+425 50.76713,7.10475 ±5 | LIVE | At 83 follow 30 to the left, 162 m | 212 m to 83
+426 50.76719,7.10464 ±5 | LIVE | At 83 follow 30 to the left, 152 m | 212 m to 83
+427 50.76724,7.10453 ±5 | NEXT Next 30 | LIVE | 30 is the end, 2.9 km | 2.9 km to the end
+428 50.76730,7.10441 ±5 | LIVE | 30 is the end, 2.9 km | 2.9 km to the end
+429 50.76735,7.10430 ±5 | LIVE | 30 is the end, 2.9 km | 2.9 km to the end
+430 50.76741,7.10418 ±5 | LIVE | 30 is the end, 2.9 km | 2.9 km to the end
+431 50.76746,7.10406 ±5 | LIVE | 30 is the end, 2.9 km | 2.9 km to the end
+432 50.76751,7.10395 ±5 | LIVE | 30 is the end, 2.9 km | 2.9 km to the end
+433 50.76756,7.10383 ±5 | LIVE | 30 is the end, 2.8 km | 2.9 km to the end
+434 50.76756,7.10386 ±5 | LIVE | 30 is the end, 2.9 km | 2.9 km to the end
+435 50.76753,7.10400 ±5 | LIVE | 30 is the end, 2.9 km | 2.9 km to the end
+436 50.76749,7.10413 ±5 | LIVE | 30 is the end, 2.9 km | 2.9 km to the end
+437 50.76746,7.10426 ±5 | LIVE | 30 is the end, 2.9 km | 2.9 km to the end
+438 50.76742,7.10439 ±5 | LIVE | 30 is the end, 2.9 km | 2.9 km to the end
+439 50.76739,7.10453 ±5 | LIVE | 30 is the end, 2.9 km | 2.9 km to the end
+440 50.76741,7.10458 ±5 | LIVE | 30 is the end, 2.9 km | 2.9 km to the end
+441 50.76749,7.10452 ±5 | LIVE | 30 is the end, 2.9 km | 2.9 km to the end
+442 50.76757,7.10447 ±5 | LIVE | 30 is the end, 2.9 km | 2.9 km to the end
+443 50.76766,7.10441 ±5 | LIVE | 30 is the end, 2.9 km | 2.9 km to the end
+444 50.76774,7.10436 ±5 | LIVE | 30 is the end, 2.8 km | 2.9 km to the end
+445 50.76783,7.10431 ±5 | LIVE | 30 is the end, 2.8 km | 2.9 km to the end
+446 50.76791,7.10426 ±5 | LIVE | 30 is the end, 2.8 km | 2.9 km to the end
+447 50.76799,7.10421 ±5 | LIVE | 30 is the end, 2.8 km | 2.9 km to the end
+448 50.76808,7.10416 ±5 | LIVE | 30 is the end, 2.8 km | 2.9 km to the end
+449 50.76816,7.10411 ±5 | LIVE | 30 is the end, 2.8 km | 2.9 km to the end
+450 50.76825,7.10406 ±5 | LIVE | 30 is the end, 2.8 km | 2.9 km to the end
+451 50.76833,7.10401 ±5 | LIVE | 30 is the end, 2.8 km | 2.8 km to the end
+452 50.76842,7.10396 ±5 | LIVE | 30 is the end, 2.8 km | 2.8 km to the end
+453 50.76850,7.10391 ±5 | LIVE | 30 is the end, 2.8 km | 2.8 km to the end
+454 50.76858,7.10385 ±5 | LIVE | 30 is the end, 2.7 km | 2.8 km to the end
+455 50.76867,7.10380 ±5 | LIVE | 30 is the end, 2.7 km | 2.8 km to the end
+456 50.76875,7.10375 ±5 | LIVE | 30 is the end, 2.7 km | 2.8 km to the end
+457 50.76884,7.10370 ±5 | LIVE | 30 is the end, 2.7 km | 2.8 km to the end
+458 50.76892,7.10365 ±5 | LIVE | 30 is the end, 2.7 km | 2.8 km to the end
+459 50.76901,7.10360 ±5 | LIVE | 30 is the end, 2.7 km | 2.8 km to the end
+460 50.76909,7.10355 ±5 | LIVE | 30 is the end, 2.7 km | 2.8 km to the end
+461 50.76917,7.10350 ±5 | LIVE | 30 is the end, 2.7 km | 2.7 km to the end
+462 50.76926,7.10345 ±5 | LIVE | 30 is the end, 2.7 km | 2.7 km to the end
+463 50.76934,7.10340 ±5 | LIVE | 30 is the end, 2.7 km | 2.7 km to the end
+464 50.76943,7.10335 ±5 | LIVE | 30 is the end, 2.6 km | 2.7 km to the end
+465 50.76951,7.10331 ±5 | LIVE | 30 is the end, 2.6 km | 2.7 km to the end
+466 50.76960,7.10328 ±5 | LIVE | 30 is the end, 2.6 km | 2.7 km to the end
+467 50.76969,7.10325 ±5 | LIVE | 30 is the end, 2.6 km | 2.7 km to the end
+468 50.76978,7.10322 ±5 | LIVE | 30 is the end, 2.6 km | 2.7 km to the end
+469 50.76987,7.10319 ±5 | LIVE | 30 is the end, 2.6 km | 2.7 km to the end
+470 50.76995,7.10316 ±5 | LIVE | 30 is the end, 2.6 km | 2.7 km to the end
+471 50.77004,7.10313 ±5 | LIVE | 30 is the end, 2.6 km | 2.6 km to the end
+472 50.77013,7.10310 ±5 | LIVE | 30 is the end, 2.6 km | 2.6 km to the end
+473 50.77022,7.10307 ±5 | LIVE | 30 is the end, 2.6 km | 2.6 km to the end
+474 50.77031,7.10303 ±5 | LIVE | 30 is the end, 2.5 km | 2.6 km to the end
+475 50.77040,7.10304 ±5 | LIVE | 30 is the end, 2.5 km | 2.6 km to the end
+476 50.77049,7.10306 ±5 | LIVE | 30 is the end, 2.5 km | 2.6 km to the end
+477 50.77057,7.10308 ±5 | LIVE | 30 is the end, 2.5 km | 2.6 km to the end
+478 50.77066,7.10310 ±5 | LIVE | 30 is the end, 2.5 km | 2.6 km to the end
+479 50.77075,7.10311 ±5 | LIVE | 30 is the end, 2.5 km | 2.6 km to the end
+480 50.77084,7.10313 ±5 | LIVE | 30 is the end, 2.5 km | 2.6 km to the end
+481 50.77093,7.10315 ±5 | LIVE | 30 is the end, 2.5 km | 2.5 km to the end
+482 50.77102,7.10317 ±5 | LIVE | 30 is the end, 2.5 km | 2.5 km to the end
+483 50.77111,7.10319 ±5 | LIVE | 30 is the end, 2.5 km | 2.5 km to the end
+484 50.77120,7.10321 ±5 | LIVE | 30 is the end, 2.4 km | 2.5 km to the end
+485 50.77129,7.10323 ±5 | LIVE | 30 is the end, 2.4 km | 2.5 km to the end
+486 50.77138,7.10325 ±5 | LIVE | 30 is the end, 2.4 km | 2.5 km to the end
+487 50.77147,7.10327 ±5 | LIVE | 30 is the end, 2.4 km | 2.5 km to the end
+488 50.77156,7.10329 ±5 | LIVE | 30 is the end, 2.4 km | 2.5 km to the end
+489 50.77165,7.10331 ±5 | LIVE | 30 is the end, 2.4 km | 2.5 km to the end
+490 50.77174,7.10333 ±5 | LIVE | 30 is the end, 2.4 km | 2.5 km to the end
+491 50.77183,7.10335 ±5 | LIVE | 30 is the end, 2.4 km | 2.4 km to the end
+492 50.77192,7.10337 ±5 | LIVE | 30 is the end, 2.4 km | 2.4 km to the end
+493 50.77200,7.10339 ±5 | LIVE | 30 is the end, 2.4 km | 2.4 km to the end
+494 50.77209,7.10341 ±5 | LIVE | 30 is the end, 2.3 km | 2.4 km to the end
+495 50.77218,7.10343 ±5 | LIVE | 30 is the end, 2.3 km | 2.4 km to the end
+496 50.77227,7.10345 ±5 | LIVE | 30 is the end, 2.3 km | 2.4 km to the end
+497 50.77236,7.10347 ±5 | LIVE | 30 is the end, 2.3 km | 2.4 km to the end
+498 50.77245,7.10348 ±5 | LIVE | 30 is the end, 2.3 km | 2.4 km to the end
+499 50.77254,7.10350 ±5 | LIVE | 30 is the end, 2.3 km | 2.4 km to the end
+500 50.77263,7.10352 ±5 | LIVE | 30 is the end, 2.3 km | 2.4 km to the end
+501 50.77272,7.10354 ±5 | LIVE | 30 is the end, 2.3 km | 2.3 km to the end
+502 50.77281,7.10355 ±5 | LIVE | 30 is the end, 2.3 km | 2.3 km to the end
+503 50.77290,7.10352 ±5 | LIVE | 30 is the end, 2.3 km | 2.3 km to the end
+504 50.77299,7.10350 ±5 | LIVE | 30 is the end, 2.2 km | 2.3 km to the end
+505 50.77308,7.10348 ±5 | LIVE | 30 is the end, 2.2 km | 2.3 km to the end
+506 50.77317,7.10346 ±5 | LIVE | 30 is the end, 2.2 km | 2.3 km to the end
+507 50.77325,7.10344 ±5 | LIVE | 30 is the end, 2.2 km | 2.3 km to the end
+508 50.77333,7.10343 ±5 | LIVE | 30 is the end, 2.2 km | 2.3 km to the end
+509 50.77333,7.10357 ±5 | LIVE | 30 is the end, 2.2 km | 2.3 km to the end
+510 50.77333,7.10371 ±5 | LIVE | 30 is the end, 2.2 km | 2.3 km to the end
+511 50.77333,7.10386 ±5 | LIVE | 30 is the end, 2.2 km | 2.2 km to the end
+512 50.77333,7.10400 ±5 | LIVE | 30 is the end, 2.2 km | 2.2 km to the end
+513 50.77333,7.10414 ±5 | LIVE | 30 is the end, 2.2 km | 2.2 km to the end
+514 50.77333,7.10428 ±5 | LIVE | 30 is the end, 2.1 km | 2.2 km to the end
+515 50.77333,7.10443 ±5 | LIVE | 30 is the end, 2.1 km | 2.2 km to the end
+516 50.77331,7.10457 ±5 | LIVE | 30 is the end, 2.1 km | 2.2 km to the end
+517 50.77329,7.10471 ±5 | LIVE | 30 is the end, 2.1 km | 2.2 km to the end
+518 50.77327,7.10484 ±5 | LIVE | 30 is the end, 2.1 km | 2.2 km to the end
+519 50.77325,7.10498 ±5 | LIVE | 30 is the end, 2.1 km | 2.2 km to the end
+520 50.77323,7.10512 ±5 | LIVE | 30 is the end, 2.1 km | 2.2 km to the end
+521 50.77321,7.10526 ±5 | LIVE | 30 is the end, 2.1 km | 2.1 km to the end
+522 50.77319,7.10540 ±5 | LIVE | 30 is the end, 2.1 km | 2.1 km to the end
+523 50.77318,7.10554 ±5 | LIVE | 30 is the end, 2.1 km | 2.1 km to the end
+524 50.77321,7.10567 ±5 | LIVE | 30 is the end, 2.0 km | 2.1 km to the end
+525 50.77324,7.10581 ±5 | LIVE | 30 is the end, 2.0 km | 2.1 km to the end
+526 50.77327,7.10594 ±5 | LIVE | 30 is the end, 2.0 km | 2.1 km to the end
+527 50.77330,7.10608 ±5 | LIVE | 30 is the end, 2.0 km | 2.1 km to the end
+528 50.77333,7.10621 ±5 | LIVE | 30 is the end, 2.0 km | 2.1 km to the end
+529 50.77336,7.10634 ±5 | LIVE | 30 is the end, 2.0 km | 2.1 km to the end
+530 50.77339,7.10648 ±5 | LIVE | 30 is the end, 2.0 km | 2.1 km to the end
+531 50.77342,7.10661 ±5 | LIVE | 30 is the end, 2.0 km | 2.0 km to the end
+532 50.77345,7.10675 ±5 | LIVE | 30 is the end, 2.0 km | 2.0 km to the end
+533 50.77348,7.10688 ±5 | LIVE | 30 is the end, 1.9 km | 2.0 km to the end
+534 50.77352,7.10701 ±5 | LIVE | 30 is the end, 1.9 km | 2.0 km to the end
+535 50.77356,7.10714 ±5 | LIVE | 30 is the end, 1.9 km | 2.0 km to the end
+536 50.77360,7.10726 ±5 | LIVE | 30 is the end, 1.9 km | 2.0 km to the end
+537 50.77365,7.10739 ±5 | LIVE | 30 is the end, 1.9 km | 2.0 km to the end
+538 50.77369,7.10752 ±5 | LIVE | 30 is the end, 1.9 km | 2.0 km to the end
+539 50.77373,7.10764 ±5 | LIVE | 30 is the end, 1.9 km | 2.0 km to the end
+540 50.77377,7.10777 ±5 | LIVE | 30 is the end, 1.9 km | 2.0 km to the end
+541 50.77381,7.10790 ±5 | LIVE | 30 is the end, 1.9 km | 1.9 km to the end
+542 50.77386,7.10802 ±5 | LIVE | 30 is the end, 1.9 km | 1.9 km to the end
+543 50.77390,7.10815 ±5 | LIVE | 30 is the end, 1.8 km | 1.9 km to the end
+544 50.77394,7.10827 ±5 | LIVE | 30 is the end, 1.8 km | 1.9 km to the end
+545 50.77398,7.10840 ±5 | LIVE | 30 is the end, 1.8 km | 1.9 km to the end
+546 50.77403,7.10853 ±5 | LIVE | 30 is the end, 1.8 km | 1.9 km to the end
+547 50.77407,7.10865 ±5 | LIVE | 30 is the end, 1.8 km | 1.9 km to the end
+548 50.77411,7.10878 ±5 | LIVE | 30 is the end, 1.8 km | 1.9 km to the end
+549 50.77415,7.10890 ±5 | LIVE | 30 is the end, 1.8 km | 1.9 km to the end
+550 50.77419,7.10903 ±5 | LIVE | 30 is the end, 1.8 km | 1.9 km to the end
+551 50.77424,7.10916 ±5 | LIVE | 30 is the end, 1.8 km | 1.8 km to the end
+552 50.77429,7.10927 ±5 | LIVE | 30 is the end, 1.8 km | 1.8 km to the end
+553 50.77434,7.10939 ±5 | LIVE | 30 is the end, 1.7 km | 1.8 km to the end
+554 50.77439,7.10951 ±5 | LIVE | 30 is the end, 1.7 km | 1.8 km to the end
+555 50.77445,7.10962 ±5 | LIVE | 30 is the end, 1.7 km | 1.8 km to the end
+556 50.77450,7.10974 ±5 | LIVE | 30 is the end, 1.7 km | 1.8 km to the end
+557 50.77456,7.10985 ±5 | LIVE | 30 is the end, 1.7 km | 1.8 km to the end
+558 50.77462,7.10995 ±5 | LIVE | 30 is the end, 1.7 km | 1.8 km to the end
+559 50.77468,7.11006 ±5 | LIVE | 30 is the end, 1.7 km | 1.8 km to the end
+560 50.77474,7.11016 ±5 | LIVE | 30 is the end, 1.7 km | 1.8 km to the end
+561 50.77480,7.11027 ±5 | LIVE | 30 is the end, 1.7 km | 1.7 km to the end
+562 50.77486,7.11037 ±5 | LIVE | 30 is the end, 1.7 km | 1.7 km to the end
+563 50.77492,7.11048 ±5 | LIVE | 30 is the end, 1.6 km | 1.7 km to the end
+564 50.77498,7.11059 ±5 | LIVE | 30 is the end, 1.6 km | 1.7 km to the end
+565 50.77504,7.11069 ±5 | LIVE | 30 is the end, 1.6 km | 1.7 km to the end
+566 50.77511,7.11079 ±5 | LIVE | 30 is the end, 1.6 km | 1.7 km to the end
+567 50.77518,7.11086 ±5 | LIVE | 30 is the end, 1.6 km | 1.7 km to the end
+568 50.77526,7.11093 ±5 | LIVE | 30 is the end, 1.6 km | 1.7 km to the end
+569 50.77534,7.11101 ±5 | LIVE | 30 is the end, 1.6 km | 1.7 km to the end
+570 50.77542,7.11108 ±5 | LIVE | 30 is the end, 1.6 km | 1.7 km to the end
+571 50.77549,7.11115 ±5 | LIVE | 30 is the end, 1.6 km | 1.6 km to the end
+572 50.77557,7.11122 ±5 | LIVE | 30 is the end, 1.6 km | 1.6 km to the end
+573 50.77565,7.11129 ±5 | LIVE | 30 is the end, 1.5 km | 1.6 km to the end
+574 50.77573,7.11137 ±5 | LIVE | 30 is the end, 1.5 km | 1.6 km to the end
+575 50.77581,7.11144 ±5 | LIVE | 30 is the end, 1.5 km | 1.6 km to the end
+576 50.77588,7.11152 ±5 | LIVE | 30 is the end, 1.5 km | 1.6 km to the end
+577 50.77594,7.11162 ±5 | LIVE | 30 is the end, 1.5 km | 1.6 km to the end
+578 50.77601,7.11172 ±5 | LIVE | 30 is the end, 1.5 km | 1.6 km to the end
+579 50.77607,7.11182 ±5 | LIVE | 30 is the end, 1.5 km | 1.6 km to the end
+580 50.77612,7.11194 ±5 | LIVE | 30 is the end, 1.5 km | 1.6 km to the end
+581 50.77617,7.11206 ±5 | LIVE | 30 is the end, 1.5 km | 1.5 km to the end
+582 50.77622,7.11218 ±5 | LIVE | 30 is the end, 1.5 km | 1.5 km to the end
+583 50.77627,7.11230 ±5 | LIVE | 30 is the end, 1.4 km | 1.5 km to the end
+584 50.77632,7.11242 ±5 | LIVE | 30 is the end, 1.4 km | 1.5 km to the end
+585 50.77637,7.11254 ±5 | LIVE | 30 is the end, 1.4 km | 1.5 km to the end
+586 50.77642,7.11265 ±5 | LIVE | 30 is the end, 1.4 km | 1.5 km to the end
+587 50.77647,7.11277 ±5 | LIVE | 30 is the end, 1.4 km | 1.5 km to the end
+588 50.77652,7.11289 ±5 | LIVE | 30 is the end, 1.4 km | 1.5 km to the end
+589 50.77657,7.11301 ±5 | LIVE | 30 is the end, 1.4 km | 1.5 km to the end
+590 50.77662,7.11313 ±5 | LIVE | 30 is the end, 1.4 km | 1.5 km to the end
+591 50.77667,7.11325 ±5 | LIVE | 30 is the end, 1.4 km | 1.4 km to the end
+592 50.77671,7.11338 ±5 | LIVE | 30 is the end, 1.4 km | 1.4 km to the end
+593 50.77675,7.11351 ±5 | LIVE | 30 is the end, 1.3 km | 1.4 km to the end
+594 50.77679,7.11364 ±5 | LIVE | 30 is the end, 1.3 km | 1.4 km to the end
+595 50.77682,7.11376 ±5 | LIVE | 30 is the end, 1.3 km | 1.4 km to the end
+596 50.77686,7.11389 ±5 | LIVE | 30 is the end, 1.3 km | 1.4 km to the end
+597 50.77690,7.11402 ±5 | LIVE | 30 is the end, 1.3 km | 1.4 km to the end
+598 50.77694,7.11415 ±5 | LIVE | 30 is the end, 1.3 km | 1.4 km to the end
+599 50.77698,7.11428 ±5 | LIVE | 30 is the end, 1.3 km | 1.4 km to the end
+600 50.77701,7.11442 ±5 | LIVE | 30 is the end, 1.3 km | 1.4 km to the end
+601 50.77703,7.11455 ±5 | LIVE | 30 is the end, 1.3 km | 1.3 km to the end
+602 50.77706,7.11469 ±5 | LIVE | 30 is the end, 1.3 km | 1.3 km to the end
+603 50.77709,7.11482 ±5 | LIVE | 30 is the end, 1.2 km | 1.3 km to the end
+604 50.77712,7.11496 ±5 | LIVE | 30 is the end, 1.2 km | 1.3 km to the end
+605 50.77715,7.11509 ±5 | LIVE | 30 is the end, 1.2 km | 1.3 km to the end
+606 50.77717,7.11523 ±5 | LIVE | 30 is the end, 1.2 km | 1.3 km to the end
+607 50.77720,7.11537 ±5 | LIVE | 30 is the end, 1.2 km | 1.3 km to the end
+608 50.77723,7.11550 ±5 | LIVE | 30 is the end, 1.2 km | 1.3 km to the end
+609 50.77726,7.11564 ±5 | LIVE | 30 is the end, 1.2 km | 1.3 km to the end
+610 50.77729,7.11577 ±5 | LIVE | 30 is the end, 1.2 km | 1.3 km to the end
+611 50.77731,7.11591 ±5 | LIVE | 30 is the end, 1.2 km | 1.2 km to the end
+612 50.77734,7.11604 ±5 | LIVE | 30 is the end, 1.2 km | 1.2 km to the end
+613 50.77738,7.11617 ±5 | LIVE | 30 is the end, 1.1 km | 1.2 km to the end
+614 50.77742,7.11630 ±5 | LIVE | 30 is the end, 1.1 km | 1.2 km to the end
+615 50.77745,7.11643 ±5 | LIVE | 30 is the end, 1.1 km | 1.2 km to the end
+616 50.77749,7.11656 ±5 | LIVE | 30 is the end, 1.1 km | 1.2 km to the end
+617 50.77753,7.11669 ±5 | LIVE | 30 is the end, 1.1 km | 1.2 km to the end
+618 50.77757,7.11682 ±5 | LIVE | 30 is the end, 1.1 km | 1.2 km to the end
+619 50.77760,7.11695 ±5 | LIVE | 30 is the end, 1.1 km | 1.2 km to the end
+620 50.77764,7.11708 ±5 | LIVE | 30 is the end, 1.1 km | 1.2 km to the end
+621 50.77768,7.11721 ±5 | LIVE | 30 is the end, 1.1 km | 1.1 km to the end
+622 50.77772,7.11734 ±5 | LIVE | 30 is the end, 1.1 km | 1.1 km to the end
+623 50.77775,7.11747 ±5 | LIVE | 30 is the end, 1.0 km | 1.1 km to the end
+624 50.77779,7.11760 ±5 | LIVE | 30 is the end, 1.0 km | 1.1 km to the end
+625 50.77783,7.11773 ±5 | LIVE | 30 is the end, 1.0 km | 1.1 km to the end
+626 50.77784,7.11787 ±5 | LIVE | 30 is the end, 1.0 km | 1.1 km to the end
+627 50.77784,7.11801 ±5 | LIVE | 30 is the end, 1.0 km | 1.1 km to the end
+628 50.77784,7.11816 ±5 | LIVE | 30 is the end, 995 m | 1.1 km to the end
+629 50.77785,7.11830 ±5 | LIVE | 30 is the end, 985 m | 1.1 km to the end
+630 50.77785,7.11844 ±5 | LIVE | 30 is the end, 975 m | 1.1 km to the end
+631 50.77785,7.11858 ±5 | LIVE | 30 is the end, 965 m | 965 m to the end
+632 50.77786,7.11873 ±5 | LIVE | 30 is the end, 955 m | 965 m to the end
+633 50.77786,7.11887 ±5 | LIVE | 30 is the end, 945 m | 965 m to the end
+634 50.77786,7.11901 ±5 | LIVE | 30 is the end, 935 m | 965 m to the end
+635 50.77786,7.11915 ±5 | LIVE | 30 is the end, 925 m | 965 m to the end
+636 50.77787,7.11930 ±5 | LIVE | 30 is the end, 914 m | 965 m to the end
+637 50.77787,7.11944 ±5 | LIVE | 30 is the end, 904 m | 965 m to the end
+638 50.77787,7.11958 ±5 | LIVE | 30 is the end, 894 m | 965 m to the end
+639 50.77793,7.11968 ±5 | LIVE | 30 is the end, 884 m | 965 m to the end
+640 50.77800,7.11976 ±5 | LIVE | 30 is the end, 874 m | 965 m to the end
+641 50.77807,7.11985 ±5 | LIVE | 30 is the end, 864 m | 864 m to the end
+642 50.77815,7.11993 ±5 | LIVE | 30 is the end, 854 m | 864 m to the end
+643 50.77822,7.12001 ±5 | LIVE | 30 is the end, 844 m | 864 m to the end
+644 50.77829,7.12010 ±5 | LIVE | 30 is the end, 834 m | 864 m to the end
+645 50.77837,7.12018 ±5 | LIVE | 30 is the end, 824 m | 864 m to the end
+646 50.77844,7.12026 ±5 | LIVE | 30 is the end, 814 m | 864 m to the end
+647 50.77851,7.12035 ±5 | LIVE | 30 is the end, 804 m | 864 m to the end
+648 50.77859,7.12041 ±5 | LIVE | 30 is the end, 794 m | 864 m to the end
+649 50.77867,7.12048 ±5 | LIVE | 30 is the end, 784 m | 864 m to the end
+650 50.77875,7.12054 ±5 | LIVE | 30 is the end, 774 m | 864 m to the end
+651 50.77883,7.12061 ±5 | LIVE | 30 is the end, 764 m | 764 m to the end
+652 50.77891,7.12068 ±5 | LIVE | 30 is the end, 754 m | 764 m to the end
+653 50.77899,7.12074 ±5 | LIVE | 30 is the end, 744 m | 764 m to the end
+654 50.77907,7.12081 ±5 | LIVE | 30 is the end, 734 m | 764 m to the end
+655 50.77915,7.12087 ±5 | LIVE | 30 is the end, 724 m | 764 m to the end
+656 50.77923,7.12094 ±5 | LIVE | 30 is the end, 713 m | 764 m to the end
+657 50.77931,7.12100 ±5 | LIVE | 30 is the end, 703 m | 764 m to the end
+658 50.77939,7.12107 ±5 | LIVE | 30 is the end, 693 m | 764 m to the end
+659 50.77947,7.12113 ±5 | LIVE | 30 is the end, 683 m | 764 m to the end
+660 50.77955,7.12120 ±5 | LIVE | 30 is the end, 673 m | 764 m to the end
+661 50.77963,7.12127 ±5 | LIVE | 30 is the end, 663 m | 663 m to the end
+662 50.77971,7.12133 ±5 | LIVE | 30 is the end, 653 m | 663 m to the end
+663 50.77979,7.12140 ±5 | LIVE | 30 is the end, 643 m | 663 m to the end
+664 50.77987,7.12146 ±5 | LIVE | 30 is the end, 633 m | 663 m to the end
+665 50.77995,7.12153 ±5 | LIVE | 30 is the end, 623 m | 663 m to the end
+666 50.78003,7.12159 ±5 | LIVE | 30 is the end, 613 m | 663 m to the end
+667 50.78011,7.12166 ±5 | LIVE | 30 is the end, 603 m | 663 m to the end
+668 50.78019,7.12173 ±5 | LIVE | 30 is the end, 593 m | 663 m to the end
+669 50.78027,7.12179 ±5 | LIVE | 30 is the end, 583 m | 663 m to the end
+670 50.78035,7.12186 ±5 | LIVE | 30 is the end, 573 m | 663 m to the end
+671 50.78043,7.12192 ±5 | LIVE | 30 is the end, 563 m | 563 m to the end
+672 50.78051,7.12199 ±5 | LIVE | 30 is the end, 553 m | 563 m to the end
+673 50.78060,7.12205 ±5 | LIVE | 30 is the end, 543 m | 563 m to the end
+674 50.78068,7.12212 ±5 | LIVE | 30 is the end, 533 m | 563 m to the end
+675 50.78076,7.12218 ±5 | LIVE | 30 is the end, 523 m | 563 m to the end
+676 50.78084,7.12225 ±5 | LIVE | 30 is the end, 512 m | 563 m to the end
+677 50.78092,7.12232 ±5 | LIVE | 30 is the end, 502 m | 563 m to the end
+678 50.78100,7.12238 ±5 | LIVE | 30 is the end, 492 m | 563 m to the end
+679 50.78108,7.12245 ±5 | LIVE | 30 is the end, 482 m | 563 m to the end
+680 50.78116,7.12251 ±5 | LIVE | 30 is the end, 472 m | 563 m to the end
+681 50.78124,7.12258 ±5 | LIVE | 30 is the end, 462 m | 462 m to the end
+682 50.78132,7.12264 ±5 | LIVE | 30 is the end, 452 m | 462 m to the end
+683 50.78140,7.12271 ±5 | LIVE | 30 is the end, 442 m | 462 m to the end
+684 50.78148,7.12277 ±5 | LIVE | 30 is the end, 432 m | 462 m to the end
+685 50.78156,7.12284 ±5 | LIVE | 30 is the end, 422 m | 462 m to the end
+686 50.78164,7.12291 ±5 | LIVE | 30 is the end, 412 m | 462 m to the end
+687 50.78172,7.12297 ±5 | LIVE | 30 is the end, 402 m | 462 m to the end
+688 50.78180,7.12304 ±5 | LIVE | 30 is the end, 392 m | 462 m to the end
+689 50.78188,7.12310 ±5 | LIVE | 30 is the end, 382 m | 462 m to the end
+690 50.78196,7.12317 ±5 | LIVE | 30 is the end, 372 m | 462 m to the end
+691 50.78204,7.12323 ±5 | LIVE | 30 is the end, 362 m | 362 m to the end
+692 50.78212,7.12330 ±5 | LIVE | 30 is the end, 352 m | 362 m to the end
+693 50.78220,7.12337 ±5 | LIVE | 30 is the end, 342 m | 362 m to the end
+694 50.78228,7.12343 ±5 | LIVE | 30 is the end, 332 m | 362 m to the end
+695 50.78236,7.12350 ±5 | LIVE | 30 is the end, 322 m | 362 m to the end
+696 50.78244,7.12356 ±5 | LIVE | 30 is the end, 312 m | 362 m to the end
+697 50.78252,7.12363 ±5 | LIVE | 30 is the end, 301 m | 362 m to the end
+698 50.78260,7.12369 ±5 | LIVE | 30 is the end, 291 m | 362 m to the end
+699 50.78268,7.12376 ±5 | LIVE | 30 is the end, 281 m | 362 m to the end
+700 50.78277,7.12378 ±5 | LIVE | 30 is the end, 271 m | 362 m to the end
+701 50.78286,7.12381 ±5 | LIVE | 30 is the end, 261 m | 261 m to the end
+702 50.78295,7.12383 ±5 | LIVE | 30 is the end, 251 m | 261 m to the end
+703 50.78303,7.12386 ±5 | LIVE | 30 is the end, 241 m | 261 m to the end
+704 50.78312,7.12388 ±5 | LIVE | 30 is the end, 231 m | 261 m to the end
+705 50.78321,7.12391 ±5 | LIVE | 30 is the end, 221 m | 261 m to the end
+706 50.78330,7.12393 ±5 | LIVE | 30 is the end, 211 m | 261 m to the end
+707 50.78339,7.12393 ±5 | REMINDER 30 ahead, the end | LIVE | 30 is the end, 201 m | 261 m to the end
+708 50.78348,7.12393 ±5 | LIVE | 30 is the end, 191 m | 261 m to the end
+709 50.78357,7.12392 ±5 | LIVE | 30 is the end, 181 m | 261 m to the end
+710 50.78366,7.12392 ±5 | LIVE | 30 is the end, 171 m | 261 m to the end
+711 50.78375,7.12392 ±5 | LIVE | 30 is the end, 161 m | 161 m to the end
+712 50.78384,7.12391 ±5 | LIVE | 30 is the end, 151 m | 161 m to the end
+713 50.78393,7.12391 ±5 | LIVE | 30 is the end, 141 m | 161 m to the end
+714 50.78402,7.12391 ±5 | LIVE | 30 is the end, 131 m | 161 m to the end
+715 50.78411,7.12390 ±5 | LIVE | 30 is the end, 121 m | 161 m to the end
+716 50.78420,7.12390 ±5 | LIVE | 30 is the end, 111 m | 161 m to the end
+717 50.78429,7.12390 ±5 | LIVE | 30 is the end, 100 m | 161 m to the end
+718 50.78438,7.12389 ±5 | LIVE | 30 is the end, 90 m | 161 m to the end
+719 50.78447,7.12392 ±5 | LIVE | 30 is the end, 80 m | 161 m to the end
+720 50.78456,7.12395 ±5 | LIVE | 30 is the end, 70 m | 161 m to the end
+721 50.78465,7.12398 ±5 | LIVE | 30 is the end, 60 m | 60 m to the end
+722 50.78474,7.12400 ±5 | LIVE | 30 is the end, 50 m | 60 m to the end
+723 50.78482,7.12403 ±5 | LIVE | 30 is the end, 40 m | 60 m to the end
+724 50.78491,7.12406 ±5 | LIVE | 30 is the end, 30 m | 60 m to the end
+725 50.78500,7.12409 ±5 | ARRIVED You've arrived | null | 30 is the end, 30 m | 60 m to the end | end AFTER_SPEECH

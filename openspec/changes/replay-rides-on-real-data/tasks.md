@@ -8,8 +8,8 @@
 ## 2. Rides
 
 - [x] 2.1 The ride script generator in `jvmTest` with tests: `along` follows the course, `path` follows the way `PathRouter` finds, `line`, `still`, `coarse` and `noise` give the fixes the design describes, and the same script gives the same fixes every run.
-- [ ] 2.2 `RealRideTest` and the eight rides of the design, their texts recorded with the current code. Each recorded text read against the finding its script names; what each shows (or does not) written into `manual-checks.md`. `./gradlew :modules:core:jvmTest` passes, the rides together in under 5 s.
+- [x] 2.2 `RealRideTest` and the eight rides of the design, their texts recorded with the current code. Each recorded text read against the finding its script names; what each shows (or does not) written into `manual-checks.md`. `./gradlew :modules:core:jvmTest` passes, the rides together in under 5 s.
 
 ## 3. Proof and documentation
 
-- [ ] 3.1 The Titz ride gives the same notices, way searches and lengths as change 4's full-data replay (`checks/replay-after.txt`). `./gradlew check` passes. `CLAUDE.md` says how to re-record a ride after a deliberate change and how to re-cut an area. No CHANGELOG entry.
+- [x] 3.1 The Titz ride gives the same notices, way searches and lengths as change 4's full-data replay (`checks/replay-after.txt`). `./gradlew check` passes. `CLAUDE.md` says how to re-record a ride after a deliberate change and how to re-cut an area. No CHANGELOG entry.

@@ -1,0 +1,10 @@
+# Siegburg-Zange, 02 → 28, leaving the route to the north and riding on away from it: a way back
+# that starts behind the rider, told as a turn ahead (ride 2026-11-04).
+area siegburg-zange
+route 81468719 59469043 1336813155
+along 0 1
+leg 1 0 500
+line 50.79159 7.19532
+line 50.79290 7.19550
+path 50.79010 7.19134
+leg 1 750 1200

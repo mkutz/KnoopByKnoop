@@ -61,13 +61,20 @@ internal class RideFix(val fix: Fix, val visible: Boolean)
  * - `path <latitude> <longitude>`: along the way the path router finds to there
  * - `line <latitude> <longitude>`: straight to there
  * - `still <seconds>`: standing still
- * - `coarse <latitude> <longitude>`: one fix of [COARSE_ACCURACY] there, the rider staying where
- *   they are
+ * - `coarse <latitude> <longitude> [<accuracy>]`: one fix of [COARSE_ACCURACY] or the accuracy
+ *   given there, the rider staying where they are
  * - `noise <meters>`: from here on, fixes scattered by up to that much, from a fixed seed
  * - `screen on|off`: whether the app is on screen, on at the start
  * - `fixes <file>`: the fixes in a file of `<longitude> <latitude>` lines, one second apart
+ * - `clock <yyyy-mm-dd> <hh:mm>`: the local time at the first fix, for the ferries' operating times
+ *   and the arrivals; without it, there are none
  */
-internal class RideScript(val area: RealArea, val knots: List<Knot>, val fixes: List<RideFix>) {
+internal class RideScript(
+  val area: RealArea,
+  val knots: List<Knot>,
+  val fixes: List<RideFix>,
+  val localTime: ((Long) -> LocalMoment)? = null,
+) {
 
   companion object {
     /** The rider moves this far between fixes, see [SECONDS_PER_STEP]. */
@@ -91,7 +98,21 @@ internal class RideScript(val area: RealArea, val knots: List<Knot>, val fixes: 
           .map { it.split(Regex("\\s+")) }
       val area = RealArea.load(commands.first { it[0] == "area" }[1])
       val knots = commands.first { it[0] == "route" }.drop(1).map { area.knot(it.toLong()) }
-      return RideScript(area, knots, Generator(area, knots, directory).run(commands))
+      val clock =
+        commands
+          .firstOrNull { it[0] == "clock" }
+          ?.let { (_, date, time) ->
+            val (year, month, day) = date.split("-").map { it.toInt() }
+            val (hours, minutes) = time.split(":").map { it.toInt() }
+            CalendarDay(year, month, day) to hours * 60 + minutes
+          }
+      val localTime = clock?.let { (day, startMinute) ->
+        { millis: Long ->
+          val minutes = startMinute + ((millis - START_MILLIS) / 60_000).toInt()
+          LocalMoment(day.plusDays(minutes / MINUTES_PER_DAY), minutes % MINUTES_PER_DAY)
+        }
+      }
+      return RideScript(area, knots, Generator(area, knots, directory).run(commands), localTime)
     }
   }
 
@@ -110,7 +131,8 @@ internal class RideScript(val area: RealArea, val knots: List<Knot>, val fixes: 
         fun point() = GeoPoint(double(1), double(2))
         when (command[0]) {
           "area",
-          "route" -> {}
+          "route",
+          "clock" -> {}
           "start" -> {
             position = point()
             emit(position)
@@ -131,7 +153,12 @@ internal class RideScript(val area: RealArea, val knots: List<Knot>, val fixes: 
           }
           "line" -> follow(listOf(position, point()))
           "still" -> repeat((command[1].toLong() / SECONDS_PER_STEP).toInt()) { emit(position) }
-          "coarse" -> emit(point(), accuracy = COARSE_ACCURACY, scatter = false)
+          "coarse" ->
+            emit(
+              point(),
+              accuracy = command.getOrNull(3)?.toDouble() ?: COARSE_ACCURACY,
+              scatter = false,
+            )
           "noise" -> noise = double(1)
           "screen" -> visible = command[1] == "on"
           "fixes" ->
