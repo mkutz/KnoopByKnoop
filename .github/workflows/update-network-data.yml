@@ -5,6 +5,11 @@ on:
     # Mondays, after Geofabrik's nightly extracts are ready
     - cron: '17 4 * * 1'
   workflow_dispatch:
+    inputs:
+      allow-drop:
+        description: Publish even if a network lost more than 5 % of its knots or connections
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -108,6 +113,17 @@ jobs:
 
       - name: Write index
         run: ./gradlew :pipeline:run --args="index $GITHUB_WORKSPACE/network-data"
+
+      # Every file read back as the apps read it, the floors, the drop against the published data and
+      # the known routes, see `network-data` "Checked before publication". A failure keeps the last
+      # publication. Only a run by hand can allow a drop.
+      - name: Verify
+        env:
+          ALLOW_DROP: ${{ inputs.allow-drop && '--allow-drop ' || '' }}
+        run: >
+          ./gradlew :pipeline:run
+          --args="verify ${ALLOW_DROP}$GITHUB_WORKSPACE/network-data
+          https://github.com/$GITHUB_REPOSITORY/releases/download/network-data"
 
       - name: Publish release
         env:

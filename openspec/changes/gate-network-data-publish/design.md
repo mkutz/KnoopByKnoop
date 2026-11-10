@@ -54,7 +54,7 @@ A known route is a pair of positions with a network type. The nearest knot withi
 
 Pairs (chosen at implementation, each checked against the data of 2026-11-10 and kept only if it routes today):
 - cycling: Netherlands → Belgium (e.g. Breda → Antwerp), Belgium → North Rhine-Westphalia (e.g. Hasselt → Aachen), Netherlands → North Rhine-Westphalia (e.g. Nijmegen → Kleve)
-- hiking: one pair within each country's well-covered area (e.g. Siegburg, the Veluwe, the Kempen)
+- hiking: pairs in the Netherlands and Flanders (e.g. the Veluwe, the Kempen); the published data of 2026-11-10 has no hiking knots in North Rhine-Westphalia, so there is no pair there
 
 *Alternative:* compare whole routes with last week. Rejected for now: route lengths change with ordinary edits, and the threshold would be guesswork.
 

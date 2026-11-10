@@ -33,6 +33,6 @@ None.
 
 ## Impact
 
-- **Pipeline:** a new command `pipeline verify <dir> [<published-base-url>] [--allow-drop]` in a new `Verify.kt`, reusing `NetworkInstaller`, `GraphFile`, `NetworkGeometry`, `PathFile` and `ShortestPathRouter` from the core, with tests on small graphs written by the tests.
+- **Pipeline:** a new command `pipeline verify [--allow-drop] <dir> [<published-base-url>]` in a new `Verify.kt`, reusing `NetworkInstaller`, `GraphFile`, `NetworkGeometry`, `PathFile` and `ShortestPathRouter` from the core, with tests on small graphs written by the tests.
 - **Workflow:** `update-network-data.yml` runs `verify` in the publish job after the index is written and before the upload, so it checks the files against the index the apps will read; `workflow_dispatch` gets an `allow-drop` input.
 - **Apps and core:** no change.

@@ -16,6 +16,7 @@ import kotlin.io.path.readText
 import kotlin.io.path.writeBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -144,5 +145,18 @@ class MainTest {
 
     val summary = assertIs<RouteSummary.Complete>(session.route?.summary)
     assertEquals(listOf("12", "45", "7"), summary.knots.map { it.ref })
+  }
+
+  @Test
+  fun `the verify report passes only without failures`() {
+    assertTrue(report(Verification(listOf("cycling: 100 knots"), listOf())))
+    assertFalse(
+      report(
+        Verification(
+          listOf("FAILED: hiking.graph is CORRUPTED"),
+          listOf("hiking.graph is CORRUPTED"),
+        )
+      )
+    )
   }
 }

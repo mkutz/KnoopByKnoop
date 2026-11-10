@@ -43,6 +43,8 @@ private const val USAGE =
   pipeline build <area> <output-dir> <extract.osm.pbf>...   extract one graph per network type from all extracts
   pipeline paths <output-file> <extract.osm.pbf>...         extract the ways around the networks from all extracts
   pipeline index <output-dir>                               write index.json for all graph files
+  pipeline verify [--allow-drop] <dir> [<published-base-url>]
+                                                            check the data in <dir> before publishing it
   pipeline bundle [--allow-unavailable] <base-url> <output-dir>
                                                             fetch and verify the published graphs for the apps
   pipeline dark-style <liberty-url-or-file> <output.json>   generate the dark map from OpenFreeMap's liberty"""
@@ -55,13 +57,34 @@ fun main(args: Array<String>) {
     "index" if args.size == 2 -> index(Path(args[1]))
     "bundle" if args.size == 3 -> bundle(args[1], Path(args[2]))
     "dark-style" if args.size == 3 -> DarkStyle.generate(args[1], Path(args[2]))
+    "verify" if args.size in 2..4 -> {
+      val allowDrop = args[1] == "--allow-drop"
+      val rest = args.drop(if (allowDrop) 2 else 1)
+      if (rest.size !in 1..2) usage()
+      if (!report(verify(Path(rest[0]), rest.getOrNull(1), allowDrop))) exitProcess(1)
+    }
     "bundle" if args.size == 4 && args[1] == "--allow-unavailable" ->
       bundle(args[2], Path(args[3]), allowUnavailable = true)
-    else -> {
-      System.err.println(USAGE)
-      exitProcess(2)
-    }
+    else -> usage()
   }
+}
+
+private fun usage(): Nothing {
+  System.err.println(USAGE)
+  exitProcess(2)
+}
+
+/**
+ * Prints every check of [verification] and whether the data may be published, see `network-data`
+ * "Checked before publication".
+ *
+ * @return whether it may be published
+ */
+fun report(verification: Verification): Boolean {
+  verification.log.forEach(::println)
+  if (verification.passed) println("verified: the data may be published")
+  else System.err.println("not verified: ${verification.failures.size} checks failed")
+  return verification.passed
 }
 
 /**

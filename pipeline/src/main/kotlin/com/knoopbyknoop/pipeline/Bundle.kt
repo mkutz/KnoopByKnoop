@@ -30,7 +30,7 @@ fun bundle(baseUrl: String, outputDirectory: Path, allowUnavailable: Boolean = f
   outputDirectory.listDirectoryEntries().forEach { it.deleteIfExists() }
   val bundled =
     try {
-      fetchVerifiedGraphs(URI(baseUrl.removeSuffix("/") + "/"), outputDirectory)
+      fetchVerifiedGraphs(directoryUri(baseUrl), outputDirectory)
     } catch (exception: BundleException) {
       if (!allowUnavailable) throw exception
       System.err.println(
@@ -46,14 +46,14 @@ fun bundle(baseUrl: String, outputDirectory: Path, allowUnavailable: Boolean = f
 private fun fetchVerifiedGraphs(base: URI, outputDirectory: Path): NetworkIndex {
   val index =
     try {
-      NetworkIndex.parse(fetch(base.resolve("index.json")).decodeToString())
+      NetworkIndex.parse(fetchForBundle(base.resolve("index.json")).decodeToString())
     } catch (exception: IllegalArgumentException) {
       throw BundleException("index.json cannot be read", exception)
     }
   val graphs = index.files.filter { it.kind == IndexedFileKind.GRAPH }
   if (graphs.isEmpty()) throw BundleException("index.json lists no graphs")
   for (entry in graphs) {
-    val bytes = fetch(base.resolve(entry.file))
+    val bytes = fetchForBundle(base.resolve(entry.file))
     when (val check = NetworkInstaller.checkGraph(entry, bytes)) {
       is InstallCheck.Valid -> outputDirectory.resolve(entry.file).writeBytes(bytes)
       is InstallCheck.Rejected -> throw BundleException("${entry.file} is ${check.reason}")
@@ -62,9 +62,9 @@ private fun fetchVerifiedGraphs(base: URI, outputDirectory: Path): NetworkIndex 
   return index.copy(files = graphs)
 }
 
-private fun fetch(uri: URI): ByteArray =
+private fun fetchForBundle(uri: URI): ByteArray =
   try {
-    uri.toURL().openStream().use { it.readBytes() }
+    fetch(uri)
   } catch (exception: IOException) {
     throw BundleException("$uri cannot be fetched", exception)
   }
