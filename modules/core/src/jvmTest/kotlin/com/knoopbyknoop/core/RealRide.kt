@@ -52,7 +52,8 @@ internal class RideFix(val fix: Fix, val visible: Boolean)
  * A scripted ride: the route's knots and the fixes of the rider, see the change
  * `replay-rides-on-real-data`. One command per line, `#` starts a comment:
  * - `area <name>`: the cut-out, see [RealArea]
- * - `route <knot id>...`: the route
+ * - `route <knot id or latitude,longitude>...`: the route; a position is a route point there, made
+ *   and joined to the network by a way along paths as planning does
  * - `start <latitude> <longitude>`: where the rider starts, the first knot if not given
  * - `along <from> <to>`: along the drawn courses from the route's knot at position `from` to the
  *   one at `to`
@@ -74,6 +75,10 @@ internal class RideScript(
   val knots: List<Knot>,
   val fixes: List<RideFix>,
   val localTime: ((Long) -> LocalMoment)? = null,
+  /** The network with the route's route points, as navigation gets it. */
+  val graph: NetworkGraph = area.graph,
+  /** The courses with the route's route points. */
+  val geometry: NetworkGeometry = area.geometry,
 ) {
 
   companion object {
@@ -97,7 +102,7 @@ internal class RideScript(
           .filter { it.isNotEmpty() }
           .map { it.split(Regex("\\s+")) }
       val area = RealArea.load(commands.first { it[0] == "area" }[1])
-      val knots = commands.first { it[0] == "route" }.drop(1).map { area.knot(it.toLong()) }
+      val (knots, graph, geometry) = route(area, commands.first { it[0] == "route" }.drop(1))
       val clock =
         commands
           .firstOrNull { it[0] == "clock" }
@@ -112,18 +117,52 @@ internal class RideScript(
           LocalMoment(day.plusDays(minutes / MINUTES_PER_DAY), minutes % MINUTES_PER_DAY)
         }
       }
-      return RideScript(area, knots, Generator(area, knots, directory).run(commands), localTime)
+      val fixes = Generator(area, knots, geometry, directory).run(commands)
+      return RideScript(area, knots, fixes, localTime, graph, geometry)
+    }
+
+    /**
+     * The route through [entries], knot ids or `latitude,longitude` of route points, planned as the
+     * apps plan it, with the network and courses it is navigated on.
+     */
+    private fun route(
+      area: RealArea,
+      entries: List<String>,
+    ): Triple<List<Knot>, NetworkGraph, NetworkGeometry> {
+      if (entries.none { ',' in it }) {
+        return Triple(entries.map { area.knot(it.toLong()) }, area.graph, area.geometry)
+      }
+      val empty = PlanningSession.start(area.graph)
+      val waypoints = entries.map { entry ->
+        if (',' !in entry) area.knot(entry.toLong())
+        else {
+          val (latitude, longitude) = entry.split(",").map { it.toDouble() }
+          val offer =
+            empty.tapAt(GeoPoint(latitude, longitude), 30.0, null, area.geometry) as MapTap.Offer
+          empty.routePointFor(offer, area.geometry) ?: error("No route point at $entry")
+        }
+      }
+      val planned =
+        PlanningSession.start(area.graph, waypoints)
+          .withWaysFrom(RoutePointWays(area.router, area.geometry), navigating = false)
+      val knots = (planned.route!!.summary as RouteSummary.Complete).knots
+      return Triple(knots, planned.routeGraph, area.geometry.withRoutePoints(planned.routeGraph))
     }
   }
 
-  private class Generator(val area: RealArea, val knots: List<Knot>, val directory: File) {
+  private class Generator(
+    val area: RealArea,
+    val knots: List<Knot>,
+    val geometry: NetworkGeometry,
+    val directory: File,
+  ) {
     val fixes = mutableListOf<RideFix>()
     var position = GeoPoint(knots.first().latitude, knots.first().longitude)
     var time = START_MILLIS
     var noise = 0.0
     var visible = true
     val random = Random(42)
-    val drawn by lazy { area.geometry.courses(knots) }
+    val drawn by lazy { geometry.courses(knots) }
 
     fun run(commands: List<List<String>>): List<RideFix> {
       for (command in commands) {

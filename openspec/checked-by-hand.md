@@ -18,6 +18,7 @@ A scenario gets a test as soon as one can check it; its line goes then.
 
 ## knot-navigation
 
+- Header of steady height on a guided way — on the devices, finding and losing a way with a long street name ahead
 - Location access denied — on the devices
 - Screen off — on the devices
 - Music playing — on the devices

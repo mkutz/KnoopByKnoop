@@ -278,6 +278,7 @@ class RoutePointGuidanceTest {
     assertTrue(ride.navigation.guidedLines(guide.way).isEmpty())
   }
 
+  // Scenario: The guided way on the map
   @Test
   fun `a guided way that differs is drawn where it differs`() {
     // The way found goes round the block to the east: 80 m from the planned way.

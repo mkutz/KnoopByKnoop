@@ -1,0 +1,516 @@
+0 51.00830,6.43360 ±30 | NEXT Next 06, then 08 | LIVE | way 629 m, turns STRAIGHT at 27 m, SLIGHT_RIGHT at 294 m, LEFT at 397 m | Next 06, 557 m to the south-west | 579 m to 06
+1 51.00800,6.43300 ±5 | LIVE | way 579 m, turns SLIGHT_RIGHT at 244 m, LEFT at 347 m | Next 06, To the street in 60 m, 670 m | 579 m to 06 | guided To the street in 60 m · 670 m
+2 51.00800,6.43300 ±5 | LIVE | Next 06, Slight right in 240 m, Ophertener Straße, 580 m | 579 m to 06 | guided Slight right in 240 m · 580 m
+3 51.00800,6.43300 ±5 | LIVE | Next 06, Slight right in 240 m, Ophertener Straße, 580 m | 579 m to 06 | guided Slight right in 240 m · 580 m
+4 51.00803,6.43286 ±5 | LIVE | Next 06, Slight right in 230 m, Ophertener Straße, 570 m | 579 m to 06 | guided Slight right in 230 m · 570 m
+5 51.00806,6.43273 ±5 | LIVE | Next 06, Slight right in 220 m, Ophertener Straße, 560 m | 579 m to 06 | guided Slight right in 220 m · 560 m
+6 51.00809,6.43259 ±5 | LIVE | Next 06, Slight right in 210 m, Ophertener Straße, 550 m | 579 m to 06 | guided Slight right in 210 m · 550 m
+7 51.00812,6.43245 ±5 | LIVE | Next 06, Slight right in 200 m, Ophertener Straße, 540 m | 579 m to 06 | guided Slight right in 200 m · 540 m
+8 51.00815,6.43231 ±5 | LIVE | Next 06, Slight right in 190 m, Ophertener Straße, 530 m | 579 m to 06 | guided Slight right in 190 m · 530 m
+9 51.00812,6.43219 ±5 | LIVE | Next 06, Slight right in 180 m, Ophertener Straße, 520 m | 579 m to 06 | guided Slight right in 180 m · 520 m
+10 51.00807,6.43208 ±5 | LIVE | Next 06, Slight right in 170 m, Ophertener Straße, 510 m | 579 m to 06 | guided Slight right in 170 m · 510 m
+11 51.00801,6.43196 ±5 | LIVE | Next 06, Slight right in 160 m, Ophertener Straße, 500 m | 579 m to 06 | guided Slight right in 160 m · 500 m
+12 51.00796,6.43185 ±5 | LIVE | Next 06, Slight right in 150 m, Ophertener Straße, 490 m | 579 m to 06 | guided Slight right in 150 m · 490 m
+13 51.00790,6.43173 ±5 | LIVE | Next 06, Slight right in 140 m, Ophertener Straße, 480 m | 477 m to 06 | guided Slight right in 140 m · 480 m
+14 51.00785,6.43161 ±5 | LIVE | Next 06, Slight right in 130 m, Ophertener Straße, 470 m | 477 m to 06 | guided Slight right in 130 m · 470 m
+15 51.00779,6.43150 ±5 | LIVE | Next 06, Slight right in 120 m, Ophertener Straße, 460 m | 477 m to 06 | guided Slight right in 120 m · 460 m
+16 51.00773,6.43140 ±5 | LIVE | Next 06, Slight right in 110 m, Ophertener Straße, 450 m | 477 m to 06 | guided Slight right in 110 m · 450 m
+17 51.00767,6.43129 ±5 | LIVE | Next 06, Slight right in 100 m, Ophertener Straße, 440 m | 477 m to 06 | guided Slight right in 100 m · 440 m
+18 51.00761,6.43118 ±5 | TURN In 90 m, bear right | LIVE | Next 06, Slight right in 90 m, Ophertener Straße, 430 m | 477 m to 06 | guided Slight right in 90 m · 430 m
+19 51.00755,6.43107 ±5 | LIVE | Next 06, Slight right in 80 m, Ophertener Straße, 420 m | 477 m to 06 | guided Slight right in 80 m · 420 m
+20 51.00748,6.43096 ±5 | LIVE | Next 06, Slight right in 70 m, Ophertener Straße, 410 m | 477 m to 06 | guided Slight right in 70 m · 410 m
+21 51.00742,6.43085 ±5 | LIVE | Next 06, Slight right in 60 m, Ophertener Straße, 400 m | 477 m to 06 | guided Slight right in 60 m · 400 m
+22 51.00736,6.43074 ±5 | LIVE | Next 06, Slight right in 50 m, Ophertener Straße, 390 m | 477 m to 06 | guided Slight right in 50 m · 390 m
+23 51.00730,6.43064 ±5 | LIVE | Next 06, Slight right in 40 m, Ophertener Straße, 380 m | 376 m to 06 | guided Slight right in 40 m · 380 m
+24 51.00724,6.43053 ±5 | LIVE | Next 06, Slight right in 30 m, Ophertener Straße, 370 m | 376 m to 06 | guided Slight right in 30 m · 370 m
+25 51.00718,6.43042 ±5 | LIVE | Next 06, Slight right in 20 m, Ophertener Straße, 360 m | 376 m to 06 | guided Slight right in 20 m · 360 m
+26 51.00712,6.43031 ±5 | LIVE | Next 06, Slight right in 10 m, Ophertener Straße, 350 m | 376 m to 06 | guided Slight right in 10 m · 350 m
+27 51.00706,6.43020 ±5 | LIVE | Next 06, Slight right in 0 m, Ophertener Straße, 330 m | 376 m to 06 | guided Slight right in 0 m · 330 m
+28 51.00708,6.43006 ±5 | TURN In 90 m, turn left | LIVE | Next 06, Left in 90 m, Landstraße, 320 m | 376 m to 06 | guided Left in 90 m · 320 m
+29 51.00710,6.42992 ±5 | LIVE | Next 06, Left in 80 m, Landstraße, 310 m | 376 m to 06 | guided Left in 80 m · 310 m
+30 51.00712,6.42978 ±5 | LIVE | Next 06, Left in 70 m, Landstraße, 300 m | 376 m to 06 | guided Left in 70 m · 300 m
+31 51.00715,6.42964 ±5 | LIVE | Next 06, Left in 60 m, Landstraße, 290 m | 376 m to 06 | guided Left in 60 m · 290 m
+32 51.00717,6.42950 ±5 | LIVE | Next 06, Left in 50 m, Landstraße, 280 m | 376 m to 06 | guided Left in 50 m · 280 m
+33 51.00719,6.42936 ±5 | LIVE | Next 06, Left in 40 m, Landstraße, 270 m | 274 m to 06 | guided Left in 40 m · 270 m
+34 51.00721,6.42922 ±5 | LIVE | Next 06, Left in 30 m, Landstraße, 260 m | 274 m to 06 | guided Left in 30 m · 260 m
+35 51.00723,6.42907 ±5 | LIVE | Next 06, Left in 20 m, Landstraße, 250 m | 274 m to 06 | guided Left in 20 m · 250 m
+36 51.00725,6.42893 ±5 | LIVE | Next 06, Left in 10 m, Landstraße, 240 m | 274 m to 06 | guided Left in 10 m · 240 m
+37 51.00728,6.42879 ±5 | LIVE | Next 06, Left in 0 m, Landstraße, 230 m | 274 m to 06 | guided Left in 0 m · 230 m
+38 51.00722,6.42870 ±5 | LIVE | Next 06, Follow the way, 220 m | 274 m to 06 | guided Follow the way · 220 m
+39 51.00714,6.42862 ±5 | LIVE | Next 06, Follow the way, 210 m | 274 m to 06 | guided Follow the way · 210 m
+40 51.00706,6.42854 ±5 | LIVE | Next 06, Follow the way, 200 m | 274 m to 06 | guided Follow the way · 200 m
+41 51.00699,6.42847 ±5 | REMINDER 06 ahead, then 08 | LIVE | Next 06, Follow the way, 190 m | 274 m to 06 | guided Follow the way · 190 m
+42 51.00691,6.42839 ±5 | LIVE | Next 06, Follow the way, 180 m | 274 m to 06 | guided Follow the way · 180 m
+43 51.00683,6.42831 ±5 | LIVE | Next 06, Follow the way, 170 m | 173 m to 06 | guided Follow the way · 170 m
+44 51.00676,6.42823 ±5 | LIVE | Next 06, Follow the way, 160 m | 173 m to 06 | guided Follow the way · 160 m
+45 51.00668,6.42815 ±5 | LIVE | Next 06, Follow the way, 150 m | 173 m to 06 | guided Follow the way · 150 m
+46 51.00661,6.42807 ±5 | LIVE | Next 06, Follow the way, 140 m | 173 m to 06 | guided Follow the way · 140 m
+47 51.00653,6.42799 ±5 | LIVE | Next 06, Follow the way, 130 m | 173 m to 06 | guided Follow the way · 130 m
+48 51.00645,6.42791 ±5 | LIVE | Next 06, Follow the way, 120 m | 173 m to 06 | guided Follow the way · 120 m
+49 51.00638,6.42783 ±5 | LIVE | Next 06, Follow the way, 110 m | 173 m to 06 | guided Follow the way · 110 m
+50 51.00630,6.42775 ±5 | LIVE | Next 06, Follow the way, 100 m | 173 m to 06 | guided Follow the way · 100 m
+51 51.00622,6.42767 ±5 | LIVE | Next 06, Follow the way, 90 m | 173 m to 06 | guided Follow the way · 90 m
+52 51.00615,6.42759 ±5 | LIVE | Next 06, Follow the way, 80 m | 173 m to 06 | guided Follow the way · 80 m
+53 51.00607,6.42751 ±5 | LIVE | Next 06, Follow the way, 70 m | 71 m to 06 | guided Follow the way · 70 m
+54 51.00599,6.42743 ±5 | LIVE | Next 06, Follow the way, 60 m | 71 m to 06 | guided Follow the way · 60 m
+55 51.00592,6.42736 ±5 | LIVE | Next 06, Follow the way, 50 m | 71 m to 06 | guided Follow the way · 50 m
+56 51.00584,6.42728 ±5 | LIVE | Next 06, Follow the way, 40 m | 71 m to 06 | guided Follow the way · 40 m
+57 51.00576,6.42720 ±5 | LIVE | Next 06, Follow the way, 30 m | 71 m to 06 | guided Follow the way · 30 m
+58 51.00569,6.42712 ±5 | NEXT Next 08 | LIVE | 08 is the end, 4.6 km | 4.6 km to the end
+59 51.00561,6.42704 ±5 | LIVE | 08 is the end, 4.6 km | 4.6 km to the end
+60 51.00554,6.42696 ±5 | LIVE | 08 is the end, 4.6 km | 4.6 km to the end
+61 51.00546,6.42703 ±5 | LIVE | 08 is the end, 4.6 km | 4.6 km to the end
+62 51.00538,6.42711 ±5 | LIVE | 08 is the end, 4.6 km | 4.6 km to the end
+63 51.00530,6.42718 ±5 | LIVE | 08 is the end, 4.5 km | 4.6 km to the end
+64 51.00523,6.42725 ±5 | LIVE | 08 is the end, 4.5 km | 4.6 km to the end
+65 51.00515,6.42733 ±5 | LIVE | 08 is the end, 4.5 km | 4.6 km to the end
+66 51.00507,6.42740 ±5 | LIVE | 08 is the end, 4.5 km | 4.6 km to the end
+67 51.00500,6.42747 ±5 | LIVE | 08 is the end, 4.5 km | 4.6 km to the end
+68 51.00492,6.42755 ±5 | LIVE | 08 is the end, 4.5 km | 4.6 km to the end
+69 51.00484,6.42762 ±5 | LIVE | 08 is the end, 4.5 km | 4.6 km to the end
+70 51.00476,6.42770 ±5 | LIVE | 08 is the end, 4.5 km | 4.5 km to the end
+71 51.00469,6.42777 ±5 | LIVE | 08 is the end, 4.5 km | 4.5 km to the end
+72 51.00461,6.42784 ±5 | LIVE | 08 is the end, 4.5 km | 4.5 km to the end
+73 51.00453,6.42792 ±5 | LIVE | 08 is the end, 4.4 km | 4.5 km to the end
+74 51.00446,6.42799 ±5 | LIVE | 08 is the end, 4.4 km | 4.5 km to the end
+75 51.00438,6.42806 ±5 | LIVE | 08 is the end, 4.4 km | 4.5 km to the end
+76 51.00430,6.42814 ±5 | LIVE | 08 is the end, 4.4 km | 4.5 km to the end
+77 51.00422,6.42821 ±5 | LIVE | 08 is the end, 4.4 km | 4.5 km to the end
+78 51.00415,6.42829 ±5 | LIVE | 08 is the end, 4.4 km | 4.5 km to the end
+79 51.00407,6.42836 ±5 | LIVE | 08 is the end, 4.4 km | 4.5 km to the end
+80 51.00401,6.42846 ±5 | LIVE | 08 is the end, 4.4 km | 4.4 km to the end
+81 51.00395,6.42857 ±5 | LIVE | 08 is the end, 4.4 km | 4.4 km to the end
+82 51.00389,6.42868 ±5 | LIVE | 08 is the end, 4.4 km | 4.4 km to the end
+83 51.00383,6.42879 ±5 | LIVE | 08 is the end, 4.3 km | 4.4 km to the end
+84 51.00378,6.42890 ±5 | LIVE | 08 is the end, 4.3 km | 4.4 km to the end
+85 51.00375,6.42903 ±5 | LIVE | 08 is the end, 4.3 km | 4.4 km to the end
+86 51.00371,6.42917 ±5 | LIVE | 08 is the end, 4.3 km | 4.4 km to the end
+87 51.00367,6.42930 ±5 | LIVE | 08 is the end, 4.3 km | 4.4 km to the end
+88 51.00364,6.42943 ±5 | LIVE | 08 is the end, 4.3 km | 4.4 km to the end
+89 51.00360,6.42956 ±5 | LIVE | 08 is the end, 4.3 km | 4.4 km to the end
+90 51.00357,6.42969 ±5 | LIVE | 08 is the end, 4.3 km | 4.3 km to the end
+91 51.00353,6.42982 ±5 | LIVE | 08 is the end, 4.3 km | 4.3 km to the end
+92 51.00350,6.42995 ±5 | LIVE | 08 is the end, 4.3 km | 4.3 km to the end
+93 51.00346,6.43009 ±5 | LIVE | 08 is the end, 4.2 km | 4.3 km to the end
+94 51.00341,6.43020 ±5 | LIVE | 08 is the end, 4.2 km | 4.3 km to the end
+95 51.00335,6.43031 ±5 | LIVE | 08 is the end, 4.2 km | 4.3 km to the end
+96 51.00329,6.43041 ±5 | LIVE | 08 is the end, 4.2 km | 4.3 km to the end
+97 51.00323,6.43052 ±5 | LIVE | 08 is the end, 4.2 km | 4.3 km to the end
+98 51.00316,6.43061 ±5 | LIVE | 08 is the end, 4.2 km | 4.3 km to the end
+99 51.00309,6.43070 ±5 | LIVE | 08 is the end, 4.2 km | 4.3 km to the end
+100 51.00302,6.43079 ±5 | LIVE | 08 is the end, 4.2 km | 4.2 km to the end
+101 51.00295,6.43088 ±5 | LIVE | 08 is the end, 4.2 km | 4.2 km to the end
+102 51.00288,6.43097 ±5 | LIVE | 08 is the end, 4.2 km | 4.2 km to the end
+103 51.00281,6.43106 ±5 | LIVE | 08 is the end, 4.1 km | 4.2 km to the end
+104 51.00274,6.43115 ±5 | LIVE | 08 is the end, 4.1 km | 4.2 km to the end
+105 51.00267,6.43124 ±5 | LIVE | 08 is the end, 4.1 km | 4.2 km to the end
+106 51.00260,6.43134 ±5 | LIVE | 08 is the end, 4.1 km | 4.2 km to the end
+107 51.00253,6.43143 ±5 | LIVE | 08 is the end, 4.1 km | 4.2 km to the end
+108 51.00246,6.43152 ±5 | LIVE | 08 is the end, 4.1 km | 4.2 km to the end
+109 51.00239,6.43161 ±5 | LIVE | 08 is the end, 4.1 km | 4.2 km to the end
+110 51.00232,6.43170 ±5 | LIVE | 08 is the end, 4.1 km | 4.1 km to the end
+111 51.00225,6.43179 ±5 | LIVE | 08 is the end, 4.1 km | 4.1 km to the end
+112 51.00219,6.43188 ±5 | LIVE | 08 is the end, 4.1 km | 4.1 km to the end
+113 51.00212,6.43197 ±5 | LIVE | 08 is the end, 4.0 km | 4.1 km to the end
+114 51.00205,6.43207 ±5 | LIVE | 08 is the end, 4.0 km | 4.1 km to the end
+115 51.00198,6.43216 ±5 | LIVE | 08 is the end, 4.0 km | 4.1 km to the end
+116 51.00191,6.43225 ±5 | LIVE | 08 is the end, 4.0 km | 4.1 km to the end
+117 51.00184,6.43234 ±5 | LIVE | 08 is the end, 4.0 km | 4.1 km to the end
+118 51.00177,6.43243 ±5 | LIVE | 08 is the end, 4.0 km | 4.1 km to the end
+119 51.00170,6.43252 ±5 | LIVE | 08 is the end, 4.0 km | 4.1 km to the end
+120 51.00163,6.43261 ±5 | LIVE | 08 is the end, 4.0 km | 4.0 km to the end
+121 51.00156,6.43270 ±5 | LIVE | 08 is the end, 4.0 km | 4.0 km to the end
+122 51.00149,6.43280 ±5 | LIVE | 08 is the end, 4.0 km | 4.0 km to the end
+123 51.00142,6.43289 ±5 | LIVE | 08 is the end, 3.9 km | 4.0 km to the end
+124 51.00135,6.43298 ±5 | LIVE | 08 is the end, 3.9 km | 4.0 km to the end
+125 51.00128,6.43307 ±5 | LIVE | 08 is the end, 3.9 km | 4.0 km to the end
+126 51.00121,6.43316 ±5 | LIVE | 08 is the end, 3.9 km | 4.0 km to the end
+127 51.00116,6.43327 ±5 | LIVE | 08 is the end, 3.9 km | 4.0 km to the end
+128 51.00110,6.43338 ±5 | LIVE | 08 is the end, 3.9 km | 4.0 km to the end
+129 51.00104,6.43349 ±5 | LIVE | 08 is the end, 3.9 km | 4.0 km to the end
+130 51.00099,6.43361 ±5 | LIVE | 08 is the end, 3.9 km | 3.9 km to the end
+131 51.00094,6.43372 ±5 | LIVE | 08 is the end, 3.9 km | 3.9 km to the end
+132 51.00093,6.43386 ±5 | LIVE | 08 is the end, 3.9 km | 3.9 km to the end
+133 51.00093,6.43401 ±5 | LIVE | 08 is the end, 3.8 km | 3.9 km to the end
+134 51.00093,6.43415 ±5 | LIVE | 08 is the end, 3.8 km | 3.9 km to the end
+135 51.00092,6.43429 ±5 | LIVE | 08 is the end, 3.8 km | 3.9 km to the end
+136 51.00092,6.43444 ±5 | LIVE | 08 is the end, 3.8 km | 3.9 km to the end
+137 51.00091,6.43458 ±5 | LIVE | 08 is the end, 3.8 km | 3.9 km to the end
+138 51.00091,6.43472 ±5 | LIVE | 08 is the end, 3.8 km | 3.9 km to the end
+139 51.00090,6.43486 ±5 | LIVE | 08 is the end, 3.8 km | 3.9 km to the end
+140 51.00090,6.43501 ±5 | LIVE | 08 is the end, 3.8 km | 3.8 km to the end
+141 51.00089,6.43515 ±5 | LIVE | 08 is the end, 3.8 km | 3.8 km to the end
+142 51.00089,6.43529 ±5 | LIVE | 08 is the end, 3.8 km | 3.8 km to the end
+143 51.00088,6.43544 ±5 | LIVE | 08 is the end, 3.7 km | 3.8 km to the end
+144 51.00088,6.43558 ±5 | LIVE | 08 is the end, 3.7 km | 3.8 km to the end
+145 51.00088,6.43572 ±5 | LIVE | 08 is the end, 3.7 km | 3.8 km to the end
+146 51.00088,6.43586 ±5 | LIVE | 08 is the end, 3.7 km | 3.8 km to the end
+147 51.00088,6.43601 ±5 | LIVE | 08 is the end, 3.7 km | 3.8 km to the end
+148 51.00088,6.43615 ±5 | LIVE | 08 is the end, 3.7 km | 3.8 km to the end
+149 51.00088,6.43629 ±5 | LIVE | 08 is the end, 3.7 km | 3.8 km to the end
+150 51.00089,6.43644 ±5 | LIVE | 08 is the end, 3.7 km | 3.7 km to the end
+151 51.00089,6.43658 ±5 | LIVE | 08 is the end, 3.7 km | 3.7 km to the end
+152 51.00089,6.43672 ±5 | LIVE | 08 is the end, 3.7 km | 3.7 km to the end
+153 51.00089,6.43687 ±5 | LIVE | 08 is the end, 3.6 km | 3.7 km to the end
+154 51.00089,6.43701 ±5 | LIVE | 08 is the end, 3.6 km | 3.7 km to the end
+155 51.00089,6.43715 ±5 | LIVE | 08 is the end, 3.6 km | 3.7 km to the end
+156 51.00090,6.43729 ±5 | LIVE | 08 is the end, 3.6 km | 3.7 km to the end
+157 51.00090,6.43744 ±5 | LIVE | 08 is the end, 3.6 km | 3.7 km to the end
+158 51.00090,6.43758 ±5 | LIVE | 08 is the end, 3.6 km | 3.7 km to the end
+159 51.00090,6.43772 ±5 | LIVE | 08 is the end, 3.6 km | 3.7 km to the end
+160 51.00090,6.43787 ±5 | LIVE | 08 is the end, 3.6 km | 3.6 km to the end
+161 51.00091,6.43801 ±5 | LIVE | 08 is the end, 3.6 km | 3.6 km to the end
+162 51.00091,6.43815 ±5 | LIVE | 08 is the end, 3.6 km | 3.6 km to the end
+163 51.00091,6.43830 ±5 | LIVE | 08 is the end, 3.5 km | 3.6 km to the end
+164 51.00091,6.43844 ±5 | LIVE | 08 is the end, 3.5 km | 3.6 km to the end
+165 51.00091,6.43858 ±5 | LIVE | 08 is the end, 3.5 km | 3.6 km to the end
+166 51.00092,6.43872 ±5 | LIVE | 08 is the end, 3.5 km | 3.6 km to the end
+167 51.00092,6.43887 ±5 | LIVE | 08 is the end, 3.5 km | 3.6 km to the end
+168 51.00092,6.43901 ±5 | LIVE | 08 is the end, 3.5 km | 3.6 km to the end
+169 51.00092,6.43915 ±5 | LIVE | 08 is the end, 3.5 km | 3.6 km to the end
+170 51.00092,6.43930 ±5 | LIVE | 08 is the end, 3.5 km | 3.5 km to the end
+171 51.00093,6.43944 ±5 | LIVE | 08 is the end, 3.5 km | 3.5 km to the end
+172 51.00093,6.43958 ±5 | LIVE | 08 is the end, 3.5 km | 3.5 km to the end
+173 51.00093,6.43973 ±5 | LIVE | 08 is the end, 3.4 km | 3.5 km to the end
+174 51.00093,6.43987 ±5 | LIVE | 08 is the end, 3.4 km | 3.5 km to the end
+175 51.00093,6.44001 ±5 | LIVE | 08 is the end, 3.4 km | 3.5 km to the end
+176 51.00094,6.44015 ±5 | LIVE | 08 is the end, 3.4 km | 3.5 km to the end
+177 51.00095,6.44030 ±5 | LIVE | 08 is the end, 3.4 km | 3.5 km to the end
+178 51.00096,6.44044 ±5 | LIVE | 08 is the end, 3.4 km | 3.5 km to the end
+179 51.00097,6.44058 ±5 | LIVE | 08 is the end, 3.4 km | 3.5 km to the end
+180 51.00098,6.44072 ±5 | LIVE | 08 is the end, 3.4 km | 3.4 km to the end
+181 51.00099,6.44086 ±5 | LIVE | 08 is the end, 3.4 km | 3.4 km to the end
+182 51.00100,6.44101 ±5 | LIVE | 08 is the end, 3.4 km | 3.4 km to the end
+183 51.00101,6.44115 ±5 | LIVE | 08 is the end, 3.3 km | 3.4 km to the end
+184 51.00102,6.44129 ±5 | LIVE | 08 is the end, 3.3 km | 3.4 km to the end
+185 51.00103,6.44143 ±5 | LIVE | 08 is the end, 3.3 km | 3.4 km to the end
+186 51.00104,6.44158 ±5 | LIVE | 08 is the end, 3.3 km | 3.4 km to the end
+187 51.00105,6.44172 ±5 | LIVE | 08 is the end, 3.3 km | 3.4 km to the end
+188 51.00106,6.44186 ±5 | LIVE | 08 is the end, 3.3 km | 3.4 km to the end
+189 51.00107,6.44200 ±5 | LIVE | 08 is the end, 3.3 km | 3.4 km to the end
+190 51.00108,6.44214 ±5 | LIVE | 08 is the end, 3.3 km | 3.3 km to the end
+191 51.00109,6.44229 ±5 | LIVE | 08 is the end, 3.3 km | 3.3 km to the end
+192 51.00110,6.44243 ±5 | LIVE | 08 is the end, 3.3 km | 3.3 km to the end
+193 51.00111,6.44257 ±5 | LIVE | 08 is the end, 3.2 km | 3.3 km to the end
+194 51.00112,6.44271 ±5 | LIVE | 08 is the end, 3.2 km | 3.3 km to the end
+195 51.00113,6.44285 ±5 | LIVE | 08 is the end, 3.2 km | 3.3 km to the end
+196 51.00114,6.44300 ±5 | LIVE | 08 is the end, 3.2 km | 3.3 km to the end
+197 51.00115,6.44314 ±5 | LIVE | 08 is the end, 3.2 km | 3.3 km to the end
+198 51.00116,6.44328 ±5 | LIVE | 08 is the end, 3.2 km | 3.3 km to the end
+199 51.00117,6.44342 ±5 | LIVE | 08 is the end, 3.2 km | 3.3 km to the end
+200 51.00118,6.44357 ±5 | LIVE | 08 is the end, 3.2 km | 3.2 km to the end
+201 51.00119,6.44371 ±5 | LIVE | 08 is the end, 3.2 km | 3.2 km to the end
+202 51.00120,6.44385 ±5 | LIVE | 08 is the end, 3.2 km | 3.2 km to the end
+203 51.00121,6.44399 ±5 | LIVE | 08 is the end, 3.1 km | 3.2 km to the end
+204 51.00122,6.44413 ±5 | LIVE | 08 is the end, 3.1 km | 3.2 km to the end
+205 51.00123,6.44428 ±5 | LIVE | 08 is the end, 3.1 km | 3.2 km to the end
+206 51.00124,6.44442 ±5 | LIVE | 08 is the end, 3.1 km | 3.2 km to the end
+207 51.00125,6.44456 ±5 | LIVE | 08 is the end, 3.1 km | 3.2 km to the end
+208 51.00126,6.44470 ±5 | LIVE | 08 is the end, 3.1 km | 3.2 km to the end
+209 51.00127,6.44484 ±5 | LIVE | 08 is the end, 3.1 km | 3.2 km to the end
+210 51.00128,6.44499 ±5 | LIVE | 08 is the end, 3.1 km | 3.1 km to the end
+211 51.00129,6.44513 ±5 | LIVE | 08 is the end, 3.1 km | 3.1 km to the end
+212 51.00130,6.44527 ±5 | LIVE | 08 is the end, 3.1 km | 3.1 km to the end
+213 51.00131,6.44541 ±5 | LIVE | 08 is the end, 3.0 km | 3.1 km to the end
+214 51.00132,6.44555 ±5 | LIVE | 08 is the end, 3.0 km | 3.1 km to the end
+215 51.00133,6.44570 ±5 | LIVE | 08 is the end, 3.0 km | 3.1 km to the end
+216 51.00134,6.44584 ±5 | LIVE | 08 is the end, 3.0 km | 3.1 km to the end
+217 51.00135,6.44598 ±5 | LIVE | 08 is the end, 3.0 km | 3.1 km to the end
+218 51.00136,6.44612 ±5 | LIVE | 08 is the end, 3.0 km | 3.1 km to the end
+219 51.00137,6.44627 ±5 | LIVE | 08 is the end, 3.0 km | 3.1 km to the end
+220 51.00138,6.44641 ±5 | LIVE | 08 is the end, 3.0 km | 3.0 km to the end
+221 51.00139,6.44655 ±5 | LIVE | 08 is the end, 3.0 km | 3.0 km to the end
+222 51.00140,6.44669 ±5 | LIVE | 08 is the end, 3.0 km | 3.0 km to the end
+223 51.00141,6.44683 ±5 | LIVE | 08 is the end, 2.9 km | 3.0 km to the end
+224 51.00142,6.44698 ±5 | LIVE | 08 is the end, 2.9 km | 3.0 km to the end
+225 51.00143,6.44712 ±5 | LIVE | 08 is the end, 2.9 km | 3.0 km to the end
+226 51.00144,6.44726 ±5 | LIVE | 08 is the end, 2.9 km | 3.0 km to the end
+227 51.00145,6.44740 ±5 | LIVE | 08 is the end, 2.9 km | 3.0 km to the end
+228 51.00146,6.44754 ±5 | LIVE | 08 is the end, 2.9 km | 3.0 km to the end
+229 51.00147,6.44769 ±5 | LIVE | 08 is the end, 2.9 km | 3.0 km to the end
+230 51.00148,6.44783 ±5 | LIVE | 08 is the end, 2.9 km | 2.9 km to the end
+231 51.00150,6.44797 ±5 | LIVE | 08 is the end, 2.9 km | 2.9 km to the end
+232 51.00151,6.44811 ±5 | LIVE | 08 is the end, 2.9 km | 2.9 km to the end
+233 51.00152,6.44826 ±5 | LIVE | 08 is the end, 2.8 km | 2.9 km to the end
+234 51.00153,6.44840 ±5 | LIVE | 08 is the end, 2.8 km | 2.9 km to the end
+235 51.00154,6.44854 ±5 | LIVE | 08 is the end, 2.8 km | 2.9 km to the end
+236 51.00155,6.44868 ±5 | LIVE | 08 is the end, 2.8 km | 2.9 km to the end
+237 51.00156,6.44882 ±5 | LIVE | 08 is the end, 2.8 km | 2.9 km to the end
+238 51.00157,6.44897 ±5 | LIVE | 08 is the end, 2.8 km | 2.9 km to the end
+239 51.00158,6.44911 ±5 | LIVE | 08 is the end, 2.8 km | 2.9 km to the end
+240 51.00159,6.44925 ±5 | LIVE | 08 is the end, 2.8 km | 2.8 km to the end
+241 51.00160,6.44939 ±5 | LIVE | 08 is the end, 2.8 km | 2.8 km to the end
+242 51.00161,6.44953 ±5 | LIVE | 08 is the end, 2.8 km | 2.8 km to the end
+243 51.00162,6.44968 ±5 | LIVE | 08 is the end, 2.7 km | 2.8 km to the end
+244 51.00163,6.44982 ±5 | LIVE | 08 is the end, 2.7 km | 2.8 km to the end
+245 51.00164,6.44996 ±5 | LIVE | 08 is the end, 2.7 km | 2.8 km to the end
+246 51.00165,6.45010 ±5 | LIVE | 08 is the end, 2.7 km | 2.8 km to the end
+247 51.00166,6.45024 ±5 | LIVE | 08 is the end, 2.7 km | 2.8 km to the end
+248 51.00167,6.45039 ±5 | LIVE | 08 is the end, 2.7 km | 2.8 km to the end
+249 51.00168,6.45053 ±5 | LIVE | 08 is the end, 2.7 km | 2.8 km to the end
+250 51.00169,6.45067 ±5 | LIVE | 08 is the end, 2.7 km | 2.7 km to the end
+251 51.00170,6.45081 ±5 | LIVE | 08 is the end, 2.7 km | 2.7 km to the end
+252 51.00171,6.45096 ±5 | LIVE | 08 is the end, 2.7 km | 2.7 km to the end
+253 51.00172,6.45110 ±5 | LIVE | 08 is the end, 2.6 km | 2.7 km to the end
+254 51.00173,6.45124 ±5 | LIVE | 08 is the end, 2.6 km | 2.7 km to the end
+255 51.00174,6.45138 ±5 | LIVE | 08 is the end, 2.6 km | 2.7 km to the end
+256 51.00175,6.45152 ±5 | LIVE | 08 is the end, 2.6 km | 2.7 km to the end
+257 51.00176,6.45167 ±5 | LIVE | 08 is the end, 2.6 km | 2.7 km to the end
+258 51.00177,6.45181 ±5 | LIVE | 08 is the end, 2.6 km | 2.7 km to the end
+259 51.00178,6.45195 ±5 | LIVE | 08 is the end, 2.6 km | 2.7 km to the end
+260 51.00179,6.45209 ±5 | LIVE | 08 is the end, 2.6 km | 2.6 km to the end
+261 51.00180,6.45223 ±5 | LIVE | 08 is the end, 2.6 km | 2.6 km to the end
+262 51.00181,6.45238 ±5 | LIVE | 08 is the end, 2.6 km | 2.6 km to the end
+263 51.00182,6.45252 ±5 | LIVE | 08 is the end, 2.5 km | 2.6 km to the end
+264 51.00183,6.45266 ±5 | LIVE | 08 is the end, 2.5 km | 2.6 km to the end
+265 51.00184,6.45280 ±5 | LIVE | 08 is the end, 2.5 km | 2.6 km to the end
+266 51.00185,6.45294 ±5 | LIVE | 08 is the end, 2.5 km | 2.6 km to the end
+267 51.00186,6.45309 ±5 | LIVE | 08 is the end, 2.5 km | 2.6 km to the end
+268 51.00187,6.45323 ±5 | LIVE | 08 is the end, 2.5 km | 2.6 km to the end
+269 51.00188,6.45337 ±5 | LIVE | 08 is the end, 2.5 km | 2.6 km to the end
+270 51.00189,6.45351 ±5 | LIVE | 08 is the end, 2.5 km | 2.5 km to the end
+271 51.00190,6.45366 ±5 | LIVE | 08 is the end, 2.5 km | 2.5 km to the end
+272 51.00191,6.45380 ±5 | LIVE | 08 is the end, 2.5 km | 2.5 km to the end
+273 51.00192,6.45394 ±5 | LIVE | 08 is the end, 2.4 km | 2.5 km to the end
+274 51.00193,6.45408 ±5 | LIVE | 08 is the end, 2.4 km | 2.5 km to the end
+275 51.00194,6.45422 ±5 | LIVE | 08 is the end, 2.4 km | 2.5 km to the end
+276 51.00195,6.45437 ±5 | LIVE | 08 is the end, 2.4 km | 2.5 km to the end
+277 51.00196,6.45451 ±5 | LIVE | 08 is the end, 2.4 km | 2.5 km to the end
+278 51.00197,6.45465 ±5 | LIVE | 08 is the end, 2.4 km | 2.5 km to the end
+279 51.00198,6.45479 ±5 | LIVE | 08 is the end, 2.4 km | 2.5 km to the end
+280 51.00199,6.45493 ±5 | LIVE | 08 is the end, 2.4 km | 2.4 km to the end
+281 51.00200,6.45508 ±5 | LIVE | 08 is the end, 2.4 km | 2.4 km to the end
+282 51.00201,6.45522 ±5 | LIVE | 08 is the end, 2.4 km | 2.4 km to the end
+283 51.00202,6.45536 ±5 | LIVE | 08 is the end, 2.3 km | 2.4 km to the end
+284 51.00203,6.45550 ±5 | LIVE | 08 is the end, 2.3 km | 2.4 km to the end
+285 51.00204,6.45565 ±5 | LIVE | 08 is the end, 2.3 km | 2.4 km to the end
+286 51.00205,6.45579 ±5 | LIVE | 08 is the end, 2.3 km | 2.4 km to the end
+287 51.00207,6.45593 ±5 | LIVE | 08 is the end, 2.3 km | 2.4 km to the end
+288 51.00208,6.45607 ±5 | LIVE | 08 is the end, 2.3 km | 2.4 km to the end
+289 51.00209,6.45621 ±5 | LIVE | 08 is the end, 2.3 km | 2.4 km to the end
+290 51.00210,6.45636 ±5 | LIVE | 08 is the end, 2.3 km | 2.3 km to the end
+291 51.00211,6.45650 ±5 | LIVE | 08 is the end, 2.3 km | 2.3 km to the end
+292 51.00212,6.45664 ±5 | LIVE | 08 is the end, 2.3 km | 2.3 km to the end
+293 51.00213,6.45678 ±5 | LIVE | 08 is the end, 2.2 km | 2.3 km to the end
+294 51.00214,6.45692 ±5 | LIVE | 08 is the end, 2.2 km | 2.3 km to the end
+295 51.00215,6.45707 ±5 | LIVE | 08 is the end, 2.2 km | 2.3 km to the end
+296 51.00216,6.45721 ±5 | LIVE | 08 is the end, 2.2 km | 2.3 km to the end
+297 51.00217,6.45735 ±5 | LIVE | 08 is the end, 2.2 km | 2.3 km to the end
+298 51.00218,6.45749 ±5 | LIVE | 08 is the end, 2.2 km | 2.3 km to the end
+299 51.00219,6.45763 ±5 | LIVE | 08 is the end, 2.2 km | 2.3 km to the end
+300 51.00220,6.45778 ±5 | LIVE | 08 is the end, 2.2 km | 2.2 km to the end
+301 51.00217,6.45789 ±5 | LIVE | 08 is the end, 2.2 km | 2.2 km to the end
+302 51.00209,6.45795 ±5 | LIVE | 08 is the end, 2.2 km | 2.2 km to the end
+303 51.00201,6.45802 ±5 | LIVE | 08 is the end, 2.1 km | 2.2 km to the end
+304 51.00193,6.45809 ±5 | LIVE | 08 is the end, 2.1 km | 2.2 km to the end
+305 51.00185,6.45816 ±5 | LIVE | 08 is the end, 2.1 km | 2.2 km to the end
+306 51.00177,6.45823 ±5 | LIVE | 08 is the end, 2.1 km | 2.2 km to the end
+307 51.00169,6.45827 ±5 | LIVE | 08 is the end, 2.1 km | 2.2 km to the end
+308 51.00160,6.45830 ±5 | LIVE | 08 is the end, 2.1 km | 2.2 km to the end
+309 51.00151,6.45833 ±5 | LIVE | 08 is the end, 2.1 km | 2.2 km to the end
+310 51.00142,6.45836 ±5 | LIVE | 08 is the end, 2.1 km | 2.1 km to the end
+311 51.00133,6.45838 ±5 | LIVE | 08 is the end, 2.1 km | 2.1 km to the end
+312 51.00125,6.45841 ±5 | LIVE | 08 is the end, 2.1 km | 2.1 km to the end
+313 51.00116,6.45844 ±5 | LIVE | 08 is the end, 2.0 km | 2.1 km to the end
+314 51.00107,6.45846 ±5 | LIVE | 08 is the end, 2.0 km | 2.1 km to the end
+315 51.00098,6.45849 ±5 | LIVE | 08 is the end, 2.0 km | 2.1 km to the end
+316 51.00089,6.45852 ±5 | LIVE | 08 is the end, 2.0 km | 2.1 km to the end
+317 51.00080,6.45855 ±5 | LIVE | 08 is the end, 2.0 km | 2.1 km to the end
+318 51.00072,6.45857 ±5 | LIVE | 08 is the end, 2.0 km | 2.1 km to the end
+319 51.00063,6.45860 ±5 | LIVE | 08 is the end, 2.0 km | 2.1 km to the end
+320 51.00054,6.45863 ±5 | LIVE | 08 is the end, 2.0 km | 2.0 km to the end
+321 51.00045,6.45865 ±5 | LIVE | 08 is the end, 2.0 km | 2.0 km to the end
+322 51.00036,6.45868 ±5 | LIVE | 08 is the end, 2.0 km | 2.0 km to the end
+323 51.00027,6.45871 ±5 | LIVE | 08 is the end, 1.9 km | 2.0 km to the end
+324 51.00019,6.45874 ±5 | LIVE | 08 is the end, 1.9 km | 2.0 km to the end
+325 51.00010,6.45876 ±5 | LIVE | 08 is the end, 1.9 km | 2.0 km to the end
+326 51.00001,6.45879 ±5 | LIVE | 08 is the end, 1.9 km | 2.0 km to the end
+327 50.99992,6.45882 ±5 | LIVE | 08 is the end, 1.9 km | 2.0 km to the end
+328 50.99983,6.45884 ±5 | LIVE | 08 is the end, 1.9 km | 2.0 km to the end
+329 50.99974,6.45887 ±5 | LIVE | 08 is the end, 1.9 km | 2.0 km to the end
+330 50.99966,6.45890 ±5 | LIVE | 08 is the end, 1.9 km | 1.9 km to the end
+331 50.99957,6.45892 ±5 | LIVE | 08 is the end, 1.9 km | 1.9 km to the end
+332 50.99948,6.45895 ±5 | LIVE | 08 is the end, 1.9 km | 1.9 km to the end
+333 50.99939,6.45898 ±5 | LIVE | 08 is the end, 1.8 km | 1.9 km to the end
+334 50.99930,6.45901 ±5 | LIVE | 08 is the end, 1.8 km | 1.9 km to the end
+335 50.99921,6.45903 ±5 | LIVE | 08 is the end, 1.8 km | 1.9 km to the end
+336 50.99912,6.45906 ±5 | LIVE | 08 is the end, 1.8 km | 1.9 km to the end
+337 50.99904,6.45909 ±5 | LIVE | 08 is the end, 1.8 km | 1.9 km to the end
+338 50.99895,6.45911 ±5 | LIVE | 08 is the end, 1.8 km | 1.9 km to the end
+339 50.99886,6.45914 ±5 | LIVE | 08 is the end, 1.8 km | 1.9 km to the end
+340 50.99877,6.45917 ±5 | LIVE | 08 is the end, 1.8 km | 1.8 km to the end
+341 50.99868,6.45920 ±5 | LIVE | 08 is the end, 1.8 km | 1.8 km to the end
+342 50.99859,6.45922 ±5 | LIVE | 08 is the end, 1.8 km | 1.8 km to the end
+343 50.99851,6.45925 ±5 | LIVE | 08 is the end, 1.7 km | 1.8 km to the end
+344 50.99842,6.45928 ±5 | LIVE | 08 is the end, 1.7 km | 1.8 km to the end
+345 50.99833,6.45930 ±5 | LIVE | 08 is the end, 1.7 km | 1.8 km to the end
+346 50.99824,6.45933 ±5 | LIVE | 08 is the end, 1.7 km | 1.8 km to the end
+347 50.99815,6.45936 ±5 | LIVE | 08 is the end, 1.7 km | 1.8 km to the end
+348 50.99806,6.45939 ±5 | LIVE | 08 is the end, 1.7 km | 1.8 km to the end
+349 50.99798,6.45941 ±5 | LIVE | 08 is the end, 1.7 km | 1.8 km to the end
+350 50.99789,6.45944 ±5 | LIVE | 08 is the end, 1.7 km | 1.7 km to the end
+351 50.99783,6.45951 ±5 | LIVE | 08 is the end, 1.7 km | 1.7 km to the end
+352 50.99784,6.45965 ±5 | LIVE | 08 is the end, 1.7 km | 1.7 km to the end
+353 50.99785,6.45980 ±5 | LIVE | 08 is the end, 1.6 km | 1.7 km to the end
+354 50.99786,6.45994 ±5 | LIVE | 08 is the end, 1.6 km | 1.7 km to the end
+355 50.99786,6.46008 ±5 | LIVE | 08 is the end, 1.6 km | 1.7 km to the end
+356 50.99787,6.46022 ±5 | LIVE | 08 is the end, 1.6 km | 1.7 km to the end
+357 50.99788,6.46037 ±5 | LIVE | 08 is the end, 1.6 km | 1.7 km to the end
+358 50.99789,6.46051 ±5 | LIVE | 08 is the end, 1.6 km | 1.7 km to the end
+359 50.99789,6.46065 ±5 | LIVE | 08 is the end, 1.6 km | 1.7 km to the end
+360 50.99790,6.46079 ±5 | LIVE | 08 is the end, 1.6 km | 1.6 km to the end
+361 50.99791,6.46094 ±5 | LIVE | 08 is the end, 1.6 km | 1.6 km to the end
+362 50.99792,6.46108 ±5 | LIVE | 08 is the end, 1.6 km | 1.6 km to the end
+363 50.99792,6.46122 ±5 | LIVE | 08 is the end, 1.5 km | 1.6 km to the end
+364 50.99793,6.46136 ±5 | LIVE | 08 is the end, 1.5 km | 1.6 km to the end
+365 50.99794,6.46151 ±5 | LIVE | 08 is the end, 1.5 km | 1.6 km to the end
+366 50.99795,6.46165 ±5 | LIVE | 08 is the end, 1.5 km | 1.6 km to the end
+367 50.99796,6.46179 ±5 | LIVE | 08 is the end, 1.5 km | 1.6 km to the end
+368 50.99796,6.46193 ±5 | LIVE | 08 is the end, 1.5 km | 1.6 km to the end
+369 50.99797,6.46208 ±5 | LIVE | 08 is the end, 1.5 km | 1.6 km to the end
+370 50.99798,6.46222 ±5 | LIVE | 08 is the end, 1.5 km | 1.5 km to the end
+371 50.99799,6.46236 ±5 | LIVE | 08 is the end, 1.5 km | 1.5 km to the end
+372 50.99799,6.46250 ±5 | LIVE | 08 is the end, 1.5 km | 1.5 km to the end
+373 50.99800,6.46265 ±5 | LIVE | 08 is the end, 1.4 km | 1.5 km to the end
+374 50.99801,6.46279 ±5 | LIVE | 08 is the end, 1.4 km | 1.5 km to the end
+375 50.99802,6.46293 ±5 | LIVE | 08 is the end, 1.4 km | 1.5 km to the end
+376 50.99802,6.46307 ±5 | LIVE | 08 is the end, 1.4 km | 1.5 km to the end
+377 50.99803,6.46322 ±5 | LIVE | 08 is the end, 1.4 km | 1.5 km to the end
+378 50.99804,6.46336 ±5 | LIVE | 08 is the end, 1.4 km | 1.5 km to the end
+379 50.99805,6.46350 ±5 | LIVE | 08 is the end, 1.4 km | 1.5 km to the end
+380 50.99805,6.46364 ±5 | LIVE | 08 is the end, 1.4 km | 1.4 km to the end
+381 50.99806,6.46379 ±5 | LIVE | 08 is the end, 1.4 km | 1.4 km to the end
+382 50.99807,6.46393 ±5 | LIVE | 08 is the end, 1.4 km | 1.4 km to the end
+383 50.99808,6.46407 ±5 | LIVE | 08 is the end, 1.3 km | 1.4 km to the end
+384 50.99808,6.46421 ±5 | LIVE | 08 is the end, 1.3 km | 1.4 km to the end
+385 50.99809,6.46436 ±5 | LIVE | 08 is the end, 1.3 km | 1.4 km to the end
+386 50.99810,6.46450 ±5 | LIVE | 08 is the end, 1.3 km | 1.4 km to the end
+387 50.99811,6.46464 ±5 | LIVE | 08 is the end, 1.3 km | 1.4 km to the end
+388 50.99811,6.46478 ±5 | LIVE | 08 is the end, 1.3 km | 1.4 km to the end
+389 50.99812,6.46493 ±5 | LIVE | 08 is the end, 1.3 km | 1.4 km to the end
+390 50.99813,6.46507 ±5 | LIVE | 08 is the end, 1.3 km | 1.3 km to the end
+391 50.99814,6.46521 ±5 | LIVE | 08 is the end, 1.3 km | 1.3 km to the end
+392 50.99814,6.46535 ±5 | LIVE | 08 is the end, 1.3 km | 1.3 km to the end
+393 50.99815,6.46550 ±5 | LIVE | 08 is the end, 1.2 km | 1.3 km to the end
+394 50.99816,6.46564 ±5 | LIVE | 08 is the end, 1.2 km | 1.3 km to the end
+395 50.99817,6.46578 ±5 | LIVE | 08 is the end, 1.2 km | 1.3 km to the end
+396 50.99817,6.46592 ±5 | LIVE | 08 is the end, 1.2 km | 1.3 km to the end
+397 50.99817,6.46607 ±5 | LIVE | 08 is the end, 1.2 km | 1.3 km to the end
+398 50.99817,6.46621 ±5 | LIVE | 08 is the end, 1.2 km | 1.3 km to the end
+399 50.99817,6.46635 ±5 | LIVE | 08 is the end, 1.2 km | 1.3 km to the end
+400 50.99817,6.46650 ±5 | LIVE | 08 is the end, 1.2 km | 1.2 km to the end
+401 50.99818,6.46664 ±5 | LIVE | 08 is the end, 1.2 km | 1.2 km to the end
+402 50.99818,6.46678 ±5 | LIVE | 08 is the end, 1.2 km | 1.2 km to the end
+403 50.99818,6.46692 ±5 | LIVE | 08 is the end, 1.1 km | 1.2 km to the end
+404 50.99818,6.46707 ±5 | LIVE | 08 is the end, 1.1 km | 1.2 km to the end
+405 50.99818,6.46721 ±5 | LIVE | 08 is the end, 1.1 km | 1.2 km to the end
+406 50.99818,6.46735 ±5 | LIVE | 08 is the end, 1.1 km | 1.2 km to the end
+407 50.99818,6.46750 ±5 | LIVE | 08 is the end, 1.1 km | 1.2 km to the end
+408 50.99818,6.46764 ±5 | LIVE | 08 is the end, 1.1 km | 1.2 km to the end
+409 50.99818,6.46778 ±5 | LIVE | 08 is the end, 1.1 km | 1.2 km to the end
+410 50.99818,6.46793 ±5 | LIVE | 08 is the end, 1.1 km | 1.1 km to the end
+411 50.99818,6.46807 ±5 | LIVE | 08 is the end, 1.1 km | 1.1 km to the end
+412 50.99818,6.46821 ±5 | LIVE | 08 is the end, 1.1 km | 1.1 km to the end
+413 50.99818,6.46836 ±5 | LIVE | 08 is the end, 1.0 km | 1.1 km to the end
+414 50.99818,6.46850 ±5 | LIVE | 08 is the end, 1.0 km | 1.1 km to the end
+415 50.99818,6.46864 ±5 | LIVE | 08 is the end, 1.0 km | 1.1 km to the end
+416 50.99819,6.46878 ±5 | LIVE | 08 is the end, 1.0 km | 1.1 km to the end
+417 50.99820,6.46893 ±5 | LIVE | 08 is the end, 1.0 km | 1.1 km to the end
+418 50.99821,6.46907 ±5 | LIVE | 08 is the end, 991 m | 1.1 km to the end
+419 50.99822,6.46921 ±5 | LIVE | 08 is the end, 981 m | 1.1 km to the end
+420 50.99823,6.46935 ±5 | LIVE | 08 is the end, 971 m | 971 m to the end
+421 50.99824,6.46949 ±5 | LIVE | 08 is the end, 961 m | 971 m to the end
+422 50.99825,6.46964 ±5 | LIVE | 08 is the end, 951 m | 971 m to the end
+423 50.99826,6.46978 ±5 | LIVE | 08 is the end, 941 m | 971 m to the end
+424 50.99827,6.46992 ±5 | LIVE | 08 is the end, 931 m | 971 m to the end
+425 50.99828,6.47006 ±5 | LIVE | 08 is the end, 921 m | 971 m to the end
+426 50.99829,6.47021 ±5 | LIVE | 08 is the end, 911 m | 971 m to the end
+427 50.99830,6.47035 ±5 | LIVE | 08 is the end, 901 m | 971 m to the end
+428 50.99831,6.47049 ±5 | LIVE | 08 is the end, 891 m | 971 m to the end
+429 50.99832,6.47063 ±5 | LIVE | 08 is the end, 881 m | 971 m to the end
+430 50.99833,6.47077 ±5 | LIVE | 08 is the end, 871 m | 871 m to the end
+431 50.99834,6.47092 ±5 | LIVE | 08 is the end, 861 m | 871 m to the end
+432 50.99835,6.47106 ±5 | LIVE | 08 is the end, 851 m | 871 m to the end
+433 50.99836,6.47120 ±5 | LIVE | 08 is the end, 841 m | 871 m to the end
+434 50.99837,6.47134 ±5 | LIVE | 08 is the end, 831 m | 871 m to the end
+435 50.99838,6.47149 ±5 | LIVE | 08 is the end, 821 m | 871 m to the end
+436 50.99839,6.47163 ±5 | LIVE | 08 is the end, 811 m | 871 m to the end
+437 50.99840,6.47177 ±5 | LIVE | 08 is the end, 801 m | 871 m to the end
+438 50.99840,6.47191 ±5 | LIVE | 08 is the end, 791 m | 871 m to the end
+439 50.99841,6.47205 ±5 | LIVE | 08 is the end, 781 m | 871 m to the end
+440 50.99842,6.47220 ±5 | LIVE | 08 is the end, 771 m | 771 m to the end
+441 50.99843,6.47234 ±5 | LIVE | 08 is the end, 761 m | 771 m to the end
+442 50.99844,6.47248 ±5 | LIVE | 08 is the end, 751 m | 771 m to the end
+443 50.99845,6.47262 ±5 | LIVE | 08 is the end, 741 m | 771 m to the end
+444 50.99846,6.47276 ±5 | LIVE | 08 is the end, 731 m | 771 m to the end
+445 50.99849,6.47290 ±5 | LIVE | 08 is the end, 721 m | 771 m to the end
+446 50.99851,6.47304 ±5 | LIVE | 08 is the end, 711 m | 771 m to the end
+447 50.99853,6.47318 ±5 | LIVE | 08 is the end, 701 m | 771 m to the end
+448 50.99855,6.47332 ±5 | LIVE | 08 is the end, 691 m | 771 m to the end
+449 50.99857,6.47346 ±5 | LIVE | 08 is the end, 681 m | 771 m to the end
+450 50.99859,6.47360 ±5 | LIVE | 08 is the end, 671 m | 671 m to the end
+451 50.99861,6.47374 ±5 | LIVE | 08 is the end, 661 m | 671 m to the end
+452 50.99864,6.47388 ±5 | LIVE | 08 is the end, 651 m | 671 m to the end
+453 50.99866,6.47401 ±5 | LIVE | 08 is the end, 641 m | 671 m to the end
+454 50.99868,6.47415 ±5 | LIVE | 08 is the end, 631 m | 671 m to the end
+455 50.99870,6.47429 ±5 | LIVE | 08 is the end, 621 m | 671 m to the end
+456 50.99872,6.47443 ±5 | LIVE | 08 is the end, 611 m | 671 m to the end
+457 50.99874,6.47457 ±5 | LIVE | 08 is the end, 601 m | 671 m to the end
+458 50.99876,6.47471 ±5 | LIVE | 08 is the end, 591 m | 671 m to the end
+459 50.99879,6.47485 ±5 | LIVE | 08 is the end, 581 m | 671 m to the end
+460 50.99881,6.47499 ±5 | LIVE | 08 is the end, 571 m | 571 m to the end
+461 50.99883,6.47513 ±5 | LIVE | 08 is the end, 561 m | 571 m to the end
+462 50.99885,6.47526 ±5 | LIVE | 08 is the end, 551 m | 571 m to the end
+463 50.99887,6.47540 ±5 | LIVE | 08 is the end, 541 m | 571 m to the end
+464 50.99889,6.47554 ±5 | LIVE | 08 is the end, 531 m | 571 m to the end
+465 50.99891,6.47568 ±5 | LIVE | 08 is the end, 521 m | 571 m to the end
+466 50.99894,6.47582 ±5 | LIVE | 08 is the end, 511 m | 571 m to the end
+467 50.99896,6.47596 ±5 | LIVE | 08 is the end, 501 m | 571 m to the end
+468 50.99898,6.47610 ±5 | LIVE | 08 is the end, 491 m | 571 m to the end
+469 50.99900,6.47624 ±5 | LIVE | 08 is the end, 481 m | 571 m to the end
+470 50.99902,6.47638 ±5 | LIVE | 08 is the end, 471 m | 471 m to the end
+471 50.99904,6.47652 ±5 | LIVE | 08 is the end, 461 m | 471 m to the end
+472 50.99907,6.47665 ±5 | LIVE | 08 is the end, 451 m | 471 m to the end
+473 50.99909,6.47679 ±5 | LIVE | 08 is the end, 441 m | 471 m to the end
+474 50.99911,6.47693 ±5 | LIVE | 08 is the end, 431 m | 471 m to the end
+475 50.99913,6.47707 ±5 | LIVE | 08 is the end, 421 m | 471 m to the end
+476 50.99915,6.47721 ±5 | LIVE | 08 is the end, 411 m | 471 m to the end
+477 50.99917,6.47735 ±5 | LIVE | 08 is the end, 401 m | 471 m to the end
+478 50.99919,6.47749 ±5 | LIVE | 08 is the end, 391 m | 471 m to the end
+479 50.99922,6.47763 ±5 | LIVE | 08 is the end, 380 m | 471 m to the end
+480 50.99924,6.47777 ±5 | LIVE | 08 is the end, 370 m | 370 m to the end
+481 50.99926,6.47790 ±5 | LIVE | 08 is the end, 360 m | 370 m to the end
+482 50.99928,6.47804 ±5 | LIVE | 08 is the end, 350 m | 370 m to the end
+483 50.99930,6.47818 ±5 | LIVE | 08 is the end, 340 m | 370 m to the end
+484 50.99932,6.47832 ±5 | LIVE | 08 is the end, 330 m | 370 m to the end
+485 50.99934,6.47846 ±5 | LIVE | 08 is the end, 320 m | 370 m to the end
+486 50.99937,6.47860 ±5 | LIVE | 08 is the end, 310 m | 370 m to the end
+487 50.99939,6.47874 ±5 | LIVE | 08 is the end, 300 m | 370 m to the end
+488 50.99941,6.47888 ±5 | LIVE | 08 is the end, 290 m | 370 m to the end
+489 50.99943,6.47902 ±5 | LIVE | 08 is the end, 280 m | 370 m to the end
+490 50.99945,6.47915 ±5 | LIVE | 08 is the end, 270 m | 270 m to the end
+491 50.99947,6.47929 ±5 | LIVE | 08 is the end, 260 m | 270 m to the end
+492 50.99949,6.47943 ±5 | LIVE | 08 is the end, 250 m | 270 m to the end
+493 50.99952,6.47957 ±5 | LIVE | 08 is the end, 240 m | 270 m to the end
+494 50.99954,6.47971 ±5 | LIVE | 08 is the end, 230 m | 270 m to the end
+495 50.99956,6.47985 ±5 | LIVE | 08 is the end, 220 m | 270 m to the end
+496 50.99958,6.47999 ±5 | LIVE | 08 is the end, 210 m | 270 m to the end
+497 50.99960,6.48013 ±5 | LIVE | 08 is the end, 200 m | 270 m to the end
+498 50.99962,6.48027 ±5 | REMINDER 08 ahead, the end | LIVE | 08 is the end, 190 m | 270 m to the end
+499 50.99964,6.48040 ±5 | LIVE | 08 is the end, 180 m | 270 m to the end
+500 50.99967,6.48054 ±5 | LIVE | 08 is the end, 170 m | 170 m to the end
+501 50.99969,6.48068 ±5 | LIVE | 08 is the end, 160 m | 170 m to the end
+502 50.99971,6.48082 ±5 | LIVE | 08 is the end, 150 m | 170 m to the end
+503 50.99973,6.48096 ±5 | LIVE | 08 is the end, 140 m | 170 m to the end
+504 50.99975,6.48110 ±5 | LIVE | 08 is the end, 130 m | 170 m to the end
+505 50.99977,6.48124 ±5 | LIVE | 08 is the end, 120 m | 170 m to the end
+506 50.99979,6.48138 ±5 | LIVE | 08 is the end, 110 m | 170 m to the end
+507 50.99982,6.48152 ±5 | LIVE | 08 is the end, 100 m | 170 m to the end
+508 50.99984,6.48165 ±5 | LIVE | 08 is the end, 90 m | 170 m to the end
+509 50.99986,6.48179 ±5 | LIVE | 08 is the end, 80 m | 170 m to the end
+510 50.99988,6.48193 ±5 | LIVE | 08 is the end, 70 m | 70 m to the end
+511 50.99990,6.48207 ±5 | LIVE | 08 is the end, 60 m | 70 m to the end
+512 50.99992,6.48221 ±5 | LIVE | 08 is the end, 50 m | 70 m to the end
+513 50.99994,6.48235 ±5 | LIVE | 08 is the end, 40 m | 70 m to the end
+514 50.99997,6.48249 ±5 | LIVE | 08 is the end, 30 m | 70 m to the end
+515 50.99999,6.48263 ±5 | ARRIVED You've arrived | null | 08 is the end, 30 m | 70 m to the end | end AFTER_SPEECH

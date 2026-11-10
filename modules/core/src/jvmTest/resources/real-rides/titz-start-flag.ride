@@ -1,0 +1,8 @@
+# Titz, from a start flag in the village off the network over 06 to 08: the first position lies
+# 35 m off at 30 m accuracy, then precise ones come at the flag; the way is searched again from
+# them and follows the planned way (starts of 2026-11-10 in Siegburg, guide-to-route-points).
+area titz
+route 51.0080,6.4330 427779798 2518992736
+coarse 51.00830 6.43360 30
+still 6
+along 0 2

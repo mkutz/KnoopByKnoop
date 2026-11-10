@@ -20,7 +20,7 @@ class RealRideTest {
     val area = script.area
     val session =
       NavigationSession(
-        NavigationRoute(script.knots, area.graph, area.geometry),
+        NavigationRoute(script.knots, script.graph, script.geometry),
         script.localTime,
       )
     val lines = mutableListOf<String>()
@@ -37,7 +37,7 @@ class RealRideTest {
       }
       session.state.navigation?.let { navigation ->
         val guidedWay = session.state.guidedWay
-        parts += navigation.header(fix, session.state.direction, guidedWay, area.geometry).spoken
+        parts += navigation.header(fix, session.state.direction, guidedWay, script.geometry).spoken
         parts += navigation.progressLine
         guidedWay?.let { parts += "guided ${it.view(navigation.language).line}" }
       }
@@ -115,4 +115,6 @@ class RealRideTest {
     assertRide("rhine-coarse-screen-off")
 
   @Test fun `Veluwe through the double knot 43`() = assertRide("veluwe-43")
+
+  @Test fun `Titz from a start flag off the network`() = assertRide("titz-start-flag")
 }

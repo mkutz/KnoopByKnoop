@@ -9,7 +9,7 @@
 
 - [x] 1.5 `WayGuide`: a way found from a position less precise than 20 m is searched again with the next position of 20 m or better. Tests "Starting beside the start flag" and "Precise from the start".
 - [x] 1.6 `GuidedWay`: a way starting 60° or more to the side of the riding direction tells that turn at once. Test "Turn at the start of the way".
-- [ ] 1.7 Ride scripts can place route points as planning does (`point <latitude> <longitude>` with its way from `RoutePointWays`), and a recorded real-data ride starts beside a route point off the network, away from the maintainer's home area: the guided way follows the planned way. `./gradlew check` passes, `checkScenarios -Pchange=guide-to-route-points` too.
+- [x] 1.7 Ride scripts can place route points as planning does (`point <latitude> <longitude>` with its way from `RoutePointWays`), and a recorded real-data ride starts beside a route point off the network, away from the maintainer's home area: the guided way follows the planned way. `./gradlew check` passes, `checkScenarios -Pchange=guide-to-route-points` too.
 
 ## 2. Apps
 
