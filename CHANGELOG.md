@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Android: when newer network data needs a newer app version, the info sheet asks to update the app; before, the request disappeared again right away. On both phones it now stays until the data can be read, also after closing the app
+- iPhone: a broken network download is tried again by itself after 30 s, then after longer and longer waits, instead of only at the next start
 - Damaged path data no longer ends the app while it looks for a way along paths; the straight line stays instead
 - On a way back to the route, a drawing of a tricky junction ahead shows below the header with what to do, e.g. "In 90 m, keep left at the fork", from about 150 m before it; on the Pixel's lock screen the sentence
 - Off the route, the way back leads to where it saves the most, e.g. on to where the route goes next instead of back to where you left it

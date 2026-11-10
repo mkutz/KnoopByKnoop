@@ -55,13 +55,16 @@ data class NetworkSyncState(
 
   /**
    * A sync found nothing to fetch for the networks other than [toFetch]: what they have installed
-   * is current, so they neither failed nor need a newer app.
+   * is current, so they neither failed nor need a newer app. With nothing to fetch at all, no
+   * corrupted file waits any more either.
    */
   fun started(toFetch: Collection<NetworkIndexEntry>): NetworkSyncState {
     val fetching = toFetch.map { it.network }.toSet()
     return copy(
       failed = failed.filter { it in fetching }.toSet(),
       needsAppUpdateFor = needsAppUpdateFor.filter { it in fetching }.toSet(),
+      retries = if (toFetch.isEmpty()) 0 else retries,
+      runCorrupted = runCorrupted && toFetch.isNotEmpty(),
     )
   }
 

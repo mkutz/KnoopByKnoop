@@ -452,4 +452,15 @@ class NetworkSyncTest {
     assertEquals(setOf(IndexedNetworkType.HIKING), next.needsAppUpdateFor)
     assertEquals(setOf(IndexedNetworkType.HIKING), next.failed)
   }
+
+  @Test
+  fun `nothing to fetch at all ends the retries`() {
+    val retrying = NetworkSyncState().rejected(cyclingFile, RejectionReason.CORRUPTED).finished()
+
+    val current = retrying.started(toFetch = listOf())
+    val again = current.rejected(cyclingFile, RejectionReason.CORRUPTED).finished()
+
+    assertFalse(current.retry)
+    assertEquals(30_000L, again.retryDelayMillis)
+  }
 }

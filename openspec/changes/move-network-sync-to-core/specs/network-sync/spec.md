@@ -13,7 +13,7 @@ A downloaded file SHALL only be installed if its size and checksum match the ind
 
 #### Scenario: Retrying a corrupted download
 - **WHEN** a downloaded file was discarded as corrupted, on Android or iOS, and the app keeps running
-- **THEN** the download is retried after 30 s, and after each further failure it waits twice as long, at most 5 hours
+- **THEN** the download is retried no sooner than 30 s later, and after each further failure it waits at least twice as long, up to 5 hours; Android's job scheduler may start a retry later than that
 
 #### Scenario: Asked to update until it applies no more
 - **WHEN** the user was asked to update the app because of a file's format version, and starts the app again without updating it
