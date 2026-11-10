@@ -115,6 +115,7 @@ class NetworkSync(private val context: Context) {
   suspend fun run(onInstalled: suspend (NetworkIndexEntry) -> Unit): Boolean {
     val index = NetworkIndex.parse(fetch("index.json").decodeToString())
     val toFetch = NetworkCatalog(index, storage.installed()).filesToFetch
+    state = state.started(toFetch)
     setNetworks(KEY_DOWNLOADING, toFetch.map { it.network }.toSet())
     try {
       for (entry in toFetch) {

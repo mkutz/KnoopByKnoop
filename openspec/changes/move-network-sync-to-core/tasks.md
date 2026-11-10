@@ -6,6 +6,7 @@
   - "Corrupted download" and "Retrying a corrupted download": a corrupted rejection sets `retry`; delays 30 s, 60 s, 120 s, … capped at 5 h; a clean `finished()` resets them.
   - "Unsupported file version" and "Asked to update until it applies no more": the update need survives `finished()` and a JSON round trip.
   - "Updated app": installing that network's file clears it; installing the other network's doesn't.
+  - "Published data readable again": a sync with nothing to fetch for a network ends its request and failure (`started`).
   - `check`: a geometry without an installed graph is `MISMATCHING_GEOMETRY`.
   `./gradlew :modules:core:jvmTest :modules:core:iosSimulatorArm64Test` passes.
 

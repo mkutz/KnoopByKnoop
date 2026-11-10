@@ -22,3 +22,7 @@ A downloaded file SHALL only be installed if its size and checksum match the ind
 #### Scenario: Updated app
 - **WHEN** the user updated the app, and its next sync installs the files it couldn't read before
 - **THEN** the info sheet no longer asks to update the app
+
+#### Scenario: Published data readable again
+- **WHEN** the user was asked to update the app, and the published index lists again the files installed on the device
+- **THEN** the info sheet no longer asks to update the app, and the network no longer shows a failed update

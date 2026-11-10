@@ -764,6 +764,7 @@ final class AppModel: ObservableObject {
     syncPending = false
     let toFetch = NetworkCatalog(index: index, installed: storage.installed(), downloading: Set(), failed: Set())
       .filesToFetch
+    updateSyncState(syncState.started(toFetch: toFetch))
     downloads.start(toFetch)
     refreshCatalog()
   }

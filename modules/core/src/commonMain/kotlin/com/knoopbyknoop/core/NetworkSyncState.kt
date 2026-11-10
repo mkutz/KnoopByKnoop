@@ -53,6 +53,18 @@ data class NetworkSyncState(
         )
     }
 
+  /**
+   * A sync found nothing to fetch for the networks other than [toFetch]: what they have installed
+   * is current, so they neither failed nor need a newer app.
+   */
+  fun started(toFetch: Collection<NetworkIndexEntry>): NetworkSyncState {
+    val fetching = toFetch.map { it.network }.toSet()
+    return copy(
+      failed = failed.filter { it in fetching }.toSet(),
+      needsAppUpdateFor = needsAppUpdateFor.filter { it in fetching }.toSet(),
+    )
+  }
+
   /** A file of [network] couldn't be downloaded. */
   fun downloadFailed(network: IndexedNetworkType): NetworkSyncState =
     copy(failed = failed + network)

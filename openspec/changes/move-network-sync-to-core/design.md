@@ -26,6 +26,7 @@ data class NetworkSyncState(
 ) {
   fun installed(entry: NetworkIndexEntry): NetworkSyncState   // network ok, its update need gone
   fun rejected(entry: NetworkIndexEntry, reason: RejectionReason): NetworkSyncState
+  fun started(toFetch: Collection<NetworkIndexEntry>): NetworkSyncState  // nothing to fetch: current
   fun downloadFailed(network: IndexedNetworkType): NetworkSyncState
   fun finished(): NetworkSyncState                            // a run with no corrupted file resets retries
   val retry: Boolean                                           // a corrupted file is waiting for a retry
@@ -35,6 +36,8 @@ data class NetworkSyncState(
 ```
 
 *Why `needsAppUpdate` per network:* it is cleared when that network's file is installed, so a sync that only fetched the other network doesn't clear it. Shown as "needs app update" when not empty, as today.
+
+*Why `started`:* a sync that finds nothing to fetch for a network leaves it with current data, e.g. when the publication went back to a file the device has; then neither a failure nor the request to update applies to it any more. Found while implementing.
 
 *Why `retries` in the state:* iOS needs the count for the delay; Android's WorkManager counts its own attempts, so Android only uses `retry`. Keeping the count in the state also lets iOS resume the delay after a start.
 

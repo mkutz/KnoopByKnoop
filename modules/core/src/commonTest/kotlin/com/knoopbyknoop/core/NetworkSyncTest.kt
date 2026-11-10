@@ -438,4 +438,18 @@ class NetworkSyncTest {
 
     assertEquals(InstallCheck.Rejected(RejectionReason.MISMATCHING_GEOMETRY), check)
   }
+
+  @Test
+  fun `nothing to fetch for a network ends its request to update`() {
+    val asked =
+      NetworkSyncState()
+        .rejected(cyclingFile, RejectionReason.UNSUPPORTED_VERSION)
+        .rejected(hikingFile, RejectionReason.UNSUPPORTED_VERSION)
+        .finished()
+
+    val next = asked.started(toFetch = listOf(hikingFile))
+
+    assertEquals(setOf(IndexedNetworkType.HIKING), next.needsAppUpdateFor)
+    assertEquals(setOf(IndexedNetworkType.HIKING), next.failed)
+  }
 }
