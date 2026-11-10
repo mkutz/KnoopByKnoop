@@ -15,4 +15,4 @@
 
 ## 4. Proof
 
-- [ ] 4.1 The real-data replay as after `share-line-geometry` (908 lines, identical); `./gradlew check`, the core on the iOS simulator and the iOS app build pass; the coverage report read again. `manual-checks.md` with the results. No CHANGELOG entry.
+- [x] 4.1 The real-data replay as after `share-line-geometry` (908 lines, identical); `./gradlew check`, the core on the iOS simulator and the iOS app build pass; the coverage report read again. `manual-checks.md` with the results. No CHANGELOG entry.
