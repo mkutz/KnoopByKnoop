@@ -959,20 +959,3 @@ internal fun heading(from: GeoPoint, to: GeoPoint): Double {
   val y = to.latitude - from.latitude
   return atan2(x, y) * 180 / PI
 }
-
-/** The point on the line from [from] to [to] nearest to [place], in a local flat projection. */
-internal fun nearestOnLine(place: GeoPoint, from: GeoPoint, to: GeoPoint): GeoPoint {
-  val scale = cos(place.latitude * PI / 180)
-  val deltaX = (to.longitude - from.longitude) * scale
-  val deltaY = to.latitude - from.latitude
-  val lengthSquared = deltaX * deltaX + deltaY * deltaY
-  if (lengthSquared == 0.0) return from
-  val along =
-    (((place.longitude - from.longitude) * scale * deltaX +
-        (place.latitude - from.latitude) * deltaY) / lengthSquared)
-      .coerceIn(0.0, 1.0)
-  return GeoPoint(
-    from.latitude + (to.latitude - from.latitude) * along,
-    from.longitude + (to.longitude - from.longitude) * along,
-  )
-}

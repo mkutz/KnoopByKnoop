@@ -227,3 +227,15 @@ internal fun pointAlong(points: Sequence<GeoPoint>, at: Double): GeoPoint? {
   }
   return if (needed.isEmpty()) null else Polyline(needed).pointAt(at)
 }
+
+/** The distance from a position to the segment from [from] to [to]. */
+internal fun distanceToLine(
+  latitude: Double,
+  longitude: Double,
+  from: GeoPoint,
+  to: GeoPoint,
+): Double = FlatProjection(GeoPoint(latitude, longitude)).nearestOnSegment(from, to).second
+
+/** The place on the segment from [from] to [to] nearest to [position]. */
+internal fun nearestOnLine(position: GeoPoint, from: GeoPoint, to: GeoPoint): GeoPoint =
+  pointBetween(from, to, FlatProjection(position).nearestOnSegment(from, to).first)

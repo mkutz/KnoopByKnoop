@@ -8,7 +8,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sin
-import kotlin.math.sqrt
 
 /**
  * A position of the rider, as the platforms deliver it.
@@ -672,7 +671,9 @@ private constructor(
     if (offRoute || arrived) return listOf(points)
     val course = courses?.getOrNull(nextIndex - 1)?.takeIf { it.size >= 2 } ?: return listOf(points)
     val dense = densified(points, DENSE_METERS)
-    val far = dense.map { distanceToPolyline(it.latitude, it.longitude, course) > DIFFERS_METERS }
+    val far = dense.map {
+      Polyline(course).distanceTo(GeoPoint(it.latitude, it.longitude)) > DIFFERS_METERS
+    }
     val lines = mutableListOf<List<GeoPoint>>()
     var start = -1
     for (index in 0..dense.size) {
@@ -895,7 +896,7 @@ private constructor(
         directionWatch = watch.copy(furthestPlace = place, furthestFix = fix, lowestPlace = place)
       ) to null
     }
-    if (distanceToPolyline(fix.latitude, fix.longitude, course) > ON_COURSE_METERS)
+    if (Polyline(course).distanceTo(GeoPoint(fix.latitude, fix.longitude)) > ON_COURSE_METERS)
       return this to null
     if (watch.wrongWay) {
       if (place >= watch.lowestPlace + TURNED_AROUND_METERS) {
@@ -995,7 +996,7 @@ private constructor(
     return (current - 1..current + 1)
       .filter { it in courses.indices }
       .flatMap { listOf(courses[it]) + signpostCourses.getOrElse(it) { listOf() } }
-      .minOfOrNull { distanceToPolyline(fix.latitude, fix.longitude, it) }
+      .minOfOrNull { Polyline(it).distanceTo(GeoPoint(fix.latitude, fix.longitude)) }
   }
 
   /**
@@ -1344,7 +1345,7 @@ private constructor(
         courses
           .withIndex()
           .map { (index, course) ->
-            index to distanceToPolyline(fix.latitude, fix.longitude, course)
+            index to Polyline(course).distanceTo(GeoPoint(fix.latitude, fix.longitude))
           }
           .filter { (_, distance) -> distance <= maxMeters }
       val nearest = distances.minOfOrNull { (_, distance) -> distance } ?: return null
@@ -1526,38 +1527,6 @@ private fun distanceToNearestNode(fix: Fix, knot: Knot): Double =
   knot.reachPositions.minOf {
     distanceMeters(fix.latitude, fix.longitude, it.latitude, it.longitude)
   }
-
-private const val METERS_PER_DEGREE_LATITUDE = 6_371_008.8 * PI / 180
-
-/** The distance from a position to the line between [from] and [to], in a local flat projection. */
-internal fun distanceToLine(
-  latitude: Double,
-  longitude: Double,
-  from: GeoPoint,
-  to: GeoPoint,
-): Double {
-  val metersPerDegreeLongitude = METERS_PER_DEGREE_LATITUDE * cos(latitude * PI / 180)
-  val fromX = (from.longitude - longitude) * metersPerDegreeLongitude
-  val fromY = (from.latitude - latitude) * METERS_PER_DEGREE_LATITUDE
-  val toX = (to.longitude - longitude) * metersPerDegreeLongitude
-  val toY = (to.latitude - latitude) * METERS_PER_DEGREE_LATITUDE
-  val deltaX = toX - fromX
-  val deltaY = toY - fromY
-  val lengthSquared = deltaX * deltaX + deltaY * deltaY
-  val along =
-    if (lengthSquared == 0.0) 0.0
-    else (-(fromX * deltaX + fromY * deltaY) / lengthSquared).coerceIn(0.0, 1.0)
-  val nearestX = fromX + along * deltaX
-  val nearestY = fromY + along * deltaY
-  return sqrt(nearestX * nearestX + nearestY * nearestY)
-}
-
-private fun distanceToPolyline(
-  latitude: Double,
-  longitude: Double,
-  points: List<GeoPoint>,
-): Double =
-  points.zipWithNext().minOf { (from, to) -> distanceToLine(latitude, longitude, from, to) }
 
 /** The compass direction of [bearing] in words, e.g. `north-east` from 22.5° to 67.5°. */
 internal fun compass(bearing: Double, language: Language = Language.EN): String =

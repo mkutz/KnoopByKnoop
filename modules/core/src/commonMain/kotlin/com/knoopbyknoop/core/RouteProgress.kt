@@ -1,13 +1,10 @@
 package com.knoopbyknoop.core
 
-import kotlin.math.PI
-import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
-import kotlin.math.sqrt
 
 /** What a mark on the progress strip stands for, see `knot-navigation` "Progress strip". */
 enum class ProgressMarkKind {
@@ -161,7 +158,7 @@ private constructor(
     val leg = nextIndex - 1
     val course = courses?.getOrNull(leg)
     if (course != null && course.size >= 2) {
-      val fraction = fractionAlong(fix.latitude, fix.longitude, course)
+      val fraction = Polyline(course).nearest(GeoPoint(fix.latitude, fix.longitude)).fraction
       return offsets[leg] + fraction * legLength(leg)
     }
     return offsets[nextIndex] - min(straightTo(fix, nextIndex), legLength(leg))
@@ -521,39 +518,6 @@ private constructor(
     private fun lengthOf(graph: NetworkGraph, from: Knot, to: Knot): Double =
       graph.neighborsOf(from).filter { it.first.id == to.id }.minOfOrNull { it.second }?.toDouble()
         ?: distanceMeters(from.latitude, from.longitude, to.latitude, to.longitude)
-
-    private const val METERS_PER_DEGREE_LATITUDE = 6_371_008.8 * PI / 180
-
-    /**
-     * How far along [points] the point nearest to the position is, from 0 to 1, in a local flat
-     * projection.
-     */
-    private fun fractionAlong(latitude: Double, longitude: Double, points: List<GeoPoint>): Double {
-      val metersPerDegreeLongitude = METERS_PER_DEGREE_LATITUDE * cos(latitude * PI / 180)
-      fun x(point: GeoPoint) = (point.longitude - longitude) * metersPerDegreeLongitude
-      fun y(point: GeoPoint) = (point.latitude - latitude) * METERS_PER_DEGREE_LATITUDE
-      var total = 0.0
-      var best = Double.MAX_VALUE
-      var bestAlong = 0.0
-      for ((from, to) in points.zipWithNext()) {
-        val deltaX = x(to) - x(from)
-        val deltaY = y(to) - y(from)
-        val segment = sqrt(deltaX * deltaX + deltaY * deltaY)
-        val lengthSquared = segment * segment
-        val along =
-          if (lengthSquared == 0.0) 0.0
-          else (-(x(from) * deltaX + y(from) * deltaY) / lengthSquared).coerceIn(0.0, 1.0)
-        val nearestX = x(from) + along * deltaX
-        val nearestY = y(from) + along * deltaY
-        val distance = nearestX * nearestX + nearestY * nearestY
-        if (distance < best) {
-          best = distance
-          bestAlong = total + along * segment
-        }
-        total += segment
-      }
-      return if (total > 0) bestAlong / total else 0.0
-    }
   }
 }
 
