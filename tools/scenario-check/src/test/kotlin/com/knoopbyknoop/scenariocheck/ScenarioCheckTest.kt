@@ -66,6 +66,44 @@ class ScenarioCheckTest {
     assertTrue(TestNames.of("// Scenario: Dust\nfun `tyres`() {}").cover("Dust"))
   }
 
+  @Test
+  fun `Scenario name in two requirements`() {
+    spec(
+      "moon-rides",
+      "Riding on the moon" to listOf("Dust", "Craters along the way"),
+      "Walking on the moon" to listOf("Dust"),
+    )
+    test(
+      "fun `Craters along the way are ridden around`() {}",
+      "// Scenario: Walking on the moon / Dust",
+      "fun `boots stay clean`() {}",
+    )
+    list(
+      """
+      ## moon-rides
+
+      - Dust — on the devices
+      """
+    )
+
+    assertEquals(listOf(), checkRepository(root))
+
+    list("## moon-rides\n")
+    assertEquals(
+      listOf("No test and not listed as checked otherwise: moon-rides / Riding on the moon / Dust"),
+      checkRepository(root),
+    )
+
+    list("## moon-rides\n\n- Walking on the moon / Dust — on the devices\n")
+    assertEquals(
+      listOf(
+        "No test and not listed as checked otherwise: moon-rides / Riding on the moon / Dust",
+        "Line 3 lists a scenario that has a test: Walking on the moon / Dust",
+      ),
+      checkRepository(root),
+    )
+  }
+
   // Requirement: Every scenario has a test or a stated check
 
   @Test
@@ -157,6 +195,36 @@ class ScenarioCheckTest {
       listOf("Line 3 lists a scenario that has a test: Low gravity at the knot"),
       checkRepository(root),
     )
+  }
+
+  @Test
+  fun `an entry for a scenario a change adds is no stale entry`() {
+    moonSpec()
+    test("fun `Craters along the way are ridden around`() {}", "fun `dust`() {}")
+    write(
+      "openspec/changes/add-moon-dust/specs/moon-rides/spec.md",
+      """
+      ## ADDED Requirements
+
+      ### Requirement: Dust storms
+      Text.
+
+      #### Scenario: Storm seen from the knot
+      - **WHEN** a
+      - **THEN** b
+      """,
+    )
+    list(
+      """
+      ## moon-rides
+
+      - Low gravity at the knot — on the devices
+      - Storm seen from the knot — by a run on GitHub
+      """
+    )
+
+    assertEquals(listOf(), checkRepository(root))
+    assertEquals(listOf(), checkRepository(root, "add-moon-dust"))
   }
 
   // Requirement: Scenarios of a change checked before archiving

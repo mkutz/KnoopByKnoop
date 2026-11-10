@@ -554,6 +554,9 @@ class NetworkExtractionTest {
     network: NetworkType = NetworkType.CYCLING,
   ) = result.graphs.getValue(network).knots.values.single { it.ref == ref }.signRegion
 
+  // Scenario: Knot in Flanders
+  // Scenario: Knot in Limburg
+  // Scenario: Knot in North Rhine-Westphalia
   @Test
   fun `knots in each sign region`() {
     val result =
@@ -583,6 +586,7 @@ class NetworkExtractionTest {
     assertEquals(SignRegion.BELGIUM, regionOf(result, "33"))
   }
 
+  // Scenario: Hiking knots
   @Test
   fun `hiking knots have no region`() {
     val hikingKnot = node(1, 0, mapOf("rwn_ref" to "4", "network:type" to "node_network"))

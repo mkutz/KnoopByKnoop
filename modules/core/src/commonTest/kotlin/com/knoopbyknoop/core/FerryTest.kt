@@ -114,6 +114,7 @@ class FerryTest {
     assertEquals(listOf(0, 1), description.ferries.map { it.fromPosition })
   }
 
+  // Scenario: Where the ferry is
   @Test
   fun `where the ferries are on the route`() {
     val session =

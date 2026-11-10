@@ -96,6 +96,7 @@ class LanguageTest {
     )
   }
 
+  // Scenario: All languages
   @Test
   fun `route points in german`() {
     assertEquals(

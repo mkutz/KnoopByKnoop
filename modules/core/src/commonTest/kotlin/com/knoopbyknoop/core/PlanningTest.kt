@@ -34,6 +34,7 @@ class PlanningTest {
   private fun PlanningSession.tapAllOnEnd(vararg knots: Knot) =
     knots.fold(this) { session, knot -> session.tap(knot, NewKnots.END) }
 
+  // Scenario: Extending the route
   @Test
   fun `a new knot on End extends the route`() {
     val extended = session.tapAll(knot12, knot45).tap(knot30, NewKnots.END)
@@ -42,6 +43,7 @@ class PlanningTest {
     assertEquals(knot30, extended.route?.waypoints?.last())
   }
 
+  // Scenario: What new knots become / Looking around
   @Test
   fun `looking around adds the knots in the order they are tapped`() {
     assertEquals(
@@ -60,6 +62,7 @@ class PlanningTest {
     )
   }
 
+  // Scenario: Round trip at the end
   @Test
   fun `a round trip on End stays one`() {
     val roundTrip = session.tapAll(knot12, knot45).returnToStart()
@@ -79,6 +82,7 @@ class PlanningTest {
     assertEquals(listOf(knot45), summary.unreachableLegs.map { it.from })
   }
 
+  // Scenario: First two taps
   @Test
   fun `the first two taps are start and end on both choices`() {
     for (newKnots in NewKnots.entries) {

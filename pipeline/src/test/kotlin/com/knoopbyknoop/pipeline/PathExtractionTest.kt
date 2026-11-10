@@ -32,6 +32,7 @@ class PathExtractionTest {
     assertFalse(road.forward)
   }
 
+  // Scenario: Ferry
   @Test
   fun `Closed footways, steps, driveways and private ways are left out`() {
     assertNull(attributes("highway" to "footway", "bicycle" to "no"))
@@ -41,6 +42,7 @@ class PathExtractionTest {
     assertNull(attributes("route" to "ferry"))
   }
 
+  // Scenario: Main road with a cycle lane
   @Test
   fun `A cycle lane brings a road's cost closer to a path's`() {
     val plain = assertNotNull(attributes("highway" to "secondary"))
@@ -87,6 +89,7 @@ class PathExtractionTest {
     assertEquals(setOf(1L to 2L, 2L to 3L, 2L to 4L), segments.map { it.fromId to it.toId }.toSet())
   }
 
+  // Scenario: Ways across borders
   @Test
   fun `Ways across a square's border are in the squares of both ends`() {
     val squares =

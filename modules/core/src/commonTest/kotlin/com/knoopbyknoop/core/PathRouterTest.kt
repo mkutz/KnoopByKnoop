@@ -85,6 +85,7 @@ class PathRouterTest {
     assertTrue(!usesDetour(router.way(start, end), north = 1400.0))
   }
 
+  // Scenario: Poor surface
   @Test
   fun `Poor surface loses to a paved path of about the same length`() {
     val router =
@@ -95,6 +96,7 @@ class PathRouterTest {
     assertTrue(usesDetour(router.way(start, end), north = 100.0))
   }
 
+  // Scenario: Closed to bicycles
   @Test
   fun `Ways closed to bicycles are not used`() {
     val router =
@@ -141,6 +143,7 @@ class PathRouterTest {
     assertNull(router.way(start, far))
   }
 
+  // Scenario: Turning back to change sides
   @Test
   fun `A way does not turn back when a slightly longer one continues`() {
     val junction = at(500.0, 0.0)
@@ -188,6 +191,7 @@ class PathRouterTest {
     assertEquals(TurnDirection.RIGHT, way.turns.single().direction)
   }
 
+  // Scenario: Straight on
   @Test
   fun `Straight on over a junction needs no turn`() {
     val way = assertNotNull(crossing(0.0, 500.0).way(start, at(1000.0, 0.0)))
@@ -207,6 +211,7 @@ class PathRouterTest {
     assertEquals(listOf(), way.turns)
   }
 
+  // Scenario: Two turns together
   @Test
   fun `Two turns close together give one with their overall direction`() {
     val router =
@@ -237,6 +242,7 @@ class PathRouterTest {
 
   private val pathTarget = at(400.0, 500.0)
 
+  // Scenario: Riding on a path
   @Test
   fun `A way starts on the path the rider is on and not on one 120 m away`() {
     val target = at(1000.0, 120.0)
@@ -261,6 +267,7 @@ class PathRouterTest {
     assertTrue(!way.startsBack)
   }
 
+  // Scenario: The way back much shorter
   @Test
   fun `A way back much shorter is taken and reported`() {
     val way = assertNotNull(pathBothWays(500.0, 1500.0).way(riderPlace, pathTarget, heading = 90.0))
@@ -268,6 +275,7 @@ class PathRouterTest {
     assertTrue(way.startsBack)
   }
 
+  // Scenario: Standing still
   @Test
   fun `Without a riding direction the cheapest way is taken and not reported`() {
     val way = assertNotNull(pathBothWays(500.0, 1000.0).way(riderPlace, pathTarget))
@@ -295,6 +303,7 @@ class PathRouterTest {
     assertEquals(TurnDirection.SLIGHT_RIGHT, way.turns.single().direction)
   }
 
+  // Scenario: Crossing with an offset
   @Test
   fun `A crossing with an offset is said as straight on`() {
     val router =
@@ -366,6 +375,7 @@ class PathRouterTest {
     assertEquals(PathSwitch.CYCLE_PATH, turn.switchTo)
   }
 
+  // Scenario: Crossing a street on a path
   @Test
   fun `Crossing a street on a cycle path is no switch`() {
     val router =
@@ -380,6 +390,7 @@ class PathRouterTest {
     assertTrue(way.turns.all { it.switchTo == null }, "Turns: ${way.turns}")
   }
 
+  // Scenario: Ways all along a long route
   @Test
   fun `On a long ride squares do not pile up and ways are still found`() {
     val step = 4500.0

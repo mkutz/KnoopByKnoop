@@ -107,6 +107,7 @@ class WayGuideTest {
     assertEquals(knot24.longitude, search.to.longitude, 0.0001)
   }
 
+  // Scenario: Wrong turn
   @Test
   fun `A wrong turn looks for a way to the course ahead`() {
     val started = start(fix(0.0))
@@ -148,6 +149,7 @@ class WayGuideTest {
     assertNotNull(guide.way)
   }
 
+  // Scenario: Reaching the path data
   @Test
   fun `Beyond the path data there is no way and the search goes on until reaching it`() {
     val empty =
@@ -165,6 +167,7 @@ class WayGuideTest {
     assertNotNull(first.step(fix(300.0, north = 590.0)).second.search)
   }
 
+  // Scenario: No way, no path data, far away or hiking
   @Test
   fun `A hiking route gets no way`() {
     val navigation = leftTheRoute()
@@ -200,6 +203,7 @@ class WayGuideTest {
     assertNull(start(fix(0.0)).step(fix(300.0)).second.search)
   }
 
+  // Scenario: Back on route with a guided way
   @Test
   fun `Back on route the guided way ends`() {
     val navigation = leftTheRoute()
@@ -258,6 +262,7 @@ class WayGuideTest {
     assertTrue(on.offRoute)
   }
 
+  // Scenario: No new way
   @Test
   fun `With no new way off route goes on without one`() {
     val navigation = leftTheRoute()
@@ -307,6 +312,7 @@ class WayGuideTest {
 
   // Requirement: Turn notices on the guided way and "Off route"
 
+  // Scenario: No guidance notices on a guided way
   @Test
   fun `On a guided way only turn notices are said`() {
     val navigation = leftTheRoute()
@@ -338,6 +344,7 @@ class WayGuideTest {
     assertEquals(listOf(guidance), step.notices)
   }
 
+  // Scenario: Turn notices on the guided way / Screen off
   @Test
   fun `With the screen off a guided way needs no more fixes`() {
     val navigation = leftTheRoute()
@@ -373,12 +380,24 @@ class WayGuideTest {
     assertEquals("Left in 120 m · 1.9 km", onWay().second.view(Language.EN).line)
   }
 
+  // Scenario: Distance to the course
   @Test
   fun `The distance shown is to the route and not to the knot`() {
     val navigation = leftTheRoute()
     val (first, _) = navigation.step(fix(300.0, north = 600.0))
     guide.found(wayOf(point(300.0, 600.0), point(300.0, 300.0)), first)
     assertEquals("300 m", assertNotNull(guide.way).view(Language.EN).remaining)
+  }
+
+  @Test
+  fun `Header with a screen reader says off route with the next knot and the way`() {
+    val (navigation, way) = onWay()
+    val fix = fix(300.0, north = 590.0)
+
+    assertEquals(
+      "Off route, next 45, Left in 120 m, Weierstraße, 1.9 km",
+      navigation.header(fix, guidedWay = way).spoken,
+    )
   }
 
   @Test

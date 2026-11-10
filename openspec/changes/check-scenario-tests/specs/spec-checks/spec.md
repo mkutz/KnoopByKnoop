@@ -4,7 +4,7 @@ Keeps the specs valid and every scenario tied to a test, or to a stated way it i
 ## ADDED Requirements
 
 ### Requirement: Tests tied to scenarios by name
-A test SHALL count for a scenario when its name starts with the scenario's name, ignoring case and punctuation, or when it is marked with the scenario's name. For a scenario name of fewer than three words, only a test of exactly that name or a marked test SHALL count.
+A test SHALL count for a scenario when its name starts with the scenario's name, ignoring case and punctuation, or when it is marked with the scenario's name. For a scenario name of fewer than three words, only a test of exactly that name or a marked test SHALL count. A marker or an entry of the list MAY also name the requirement, as `<requirement> / <scenario>`; it SHALL then count only for the scenario of that name in that requirement.
 
 #### Scenario: Test named after the scenario
 - **WHEN** the scenario "Cycle path beside a main road" has the test `Cycle path beside a main road is preferred when 20 percent longer`
@@ -17,6 +17,10 @@ A test SHALL count for a scenario when its name starts with the scenario's name,
 #### Scenario: Short scenario name
 - **WHEN** the scenario "Ready" has no test of exactly that name and no marked test, and a test is named `ready to route after the download`
 - **THEN** the scenario does not count as tested
+
+#### Scenario: Scenario name in two requirements
+- **WHEN** "Screen off" is a scenario of both "Spoken notices" and "Turn notices on the guided way", a test is marked `// Scenario: Turn notices on the guided way / Screen off`, and the list has "Screen off" as checked on the devices
+- **THEN** the scenario of "Turn notices on the guided way" counts as tested, the one of "Spoken notices" as checked on the devices, and the entry is not reported as having a test
 
 ### Requirement: Every scenario has a test or a stated check
 The build SHALL fail when a scenario of the specs has neither a test nor an entry in the list of scenarios checked otherwise, naming the capability, requirement and scenario of each one. Every entry of the list SHALL say how the scenario is checked.
@@ -34,7 +38,7 @@ The build SHALL fail when a scenario of the specs has neither a test nor an entr
 - **THEN** the build fails, naming the entry
 
 ### Requirement: The list of scenarios checked otherwise stays true
-The build SHALL fail on an entry of the list whose scenario no longer exists in the capability it is listed under, and on an entry whose scenario has a test, naming the entry.
+The build SHALL fail on an entry of the list whose scenario no longer exists in the capability it is listed under, and on an entry whose scenarios all have a test, naming the entry.
 
 #### Scenario: Scenario renamed
 - **WHEN** a change renames a scenario listed as checked on the devices, and the list still has the old name

@@ -14,6 +14,7 @@ class RiddenTrackTest {
 
   private var seconds = 0L
 
+  // Scenario: Riding
   @Test
   fun `riding east for 20 m points east`() {
     val track = ride(fix(east = 0.0), fix(east = 10.0), fix(east = 20.0))
@@ -32,6 +33,7 @@ class RiddenTrackTest {
     assertDirection(0.0, track.directionAt(track.points.last()))
   }
 
+  // Scenario: Standing still
   @Test
   fun `standing still has no direction`() {
     val track = ride(fix(east = 0.0), fix(east = 10.0), fix(east = 20.0))
@@ -59,6 +61,7 @@ class RiddenTrackTest {
     assertEquals(listOf(0.0, 12.0, 24.0), track.points.map { east(it) })
   }
 
+  // Scenario: Inaccurate fix
   @Test
   fun `an inaccurate fix is not added to the track`() {
     val track = ride(fix(east = 0.0), fix(east = 20.0, accuracy = 60.0))
@@ -156,6 +159,7 @@ class RiddenTrackTest {
     assertEquals(480.0, east(track.points.last()))
   }
 
+  // Scenario: Detour
   @Test
   fun `out and back on the same path`() {
     // 100 m north and back on the same path at 5 m/s, a fix every 10 s, then on east.

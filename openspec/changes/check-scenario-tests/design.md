@@ -31,7 +31,9 @@
 - Matching ignores case and anything but letters and digits. A test counts when its name is the scenario's name or starts with it followed by a word; for names of one or two words ("Ready", "Nothing new") only the exact name or a marker counts, so unrelated tests do not cover them by chance.
 - A marker is a comment `Scenario: <name>` in a test file, as `GpxTest` already does; it covers that scenario name wherever it occurs.
 
-*Alternative:* qualify every marker with the capability (`// Scenario: network-sync "Updated app"`). It would tell apart the 37 names used more than once, but needs every existing marker and every test name changed; left for when a duplicate actually hides a gap.
+A marker or a list entry may name the requirement, `<requirement> / <scenario>`, and then counts only for that scenario. Sorting showed where it matters: "Screen off", "Looking around" and "Zoomed out" are each tested in one requirement and only checked on the devices in others (6 scenarios); their markers name the requirement, the list keeps the plain name for the rest. A plain entry goes stale only once every scenario of its name has a test.
+
+*Alternative:* qualify every marker (`// Scenario: network-sync "Updated app"`), or rename the shared scenarios in their specs. The first changes every marker and test name for 3 cases; the second edits two capabilities' specs outside this change.
 
 ### `openspec/checked-by-hand.md`
 

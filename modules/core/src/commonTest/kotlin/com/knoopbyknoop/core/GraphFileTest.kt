@@ -3,6 +3,7 @@ package com.knoopbyknoop.core
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class GraphFileTest {
 
@@ -172,6 +173,35 @@ class GraphFileTest {
 
     val written = withRegions.toBytes()
 
+    assertEquals(before.toList(), written.copyOf(before.size).toList())
+  }
+
+  @Test
+  fun `Apps without the positions of merged knots read new files as before`() {
+    // Older readers stop after the ferries, so everything up to there must stay the same: each knot
+    // at its own position.
+    val merged =
+      GraphFile(
+        NetworkType.CYCLING,
+        "utrecht",
+        "2026-10-25",
+        "",
+        NetworkGraph(
+          TestNetwork.graph.knots.values.map {
+            if (it.id == 12L)
+              it.copy(otherNodes = listOf(GeoPoint(it.latitude + 0.0002, it.longitude)))
+            else it
+          },
+          TestNetwork.graph.connections,
+        ),
+      )
+    val unmerged = GraphFile(NetworkType.CYCLING, "utrecht", "2026-10-25", "", TestNetwork.graph)
+    // Without merged knots and sign regions, the file ends with two empty sections.
+    val before = unmerged.toBytes().let { it.copyOf(it.size - 2) }
+
+    val written = merged.toBytes()
+
+    assertTrue(written.size > before.size + 2, "the merged knot's node is written")
     assertEquals(before.toList(), written.copyOf(before.size).toList())
   }
 

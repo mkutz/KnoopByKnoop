@@ -18,7 +18,8 @@ notes='- Navigate a route knot by knot
 actual=$(printf '%s\n' "$notes" | sh "$script")
 [ "$actual" = "$notes" ] || fail "short notes are unchanged, got: $actual"
 
-# Long release notes: whole entries that fit, then the pointer, within the limit.
+# Scenario: Long release notes
+# Whole entries that fit, then the pointer, within the limit.
 long='- First entry with some words in it, about forty
 - Second entry with some words in it, about forty
 - Third entry with some words in it, about forty-two'

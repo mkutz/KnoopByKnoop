@@ -27,6 +27,7 @@ reset
 printf 'on:\n  pull_request_target:\n' > "$workflows/labels.yml"
 if sh "$script" "$workflows" > /dev/null 2>&1; then fail "pull_request_target fails"; fi
 
+# Scenario: Pull requests from forks
 reset
 printf 'on:\n  pull_request:\n# ${{ secrets.PLAY_SERVICE_ACCOUNT }}\n' > "$workflows/build.yml"
 if sh "$script" "$workflows" > /dev/null 2>&1; then fail "a store secret outside the release workflows fails"; fi

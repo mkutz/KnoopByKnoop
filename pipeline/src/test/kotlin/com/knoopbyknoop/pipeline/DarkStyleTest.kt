@@ -64,6 +64,7 @@ class DarkStyleTest {
     }
   }
 
+  // Scenario: Details on the dark map
   @Test
   fun `roads and paths stand out from the land and their casings`() {
     val land = color("background", "background-color").lightness

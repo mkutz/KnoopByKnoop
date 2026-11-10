@@ -226,6 +226,7 @@ class FerryWarningTest {
     assertEquals(1, atNextKnot.ferryNotices().size)
   }
 
+  // Scenario: Ferry ahead
   @Test
   fun `a ferry ahead in the new language`() {
     val ride = ride(10_000, 9_900, 200, 1000, ferryLegs = mapOf(2 to broekhuizen))

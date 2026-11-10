@@ -152,6 +152,8 @@ class RouteProgressTest {
 
   private fun clock(minute: Int) = "${minute / 60}:${(minute % 60).toString().padStart(2, '0')}"
 
+  // Scenario: Between two knots
+  // Scenario: Slowing down
   @Test
   fun `slowing down between two knots`() {
     val ride = ride(listOf("10", "11"), listOf(35_000))
@@ -236,6 +238,23 @@ class RouteProgressTest {
     val fix = ride.fix(0.0, "18:20")
 
     assertEquals("3.0 km 18:30", labels(start(ride, fix), fix)["⛴"])
+  }
+
+  @Test
+  fun `Closed ferry before a stop is shown over the stop`() {
+    // The strips show the lower rank where two marks would overlap.
+    val stop = ProgressMark(ProgressMarkKind.STOP, "12", 0.50)
+    val ferry = ProgressMark(ProgressMarkKind.FERRY, "⛴", 0.49, state = FerryArrivalState.WARNING)
+
+    assertEquals(listOf(ferry, stop), listOf(stop, ferry).sortedBy { it.rank })
+  }
+
+  @Test
+  fun `Open ferry before a stop gives way to the stop`() {
+    val stop = ProgressMark(ProgressMarkKind.STOP, "12", 0.50)
+    val ferry = ProgressMark(ProgressMarkKind.FERRY, "⛴", 0.49, state = FerryArrivalState.OPEN)
+
+    assertEquals(listOf(stop, ferry), listOf(ferry, stop).sortedBy { it.rank })
   }
 
   @Test

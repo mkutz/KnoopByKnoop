@@ -28,7 +28,7 @@ fail() {
   exit 1
 }
 
-# Release notes
+# Scenario: Release notes
 expected='- Navigate a route knot by knot
 - Release pipelines'
 actual=$(sh "$script" 0.2.0 "$changelog") || fail "the section for 0.2.0 is found"
@@ -37,7 +37,7 @@ actual=$(sh "$script" 0.2.0 "$changelog") || fail "the section for 0.2.0 is foun
 actual=$(sh "$script" 0.1.0 "$changelog") || fail "the last section is found"
 [ "$actual" = "- Project setup" ] || fail "the last section ends at the end of the file, got: $actual"
 
-# Missing changelog section
+# Scenario: Missing changelog section
 if sh "$script" 0.3.0 "$changelog" 2> /dev/null; then fail "a missing section fails"; fi
 if sh "$script" 0.2 "$changelog" 2> /dev/null; then fail "a version prefix is not a section"; fi
 

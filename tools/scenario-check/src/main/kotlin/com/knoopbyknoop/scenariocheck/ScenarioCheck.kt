@@ -7,13 +7,34 @@ data class Scenario(val capability: String, val requirement: String, val name: S
   override fun toString() = "$capability / $requirement / $name"
 }
 
-/** A line of the list of scenarios checked otherwise: its scenario and how it is checked. */
+/**
+ * A line of the list of scenarios checked otherwise: its scenario, with its [requirement] where the
+ * line names it, and how it is checked.
+ */
 data class CheckedOtherwise(
   val capability: String,
+  val requirement: String?,
   val name: String,
   val how: String,
   val line: Int,
-)
+) {
+  /** The scenario as the line names it. */
+  val label: String
+    get() = if (requirement == null) name else "$requirement / $name"
+
+  /** Whether this line lists [scenario]. */
+  fun lists(scenario: Scenario): Boolean =
+    scenario.capability == capability &&
+      normalized(scenario.name) == normalized(name) &&
+      (requirement == null || normalized(scenario.requirement) == normalized(requirement))
+}
+
+/** A scenario's name, and its requirement if [text] names it as `<requirement> / <scenario>`. */
+private fun qualified(text: String): Pair<String?, String> {
+  val separator = text.indexOf(" / ")
+  return if (separator < 0) null to text.trim()
+  else text.substring(0, separator).trim() to text.substring(separator + 3).trim()
+}
 
 /** The scenarios of a main spec of [capability]. */
 fun specScenarios(capability: String, text: String): List<Scenario> =
@@ -59,29 +80,45 @@ fun checkedOtherwise(text: String): List<CheckedOtherwise> {
       line.startsWith("- ") -> {
         val entry = line.removePrefix("- ")
         val separator = entry.indexOf(" — ")
-        if (separator < 0) CheckedOtherwise(capability, entry.trim(), "", index + 1)
-        else
-          CheckedOtherwise(
-            capability,
-            entry.substring(0, separator).trim(),
-            entry.substring(separator + 3).trim(),
-            index + 1,
-          )
+        val (scenario, how) =
+          if (separator < 0) entry to ""
+          else entry.substring(0, separator) to entry.substring(separator + 3).trim()
+        val (requirement, name) = qualified(scenario)
+        CheckedOtherwise(capability, requirement, name, how, index + 1)
       }
       else -> null
     }
   }
 }
 
-/** The names of the tests and the scenarios they are marked with, in a test source. */
-class TestNames(val names: Set<String>, val markers: Set<String>) {
+/**
+ * The names of the tests and the scenarios they are marked with, in a test source: by name, and by
+ * requirement and name where the marker names the requirement.
+ */
+class TestNames(
+  val names: Set<String>,
+  val markers: Set<String>,
+  val qualifiedMarkers: Set<Pair<String, String>> = setOf(),
+) {
 
-  operator fun plus(other: TestNames) = TestNames(names + other.names, markers + other.markers)
+  operator fun plus(other: TestNames) =
+    TestNames(
+      names + other.names,
+      markers + other.markers,
+      qualifiedMarkers + other.qualifiedMarkers,
+    )
 
   /**
-   * Whether a test counts for a scenario of [name], see `spec-checks` "Tests tied to scenarios by
-   * name": a test of that name, one whose name starts with it if it has three words or more, or a
-   * test marked with it.
+   * Whether a test counts for [scenario], see `spec-checks` "Tests tied to scenarios by name": one
+   * that counts for every scenario of its name, or one marked with its requirement and name.
+   */
+  fun cover(scenario: Scenario): Boolean =
+    cover(scenario.name) ||
+      (normalized(scenario.requirement) to normalized(scenario.name)) in qualifiedMarkers
+
+  /**
+   * Whether a test counts for every scenario of [name]: a test of that name, one whose name starts
+   * with it if it has three words or more, or a test marked with it alone.
    */
   fun cover(name: String): Boolean {
     val scenario = normalized(name)
@@ -96,11 +133,18 @@ class TestNames(val names: Set<String>, val markers: Set<String>) {
     private val marker = Regex("""^\s*(?://|#)\s*Scenario:\s*(.+?)\s*$""", RegexOption.MULTILINE)
 
     /** The tests of a Kotlin or Swift test source, or the markers of a shell test script. */
-    fun of(text: String) =
-      TestNames(
+    fun of(text: String): TestNames {
+      val marked = marker.findAll(text).map { qualified(it.groupValues[1]) }.toList()
+      return TestNames(
         testName.findAll(text).map { normalized(it.groupValues[1]) }.toSet(),
-        marker.findAll(text).map { normalized(it.groupValues[1]) }.toSet(),
+        marked.filter { it.first == null }.map { normalized(it.second) }.toSet(),
+        marked
+          .mapNotNull { (requirement, name) ->
+            requirement?.let { normalized(it) to normalized(name) }
+          }
+          .toSet(),
       )
+    }
   }
 }
 
@@ -120,28 +164,27 @@ fun problems(
   list: List<CheckedOtherwise>,
   allScenarios: List<Scenario>? = null,
 ): List<String> {
-  val listed = list.map { it.capability to normalized(it.name) }.toSet()
   val missing =
     scenarios
-      .filter { !tests.cover(it.name) && (it.capability to normalized(it.name)) !in listed }
+      .filter { scenario -> !tests.cover(scenario) && list.none { it.lists(scenario) } }
       .map { "No test and not listed as checked otherwise: $it" }
   val withoutWay =
     list
       .filter { it.how.isEmpty() }
-      .map { "Line ${it.line} does not say how it is checked: ${it.name}" }
+      .map { "Line ${it.line} does not say how it is checked: ${it.label}" }
   val stale =
     if (allScenarios == null) listOf()
-    else {
-      val existing = allScenarios.map { it.capability to normalized(it.name) }.toSet()
-      list.mapNotNull {
+    else
+      list.mapNotNull { entry ->
+        val listed = allScenarios.filter { entry.lists(it) }
         when {
-          (it.capability to normalized(it.name)) !in existing ->
-            "Line ${it.line} lists a scenario ${it.capability} does not have: ${it.name}"
-          tests.cover(it.name) -> "Line ${it.line} lists a scenario that has a test: ${it.name}"
+          listed.isEmpty() ->
+            "Line ${entry.line} lists a scenario ${entry.capability} does not have: ${entry.label}"
+          listed.all { tests.cover(it) } ->
+            "Line ${entry.line} lists a scenario that has a test: ${entry.label}"
           else -> null
         }
       }
-    }
   return missing + withoutWay + stale
 }
 
@@ -160,14 +203,28 @@ fun checkRepository(root: File, change: String? = null): List<String> {
   val scenarios =
     if (change == null) all
     else {
-      val delta = root.resolve("openspec/changes/$change/specs")
-      require(delta.isDirectory) { "No spec delta at $delta" }
-      specFiles(delta).flatMap { (capability, text) -> deltaScenarios(capability, text) }
+      require(root.resolve("openspec/changes/$change/specs").isDirectory) {
+        "No spec delta for the change $change"
+      }
+      changeScenarios(root, change)
     }
+  // An entry may already list a scenario an active change adds, so the change can be archived
+  // with its list complete.
+  val changes =
+    root.resolve("openspec/changes").listFiles().orEmpty().filter {
+      it.isDirectory && it.name != "archive"
+    }
+  val proposed = changes.flatMap { changeScenarios(root, it.name) }
   val listFile = root.resolve(LIST_PATH)
   val list = if (listFile.exists()) checkedOtherwise(listFile.readText()) else listOf()
-  return problems(scenarios, testsIn(root), list, all.takeIf { change == null })
+  return problems(scenarios, testsIn(root), list, (all + proposed).takeIf { change == null })
 }
+
+/** The scenarios the change [change] adds or modifies. */
+private fun changeScenarios(root: File, change: String): List<Scenario> =
+  specFiles(root.resolve("openspec/changes/$change/specs")).flatMap { (capability, text) ->
+    deltaScenarios(capability, text)
+  }
 
 private fun specFiles(directory: File): List<Pair<String, String>> =
   directory

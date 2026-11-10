@@ -393,6 +393,7 @@ class NavigationTest {
 
   // Requirement: Number to follow
 
+  // Scenario: On the course close to the first knot
   @Test
   fun `distance to the first knot`() {
     val started = start(east = -500.0, north = 300.0)
@@ -1106,6 +1107,7 @@ class NavigationTest {
     assertEquals(Language.DE, german.language)
   }
 
+  // Scenario: Later notices
   @Test
   fun `later notices in the new language`() {
     val started = start(east = 0.0).navigation
@@ -1716,6 +1718,7 @@ class NavigationTest {
     assertEquals("300 m", header.distance, "to the road, not the 420 m to 45")
   }
 
+  // Scenario: Standing still
   @Test
   fun `standing still in the header`() {
     val (navigation, fix) = offRouteSouth()

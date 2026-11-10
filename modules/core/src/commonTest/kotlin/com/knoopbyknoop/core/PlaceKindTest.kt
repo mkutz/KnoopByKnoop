@@ -125,6 +125,8 @@ class PlaceKindTest {
     assertFalse(shown(Place("grocery", "supermarket", geometry = "Polygon")))
   }
 
+  // Scenario: Other places unchanged
+  // Scenario: Shown once
   @Test
   fun `the base map leaves our kinds out and keeps the others`() {
     val notPlaces = Json.parseToJsonElement(PlaceKind.notPlacesFilter)
@@ -132,6 +134,8 @@ class PlaceKindTest {
     for (place in others) assertEquals(true, evaluate(notPlaces, place), "$place")
   }
 
+  // Scenario: Names close up
+  // Scenario: Places useful on a ride / Zoomed out
   @Test
   fun `names only close up`() {
     val text = Json.parseToJsonElement(PlaceKind.placesText)
@@ -177,6 +181,7 @@ class PlaceKindTest {
   private fun distinct(first: Long, second: Long) =
     distance(first, second) > 0.25 || hueDifference(first, second) > 25
 
+  // Scenario: Distinct from knots
   @Test
   fun `place discs stay clear of the knots' sign colours and the route`() {
     // The route line's orange, as in the apps' map code.

@@ -29,6 +29,7 @@ class PlaceSearchTest {
 
   // Requirement: Search while typing
 
+  // Scenario: Place names stay
   @Test
   fun `station`() {
     val hits = PlaceSearch.parse(PhotonResponses.STATION, networkAt(utrecht))
@@ -103,6 +104,7 @@ class PlaceSearchTest {
     )
   }
 
+  // Scenario: Town far away
   @Test
   fun `towns of that name come before nearby hits`() {
     val hits =
@@ -165,6 +167,7 @@ class PlaceSearchTest {
     assertEquals(GeoBounds(52.080, 5.120, 52.310, 5.510), GeoBounds.of(TestNetwork.graph))
   }
 
+  // Scenario: English app
   @Test
   fun `request`() {
     val url = PlaceSearch.requestUrl("Utrecht Centraal", 52.1, 5.1, area, "en")
@@ -176,6 +179,15 @@ class PlaceSearchTest {
     )
   }
 
+  // Scenario: German app
+  @Test
+  fun `a German app asks for German names`() {
+    val url = PlaceSearch.requestUrl("Köln", 52.1, 5.1, area, "de")
+
+    assertTrue("&lang=de&" in url, url)
+  }
+
+  // Scenario: Dutch app
   @Test
   fun `request in a language Photon does not know`() {
     val url = PlaceSearch.requestUrl("Café", 52.1, 5.1, area, "nl")

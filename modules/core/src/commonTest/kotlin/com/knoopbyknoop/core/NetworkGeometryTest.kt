@@ -158,6 +158,7 @@ class NetworkGeometryTest {
     assertEquals(listOf(river, east), signpostGeometry.courseOf(routeThrough(knot02, knot01)))
   }
 
+  // Scenario: Route through a knot between its signposts
   @Test
   fun `no shared signpost`() {
     assertEquals(

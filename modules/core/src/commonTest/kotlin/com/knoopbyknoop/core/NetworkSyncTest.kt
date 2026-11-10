@@ -243,6 +243,7 @@ class NetworkSyncTest {
     assertEquals(4, catalog.filesToFetch.size)
   }
 
+  // Scenario: Nothing new
   @Test
   fun `current data is installed`() {
     val catalog = NetworkCatalog(index, index.files)
@@ -347,6 +348,7 @@ class NetworkSyncTest {
   private val cyclingFile = graphEntry(IndexedNetworkType.CYCLING, "2026-11-10")
   private val hikingFile = graphEntry(IndexedNetworkType.HIKING, "2026-11-10")
 
+  // Scenario: Retrying a corrupted download
   @Test
   fun `a corrupted download is retried after 30 s and then twice as long each time`() {
     val delays =
@@ -439,6 +441,7 @@ class NetworkSyncTest {
     assertEquals(InstallCheck.Rejected(RejectionReason.MISMATCHING_GEOMETRY), check)
   }
 
+  // Scenario: Published data readable again
   @Test
   fun `nothing to fetch for a network ends its request to update`() {
     val asked =

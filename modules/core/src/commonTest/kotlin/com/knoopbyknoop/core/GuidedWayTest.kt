@@ -48,6 +48,7 @@ class GuidedWayTest {
     return GuidedWay.of(PathWay(points, meters, listOf(turn)))
   }
 
+  // Scenario: Cycle path beside the street
   @Test
   fun `A switch to the cycle path without a turn is said as a switch`() {
     val way = guided(PathTurn(1000.0, TurnDirection.STRAIGHT, null, PathSwitch.CYCLE_PATH))
@@ -55,12 +56,15 @@ class GuidedWayTest {
     assertEquals("Switch to the cycle path now", way.at(at(975.0)).notice?.text)
   }
 
+  // Scenario: Turning onto a cycle path
   @Test
   fun `A switch with a turn is said with the turn`() {
     val way = guided(PathTurn(1000.0, TurnDirection.RIGHT, null, PathSwitch.CYCLE_PATH))
     assertEquals("In 100 m, turn right, onto the cycle path", way.at(at(905.0)).notice?.text)
   }
 
+  // Scenario: Back to the street
+  // Scenario: Onto a path
   @Test
   fun `Switches back to the street and onto a path are named`() {
     assertEquals(
@@ -79,6 +83,7 @@ class GuidedWayTest {
     )
   }
 
+  // Scenario: Switch in the header
   @Test
   fun `The header shows a switch without a turn`() {
     val way = guided(PathTurn(1000.0, TurnDirection.STRAIGHT, null, PathSwitch.CYCLE_PATH))
@@ -112,6 +117,7 @@ class GuidedWayTest {
     assertNull(close.way.at(at(920.0)).notice)
   }
 
+  // Scenario: Turn close to the start of the way
   @Test
   fun `A turn close to the start of the way says now`() {
     assertEquals("Turn left now", guided().at(at(975.0)).notice?.text)
@@ -204,6 +210,7 @@ class GuidedWayTest {
       startsBack = true,
     )
 
+  // Scenario: Way behind the rider
   @Test
   fun `A way behind the rider says to turn back and shows it until they follow it`() {
     val first = GuidedWay.of(wayBehind()).at(at(-5.0))
@@ -215,6 +222,7 @@ class GuidedWayTest {
     assertEquals("Follow the way", riding.way.at(at(20.0)).way.view(Language.EN).turn)
   }
 
+  // Scenario: Still riding away
   @Test
   fun `Turning back is not said again while the rider keeps riding away`() {
     val told = GuidedWay.of(wayBehind()).at(at(-5.0)).way

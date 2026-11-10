@@ -109,6 +109,7 @@ class PathStoreTest {
     assertNull(PathSquares.courseToLoad(NetworkType.CYCLING, null))
   }
 
+  // Scenario: Deleting with a route planned
   @Test
   fun `After deleting the ways the same route loads nothing`() {
     val course = course(0.0, 1.0)
@@ -172,6 +173,8 @@ class PathStoreTest {
     assertTrue(store.installed.size > 3)
   }
 
+  // Scenario: Ready
+  // Scenario: Still downloading
   @Test
   fun `It says it is loading before it is ready`() {
     val source = FakeOrigin(fileOf(10))
@@ -185,6 +188,7 @@ class PathStoreTest {
     assertEquals(listOf(PathDataStatus.READY), statuses)
   }
 
+  // Scenario: Not available
   @Test
   fun `Without network access it is not available and is tried again`() {
     val source = FakeOrigin(fileOf(10))
@@ -215,6 +219,7 @@ class PathStoreTest {
     assertEquals(PathDataStatus.READY, PathDownloader(store, source).load(course(0.0, 40.0), 2))
   }
 
+  // Scenario: Corrupted square
   @Test
   fun `A corrupted square is discarded and the rest keep working`() {
     val source = FakeOrigin(fileOf(40))
@@ -229,6 +234,7 @@ class PathStoreTest {
     assertEquals(PathDataStatus.READY, downloader.load(course(0.0, 40.0), 2))
   }
 
+  // Scenario: File replaced during a download
   @Test
   fun `A file replaced during a download is read anew`() {
     val source = FakeOrigin(fileOf(30, marker = "old"))
@@ -248,6 +254,7 @@ class PathStoreTest {
     assertNotNull(PathRouter(store).way(at(1.0), at(25.0)))
   }
 
+  // Scenario: Newer path data published
   @Test
   fun `Newer path data replaces squares of a new route only`() {
     val source = FakeOrigin(fileOf(60))
@@ -278,6 +285,7 @@ class PathStoreTest {
     assertNotNull(PathRouter(store).way(at(0.5), at(1.5)))
   }
 
+  // Scenario: Unsupported path format
   @Test
   fun `An unsupported format is not used and an index without path data neither`() {
     val source = FakeOrigin(fileOf(10), withPaths = false)
@@ -373,6 +381,7 @@ class PathStoreTest {
     assertNotNull(router.way(at(0.5), at(1.5)))
   }
 
+  // Scenario: Storage limit
   @Test
   fun `The storage limit removes the squares unused for the longest`() {
     assertEquals(50_000_000L, PathDownloader.MAX_STORE_BYTES)

@@ -22,7 +22,7 @@ fun main(args: Array<String>) {
   }
   problems.forEach { System.err.println(it) }
   System.err.println(
-    "${problems.size} problems in $what. Name a test after its scenario, mark it with " +
+    "${problems.size} ${if (problems.size == 1) "problem" else "problems"} in $what. Name a test after its scenario, mark it with " +
       "`// Scenario: <name>`, or list the scenario in $LIST_PATH with how it is checked."
   )
   exitProcess(1)

@@ -68,6 +68,7 @@ class GuidanceTest {
 
   // Requirement: Guided way in the header and outside the app
 
+  // Scenario: Distances ahead on a guided way
   @Test
   fun `distances ahead count along the guided way and then the route`() {
     val (navigation, _) = offRoute()

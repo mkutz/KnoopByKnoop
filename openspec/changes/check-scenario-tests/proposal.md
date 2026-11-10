@@ -16,7 +16,7 @@
 Out of scope:
 - `openspec validate --strict`: it fails today only on warnings (long requirement texts in six specs); fixing those is a spec edit of its own.
 - An iOS test target for the app's own code; iOS scenarios not decided by the core stay checked on the devices.
-- Telling apart scenarios of the same name in different requirements or capabilities (37 names): a test of that name counts for all of them.
+- Telling apart scenarios of the same name by their test's name: a test named after a scenario counts for every scenario of that name. Markers and list entries can name the requirement where that matters.
 - Changing what Build runs or skips; the release workflow relies on Build skipping Markdown.
 
 ## Capabilities
