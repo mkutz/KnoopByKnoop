@@ -17,7 +17,7 @@
 
 ## 4. Proof
 
-- [ ] 4.1 Locally: a scenario added to a spec without a test fails `./gradlew check` naming it, and passes once listed; `openspec validate --all` passes. After the push: the Specs workflow passes on main, and a pull request changing only a spec into an invalid one fails it (closed without merging). `manual-checks.md` with the results. No CHANGELOG entry.
+- [x] 4.1 Locally: a scenario added to a spec without a test fails `./gradlew check` naming it, and passes once listed; `openspec validate --all` passes. After the push: the Specs workflow passes on main, and a pull request changing only a spec into an invalid one fails it (closed without merging). `manual-checks.md` with the results. No CHANGELOG entry.
 
 ## Workflow follow-up
 
