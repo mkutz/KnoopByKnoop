@@ -363,7 +363,7 @@ class PathRouter(private val file: PathSquareSource) {
     arriving: Step,
     taken: Step,
   ): Boolean {
-    val inbound = heading(pointAlong(arrived.asReversed()), arrived.last())
+    val inbound = heading(firstPointBeyond(arrived.asReversed()), arrived.last())
     fun turnOf(step: Step) = abs(signedAngle(inbound, headingAlong(step.points())))
     val takenTurn = turnOf(taken)
     return takenTurn < TURN_DEGREES &&
@@ -442,20 +442,21 @@ class PathRouter(private val file: PathSquareSource) {
     waySegments: List<PathSegment>,
   ): JunctionPicture {
     val start = junction.startMeters
-    val center = pointAtMeters(points, meters, start)
-    val from = pointAtMeters(points, meters, start - JunctionPicture.DIRECTION_FROM_METERS)
-    val to = pointAtMeters(points, meters, start - JunctionPicture.DIRECTION_TO_METERS)
-    val ahead = if (from == to) pointAtMeters(points, meters, start + HEADING_METERS) else to
+    val line = Polyline(points, meters)
+    val center = line.pointAt(start)
+    val from = line.pointAt(start - JunctionPicture.DIRECTION_FROM_METERS)
+    val to = line.pointAt(start - JunctionPicture.DIRECTION_TO_METERS)
+    val ahead = if (from == to) line.pointAt(start + HEADING_METERS) else to
     val heading = (heading(if (from == to) center else from, ahead) + 360) % 360
     val frame = PictureFrame(center, heading)
     val view = PICTURE_VIEW_METERS
     val lines = mutableListOf<PictureLine>()
-    frame
-      .lines(stretchOf(points, meters, start - JunctionPicture.BEFORE_METERS, start), view)
-      .forEach { lines += PictureLine(PictureLineKind.WAY_BEFORE, it) }
+    frame.lines(line.stretch(start - JunctionPicture.BEFORE_METERS, start), view).forEach {
+      lines += PictureLine(PictureLineKind.WAY_BEFORE, it)
+    }
     frame
       .lines(
-        stretchOf(points, meters, start, junction.endMeters + JunctionPicture.AFTER_METERS),
+        line.stretch(start, junction.endMeters + JunctionPicture.AFTER_METERS),
         view,
       )
       .forEach { lines += PictureLine(PictureLineKind.WAY_AFTER, it) }
@@ -550,10 +551,14 @@ class PathRouter(private val file: PathSquareSource) {
   }
 
   /** The direction [points] set off in, over about [HEADING_METERS]. */
-  private fun headingAlong(points: List<GeoPoint>) = heading(points.first(), pointAlong(points))
+  private fun headingAlong(points: List<GeoPoint>) =
+    heading(points.first(), firstPointBeyond(points))
 
-  /** The first of [points] about [HEADING_METERS] from the first, else the last. */
-  private fun pointAlong(points: List<GeoPoint>): GeoPoint {
+  /**
+   * The first of [points] at least [HEADING_METERS] from the first, else the last: a point of the
+   * way itself, not one between two of them, unlike [Polyline.pointAt].
+   */
+  private fun firstPointBeyond(points: List<GeoPoint>): GeoPoint {
     var meters = 0.0
     points.zipWithNext().forEach { (from, to) ->
       meters += distanceMeters(from.latitude, from.longitude, to.latitude, to.longitude)
@@ -709,11 +714,6 @@ class PathRouter(private val file: PathSquareSource) {
       offsetCost,
     )
   }
-
-  private fun lengthOf(points: List<GeoPoint>) =
-    points.zipWithNext().sumOf { (a, b) ->
-      distanceMeters(a.latitude, a.longitude, b.latitude, b.longitude)
-    }
 
   private fun stepsOf(segment: PathSegment, reversed: Boolean): Step? {
     val node = if (reversed) segment.toId else segment.fromId
@@ -975,31 +975,4 @@ internal fun nearestOnLine(place: GeoPoint, from: GeoPoint, to: GeoPoint): GeoPo
     from.latitude + (to.latitude - from.latitude) * along,
     from.longitude + (to.longitude - from.longitude) * along,
   )
-}
-
-/** The point [at] meters along [points] with their [meters], clamped to the ends. */
-internal fun pointAtMeters(points: List<GeoPoint>, meters: List<Double>, at: Double): GeoPoint {
-  val clamped = at.coerceIn(0.0, meters.last())
-  val index = meters.indexOfFirst { it >= clamped }.coerceAtLeast(1)
-  val length = meters[index] - meters[index - 1]
-  val along = if (length == 0.0) 0.0 else (clamped - meters[index - 1]) / length
-  val start = points[index - 1]
-  val end = points[index]
-  return GeoPoint(
-    start.latitude + (end.latitude - start.latitude) * along,
-    start.longitude + (end.longitude - start.longitude) * along,
-  )
-}
-
-/** [points] with their [meters] from [from] to [to] meters along, with the points between. */
-internal fun stretchOf(
-  points: List<GeoPoint>,
-  meters: List<Double>,
-  from: Double,
-  to: Double,
-): List<GeoPoint> {
-  val start = from.coerceIn(0.0, meters.last())
-  val end = to.coerceIn(0.0, meters.last())
-  val between = points.indices.filter { meters[it] > start && meters[it] < end }.map { points[it] }
-  return listOf(pointAtMeters(points, meters, start)) + between + pointAtMeters(points, meters, end)
 }

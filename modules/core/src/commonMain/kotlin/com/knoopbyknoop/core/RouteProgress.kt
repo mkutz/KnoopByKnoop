@@ -190,30 +190,13 @@ private constructor(
     if (nextIndex == 0) return null
     val leg = nextIndex - 1
     val course = courses?.getOrNull(leg)?.takeIf { it.size >= 2 } ?: return null
-    val metersPerDegreeLongitude = METERS_PER_DEGREE_LATITUDE * cos(fix.latitude * PI / 180)
-    fun x(point: GeoPoint) = (point.longitude - fix.longitude) * metersPerDegreeLongitude
-    fun y(point: GeoPoint) = (point.latitude - fix.latitude) * METERS_PER_DEGREE_LATITUDE
-    val lengths = course.zipWithNext { from, to -> hypot(x(to) - x(from), y(to) - y(from)) }
-    val total = lengths.sum()
+    val line = Polyline(course)
+    val total = line.length
     val fromFraction =
       if (legLength(leg) > 0) ((place - offsets[leg]) / legLength(leg)).coerceIn(0.0, 1.0) else 0.0
     val fromAlong = fromFraction * total
-    fun pointAt(along: Double): GeoPoint {
-      var start = 0.0
-      for ((index, length) in lengths.withIndex()) {
-        if (start + length >= along || index == lengths.lastIndex) {
-          val share = if (length > 0) ((along - start) / length).coerceIn(0.0, 1.0) else 0.0
-          val (from, to) = course[index] to course[index + 1]
-          return GeoPoint(
-            from.latitude + share * (to.latitude - from.latitude),
-            from.longitude + share * (to.longitude - from.longitude),
-          )
-        }
-        start += length
-      }
-      return course.last()
-    }
-    fun distance(point: GeoPoint) = hypot(x(point), y(point))
+    val flat = FlatProjection(GeoPoint(fix.latitude, fix.longitude))
+    fun distance(point: GeoPoint) = hypot(flat.x(point), flat.y(point))
     fun cost(along: Double, point: GeoPoint) =
       REJOIN_DETOUR_FACTOR * distance(point) + (total - along)
     // Candidates every few meters along the course after the last place on the route.
@@ -221,7 +204,7 @@ private constructor(
       generateSequence(fromAlong) { it + REJOIN_STEP_METERS }
         .takeWhile { it < total }
         .plus(total)
-        .map { Rejoin(pointAt(it), leg, it) }
+        .map { Rejoin(line.pointAt(it), leg, it) }
         .toList()
     val nearest = candidates.minBy { distance(it.point) }
     val cheapest = candidates.minBy { cost(it.along, it.point) }

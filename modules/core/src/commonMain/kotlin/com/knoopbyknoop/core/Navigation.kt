@@ -597,11 +597,11 @@ private constructor(
         return MapFocus(
           MapFocusKind.TRICKY_SPOT,
           GUIDED_TRICKY_KEYS + junction.index,
-          stretchOfLine(
-            guided.way.points,
-            junction.value.startMeters,
-            junction.value.endMeters + MapFocus.TRICKY_AFTER_METERS,
-          ),
+          Polyline(guided.way.points, guided.way.meters)
+            .stretch(
+              junction.value.startMeters,
+              junction.value.endMeters + MapFocus.TRICKY_AFTER_METERS,
+            ),
           MapFocus.TRICKY_CLOSEST_METERS,
           null,
         )
@@ -620,11 +620,8 @@ private constructor(
       return MapFocus(
         MapFocusKind.TRICKY_SPOT,
         trickyAhead.index,
-        stretchOfLine(
-          course,
-          stretch.startMeters,
-          stretch.endMeters + MapFocus.TRICKY_AFTER_METERS,
-        ),
+        Polyline(course)
+          .stretch(stretch.startMeters, stretch.endMeters + MapFocus.TRICKY_AFTER_METERS),
         MapFocus.TRICKY_CLOSEST_METERS,
         null,
       )
@@ -1593,27 +1590,6 @@ private val Knot.reachPositions: List<GeoPoint>
 
 private fun meters(from: GeoPoint, to: GeoPoint): Double =
   distanceMeters(from.latitude, from.longitude, to.latitude, to.longitude)
-
-/** The point [meters] along [points], or the last one if they are shorter, `null` without any. */
-private fun pointAlong(points: Sequence<GeoPoint>, meters: Double): GeoPoint? {
-  var previous: GeoPoint? = null
-  var left = meters
-  for (point in points) {
-    val from = previous
-    previous = point
-    if (from == null) continue
-    val step = meters(from, point)
-    if (step >= left && step > 0) {
-      val share = left / step
-      return GeoPoint(
-        from.latitude + (point.latitude - from.latitude) * share,
-        from.longitude + (point.longitude - from.longitude) * share,
-      )
-    }
-    left -= step
-  }
-  return previous
-}
 
 /** [points] with points added so none are more than [step] meters apart. */
 private fun densified(points: List<GeoPoint>, step: Double): List<GeoPoint> {

@@ -136,33 +136,3 @@ internal fun routeTricky(
     }
   }
 }
-
-/** [line] from [from] to [to] meters along it, with its points between. */
-internal fun stretchOfLine(line: List<GeoPoint>, from: Double, to: Double): List<GeoPoint> {
-  if (line.size < 2) return line
-  val result = mutableListOf<GeoPoint>()
-  var covered = 0.0
-  for ((start, end) in line.zipWithNext()) {
-    val step = distanceMeters(start.latitude, start.longitude, end.latitude, end.longitude)
-    if (step > 0) {
-      if (result.isEmpty() && covered + step >= from)
-        result += interpolate(start, end, (from - covered) / step)
-      if (result.isNotEmpty() && covered + step >= to) {
-        result += interpolate(start, end, ((to - covered) / step).coerceAtMost(1.0))
-        return result
-      }
-      if (result.isNotEmpty()) result += end
-    }
-    covered += step
-  }
-  if (result.isEmpty()) result += line.last()
-  return result
-}
-
-private fun interpolate(from: GeoPoint, to: GeoPoint, share: Double): GeoPoint {
-  val clamped = share.coerceIn(0.0, 1.0)
-  return GeoPoint(
-    from.latitude + (to.latitude - from.latitude) * clamped,
-    from.longitude + (to.longitude - from.longitude) * clamped,
-  )
-}

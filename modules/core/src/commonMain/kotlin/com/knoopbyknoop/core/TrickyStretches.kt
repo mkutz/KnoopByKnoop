@@ -31,14 +31,15 @@ fun trickyStretches(
   gapMeters: Double = TRICKY_GAP_METERS,
 ): List<TrickyStretch> {
   if (course.size < 3) return listOf()
-  val along = course.runningCumulative()
-  val length = along.last()
+  val line = Polyline(course)
+  val along = line.meters
+  val length = line.length
   val sharp = mutableListOf<Double>()
   for (index in 1 until course.lastIndex) {
     val at = along[index]
     if (at < TRICKY_SPAN_METERS || length - at < TRICKY_SPAN_METERS) continue
-    val before = pointAlongCourse(course, along, at - TRICKY_SPAN_METERS)
-    val after = pointAlongCourse(course, along, at + TRICKY_SPAN_METERS)
+    val before = line.pointAt(at - TRICKY_SPAN_METERS)
+    val after = line.pointAt(at + TRICKY_SPAN_METERS)
     val angle = signedAngle(heading(before, course[index]), heading(course[index], after))
     if (abs(angle) >= degrees) sharp += at
   }
@@ -67,30 +68,3 @@ const val TRICKY_DEGREES = 60.0
 
 /** Sharp turns at most this far apart make one stretch. */
 const val TRICKY_GAP_METERS = 100.0
-
-private fun List<GeoPoint>.runningCumulative(): List<Double> {
-  var total = 0.0
-  return mapIndexed { index, point ->
-    if (index > 0) {
-      val before = this[index - 1]
-      total += distanceMeters(before.latitude, before.longitude, point.latitude, point.longitude)
-    }
-    total
-  }
-}
-
-private fun pointAlongCourse(
-  course: List<GeoPoint>,
-  along: List<Double>,
-  meters: Double,
-): GeoPoint {
-  val index = along.indexOfFirst { it >= meters }.coerceAtLeast(1)
-  val step = along[index] - along[index - 1]
-  val share = if (step == 0.0) 0.0 else (meters - along[index - 1]) / step
-  val from = course[index - 1]
-  val to = course[index]
-  return GeoPoint(
-    from.latitude + (to.latitude - from.latitude) * share,
-    from.longitude + (to.longitude - from.longitude) * share,
-  )
-}

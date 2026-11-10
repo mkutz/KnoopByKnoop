@@ -96,16 +96,17 @@ private val RoutePoint.followsPaths: Boolean
   get() = !straight && way.size >= 2
 
 private fun networkTurn(course: List<GeoPoint>, meters: Double, towards: Knot?): NetworkTurn {
-  val at = pointOn(course, meters)
-  val before = pointOn(course, meters - Navigation.TURN_METERS)
-  val after = pointOn(course, meters + Navigation.TURN_METERS)
+  val line = Polyline(course)
+  val at = line.pointAt(meters)
+  val before = line.pointAt(meters - Navigation.TURN_METERS)
+  val after = line.pointAt(meters + Navigation.TURN_METERS)
   val beforeMeters = distanceMeters(before.latitude, before.longitude, at.latitude, at.longitude)
   val afterMeters = distanceMeters(at.latitude, at.longitude, after.latitude, after.longitude)
   val known =
     beforeMeters >= Navigation.TURN_MIN_METERS && afterMeters >= Navigation.TURN_MIN_METERS
   val direction = if (known) turnOf(signedAngle(heading(before, at), heading(at, after))) else null
-  val lead = stretchOf(course, meters, meters + WAY_SEARCH_AFTER_METERS)
-  return NetworkTurn(meters, at, direction, towards, lead, lengthOf(course) - meters)
+  val lead = line.stretch(meters, meters + WAY_SEARCH_AFTER_METERS)
+  return NetworkTurn(meters, at, direction, towards, lead, line.length - meters)
 }
 
 /** The knot the course of [routePoint] leads to, riding from [from] towards the point. */
@@ -135,28 +136,10 @@ private fun towardsTo(routePoint: RoutePoint, to: Knot, graph: NetworkGraph): Kn
   return graph.knots[id]
 }
 
-/** [line] from [from] to [to] meters along it, with the points between. */
-private fun stretchOf(line: List<GeoPoint>, from: Double, to: Double): List<GeoPoint> {
-  val inside = mutableListOf<GeoPoint>()
-  var covered = 0.0
-  for ((start, end) in line.zipWithNext()) {
-    covered += distanceMeters(start.latitude, start.longitude, end.latitude, end.longitude)
-    if (covered > from && covered < to) inside += end
-  }
-  return listOf(pointOn(line, from)) + inside + pointOn(line, to)
-}
-
 /** [way], found from the end of [lead], with [lead] in front of it, so it starts at the turn. */
 internal fun ledBy(lead: List<GeoPoint>, way: PathWay): PathWay {
   val points = lead + way.points
-  var total = 0.0
-  val meters = points.mapIndexed { index, point ->
-    if (index > 0) {
-      val before = points[index - 1]
-      total += distanceMeters(before.latitude, before.longitude, point.latitude, point.longitude)
-    }
-    total
-  }
+  val meters = Polyline(points).meters
   val offset = meters[lead.size]
   return PathWay(
     points,
@@ -183,22 +166,4 @@ internal fun ledBy(lead: List<GeoPoint>, way: PathWay): PathWay {
       },
     decisionMeters = way.decisionMeters.map { it + offset },
   )
-}
-
-/** The point [meters] along [line], clamped to its ends. */
-private fun pointOn(line: List<GeoPoint>, meters: Double): GeoPoint {
-  if (meters <= 0) return line.first()
-  var covered = 0.0
-  for ((from, to) in line.zipWithNext()) {
-    val step = distanceMeters(from.latitude, from.longitude, to.latitude, to.longitude)
-    if (step > 0 && covered + step >= meters) {
-      val share = (meters - covered) / step
-      return GeoPoint(
-        from.latitude + (to.latitude - from.latitude) * share,
-        from.longitude + (to.longitude - from.longitude) * share,
-      )
-    }
-    covered += step
-  }
-  return line.last()
 }

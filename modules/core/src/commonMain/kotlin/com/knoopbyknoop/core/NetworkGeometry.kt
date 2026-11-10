@@ -506,11 +506,6 @@ private constructor(
     return null
   }
 
-  private fun lengthOf(course: List<GeoPoint>): Double =
-    course.zipWithNext().sumOf { (from, to) ->
-      distanceMeters(from.latitude, from.longitude, to.latitude, to.longitude)
-    }
-
   private fun pointOf(knot: Knot) = GeoPoint(knot.latitude, knot.longitude)
 
   /** The geometry file for the graph file whose SHA-256 is [graphSha256]. */

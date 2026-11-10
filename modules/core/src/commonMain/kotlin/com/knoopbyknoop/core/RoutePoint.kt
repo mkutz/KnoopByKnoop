@@ -160,34 +160,12 @@ internal fun routePointConnections(graph: NetworkGraph, points: List<Knot>): Lis
   return toKnots + between
 }
 
-/** The length of a line through [points]. */
-internal fun lengthOf(points: List<GeoPoint>): Double =
-  points.zipWithNext().sumOf { (from, to) ->
-    distanceMeters(from.latitude, from.longitude, to.latitude, to.longitude)
-  }
-
 /** Where on a course a position is nearest. */
 internal class OnCourse(val fraction: Double, val place: GeoPoint, val distanceMeters: Double)
 
 /** The place on [course] nearest to [position], with its fraction by length along the course. */
-internal fun nearestOn(course: List<GeoPoint>, position: GeoPoint): OnCourse {
-  var best: OnCourse? = null
-  var bestAlong = 0.0
-  var covered = 0.0
-  for ((from, to) in course.zipWithNext()) {
-    val place = nearestOnLine(position, from, to)
-    val distance =
-      distanceMeters(position.latitude, position.longitude, place.latitude, place.longitude)
-    if (best == null || distance < best.distanceMeters) {
-      best = OnCourse(0.0, place, distance)
-      bestAlong =
-        covered + distanceMeters(from.latitude, from.longitude, place.latitude, place.longitude)
-    }
-    covered += distanceMeters(from.latitude, from.longitude, to.latitude, to.longitude)
-  }
-  val found = best ?: OnCourse(0.0, course.first(), 0.0)
-  return OnCourse(if (covered > 0) bestAlong / covered else 0.0, found.place, found.distanceMeters)
-}
+internal fun nearestOn(course: List<GeoPoint>, position: GeoPoint): OnCourse =
+  Polyline(course).nearest(position).let { OnCourse(it.fraction, it.place, it.distance) }
 
 /**
  * [course] up to and from the place at [fraction] by length, both including the place, which is
@@ -198,26 +176,16 @@ internal fun cutAt(
   fraction: Double,
   at: GeoPoint? = null,
 ): Pair<List<GeoPoint>, List<GeoPoint>> {
-  val target = lengthOf(course) * fraction.coerceIn(0.0, 1.0)
-  var covered = 0.0
-  for ((index, segment) in course.zipWithNext().withIndex()) {
-    val (from, to) = segment
-    val length = distanceMeters(from.latitude, from.longitude, to.latitude, to.longitude)
-    if (covered + length >= target) {
-      val share = if (length == 0.0) 0.0 else (target - covered) / length
-      val place =
-        at
-          ?: GeoPoint(
-            from.latitude + (to.latitude - from.latitude) * share,
-            from.longitude + (to.longitude - from.longitude) * share,
-          )
-      val before = (course.take(index + 1) + place).dedupeEnd()
-      val after = (listOf(place) + course.drop(index + 1)).dedupeStart()
-      return before to after
-    }
-    covered += length
-  }
-  return course to listOf(course.last(), course.last())
+  val line = Polyline(course)
+  val target = line.length * fraction.coerceIn(0.0, 1.0)
+  // The first segment reaching the target, as before, also a segment of no length.
+  val index =
+    (0 until course.lastIndex).firstOrNull { line.meters[it + 1] >= target }
+      ?: return course to listOf(course.last(), course.last())
+  val place = at ?: line.pointAt(target)
+  val before = (course.take(index + 1) + place).dedupeEnd()
+  val after = (listOf(place) + course.drop(index + 1)).dedupeStart()
+  return before to after
 }
 
 private fun List<GeoPoint>.dedupeEnd() =

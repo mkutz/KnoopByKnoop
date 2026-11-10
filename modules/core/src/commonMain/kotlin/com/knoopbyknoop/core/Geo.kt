@@ -104,19 +104,23 @@ internal class OnLine(
  * ways and tracks. Meters are great-circle distances; the nearest place is found in a flat
  * projection around the position, which differs by centimeters on the segments used.
  */
-internal class Polyline(val points: List<GeoPoint>) {
+internal class Polyline(val points: List<GeoPoint>, knownMeters: List<Double>? = null) {
 
   init {
     require(points.isNotEmpty()) { "A line needs a point" }
+    require(knownMeters == null || knownMeters.size == points.size) { "A meter for every point" }
   }
 
-  /** The meters along the line at each of [points], from 0. */
+  /** The meters along the line at each of [points], from 0; measured unless given. */
   val meters: List<Double> by lazy {
-    var total = 0.0
-    points.mapIndexed { index, point ->
-      if (index > 0) total += distanceMeters(points[index - 1], point)
-      total
-    }
+    knownMeters
+      ?: run {
+        var total = 0.0
+        points.mapIndexed { index, point ->
+          if (index > 0) total += distanceMeters(points[index - 1], point)
+          total
+        }
+      }
   }
 
   val length: Double
@@ -203,4 +207,23 @@ internal class FlatProjection(private val origin: GeoPoint) {
     val nearestY = fromY + share * deltaY
     return share to sqrt(nearestX * nearestX + nearestY * nearestY)
   }
+}
+
+/** The length of a line through [points], 0 without any. */
+internal fun lengthOf(points: List<GeoPoint>): Double =
+  if (points.isEmpty()) 0.0 else Polyline(points).length
+
+/**
+ * The point [at] meters along [points], clamped to their ends, `null` without any; reads only as
+ * many of [points] as it needs, e.g. of the rest of a route.
+ */
+internal fun pointAlong(points: Sequence<GeoPoint>, at: Double): GeoPoint? {
+  val needed = ArrayList<GeoPoint>()
+  var covered = 0.0
+  for (point in points) {
+    needed.lastOrNull()?.let { covered += distanceMeters(it, point) }
+    needed += point
+    if (covered >= at) break
+  }
+  return if (needed.isEmpty()) null else Polyline(needed).pointAt(at)
 }
