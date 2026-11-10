@@ -134,7 +134,7 @@ data class RouteFerry(
         val closing = next?.let(::endOfDayBefore)
         when {
           next == null || closing == null -> texts.open
-          minutesBetween(now, next) <= MINUTES_PER_DAY -> texts.openUntil(clock(closing))
+          now.minutesUntil(next) <= MINUTES_PER_DAY -> texts.openUntil(clock(closing))
           else -> texts.openUntil("${date(closing, language)} ${clock(closing)}")
         }
       } else {
@@ -148,11 +148,6 @@ data class RouteFerry(
     }
 
     val UNKNOWN_TIMES = EnglishTexts.unknownTimes
-
-    private const val MINUTES_PER_DAY = 24 * 60
-
-    internal fun minutesBetween(from: LocalMoment, to: LocalMoment) =
-      (to.day.epochDay - from.day.epochDay) * MINUTES_PER_DAY + to.minute - from.minute
 
     /** A closing at midnight reads as the end of the day before, e.g. `24:00`. */
     internal fun endOfDayBefore(moment: LocalMoment) =

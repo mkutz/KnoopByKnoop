@@ -1,7 +1,15 @@
 package com.knoopbyknoop.core
 
 /** A moment in a ferry's local time: [minute] 0 to 1439 of [day]. */
-data class LocalMoment(val day: CalendarDay, val minute: Int)
+data class LocalMoment(val day: CalendarDay, val minute: Int) {
+
+  /** The minutes from this moment to [other], negative if it is earlier. */
+  fun minutesUntil(other: LocalMoment): Long =
+    (other.day.epochDay - day.epochDay) * MINUTES_PER_DAY + other.minute - minute
+}
+
+/** The minutes of a day. */
+internal const val MINUTES_PER_DAY = 24 * 60
 
 /**
  * Whether a ferry is open at a moment and, if that can be told, when that changes next.
@@ -250,8 +258,6 @@ class OpeningHours private constructor(private val readings: List<List<Rule>>) {
   }
 
   companion object {
-
-    private const val MINUTES_PER_DAY = 24 * 60
 
     /** How far the next change is looked for. */
     private const val DAYS_AHEAD = 366

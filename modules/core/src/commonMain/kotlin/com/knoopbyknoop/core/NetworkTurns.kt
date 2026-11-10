@@ -48,20 +48,13 @@ internal class NetworkLeg(
       val join = turns.join
       if (join != null && meters < join.meters) return join.position
       val turnOff = turns.turnOff
-      if (turnOff != null && meters >= turnOff.meters - NETWORK_TURN_NOW_METERS)
-        return pointPosition
+      if (turnOff != null && meters >= turnOff.meters - TurnNotice.NOW_METERS) return pointPosition
       return null
     }
 }
 
 /** How far after a turn-off the way to the route point is looked for from. */
 private const val WAY_SEARCH_AFTER_METERS = 40.0
-
-/** Within this distance of a turn-off or a join, the rider is told to turn now. */
-internal const val NETWORK_TURN_NOW_METERS = 40.0
-
-/** From this distance before a turn-off or a join, the rider is reminded of it. */
-internal const val NETWORK_TURN_NOTICE_METERS = 100.0
 
 /**
  * The [LegTurns] of each leg of the route through [knots] with their [courses]: a leg to a route

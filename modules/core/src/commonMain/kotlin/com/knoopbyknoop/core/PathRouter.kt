@@ -214,7 +214,7 @@ class PathRouter(private val file: PathSquareSource) {
     }
 
     val best = HashMap<Step, Double>()
-    val queue = LabelHeap()
+    val queue = MinHeap<Label>()
     var result: Pair<Label?, Partial?>? = null
     var resultCost = Double.MAX_VALUE
     // On the same segment as the target and riding towards it: no junction in between.
@@ -230,13 +230,13 @@ class PathRouter(private val file: PathSquareSource) {
     }
     starts.forEach { start ->
       val cost = start.cost + startingCost(from, start, heading)
-      queue.add(Label(start.step, cost, null, start), cost + estimate(start.step.end, to))
+      queue.add(cost + estimate(start.step.end, to), Label(start.step, cost, null, start))
     }
     visitedSteps = 0
     while (true) {
       val entry = queue.poll() ?: break
       if (entry.priority >= resultCost) break
-      val label = entry.label
+      val label = entry.value
       val known = best[label.step]
       if (known != null && known <= label.cost) continue
       best[label.step] = label.cost
@@ -257,7 +257,7 @@ class PathRouter(private val file: PathSquareSource) {
         val cost = label.cost + next.cost + turnCost(from, label, next, heading)
         val nextKnown = best[next]
         if (nextKnown != null && nextKnown <= cost) continue
-        queue.add(Label(next, cost, label, null), cost + estimate(next.end, to))
+        queue.add(cost + estimate(next.end, to), Label(next, cost, label, null))
       }
     }
     val (lastLabel, target) = result ?: return null
@@ -821,55 +821,6 @@ class PathRouter(private val file: PathSquareSource) {
     fun contains(point: GeoPoint) =
       point.latitude in minimumLatitude..maximumLatitude &&
         point.longitude in minimumLongitude..maximumLongitude
-  }
-
-  private class HeapEntry(val label: Label, val priority: Double)
-
-  /** The labels to look at, cheapest estimate first. */
-  private class LabelHeap {
-    private val entries = ArrayList<HeapEntry>()
-
-    fun add(label: Label, priority: Double) {
-      entries.add(HeapEntry(label, priority))
-      var index = entries.lastIndex
-      while (index > 0) {
-        val parent = (index - 1) / 2
-        if (entries[parent].priority <= entries[index].priority) break
-        swap(parent, index)
-        index = parent
-      }
-    }
-
-    fun poll(): HeapEntry? {
-      if (entries.isEmpty()) return null
-      val top = entries[0]
-      val last = entries.removeAt(entries.lastIndex)
-      if (entries.isNotEmpty()) {
-        entries[0] = last
-        var index = 0
-        while (true) {
-          val left = index * 2 + 1
-          val right = left + 1
-          var smallest = index
-          if (left < entries.size && entries[left].priority < entries[smallest].priority) {
-            smallest = left
-          }
-          if (right < entries.size && entries[right].priority < entries[smallest].priority) {
-            smallest = right
-          }
-          if (smallest == index) break
-          swap(index, smallest)
-          index = smallest
-        }
-      }
-      return top
-    }
-
-    private fun swap(first: Int, second: Int) {
-      val entry = entries[first]
-      entries[first] = entries[second]
-      entries[second] = entry
-    }
   }
 
   internal companion object {

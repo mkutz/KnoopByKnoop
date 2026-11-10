@@ -510,7 +510,7 @@ private constructor(
       val arrival = localTime(now + (seconds * 1000).roundToLong() + 30_000)
       val minute = (arrival.minute + 2) / 5 * 5
       return RouteFerry.clock(
-        if (minute >= 24 * 60) LocalMoment(arrival.day.plusDays(1), 0)
+        if (minute >= MINUTES_PER_DAY) LocalMoment(arrival.day.plusDays(1), 0)
         else LocalMoment(arrival.day, minute)
       )
     }

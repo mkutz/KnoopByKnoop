@@ -34,10 +34,12 @@ class ShortestPathRouter(private val graph: NetworkGraph) : Router {
     val distances = mutableMapOf(from.id to 0)
     val predecessors = mutableMapOf<Long, Knot>()
     val settled = mutableSetOf<Long>()
-    val queue = MinHeap<Knot>().apply { add(0, from) }
+    val queue = MinHeap<Knot>().apply { add(0.0, from) }
 
     while (queue.isNotEmpty()) {
-      val (distance, knot) = queue.removeMin()
+      val entry = queue.poll() ?: break
+      val distance = entry.priority.toInt()
+      val knot = entry.value
       if (!settled.add(knot.id)) continue
       if (knot.id == to.id) break
       // Routes don't pass through a route point, only start or end there, see `route-planning`
@@ -48,7 +50,7 @@ class ShortestPathRouter(private val graph: NetworkGraph) : Router {
         if (neighborDistance < (distances[neighbor.id] ?: Int.MAX_VALUE)) {
           distances[neighbor.id] = neighborDistance
           predecessors[neighbor.id] = knot
-          queue.add(neighborDistance, neighbor)
+          queue.add(neighborDistance.toDouble(), neighbor)
         }
       }
     }
@@ -56,50 +58,5 @@ class ShortestPathRouter(private val graph: NetworkGraph) : Router {
     val lengthMeters = distances[to.id] ?: return null
     val knots = generateSequence(to) { predecessors[it.id] }.toList().asReversed()
     return Path(knots, lengthMeters)
-  }
-}
-
-/** A minimal binary min-heap, as the common standard library has no priority queue. */
-private class MinHeap<T> {
-
-  private val entries = mutableListOf<Pair<Int, T>>()
-
-  fun isNotEmpty() = entries.isNotEmpty()
-
-  fun add(priority: Int, value: T) {
-    entries.add(priority to value)
-    var index = entries.lastIndex
-    while (index > 0) {
-      val parent = (index - 1) / 2
-      if (entries[parent].first <= entries[index].first) break
-      swap(index, parent)
-      index = parent
-    }
-  }
-
-  fun removeMin(): Pair<Int, T> {
-    val min = entries.first()
-    val last = entries.removeAt(entries.lastIndex)
-    if (entries.isNotEmpty()) {
-      entries[0] = last
-      var index = 0
-      while (true) {
-        val left = 2 * index + 1
-        val right = left + 1
-        var smallest = index
-        if (left < entries.size && entries[left].first < entries[smallest].first) smallest = left
-        if (right < entries.size && entries[right].first < entries[smallest].first) smallest = right
-        if (smallest == index) break
-        swap(index, smallest)
-        index = smallest
-      }
-    }
-    return min
-  }
-
-  private fun swap(first: Int, second: Int) {
-    val temporary = entries[first]
-    entries[first] = entries[second]
-    entries[second] = temporary
   }
 }

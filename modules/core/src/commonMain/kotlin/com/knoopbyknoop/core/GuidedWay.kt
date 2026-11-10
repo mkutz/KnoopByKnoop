@@ -2,7 +2,6 @@ package com.knoopbyknoop.core
 
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 /**
  * What the rider sees on a guided way, see `knot-navigation` "Guided way in the header and outside
@@ -86,7 +85,7 @@ private constructor(
       notice == null &&
         turn != null &&
         index >= announced &&
-        turn.atMeters - newPlace <= NOTICE_METERS
+        turn.atMeters - newPlace <= TurnNotice.NOTICE_METERS
     ) {
       val meters = turn.atMeters - newPlace
       notice =
@@ -107,14 +106,14 @@ private constructor(
   /** What the rider sees now. */
   fun view(language: Language): GuidedWayView {
     val texts = language.texts
-    val remaining = MapFeatures.formatDistance(rounded(remainingMeters), language)
+    val remaining = MapFeatures.formatDistance(TurnNotice.rounded(remainingMeters), language)
     if (turningBack) return GuidedWayView(texts.turnName(TurnDirection.BACK), null, remaining)
     val turn = way.turns.firstOrNull { it.atMeters > place }
     return if (turn == null) {
       GuidedWayView(texts.followTheWay, null, remaining)
     } else {
       val distance =
-        MapFeatures.formatDistance(rounded(turn.atMeters - place + awayMeters), language)
+        MapFeatures.formatDistance(TurnNotice.rounded(turn.atMeters - place + awayMeters), language)
       val name =
         if (turn.switchTo != null && turn.direction == TurnDirection.STRAIGHT) {
           texts.switchName(turn.switchTo)
@@ -140,7 +139,8 @@ private constructor(
     val turn = way.turns.firstOrNull { it.doubtful == junction }
     val meters = junction.startMeters - place + awayMeters
     val distance =
-      if (meters <= NOW_METERS) null else MapFeatures.formatDistance(rounded(meters), language)
+      if (meters <= TurnNotice.NOW_METERS) null
+      else MapFeatures.formatDistance(TurnNotice.rounded(meters), language)
     return language.texts.doubtful(junction, turn?.direction ?: TurnDirection.STRAIGHT, distance)
   }
 
@@ -168,7 +168,10 @@ private constructor(
         if (turn.switchTo != null && turn.direction == TurnDirection.STRAIGHT)
           TurnDirection.STRAIGHT
         else turn.direction,
-        MapFeatures.formatDistance(rounded(turn.atMeters - place + awayMeters), language),
+        MapFeatures.formatDistance(
+          TurnNotice.rounded(turn.atMeters - place + awayMeters),
+          language,
+        ),
         turn.name,
         remaining,
         view.description,
@@ -227,14 +230,24 @@ private constructor(
   }
 
   private fun turnNotice(turn: PathTurn, meters: Double, language: Language): String =
-    notice(turn, meters, language.texts, MapFeatures.formatDistance(rounded(meters), language))
+    notice(
+      turn,
+      meters,
+      language.texts,
+      MapFeatures.formatDistance(TurnNotice.rounded(meters), language),
+    )
 
   /** As [turnNotice], with the distance in words, as the voice would read `m` as a letter. */
   private fun spokenTurnNotice(turn: PathTurn, meters: Double, language: Language): String =
-    notice(turn, meters, language.texts, language.texts.spokenDistanceAhead(rounded(meters)))
+    notice(
+      turn,
+      meters,
+      language.texts,
+      language.texts.spokenDistanceAhead(TurnNotice.rounded(meters)),
+    )
 
   private fun notice(turn: PathTurn, meters: Double, texts: Texts, distance: String): String {
-    val now = meters <= NOW_METERS
+    val now = meters <= TurnNotice.NOW_METERS
     // A doubtful junction is described, see "Wording for doubtful junctions".
     turn.doubtful?.let {
       return texts.doubtful(it, turn.direction, distance.takeUnless { now })
@@ -247,9 +260,6 @@ private constructor(
       if (now) texts.turnNow(turn.direction) else texts.turnAhead(turn.direction, distance)
     return if (switchTo != null) texts.onto(notice, switchTo) else notice
   }
-
-  private fun rounded(meters: Double): Int =
-    (meters / ROUNDING_METERS).roundToInt() * ROUNDING_METERS
 
   companion object {
 
@@ -264,9 +274,6 @@ private constructor(
     private const val FOLLOWING_METERS = 15.0
 
     /** See `knot-navigation` "Turn notices on the guided way". */
-    private const val NOTICE_METERS = 100.0
-    private const val NOW_METERS = 40.0
-    private const val ROUNDING_METERS = 10
     private const val LOOK_BACK_METERS = 50.0
 
     /** See `knot-navigation` "Picture in the app". */

@@ -3,7 +3,6 @@ package com.knoopbyknoop.core
 import com.knoopbyknoop.core.RouteFerry.Companion.clock
 import com.knoopbyknoop.core.RouteFerry.Companion.date
 import com.knoopbyknoop.core.RouteFerry.Companion.endOfDayBefore
-import com.knoopbyknoop.core.RouteFerry.Companion.minutesBetween
 import kotlin.math.max
 import kotlin.math.roundToLong
 
@@ -202,7 +201,7 @@ private constructor(
     ): String? {
       val next = status.next
       if (status.open) {
-        if (next == null || minutesBetween(arrival, next) > SHORTLY_AFTER_MINUTES) return null
+        if (next == null || arrival.minutesUntil(next) > SHORTLY_AFTER_MINUTES) return null
         return closesShortlyAfter(clock(endOfDayBefore(next)), around)
       }
       val closed = closedWhenThere(around)
@@ -229,13 +228,11 @@ private constructor(
       repeat(MAXIMUM_CHANGES) {
         val status = hours.statusAt(moment) ?: return closing
         val next = status.next ?: return closing
-        if (minutesBetween(next, arrival) < 0) return closing
+        if (next.minutesUntil(arrival) < 0) return closing
         if (status.open) closing = next
         moment = next
       }
       return closing
     }
-
-    private const val MINUTES_PER_DAY = 24 * 60
   }
 }

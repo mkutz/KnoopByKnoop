@@ -175,7 +175,7 @@ class WayGuide {
   private fun withinReach(target: GeoPoint?, fix: Fix): Boolean {
     target ?: return false
     return distanceMeters(fix.latitude, fix.longitude, target.latitude, target.longitude) <=
-      MAX_METERS
+      RoutePointWays.MAX_METERS
   }
 
   /** The reminder and the "now" of the turn-off and the join on [leg], each told once. */
@@ -194,7 +194,7 @@ class WayGuide {
       val stage = stageOf(join.meters - leg.meters)
       if (stage <= state.joinTold) return@let
       state.joinTold = stage
-      val meters = rounded(join.meters - leg.meters)
+      val meters = TurnNotice.rounded(join.meters - leg.meters)
       val towards = join.towards?.ref
       notices +=
         Notice(
@@ -211,7 +211,7 @@ class WayGuide {
       val stage = stageOf(turnOff.meters - leg.meters)
       if (stage <= state.turnOffTold) return@let
       state.turnOffTold = stage
-      val meters = rounded(turnOff.meters - leg.meters)
+      val meters = TurnNotice.rounded(turnOff.meters - leg.meters)
       val street = state.ahead?.firstName
       // Without a way along paths, the distance and direction to the point have to do.
       val noWay = stage == NOW && state.ahead == null && way == null && aheadSearch == null
@@ -249,15 +249,12 @@ class WayGuide {
   /** 0 far from a turn or past it, [REMINDED] within the reminder distance, [NOW] at it. */
   private fun stageOf(ahead: Double): Int =
     when {
-      ahead < -NETWORK_TURN_NOW_METERS -> 0
+      ahead < -TurnNotice.NOW_METERS -> 0
       // A meter more, as the place along the course is measured with some error.
-      ahead <= NETWORK_TURN_NOW_METERS + 1 -> NOW
-      ahead <= NETWORK_TURN_NOTICE_METERS + 1 -> REMINDED
+      ahead <= TurnNotice.NOW_METERS + 1 -> NOW
+      ahead <= TurnNotice.NOTICE_METERS + 1 -> REMINDED
       else -> 0
     }
-
-  private fun rounded(meters: Double): Int =
-    (meters.coerceAtLeast(0.0) / ROUNDING_METERS).roundToInt() * ROUNDING_METERS
 
   /** The result of the last [WaySearch], `null` if there is no way; [navigation] as it is now. */
   fun found(found: PathWay?, navigation: Navigation?) {
@@ -294,13 +291,11 @@ class WayGuide {
     const val SEARCH_INTERVAL_MILLIS = 10_000L
 
     /** See "Guided way back to the route": further away, the straight line has to do. */
-    private const val MAX_METERS = 20_000.0
 
     /** How far before a turn-off the way after it is looked for. */
     private const val AHEAD_METERS = 300.0
 
     private const val REMINDED = 1
     private const val NOW = 2
-    private const val ROUNDING_METERS = 10
   }
 }
