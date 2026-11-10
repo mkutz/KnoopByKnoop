@@ -1,6 +1,7 @@
 package com.knoopbyknoop.pipeline
 
 import com.knoopbyknoop.core.NetworkType
+import com.knoopbyknoop.core.distanceMeters
 import java.nio.file.Path
 import java.time.LocalDate
 import kotlin.io.path.createTempDirectory
@@ -44,7 +45,7 @@ class PbfExtractTest {
     assertEquals(mapOf(1L to "12", 3L to "45"), graph.knots.mapValues { it.value.ref })
     assertEquals(52.002, graph.knots.getValue(3).latitude, 0.0000001)
     assertEquals(
-      haversineMeters(52.0, 5.0, 52.002, 5.0),
+      distanceMeters(52.0, 5.0, 52.002, 5.0),
       graph.connections.single().lengthMeters.toDouble(),
       1.0,
     )
@@ -147,7 +148,7 @@ class PbfExtractTest {
         setOf(it.fromId, it.toId) == setOf(1L, 3L)
       }
     assertEquals(
-      haversineMeters(52.0, 5.0, 52.002, 5.0),
+      distanceMeters(52.0, 5.0, 52.002, 5.0),
       crossing.lengthMeters.toDouble(),
       1.0,
     )

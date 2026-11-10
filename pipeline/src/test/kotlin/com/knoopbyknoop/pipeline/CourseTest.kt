@@ -1,6 +1,7 @@
 package com.knoopbyknoop.pipeline
 
 import com.knoopbyknoop.core.GeoPoint
+import com.knoopbyknoop.core.METERS_PER_DEGREE
 import com.knoopbyknoop.core.NetworkType
 import kotlin.math.PI
 import kotlin.math.cos
@@ -126,7 +127,5 @@ class CourseTest {
     }
   }
 
-  private companion object {
-    val METERS_PER_DEGREE = Math.toRadians(EARTH_RADIUS_METERS)
-  }
+  private companion object {}
 }

@@ -517,18 +517,7 @@ private constructor(
     writer.bytes(hexToBytes(graphSha256))
     writer.varint(courses.size.toLong())
     for ((connection, course) in graph.connections.zip(courses)) {
-      val from = graph.knots.getValue(connection.fromId)
-      var previousLatitude = toMicrodegrees(from.latitude)
-      var previousLongitude = toMicrodegrees(from.longitude)
-      writer.varint(course.size.toLong())
-      for (point in course) {
-        val latitude = toMicrodegrees(point.latitude)
-        val longitude = toMicrodegrees(point.longitude)
-        writer.varint(zigzag(latitude - previousLatitude))
-        writer.varint(zigzag(longitude - previousLongitude))
-        previousLatitude = latitude
-        previousLongitude = longitude
-      }
+      writePoints(writer, graph.knots.getValue(connection.fromId), course)
     }
     // After the courses, so apps not knowing this section read the file as before.
     writer.varint(signpostCourses.size.toLong())
@@ -539,17 +528,7 @@ private constructor(
       for (pair in pairs) {
         writer.varint(pair.fromPosition.toLong())
         writer.varint(pair.toPosition.toLong())
-        var previousLatitude = toMicrodegrees(from.latitude)
-        var previousLongitude = toMicrodegrees(from.longitude)
-        writer.varint(pair.course.size.toLong())
-        for (point in pair.course) {
-          val latitude = toMicrodegrees(point.latitude)
-          val longitude = toMicrodegrees(point.longitude)
-          writer.varint(zigzag(latitude - previousLatitude))
-          writer.varint(zigzag(longitude - previousLongitude))
-          previousLatitude = latitude
-          previousLongitude = longitude
-        }
+        writePoints(writer, from, pair.course)
       }
     }
     // After the signpost courses, so apps since 0.7.0 read the file as before, see `network-data`
@@ -688,14 +667,7 @@ private constructor(
       }
       val courses =
         graph.connections.map { connection ->
-          val from = graph.knots.getValue(connection.fromId)
-          var latitude = toMicrodegrees(from.latitude)
-          var longitude = toMicrodegrees(from.longitude)
-          List(reader.count()) {
-            latitude += unzigzag(reader.varint())
-            longitude += unzigzag(reader.varint())
-            GeoPoint(fromMicrodegrees(latitude), fromMicrodegrees(longitude))
-          }
+          readPoints(reader, graph.knots.getValue(connection.fromId))
         }
       val signpostCourses = readSignpostCourses(reader, graph)
       if (!reader.hasMore()) return NetworkGeometry(graph, courses, signpostCourses)
@@ -718,15 +690,7 @@ private constructor(
       val coursesBack =
         List(reader.count()) {
             backIndex += reader.count()
-            val to = graph.knots.getValue(graph.connections[backIndex].toId)
-            var latitude = toMicrodegrees(to.latitude)
-            var longitude = toMicrodegrees(to.longitude)
-            val points =
-              List(reader.count()) {
-                latitude += unzigzag(reader.varint())
-                longitude += unzigzag(reader.varint())
-                GeoPoint(fromMicrodegrees(latitude), fromMicrodegrees(longitude))
-              }
+            val points = readPoints(reader, graph.knots.getValue(graph.connections[backIndex].toId))
             backIndex to CourseBack(points, readStretches(reader))
           }
           .toMap()
@@ -740,15 +704,8 @@ private constructor(
             val change: (SignpostCourse) -> SignpostCourse =
               when (reader.count()) {
                 0 -> {
-                  val to = graph.knots.getValue(graph.connections[index].toId)
-                  var latitude = toMicrodegrees(to.latitude)
-                  var longitude = toMicrodegrees(to.longitude)
                   val points =
-                    List(reader.count()) {
-                      latitude += unzigzag(reader.varint())
-                      longitude += unzigzag(reader.varint())
-                      GeoPoint(fromMicrodegrees(latitude), fromMicrodegrees(longitude))
-                    }
+                    readPoints(reader, graph.knots.getValue(graph.connections[index].toId))
                   val back = CourseBack(points, readStretches(reader))
                   ({ it.copy(back = back) })
                 }
@@ -764,6 +721,17 @@ private constructor(
         }
       }
       return NetworkGeometry(graph, courses, signpostsBothWays, bridges, coursesBack)
+    }
+
+    /** Points as written by `writePoints`: their count, then each one after the one before. */
+    private fun readPoints(reader: ByteReader, start: Knot): List<GeoPoint> {
+      var latitude = toMicrodegrees(start.latitude)
+      var longitude = toMicrodegrees(start.longitude)
+      return List(reader.count()) {
+        latitude += unzigzag(reader.varint())
+        longitude += unzigzag(reader.varint())
+        GeoPoint(fromMicrodegrees(latitude), fromMicrodegrees(longitude))
+      }
     }
 
     /** Stretches as written by `writeStretches`: each one's start after the last one's end. */
@@ -790,17 +758,7 @@ private constructor(
             List(reader.count()) {
               val fromPosition = reader.count()
               val toPosition = reader.count()
-              var latitude = toMicrodegrees(from.latitude)
-              var longitude = toMicrodegrees(from.longitude)
-              SignpostCourse(
-                fromPosition,
-                toPosition,
-                List(reader.count()) {
-                  latitude += unzigzag(reader.varint())
-                  longitude += unzigzag(reader.varint())
-                  GeoPoint(fromMicrodegrees(latitude), fromMicrodegrees(longitude))
-                },
-              )
+              SignpostCourse(fromPosition, toPosition, readPoints(reader, from))
             }
         }
         .toMap()

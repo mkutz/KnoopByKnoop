@@ -11,6 +11,7 @@ import com.knoopbyknoop.core.NetworkIndex
 import com.knoopbyknoop.core.NetworkInstaller
 import com.knoopbyknoop.core.PathFile
 import com.knoopbyknoop.core.ShortestPathRouter
+import com.knoopbyknoop.core.distanceMeters
 import com.knoopbyknoop.core.sha256Hex
 import java.io.IOException
 import java.io.RandomAccessFile
@@ -335,7 +336,7 @@ private fun checkRoute(
     return
   }
   val path = ShortestPathRouter(graph).shortestPath(from, to)
-  val straight = haversineMeters(from.latitude, from.longitude, to.latitude, to.longitude)
+  val straight = distanceMeters(from.latitude, from.longitude, to.latitude, to.longitude)
   val name = "${route.name} (${from.ref} → ${to.ref})"
   when {
     path == null -> fail("$name: no route")

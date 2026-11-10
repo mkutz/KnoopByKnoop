@@ -11,12 +11,9 @@ import com.knoopbyknoop.core.OneWay
 import com.knoopbyknoop.core.SignRegion
 import com.knoopbyknoop.core.SignpostCourse
 import com.knoopbyknoop.core.Stretch
+import com.knoopbyknoop.core.distanceMeters
 import java.util.PriorityQueue
-import kotlin.math.asin
-import kotlin.math.cos
 import kotlin.math.roundToInt
-import kotlin.math.sin
-import kotlin.math.sqrt
 
 /**
  * Extracts node networks from OpenStreetMap elements.
@@ -243,7 +240,7 @@ class NetworkExtraction {
       for (knot in sameRef.sortedBy { it.id }) {
         val nearby = merged.firstOrNull { members ->
           val representative = members.first()
-          haversineMeters(
+          distanceMeters(
             representative.latitude,
             representative.longitude,
             knot.latitude,
@@ -641,7 +638,7 @@ private class NodeCoordinates(nodeIds: Collection<LongArray>) {
   fun distanceMeters(fromId: Long, toId: Long): Double? {
     val from = ids.binarySearch(fromId).takeIf { it >= 0 && !latitudes[it].isNaN() } ?: return null
     val to = ids.binarySearch(toId).takeIf { it >= 0 && !latitudes[it].isNaN() } ?: return null
-    return haversineMeters(latitudes[from], longitudes[from], latitudes[to], longitudes[to])
+    return distanceMeters(latitudes[from], longitudes[from], latitudes[to], longitudes[to])
   }
 
   private fun LongArray.distinctSorted(): LongArray {
@@ -651,21 +648,3 @@ private class NodeCoordinates(nodeIds: Collection<LongArray>) {
     return copyOf(count)
   }
 }
-
-internal fun haversineMeters(
-  fromLatitude: Double,
-  fromLongitude: Double,
-  toLatitude: Double,
-  toLongitude: Double,
-): Double {
-  val deltaLatitude = Math.toRadians(toLatitude - fromLatitude)
-  val deltaLongitude = Math.toRadians(toLongitude - fromLongitude)
-  val a =
-    sin(deltaLatitude / 2).let { it * it } +
-      cos(Math.toRadians(fromLatitude)) *
-        cos(Math.toRadians(toLatitude)) *
-        sin(deltaLongitude / 2).let { it * it }
-  return 2 * EARTH_RADIUS_METERS * asin(sqrt(a))
-}
-
-internal const val EARTH_RADIUS_METERS = 6_371_008.8

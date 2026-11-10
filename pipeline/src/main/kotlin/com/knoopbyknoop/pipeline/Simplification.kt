@@ -1,6 +1,7 @@
 package com.knoopbyknoop.pipeline
 
 import com.knoopbyknoop.core.GeoPoint
+import com.knoopbyknoop.core.METERS_PER_DEGREE
 import com.knoopbyknoop.core.Stretch
 import kotlin.math.cos
 import kotlin.math.hypot
@@ -12,7 +13,7 @@ import kotlin.math.hypot
 fun simplify(points: List<GeoPoint>, toleranceMeters: Double): List<GeoPoint> {
   if (points.size <= 2) return points
   // A local flat projection in meters is precise enough for single connections.
-  val metersPerDegreeLatitude = Math.toRadians(EARTH_RADIUS_METERS)
+  val metersPerDegreeLatitude = METERS_PER_DEGREE
   val metersPerDegreeLongitude = metersPerDegreeLatitude * cos(Math.toRadians(points[0].latitude))
   val x =
     DoubleArray(points.size) {

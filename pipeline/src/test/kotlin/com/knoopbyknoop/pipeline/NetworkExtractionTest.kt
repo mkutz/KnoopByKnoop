@@ -5,6 +5,7 @@ import com.knoopbyknoop.core.Ferry
 import com.knoopbyknoop.core.GeoPoint
 import com.knoopbyknoop.core.NetworkType
 import com.knoopbyknoop.core.SignRegion
+import com.knoopbyknoop.core.distanceMeters
 import kotlin.math.roundToInt
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -18,7 +19,7 @@ class NetworkExtractionTest {
   private fun node(id: Long, step: Int, tags: Map<String, String> = mapOf()) =
     OsmNode(id, 52.0 + step * 0.001, 5.0, tags)
 
-  private val stepMeters = haversineMeters(52.0, 5.0, 52.001, 5.0)
+  private val stepMeters = distanceMeters(52.0, 5.0, 52.001, 5.0)
 
   private fun cyclingKnot(id: Long, step: Int, ref: String) =
     node(id, step, mapOf("rcn_ref" to ref, "network:type" to "node_network"))
@@ -203,7 +204,7 @@ class NetworkExtractionTest {
 
     assertEquals(listOf(position30, GeoPoint(52.0018, 5.001), otherNode30, position45), course)
     assertEquals(
-      haversineMeters(52.00275, 5.0, 52.005, 5.0).roundToInt(),
+      distanceMeters(52.00275, 5.0, 52.005, 5.0).roundToInt(),
       connection.lengthMeters,
       "measured on the route's own path",
     )
