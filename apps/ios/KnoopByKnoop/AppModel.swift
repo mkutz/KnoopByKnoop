@@ -89,7 +89,11 @@ final class AppModel: ObservableObject {
 
   @Published private(set) var network: IndexedNetworkType = .cycling
   @Published private(set) var catalog = NetworkCatalog(index: nil, installed: [], downloading: Set(), failed: Set())
-  @Published private(set) var needsAppUpdate = false
+  /// What the network syncs came to, kept across starts, see `NetworkSyncState`.
+  @Published private(set) var syncState = NetworkSyncState.companion.parse(
+    text: UserDefaults.standard.string(forKey: AppModel.syncStateKey) ?? "")
+  /// Whether to ask the user to update the app, see `network-sync` "Unsupported file version".
+  var needsAppUpdate: Bool { syncState.needsAppUpdate }
   @Published private(set) var online = true
   @Published private(set) var session: PlanningSession?
   @Published private(set) var layers: MapLayers?
@@ -143,8 +147,9 @@ final class AppModel: ObservableObject {
     didSet { updateKnotsInView() }
   }
   private var installing = false
-  /// Networks with a downloaded file that was rejected; it is downloaded again on the next sync.
-  private var rejected: Set<IndexedNetworkType> = []
+  /// The sync waiting to download a corrupted file again, see "Retrying a corrupted download".
+  private var retryTask: Task<Void, Never>?
+  private static let syncStateKey = "networkSyncState"
   /// Whether the sync could not fetch the index yet, so it runs when network access is back.
   private var syncPending = false
   /// Whether the saved route was restored; reloads before that would replace it with an empty one.
@@ -182,7 +187,6 @@ final class AppModel: ObservableObject {
   /// Retries failed downloads right away.
   func retrySync() {
     downloads.forgetFailed()
-    rejected = []
     Task { await sync() }
   }
 
@@ -703,7 +707,7 @@ final class AppModel: ObservableObject {
   private func refreshCatalog() {
     catalog = NetworkCatalog(
       index: nil, installed: storage.installed(), downloading: downloads.downloading(),
-      failed: downloads.failed().union(rejected))
+      failed: downloads.failed().union(syncState.failed))
   }
 
   /// Reloads the selected network when its files changed, keeping the route, see `network-sync`.
@@ -785,17 +789,10 @@ final class AppModel: ObservableObject {
       for (entry, file) in finished {
         let rejection: RejectionReason? = await Task.detached {
           guard let data = try? Data(contentsOf: file) else { return RejectionReason.corrupted }
-          let check: InstallCheck
-          if entry.kind == .graph {
-            check = NetworkInstaller.shared.checkGraph(entry: entry, bytes: Data_iosKt.byteArrayOf(data: data))
-          } else if let graphEntry = storage.graphEntry(network: entry.network),
-            let graphFile = storage.graph(network: entry.network)
-          {
-            check = NetworkInstaller.shared.checkGeometry(
-              entry: entry, bytes: Data_iosKt.byteArrayOf(data: data), graphEntry: graphEntry, graph: graphFile.graph)
-          } else {
-            return RejectionReason.mismatchingGeometry
-          }
+          let check = NetworkInstaller.shared.check(
+            entry: entry, bytes: Data_iosKt.byteArrayOf(data: data),
+            installedGraphEntry: storage.graphEntry(network: entry.network),
+            installedGraph: storage.graph(network: entry.network)?.graph)
           if let rejected = check as? InstallCheckRejected { return rejected.reason }
           do {
             try storage.install(entry, data: data)
@@ -807,17 +804,37 @@ final class AppModel: ObservableObject {
         }.value
         downloads.remove(entry)
         if let rejection {
-          rejected.insert(entry.network)
-          if rejection == .unsupportedVersion { needsAppUpdate = true }
+          updateSyncState(syncState.rejected(entry: entry, reason: rejection))
         } else {
-          rejected.remove(entry.network)
+          updateSyncState(syncState.installed(entry: entry))
         }
+      }
+      // The run ends once nothing is left to download, see "Retrying a corrupted download".
+      if downloads.downloading().isEmpty && downloads.finished().isEmpty {
+        updateSyncState(syncState.finished())
+        if syncState.retry { scheduleRetry() }
       }
       installing = false
       refreshCatalog()
       await reloadIfChanged()
       // Files that finished while installing are installed in the next round.
       if !downloads.finished().isEmpty { installFinished() }
+    }
+  }
+
+  private func updateSyncState(_ newState: NetworkSyncState) {
+    syncState = newState
+    UserDefaults.standard.set(newState.toJson(), forKey: Self.syncStateKey)
+  }
+
+  /// Downloads a corrupted file again after the state's delay, while the app runs.
+  private func scheduleRetry() {
+    retryTask?.cancel()
+    let delay = syncState.retryDelayMillis
+    retryTask = Task { [weak self] in
+      try? await Task.sleep(for: .milliseconds(delay))
+      guard !Task.isCancelled else { return }
+      await self?.sync()
     }
   }
 }

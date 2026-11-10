@@ -19,7 +19,7 @@ import com.knoopbyknoop.core.NetworkCatalog
 import com.knoopbyknoop.core.NetworkIndex
 import com.knoopbyknoop.core.NetworkIndexEntry
 import com.knoopbyknoop.core.NetworkInstaller
-import com.knoopbyknoop.core.RejectionReason
+import com.knoopbyknoop.core.NetworkSyncState
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -37,9 +37,17 @@ class NetworkSync(private val context: Context) {
   private val storage = NetworkStorage(context.filesDir)
   private val preferences = context.getSharedPreferences("network-sync", Context.MODE_PRIVATE)
 
+  /** What the last syncs came to, see [NetworkSyncState]. */
+  private var state: NetworkSyncState
+    get() =
+      preferences.getString(KEY_STATE, null)?.let(NetworkSyncState::parse)
+        // Stored per key by app versions before, see the design of `move-network-sync-to-core`.
+        ?: NetworkSyncState(failed = networks(KEY_FAILED))
+    set(value) = preferences.edit { putString(KEY_STATE, value.toJson()) }
+
   /** The networks whose last download failed. */
   val failed: Set<IndexedNetworkType>
-    get() = networks(KEY_FAILED)
+    get() = state.failed
 
   /** The networks being downloaded right now. */
   val downloading: Set<IndexedNetworkType>
@@ -47,7 +55,7 @@ class NetworkSync(private val context: Context) {
 
   /** Whether a downloaded file needs a newer app version to be read. */
   val needsAppUpdate: Boolean
-    get() = preferences.getBoolean(KEY_NEEDS_APP_UPDATE, false)
+    get() = state.needsAppUpdate
 
   /**
    * Installs the bundled graphs of networks that have no installed graph, only an older one, or the
@@ -107,7 +115,6 @@ class NetworkSync(private val context: Context) {
   suspend fun run(onInstalled: suspend (NetworkIndexEntry) -> Unit): Boolean {
     val index = NetworkIndex.parse(fetch("index.json").decodeToString())
     val toFetch = NetworkCatalog(index, storage.installed()).filesToFetch
-    var retry = false
     setNetworks(KEY_DOWNLOADING, toFetch.map { it.network }.toSet())
     try {
       for (entry in toFetch) {
@@ -115,47 +122,32 @@ class NetworkSync(private val context: Context) {
           try {
             fetch(entry.file)
           } catch (exception: IOException) {
-            setNetworks(KEY_FAILED, failed + entry.network)
+            state = state.downloadFailed(entry.network)
             throw exception
           }
-        when (val check = verify(entry, bytes)) {
+        val check =
+          NetworkInstaller.check(
+            entry,
+            bytes,
+            storage.graphEntry(entry.network),
+            storage.graph(entry.network)?.graph,
+          )
+        when (check) {
           is InstallCheck.Valid -> {
             storage.install(entry, bytes)
-            setNetworks(KEY_FAILED, failed - entry.network)
+            state = state.installed(entry)
             storage.removeStaleData()
             onInstalled(entry)
           }
-          is InstallCheck.Rejected -> {
-            setNetworks(KEY_FAILED, failed + entry.network)
-            if (check.reason == RejectionReason.UNSUPPORTED_VERSION) {
-              preferences.edit { putBoolean(KEY_NEEDS_APP_UPDATE, true) }
-            } else {
-              retry = true
-            }
-          }
+          is InstallCheck.Rejected -> state = state.rejected(entry, check.reason)
         }
       }
     } finally {
       setNetworks(KEY_DOWNLOADING, setOf())
+      state = state.finished()
     }
-    if (!retry) preferences.edit { putBoolean(KEY_NEEDS_APP_UPDATE, false) }
-    return retry
+    return state.retry
   }
-
-  /** A graph is checked on its own; a geometry against the graph installed before it. */
-  private fun verify(entry: NetworkIndexEntry, bytes: ByteArray): InstallCheck<*> =
-    when (entry.kind) {
-      IndexedFileKind.GRAPH -> NetworkInstaller.checkGraph(entry, bytes)
-      IndexedFileKind.GEOMETRY -> {
-        val graphEntry = storage.graphEntry(entry.network)
-        val graphFile = storage.graph(entry.network)
-        if (graphEntry == null || graphFile == null) {
-          InstallCheck.Rejected(RejectionReason.MISMATCHING_GEOMETRY)
-        } else {
-          NetworkInstaller.checkGeometry(entry, bytes, graphEntry, graphFile.graph)
-        }
-      }
-    }
 
   private suspend fun fetch(file: String): ByteArray =
     withContext(Dispatchers.IO) {
@@ -184,7 +176,7 @@ class NetworkSync(private val context: Context) {
     private const val BUNDLED_DIRECTORY = "bundled-networks"
     private const val KEY_FAILED = "failed"
     private const val KEY_DOWNLOADING = "downloading"
-    private const val KEY_NEEDS_APP_UPDATE = "needs-app-update"
+    private const val KEY_STATE = "state"
   }
 }
 
