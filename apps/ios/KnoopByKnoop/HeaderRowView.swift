@@ -126,7 +126,7 @@ struct HeaderRowView: View {
         ToRouteSymbol(awayFromRoute: toRoute.offRoute, side: 38, tile: !toRoute.offRoute)
         Image(systemName: "location.north.fill")
           .font(.title2)
-          .rotationEffect(.degrees(HeaderRowView.turnDegrees(guided.turn)))
+          .rotationEffect(.degrees(guided.turn?.degrees ?? 0))
         // The turn's distance always complete, at the largest text sizes too: the street is cut
         // short first, and at the accessibility sizes the distance left is left out, see
         // `knot-navigation` "Off route in German".
@@ -151,19 +151,6 @@ struct HeaderRowView: View {
     }
   }
 
-  /// The angle a turn on the guided way turns the arrow, from straight ahead.
-  static func turnDegrees(_ turn: TurnDirection?) -> Double {
-    switch turn {
-    case .slightLeft?: -45
-    case .left?: -90
-    case .sharpLeft?: -135
-    case .slightRight?: 45
-    case .right?: 90
-    case .sharpRight?: 135
-    case .back?: 180
-    default: 0
-    }
-  }
 }
 
 /// A knot of the header, filled or white as on its signs, with a picked knot's corner symbol.
@@ -193,7 +180,7 @@ private struct SignPlate: View {
         Image(systemName: turn == .back ? "arrow.uturn.down" : "arrow.up")
           .font(.system(size: 18, weight: .bold))
           .foregroundStyle(dutch ? plate : .white)
-          .rotationEffect(.degrees(turn == .back ? 0 : HeaderRowView.turnDegrees(turn)))
+          .rotationEffect(.degrees(turn == .back ? 0 : turn.degrees))
           .frame(width: 24, height: 24)
       } else {
         PlainArrow(size: 24, color: dutch ? plate : .white)

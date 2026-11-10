@@ -208,10 +208,12 @@ final class AppModel: ObservableObject {
       self?.message = String(localized: "Knoop by Knoop needs location access to navigate. You can allow it in Settings.", bundle: AppLanguage.bundle)
     }
     Navigator.shared.start(
-      NavigationRoute(
-        knots: knots, roles: description.knots.map { BadgeRole($0.role) }, graph: session.routeGraph,
-        geometry: loaded.hasGeometry ? loaded.geometry.withRoutePoints(routeGraph: session.routeGraph) : nil,
-        stops: Set(description.stopPositions.map { Int(truncating: $0) })))
+      NavigationPlan(
+        route: NavigationRoute(
+          knots: knots, graph: session.routeGraph,
+          geometry: loaded.hasGeometry ? loaded.geometry.withRoutePoints(routeGraph: session.routeGraph) : nil,
+          stops: Set(description.stopPositions.map { KotlinInt(int: $0.int32Value) })),
+        roles: description.knots.map { BadgeRole($0.role) }))
   }
 
   /// The course of the planned route along the network, or `nil` while it cannot be exported, see
@@ -349,12 +351,8 @@ final class AppModel: ObservableObject {
       nonisolated(unsafe) let geometry = loaded.geometry
       let found: [Knot] = await withCheckedContinuation { continuation in
         PathData.queue.async {
-          // Squares arrived since: the router read them as missing, see "While the path data loads".
-          if AppModel.pathRouterVersion != PathData.store.version {
-            AppModel.pathRouter.forgetSquares()
-            AppModel.pathRouterVersion = PathData.store.version
-          }
-          let ways = RoutePointWays(router: AppModel.pathRouter, geometry: geometry)
+          // Squares arrived since are read again, see "While the path data loads".
+          let ways = AppModel.wayFinder.routePointWays(geometry: geometry)
           nonisolated(unsafe) let found = points.compactMap { ways.wayFor(point: $0) }
           continuation.resume(returning: found)
         }
@@ -368,9 +366,8 @@ final class AppModel: ObservableObject {
     }
   }
 
-  /// One router for the planner's ways, used on `PathData.queue` only.
-  nonisolated(unsafe) private static let pathRouter = PathRouter(file: PathData.store)
-  nonisolated(unsafe) private static var pathRouterVersion: Int32 = -1
+  /// One way finder for the planner's ways, used on `PathData.queue` only.
+  nonisolated(unsafe) private static let wayFinder = WayFinder(store: PathData.store)
 
   func moveWaypoint(from: Int, to: Int) {
     change { $0.moveWaypoint(from: Int32(from), to: Int32(to)) }

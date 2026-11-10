@@ -250,7 +250,7 @@ struct PlannerView: View {
           state.navigation?.guidedLines(guidedWay: state.guidedWay)
         },
         track: navigator.state?.track,
-        direction: navigator.state?.direction,
+        direction: navigator.state?.direction?.doubleValue,
         myPosition: navigator.state == nil ? model.myPosition : nil,
         locating: model.locating,
         onLocate: locateAction,
@@ -834,7 +834,7 @@ private struct NavigationHeader: View {
   private var row: HeaderRow? {
     guard let navigation = state.navigation, let position = state.position else { return nil }
     return navigation.header(
-      fix: position, ridingDirection: state.direction.map { KotlinDouble(value: $0) },
+      fix: position, ridingDirection: state.direction,
       guidedWay: state.guidedWay, network: geometry)
   }
 
