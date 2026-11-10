@@ -1,7 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.12.0
 
+- Starting beside a start flag off the network, the way to the network now follows the planned way: a way found from a first, still imprecise position is looked for again as soon as the position is precise, instead of staying, e.g. a longer way around the block. The same holds off route
+- A guided way that begins with a turn says it right away, e.g. "Turn left now", once, also when you ride on without taking it
 - Android: when newer network data needs a newer app version, the info sheet asks to update the app; before, the request disappeared again right away. On both phones it now stays until the data can be read, also after closing the app
 - iPhone: a broken network download is tried again by itself after 30 s, then after longer and longer waits, instead of only at the next start
 - Damaged path data no longer ends the app while it looks for a way along paths; the straight line stays instead
