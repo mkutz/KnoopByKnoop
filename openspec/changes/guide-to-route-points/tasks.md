@@ -15,7 +15,7 @@
 
 - [x] 2.1 Both apps build. On the emulator, a mocked ride home → 28 → 02 → home like the maintainer's: the notices towards 06, the turn into Cecilienstraße, and the turns to the flag, spoken and in the header. Same in the simulator.
 
-- [ ] 2.2 Both apps build; on the emulator, starting beside a start flag off the network with a first position 30 m off at 30 m accuracy: the guided way follows the planned way once a precise position comes.
+- [x] 2.2 Both apps build; on the emulator, starting beside a start flag off the network with a first position 30 m off at 30 m accuracy: the guided way follows the planned way once a precise position comes.
 
 ## 3. Release
 
