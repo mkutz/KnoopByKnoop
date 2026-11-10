@@ -8,7 +8,7 @@
   - no drop against the published data (the same files)
   - known routes, length against the straight line: Breda → Antwerp 65.2 / 48.8 km, Hasselt → Aachen 76.6 / 55.3 km, Nijmegen → Kleve 25.1 / 19.9 km, Veluwe 23.4 / 16.8 km, Utrecht → Amstelveen 28.5 / 21.5 km, Kempen 24.8 / 18.9 km
 - **Choosing the hiking pairs:** the first guesses failed on the real data, Siegburg (no hiking knot within 1 km; the data has no hiking knots in North Rhine-Westphalia at all) and Mol → Geel (51.7 km for 9.3 km, across separate networks). They were replaced by pairs picked from the data.
-- **Workflow:** `actionlint` passes. The first run with the new step is still to come (task 4.3).
+- **Workflow:** `actionlint` passes. Run by hand on 2026-11-10 ([run 42802221092](https://github.com/mkutz/KnoopByKnoop/actions/runs/42802221092)): the Verify step logged every check with the same counts and routes as above, ended with "verified: the data may be published", and the data was published as before.
 
 ## Scenarios
 
@@ -19,5 +19,5 @@
 | Sudden drop | `VerifyTest`: 8 % fewer knots, 9 % fewer connections |
 | Small change | `VerifyTest`: 2 % fewer and 3 % more knots pass |
 | Deliberate drop | `VerifyTest`: an allowed 8 % drop passes, an allowed drop below the floor fails |
-| Known route lost | `VerifyTest`: no knot near a position, no route, a route more than twice the straight line; a fitting route passes. Real data: six routes pass |
+| Known route lost | `VerifyTest`: no knot near a position, no route, a route more than twice the straight line; a fitting route passes. Real data and the workflow run: six routes pass |
 | Nothing published yet | `VerifyTest`: nothing published, and a published graph of an unsupported format version, skip the drop with a warning |

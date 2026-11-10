@@ -26,11 +26,11 @@
 
 - [x] 4.1 `pipeline verify [--allow-drop] <dir> [<published-base-url>]` in `Main.kt` and its usage text: prints one line per check and exits with 1 on any failure. A test in `MainTest` checks the report passes only without failures (the checks themselves are in `VerifyTest`).
 - [x] 4.2 `update-network-data.yml`: `verify` after "Write index" and before "Publish release", with the published base URL; a `workflow_dispatch` input `allow-drop` (boolean, default false) passed as `--allow-drop` only when set. `actionlint` passes in the Build workflow.
-- [ ] 4.3 Run the workflow by hand once after pushing and check its log: every check listed, nothing failed, the data published as before.
+- [x] 4.3 Run the workflow by hand once after pushing and check its log: every check listed, nothing failed, the data published as before.
 
 ## 5. Wrap-up
 
-- [ ] 5.1 `manual-checks.md` lists every scenario with how it was checked (the `VerifyTest` tests, and the workflow run of 4.3). `./gradlew check` and `npx @fission-ai/openspec validate --all` pass. No CHANGELOG entry, as nothing changes in the apps.
+- [x] 5.1 `manual-checks.md` lists every scenario with how it was checked (the `VerifyTest` tests, and the workflow run of 4.3). `./gradlew check` and `npx @fission-ai/openspec validate --all` pass. No CHANGELOG entry, as nothing changes in the apps.
 
 ## Workflow follow-up
 
