@@ -42,7 +42,69 @@ When a route point is joined to the network by a way along paths, navigation SHA
 - **WHEN** the rider starts navigating at the start flag at home, whose way along paths joins the course of 02–28 after 600 m, turning left there towards 02
 - **THEN** the rider hears each turn of the way, and at the join "Turn left now onto the route towards 02", and then "Next 02" as usual
 
+### Requirement: Way searches along the planned way
+While the rider is within the on-course distance of a route point's planned way, the way search SHALL start in the planned way's direction at the rider's place on it, not in the riding direction, so the guided way follows the way shown on the map.
+
+#### Scenario: Starting beside the start flag
+- **WHEN** the rider starts navigating 15 m from the start flag, whose planned way leaves southwards, and the first positions lie 12 m apart to the north while they still stand
+- **THEN** the guided way follows the planned way south, not a way ahead to the north that is 160 m longer
+
+### Requirement: Riding direction right after starting
+Positions less than 5 s apart SHALL NOT give the riding direction for a way search, so the settling of the position right after navigation starts does not count as riding.
+
+#### Scenario: Position settling at the start
+- **WHEN** navigation starts and the second position, one second after the first, lies 12 m from it
+- **THEN** the first way search has no riding direction and finds the cheapest way
+
 ## MODIFIED Requirements
+
+### Requirement: Turn notices on the guided way
+On a guided way, the app SHALL say each turn once, about 100 m before it, e.g. "In 100 m, turn left". Turns within 40 m of each other SHALL count as one. Continuing straight on SHALL need no notice, and neither SHALL a bend where every other way at the junction turns at least 30° more than the way to take. Several turns at one junction that add up to straight on SHALL be said as straight on. When a way starts against the riding direction, the app SHALL say to turn back, and SHALL show it until the rider follows the way. When a way starts more than 45° to the side of the riding direction, the app SHALL say that turn at once, e.g. "Turn left now". The notice SHALL be spoken, also with the screen off and in the app's language.
+
+#### Scenario: A turn ahead
+- **WHEN** the rider is 100 m from a left turn on the guided way
+- **THEN** the app says "In 100 m, turn left" once
+
+#### Scenario: Turn at the start of the way
+- **WHEN** the rider walks west along a street and a new way leaves it southwards right where they are
+- **THEN** the app says "Turn left now", and the header shows that turn before the next one
+
+#### Scenario: Turn close to the start of the way
+- **WHEN** a new way has its first turn 40 m ahead
+- **THEN** the app says "Turn left now", after the off-route notice
+
+#### Scenario: Two turns together
+- **WHEN** the way turns right and, 30 m later, left
+- **THEN** the app gives one notice, using the overall direction of the two
+
+#### Scenario: Straight on
+- **WHEN** the way continues straight on over a junction, staying on the same street
+- **THEN** the app says nothing there
+
+#### Scenario: A bend without a choice
+- **WHEN** the path bends right at a junction, and the only other way there turns left by more than 30° further
+- **THEN** the app says nothing there
+
+#### Scenario: A bend with a choice
+- **WHEN** the way bends right at a junction, and another way there continues straighter
+- **THEN** the app says the turn
+
+#### Scenario: Crossing with an offset
+- **WHEN** the way turns right and, 30 m later, left at a crossing, and continues in the same direction
+- **THEN** the app says "In 100 m, go straight on"
+
+#### Scenario: Way behind the rider
+- **WHEN** a new way starts against the riding direction
+- **THEN** the app says "Turn back now", and the header shows "Turn back" until the rider has followed the way for 15 m
+
+#### Scenario: Still riding away
+- **WHEN** the rider ignores it, and the next new way also starts against the riding direction
+- **THEN** the header shows "Turn back" again, and the app doesn't say it again
+
+#### Scenario: Screen off
+- **WHEN** the rider reaches a turn notice with the screen off
+- **THEN** it is spoken, without more location fixes than off route uses without a guided way
+
 
 ### Requirement: Riding the way to a route point
 On a way along paths to a route point, the rider SHALL be guided with the line on the map and turn notices, as described in "Guidance to a route point off the network" and "Guidance from a route point onto the network", and leaving the way SHALL count as off route as on a course. On a straight line, which cannot be followed, the rider SHALL NOT be told they are off route, and SHALL be told the distance and direction to where it leads.

@@ -44,6 +44,15 @@
 ### Missing the turn-off
 - More than the off-route distance from both the course and the way counts as off route, as today; the guided way then leads to the route point from where the rider is.
 
+### Searching along the planned way (found 2026-11-10)
+- **What happened:** the maintainer started a route of a start and an end flag 15–40 m from the start flag, on the iPhone and on the Pixel. The Pixel's log has the first guided way 1 s after starting: 1,291 m with 5 turns. A replay on a local cut-out of the published data gives the planned way (1,139–1,143 m, south via Josefstraße) without a riding direction, and 1,287–1,301 m along Lindenstraße and the railway with a direction north. So the first search already had a riding direction, from the first two positions while the position settled, and the way ahead won, being less than 200 m longer (`path-routing` "A way ahead about as short as the way back").
+- **Heading from the planned way:** within the on-course distance of a route point's planned way, `WayGuide` passes the planned way's bearing at the rider's place on it as the heading, instead of the riding direction. The router then finds the planned way again, as planning did, while the turns and streets still come from the search.
+- **No direction from settling:** the riding direction for a way search needs positions at least 5 s apart; the ridden track's direction for the map is unchanged.
+- *Alternative:* keep the planned way's points and follow them without a search. Rejected for the reason above (no turns or streets, nothing after an app update).
+
+### A turn at the start of a way (found 2026-11-10)
+- A new way whose first stretch leaves more than 45° to the side of the riding direction, and not against it, gets "Turn left now" or "Turn right now" at once, like a turn within 40 m; against the direction stays "Turn back now".
+
 ## Risks / Trade-offs
 
 - **[The search after the turn-off finds a slightly different way]** → It searches from the rider to the point, so it may leave out a bend of the planned way; the rider still reaches the point.

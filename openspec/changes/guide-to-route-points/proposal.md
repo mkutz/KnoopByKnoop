@@ -13,6 +13,10 @@ The maintainer wants the guidance to say what the rider sees: carry on along the
 - From there to the route point, turn notices as on the guided way back to the route, found on the device from the path data.
 - The same from a route point onto the network, e.g. from the start flag at home: turn by turn along the way to where it joins the network, and there "Turn left onto the route towards 02".
 - The planned route does not change.
+- **Found on the maintainer's starts of 2026-11-10** (iPhone and Pixel, a route of a start and an end flag): right after starting beside the start flag, the guided way led 1.3 km east instead of along the planned way south (1.14 km), and a turn at the very start of a guided way was not spoken. So:
+  - near a route point's planned way, the way search starts in the planned way's direction, not the riding direction;
+  - positions less than 5 s apart give no riding direction for a way search, so the position settling at the start does not count as riding;
+  - a way starting more than 45° to the side of the riding direction is told at once, e.g. "Turn left now".
 
 ## Out of Scope
 
@@ -27,7 +31,7 @@ None.
 
 ### Modified Capabilities
 
-- `knot-navigation`: new requirements "Guidance to a route point off the network" and "Guidance from a route point onto the network".
+- `knot-navigation`: new requirements "Guidance to a route point off the network", "Guidance from a route point onto the network", "Way searches along the planned way" and "Riding direction right after starting"; "Turn notices on the guided way" tells a turn at the start of a way.
 
 ## Impact
 
