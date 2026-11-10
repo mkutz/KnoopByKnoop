@@ -158,6 +158,28 @@ object NetworkInstaller {
     }
   }
 
+  /**
+   * Checks a downloaded file: a graph on its own, a geometry against the graph installed before it.
+   *
+   * @param installedGraphEntry the index entry of the installed graph of [entry]'s network, if any
+   * @param installedGraph that graph
+   */
+  fun check(
+    entry: NetworkIndexEntry,
+    bytes: ByteArray,
+    installedGraphEntry: NetworkIndexEntry?,
+    installedGraph: NetworkGraph?,
+  ): InstallCheck<*> =
+    when (entry.kind) {
+      IndexedFileKind.GRAPH -> checkGraph(entry, bytes)
+      IndexedFileKind.GEOMETRY ->
+        if (installedGraphEntry == null || installedGraph == null) {
+          InstallCheck.Rejected(RejectionReason.MISMATCHING_GEOMETRY)
+        } else {
+          checkGeometry(entry, bytes, installedGraphEntry, installedGraph)
+        }
+    }
+
   /** @param graphEntry the index entry of the graph file [graph] was read from */
   fun checkGeometry(
     entry: NetworkIndexEntry,

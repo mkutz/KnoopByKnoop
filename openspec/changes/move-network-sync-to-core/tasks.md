@@ -2,7 +2,7 @@
 
 ## 1. Core
 
-- [ ] 1.1 `NetworkSyncState` with `installed`, `rejected`, `downloadFailed`, `finished`, `retry`, `retryDelayMillis` and JSON; `NetworkInstaller.check`. Tests in `NetworkSyncTest`:
+- [x] 1.1 `NetworkSyncState` with `installed`, `rejected`, `downloadFailed`, `finished`, `retry`, `retryDelayMillis` and JSON; `NetworkInstaller.check`. Tests in `NetworkSyncTest`:
   - "Corrupted download" and "Retrying a corrupted download": a corrupted rejection sets `retry`; delays 30 s, 60 s, 120 s, … capped at 5 h; a clean `finished()` resets them.
   - "Unsupported file version" and "Asked to update until it applies no more": the update need survives `finished()` and a JSON round trip.
   - "Updated app": installing that network's file clears it; installing the other network's doesn't.

@@ -341,4 +341,101 @@ class NetworkSyncTest {
       ),
     )
   }
+
+  // Requirement: Install only verified data, the outcome of a sync
+
+  private val cyclingFile = graphEntry(IndexedNetworkType.CYCLING, "2026-11-10")
+  private val hikingFile = graphEntry(IndexedNetworkType.HIKING, "2026-11-10")
+
+  @Test
+  fun `a corrupted download is retried after 30 s and then twice as long each time`() {
+    val delays =
+      generateSequence(NetworkSyncState()) {
+          it.rejected(cyclingFile, RejectionReason.CORRUPTED).finished()
+        }
+        .drop(1)
+        .take(5)
+        .map { it.retryDelayMillis }
+        .toList()
+
+    assertEquals(listOf(30_000L, 60_000L, 120_000L, 240_000L, 480_000L), delays)
+  }
+
+  @Test
+  fun `retries wait at most 5 hours`() {
+    val many =
+      (1..40).fold(NetworkSyncState()) { state, _ ->
+        state.rejected(cyclingFile, RejectionReason.CORRUPTED).finished()
+      }
+
+    assertEquals(5 * 60 * 60 * 1000L, many.retryDelayMillis)
+  }
+
+  @Test
+  fun `two corrupted files in one run count as one retry`() {
+    val state =
+      NetworkSyncState()
+        .rejected(cyclingFile, RejectionReason.CORRUPTED)
+        .rejected(hikingFile, RejectionReason.MISMATCHING_GEOMETRY)
+        .finished()
+
+    assertEquals(30_000L, state.retryDelayMillis)
+    assertEquals(setOf(IndexedNetworkType.CYCLING, IndexedNetworkType.HIKING), state.failed)
+  }
+
+  @Test
+  fun `a run without a corrupted file ends the retries`() {
+    val retrying = NetworkSyncState().rejected(cyclingFile, RejectionReason.CORRUPTED).finished()
+
+    val clean = retrying.installed(cyclingFile).finished()
+
+    assertTrue(retrying.retry)
+    assertFalse(clean.retry)
+    assertEquals(setOf(), clean.failed)
+  }
+
+  @Test
+  fun `a file the app can't read asks for an update but no retry`() {
+    val state =
+      NetworkSyncState().rejected(cyclingFile, RejectionReason.UNSUPPORTED_VERSION).finished()
+
+    assertTrue(state.needsAppUpdate)
+    assertFalse(state.retry)
+  }
+
+  // Scenario: Asked to update until it applies no more
+
+  @Test
+  fun `the request to update the app is kept across starts`() {
+    val asked =
+      NetworkSyncState().rejected(cyclingFile, RejectionReason.UNSUPPORTED_VERSION).finished()
+
+    val afterStart = NetworkSyncState.parse(asked.toJson()).finished()
+
+    assertTrue(afterStart.needsAppUpdate)
+  }
+
+  // Scenario: Updated app
+
+  @Test
+  fun `installing the network's file ends the request to update`() {
+    val asked = NetworkSyncState().rejected(cyclingFile, RejectionReason.UNSUPPORTED_VERSION)
+
+    assertTrue(asked.installed(hikingFile).finished().needsAppUpdate)
+    assertFalse(asked.installed(cyclingFile).finished().needsAppUpdate)
+  }
+
+  @Test
+  fun `an unreadable stored state starts fresh`() {
+    assertEquals(NetworkSyncState(), NetworkSyncState.parse("not json"))
+  }
+
+  @Test
+  fun `a geometry without an installed graph doesn't belong to one`() {
+    val geometry = geometryEntry(IndexedNetworkType.CYCLING, "2026-11-10")
+
+    val check = NetworkInstaller.check(geometry, byteArrayOf(1, 2, 3), null, null)
+
+    assertEquals(InstallCheck.Rejected(RejectionReason.MISMATCHING_GEOMETRY), check)
+  }
 }
