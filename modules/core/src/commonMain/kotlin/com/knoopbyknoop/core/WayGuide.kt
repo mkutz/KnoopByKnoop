@@ -29,6 +29,16 @@ class WayGuide {
   private var searching = false
   private var lastSearchMillis: Long? = null
 
+  /** The accuracy of the position the running search started from. */
+  private var searchAccuracy = 0.0
+
+  /**
+   * Whether [way] was found from a position less precise than [PRECISE_START_METERS], to be
+   * searched again with the next precise one, see `knot-navigation` "Way searched again from a
+   * precise position".
+   */
+  private var wayFromImprecise = false
+
   /** Whether the way being followed leads back to the route, not along the way of a route point. */
   private var offRouteWay = false
 
@@ -122,9 +132,10 @@ class WayGuide {
     update?.let { way = it.way }
     // Left behind with no new way to look for, the old one would only mislead.
     if (update?.left == true && !withinReach(target, fix)) way = null
+    val again = way != null && wayFromImprecise && fix.accuracyMeters <= PRECISE_START_METERS
     val search =
-      if (update == null || update.left) {
-        searchFor(target, fix, network, heading, nowMillis)
+      if (update == null || update.left || again) {
+        searchFor(target, fix, network, heading, nowMillis, again)
       } else {
         null
       }
@@ -139,14 +150,17 @@ class WayGuide {
     network: NetworkType?,
     heading: Double?,
     nowMillis: Long,
+    again: Boolean = false,
   ): WaySearch? {
     if (searching || network != NetworkType.CYCLING) return null
     val last = lastSearchMillis
-    if (last != null && nowMillis - last < SEARCH_INTERVAL_MILLIS) return null
+    if (!again && last != null && nowMillis - last < SEARCH_INTERVAL_MILLIS) return null
     if (fix.accuracyMeters > Navigation.PRECISE_ACCURACY_METERS) return null
     if (target == null || !withinReach(target, fix)) return null
     searching = true
     lastSearchMillis = nowMillis
+    searchAccuracy = fix.accuracyMeters
+    if (again) wayFromImprecise = false
     return WaySearch(GeoPoint(fix.latitude, fix.longitude), target, heading)
   }
 
@@ -273,6 +287,7 @@ class WayGuide {
     }
     if (navigation.offRoute || navigation.offNetworkTarget() != null) {
       way = found?.let { GuidedWay.of(it, way) }
+      wayFromImprecise = way != null && searchAccuracy > PRECISE_START_METERS
     }
   }
 
@@ -281,6 +296,8 @@ class WayGuide {
     way = null
     searching = false
     lastSearchMillis = null
+    searchAccuracy = 0.0
+    wayFromImprecise = false
     offRouteWay = false
     legState = null
     aheadSearch = null
@@ -289,6 +306,12 @@ class WayGuide {
   companion object {
     /** See "Leaving the guided way". */
     const val SEARCH_INTERVAL_MILLIS = 10_000L
+
+    /**
+     * A way found from a less precise position is searched again with the next position this
+     * precise, as precise as one confirming off route.
+     */
+    const val PRECISE_START_METERS = Navigation.CONFIRM_ACCURACY_METERS
 
     /** See "Guided way back to the route": further away, the straight line has to do. */
 

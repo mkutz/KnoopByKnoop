@@ -7,7 +7,7 @@
 - [x] 1.3 `WayGuide`: from the turn-off on, a way search to the route point and its turns, as on the guided way. Tests "Turn by turn to the flag", "Missing the turn-off", "A straight line".
 - [x] 1.4 From a route point onto the network: the way search from the point to its place on the course, its turns, and the join notice with the knot ahead. Test "From the start flag onto the network".
 
-- [ ] 1.5 `WayGuide`: a way found from a position less precise than 20 m is searched again with the next position of 20 m or better. Tests "Starting beside the start flag" and "Precise from the start".
+- [x] 1.5 `WayGuide`: a way found from a position less precise than 20 m is searched again with the next position of 20 m or better. Tests "Starting beside the start flag" and "Precise from the start".
 - [ ] 1.6 `GuidedWay`: a way starting more than 45° to the side of the riding direction tells that turn at once. Test "Turn at the start of the way".
 - [ ] 1.7 Ride scripts can place route points as planning does (`point <latitude> <longitude>` with its way from `RoutePointWays`), and a recorded real-data ride starts beside a route point off the network, away from the maintainer's home area: the guided way follows the planned way. `./gradlew check` passes, `checkScenarios -Pchange=guide-to-route-points` too.
 

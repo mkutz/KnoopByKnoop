@@ -43,9 +43,9 @@ class RoutePointGuidanceTest {
 
   private var time = 0L
 
-  private fun fix(east: Double, north: Double = 0.0): Fix {
+  private fun fix(east: Double, north: Double = 0.0, accuracy: Double = 5.0): Fix {
     time += 5_000
-    return Fix(latitude(north), longitude(east), 5.0, time)
+    return Fix(latitude(north), longitude(east), accuracy, time)
   }
 
   private fun at(east: Double, north: Double = 0.0) = GeoPoint(latitude(north), longitude(east))
@@ -68,9 +68,14 @@ class RoutePointGuidanceTest {
     val search: WaySearch? = null,
   )
 
-  private fun start(vararg knots: Knot, east: Double, north: Double = 0.0): Ride {
+  private fun start(
+    vararg knots: Knot,
+    east: Double,
+    north: Double = 0.0,
+    accuracy: Double = 5.0,
+  ): Ride {
     val routeGraph = graph.withRoutePoints(knots.filter { it.isRoutePoint })
-    val fix = fix(east, north)
+    val fix = fix(east, north, accuracy)
     val update =
       assertNotNull(
         Navigation.start(knots.toList(), routeGraph, geometry.withRoutePoints(routeGraph), fix)
@@ -367,6 +372,43 @@ class RoutePointGuidanceTest {
       ride.texts(NoticeKind.TURN),
     )
     assertFalse(ride.navigation.offRoute)
+  }
+
+  // Requirement: Way searched again from a precise position
+
+  /** The first step of navigating to [home] from a first position at [east], [north]. */
+  private fun startedImprecisely(home: Knot, east: Double, north: Double, accuracy: Double) =
+    start(home, knot12, knot31, east = east, north = north, accuracy = accuracy)
+
+  private fun step(ride: Ride, fix: Fix): WayGuideStep {
+    val update = ride.navigation.update(fix)
+    return guide.onFix(update.navigation, update.notices, fix, CYCLING, null, time, EN)
+  }
+
+  @Test
+  fun `Starting beside the start flag searches the way again from the first precise position`() {
+    val home = point(at(1500.0, 300.0), at(1500.0))
+    // 30 m north and 60 m east of the flag, 30 m accurate: a way east along another street.
+    val started = startedImprecisely(home, east = 1560.0, north = 330.0, accuracy = 30.0)
+    val first = assertNotNull(started.search)
+    guide.found(wayOf(first.from, at(1700.0, 330.0), at(1700.0), at(1500.0)), started.navigation)
+
+    val precise = step(started, fix(1500.0, 300.0, accuracy = 8.0))
+
+    val again = assertNotNull(precise.search, "searched again")
+    assertEquals(at(1500.0, 300.0), again.from)
+    guide.found(wayOf(at(1500.0, 300.0), at(1500.0)), started.navigation)
+    assertNull(step(started, fix(1500.0, 290.0, accuracy = 8.0)).search, "only once")
+  }
+
+  @Test
+  fun `Precise from the start the way found is kept`() {
+    val home = point(at(1500.0, 300.0), at(1500.0))
+    val started = startedImprecisely(home, east = 1500.0, north = 300.0, accuracy = 5.0)
+    val first = assertNotNull(started.search)
+    guide.found(wayOf(first.from, at(1500.0)), started.navigation)
+
+    assertNull(step(started, fix(1500.0, 290.0, accuracy = 5.0)).search)
   }
 
   @Test
