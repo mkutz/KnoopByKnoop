@@ -8,15 +8,18 @@ import kotlin.math.max
 import kotlin.math.min
 
 /** Which way a turn goes. [STRAIGHT] is only given for a junction with several small turns. */
-enum class TurnDirection {
-  STRAIGHT,
-  SLIGHT_LEFT,
-  LEFT,
-  SHARP_LEFT,
-  SLIGHT_RIGHT,
-  RIGHT,
-  SHARP_RIGHT,
-  BACK,
+enum class TurnDirection(
+  /** How far an arrow for it turns from straight ahead, clockwise, as the apps draw it. */
+  val degrees: Double
+) {
+  STRAIGHT(0.0),
+  SLIGHT_LEFT(-45.0),
+  LEFT(-90.0),
+  SHARP_LEFT(-135.0),
+  SLIGHT_RIGHT(45.0),
+  RIGHT(90.0),
+  SHARP_RIGHT(135.0),
+  BACK(180.0),
 }
 
 /**

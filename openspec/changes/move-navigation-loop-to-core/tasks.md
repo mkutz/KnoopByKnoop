@@ -2,7 +2,7 @@
 
 ## 1. Core
 
-- [ ] 1.1 `NavigationRoute` and `NavigationState` in the core; `NavigationSession` with `onFix`, `onWay`, `inLanguage` and `SessionStep` as in the design. Tests in a new `NavigationSessionTest` on the straight test network, covering the existing scenarios:
+- [x] 1.1 `NavigationRoute` and `NavigationState` in the core; `NavigationSession` with `onFix`, `onWay`, `inLanguage` and `SessionStep` as in the design. Tests in a new `NavigationSessionTest` on the straight test network, covering the existing scenarios:
   - `knot-navigation` "Arriving": the step after passing the end has "You've arrived" and `AFTER_SPEECH`; later fixes and ways give empty steps.
   - "Starting away from the route": the first fix off route gives a `WaySearch`; `onWay` with a way gives a state with the guided way.
   - "Path data arrives on the way": `onWay(null)`, then a fix after the store's squares changed gives a new search.
@@ -11,8 +11,8 @@
   - "Ridden track": the track takes the route's network and the fix.
   - A first fix where `Navigation.start` gives `null` gives `NOW`.
   `./gradlew :modules:core:jvmTest :modules:core:iosSimulatorArm64Test` passes.
-- [ ] 1.2 `WayFinder` with the version check, and `RoutePointWays` through it. Tests in `WayFinderTest`: a store whose version changes makes the finder read squares again; the same version keeps them. Tests pass on JVM and iOS simulator.
-- [ ] 1.3 `ProgressStrip.barMarks(limit)` and `TurnDirection.degrees`. Tests: ranking closed ferry, stop, ferry; marks behind the rider left out; the limit; every turn's angle as the apps have them today.
+- [x] 1.2 `WayFinder` with the version check, and `RoutePointWays` through it. Tests in `WayFinderTest`: a store whose version changes makes the finder read squares again; the same version keeps them. Tests pass on JVM and iOS simulator.
+- [x] 1.3 `ProgressStrip.barMarks(limit)` and `TurnDirection.degrees`. Tests: ranking closed ferry, stop, ferry; marks behind the rider left out; the limit; every turn's angle as the apps have them today.
 
 ## 2. Android
 

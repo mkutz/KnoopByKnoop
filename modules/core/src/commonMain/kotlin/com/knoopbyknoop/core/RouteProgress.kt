@@ -581,3 +581,38 @@ private fun roleOf(kind: ProgressMarkKind): WaypointRole =
     ProgressMarkKind.END -> WaypointRole.END
     else -> WaypointRole.STOP
   }
+
+/** What a mark on the lock screen's bar stands for, the most important first. */
+enum class BarMarkKind {
+  /** A ferry that won't be running when the rider gets there. */
+  CLOSED_FERRY,
+  STOP,
+  FERRY,
+}
+
+/**
+ * A stop or ferry ahead on the lock screen's bar, see `knot-navigation` "Navigation with the screen
+ * off".
+ *
+ * @property mark the strip's mark, e.g. for a stop's plate
+ */
+class BarMark(val fraction: Double, val kind: BarMarkKind, val mark: ProgressMark)
+
+/**
+ * The stops and ferries ahead of the rider for the lock screen's bar, at most [limit], the most
+ * important first and otherwise in riding order: closed ferries, then stops, then ferries.
+ */
+fun ProgressStrip.barMarks(limit: Int): List<BarMark> =
+  marks
+    .filter { it.fraction > rider }
+    .mapNotNull { mark ->
+      when {
+        mark.kind == ProgressMarkKind.FERRY && mark.state == FerryArrivalState.WARNING ->
+          BarMark(mark.fraction, BarMarkKind.CLOSED_FERRY, mark)
+        mark.kind == ProgressMarkKind.STOP -> BarMark(mark.fraction, BarMarkKind.STOP, mark)
+        mark.kind == ProgressMarkKind.FERRY -> BarMark(mark.fraction, BarMarkKind.FERRY, mark)
+        else -> null
+      }
+    }
+    .sortedBy { it.kind }
+    .take(limit)
