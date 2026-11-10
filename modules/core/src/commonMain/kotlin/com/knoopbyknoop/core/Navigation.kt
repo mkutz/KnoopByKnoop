@@ -211,6 +211,26 @@ class Navigation private constructor(private val setup: RideSetup, private val s
     return Navigation(setup, changed.copy(joinedRoute = changed.joinedRoute || !changed.offRoute))
   }
 
+  /** This state back on the route, the knot off it and the guidance off it forgotten. */
+  private fun RideState.backOnRoute(): RideState =
+    copy(offRoute = false, offRouteKnot = null, guided = null)
+
+  /**
+   * This state on the route heading for the knot at [index], at [place] on the route at [pace] with
+   * [fix], its line renewed there and its direction watched anew.
+   */
+  private fun RideState.headingFor(index: Int, place: Double, pace: Pace, fix: Fix): RideState =
+    backOnRoute()
+      .copy(
+        nextIndex = index,
+        pace = pace,
+        place = place,
+        progressLine =
+          route.line(place, index, pace.metersPerSecond, fix.timeMillis, localTime, language),
+        linePlace = place,
+        directionWatch = null,
+      )
+
   val knots: List<Knot>
     get() = setup.knots
 
@@ -849,22 +869,14 @@ class Navigation private constructor(private val setup: RideSetup, private val s
         val ferries = ferryWatch?.atKnot(passedIndex, fix.timeMillis, pace.metersPerSecond)
         ferries?.let { notices += it.second }
         navigation = navigation.with {
-          it.copy(
-            nextIndex = newNext,
-            offRoute = false,
-            offRouteKnot = null,
-            passedKnot = knots[passedIndex],
-            passedAtMillis = fix.timeMillis,
-            remindedIndex = if (closeToPrevious(newNext)) newNext else remindedIndex,
-            ferryWatch = ferries?.first ?: ferryWatch,
-            pace = pace,
-            place = place,
-            progressLine =
-              route.line(place, newNext, pace.metersPerSecond, fix.timeMillis, localTime, language),
-            linePlace = place,
-            guided = null,
-            directionWatch = null,
-          )
+          it
+            .headingFor(newNext, place, pace, fix)
+            .copy(
+              passedKnot = knots[passedIndex],
+              passedAtMillis = fix.timeMillis,
+              remindedIndex = if (closeToPrevious(newNext)) newNext else remindedIndex,
+              ferryWatch = ferries?.first ?: ferryWatch,
+            )
         }
       }
     } else if (
@@ -887,27 +899,7 @@ class Navigation private constructor(private val setup: RideSetup, private val s
             val newNext = leg + 1
             notices += backOnRouteNotice(newNext)
             val place = route.placeOf(fix, newNext)
-            navigation.with {
-              it.copy(
-                nextIndex = newNext,
-                offRoute = false,
-                offRouteKnot = null,
-                place = place,
-                progressLine =
-                  route.line(
-                    place,
-                    newNext,
-                    pace.metersPerSecond,
-                    fix.timeMillis,
-                    localTime,
-                    language,
-                  ),
-                linePlace = place,
-                guided = null,
-                directionWatch = null,
-                joining = null,
-              )
-            }
+            navigation.with { it.headingFor(newNext, place, pace, fix).copy(joining = null) }
           }
         }
     } else {
@@ -917,9 +909,7 @@ class Navigation private constructor(private val setup: RideSetup, private val s
         offRouteKnot == null && onStraightLine(fix) -> {
           // A straight line cannot be followed, see `knot-navigation` "A straight line".
           if (offRoute) notices += backOnRouteNotice(nextIndex)
-          navigation = navigation.with {
-            it.copy(offRoute = false, offRouteKnot = null, guided = null)
-          }
+          navigation = navigation.with { it.backOnRoute() }
         }
         offRouteKnot != null -> {
           if (!offRoute) notices += offRouteNotice(nextIndex, fix)
@@ -942,9 +932,7 @@ class Navigation private constructor(private val setup: RideSetup, private val s
           (state.offRouteKnot == null ||
             distanceToNearestNode(fix, state.offRouteKnot) > OFF_COURSE_METERS) -> {
           notices += backOnRouteNotice(nextIndex)
-          navigation = navigation.with {
-            it.copy(offRoute = false, offRouteKnot = null, guided = null)
-          }
+          navigation = navigation.with { it.backOnRoute() }
         }
       }
     }
