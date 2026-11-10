@@ -26,7 +26,7 @@ The route point's header badge is the plain flag where the strip shows the place
 
 ### Found on the starts of 2026-11-10
 
-The maintainer started a route of a start and an end flag in Siegburg twice, 15–40 m from the start flag: on the iPhone at about 17:59 and on the Pixel at 19:01. Both times the guided way led east along Lindenstraße and the railway (1.3 km) instead of along the planned way south (1.14 km); on the iPhone, after walking west past the flag, a new way began with a left turn right there, and no notice was spoken. The Pixel's log: navigation started 19:01:11.6, first guided way 19:01:12.5, 1,291 m with 5 turns. A local replay on a cut-out of the published data (not committed, as it is near the maintainer's home) gives that way only with a riding direction north; without one, the planned way. Added to this change as tasks 1.5 to 1.8 and 2.2.
+The maintainer started a route of a start and an end flag in Siegburg twice, 15–40 m from the start flag: on the iPhone at about 17:59 and on the Pixel at 19:01. Both times the guided way led east along Lindenstraße and the railway (1.3 km) instead of along the planned way south (1.14 km); on the iPhone, after walking west past the flag, a new way began with a left turn right there, and no notice was spoken. The Pixel's log: navigation started 19:01:11.6, first guided way 19:01:12.5, 1,291 m with 5 turns. A local replay on a cut-out of the published data (not committed, as it is near the maintainer's home) gives that way only with a riding direction north; without one, the planned way. Added to this change as tasks 1.5 to 1.7 and 2.2; the way search stays the same as off route (decided with the maintainer).
 
 ### Steps for the maintainer
 

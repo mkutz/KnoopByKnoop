@@ -42,19 +42,16 @@ When a route point is joined to the network by a way along paths, navigation SHA
 - **WHEN** the rider starts navigating at the start flag at home, whose way along paths joins the course of 02–28 after 600 m, turning left there towards 02
 - **THEN** the rider hears each turn of the way, and at the join "Turn left now onto the route towards 02", and then "Next 02" as usual
 
-### Requirement: Way searches along the planned way
-While the rider is within the on-course distance of a route point's planned way, the way search SHALL start in the planned way's direction at the rider's place on it, not in the riding direction, so the guided way follows the way shown on the map.
-
-#### Scenario: Starting beside the start flag
-- **WHEN** the rider starts navigating 15 m from the start flag, whose planned way leaves southwards, and the first positions lie 12 m apart to the north while they still stand
-- **THEN** the guided way follows the planned way south, not a way ahead to the north that is 160 m longer
-
 ### Requirement: Riding direction right after starting
-Positions less than 5 s apart SHALL NOT give the riding direction for a way search, so the settling of the position right after navigation starts does not count as riding.
+Positions less than 5 s apart SHALL NOT give the riding direction for a way search, so the settling of the position right after navigation starts does not count as riding. This holds for every way search, to a route point as off route.
 
 #### Scenario: Position settling at the start
 - **WHEN** navigation starts and the second position, one second after the first, lies 12 m from it
 - **THEN** the first way search has no riding direction and finds the cheapest way
+
+#### Scenario: Starting beside the start flag
+- **WHEN** the rider starts navigating 15 m from the start flag, whose planned way leaves southwards, and the first positions lie 12 m apart to the north while they still stand
+- **THEN** the guided way follows the planned way south, not a way ahead to the north that is 160 m longer
 
 ## MODIFIED Requirements
 
