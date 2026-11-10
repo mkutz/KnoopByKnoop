@@ -1272,3 +1272,6 @@ While navigation leads to the first knot of the route, a rider who follows the c
 #### Scenario: Without courses
 - **WHEN** the network's courses are not installed
 - **THEN** navigation behaves as before, as it began at the nearest knot
+
+### Requirement: Test of the Specs workflow
+This requirement has no scenario on purpose; the pull request is closed without merging.
