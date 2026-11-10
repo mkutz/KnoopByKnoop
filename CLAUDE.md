@@ -15,7 +15,9 @@ Behavior is specified with OpenSpec before it is implemented:
 
 - `openspec/specs/` is the current truth, `openspec/changes/` holds proposed changes.
 - Start new behavior with `/opsx:propose`, implement with `/opsx:apply`, finish with `/opsx:archive`.
-- Every scenario in a spec delta needs a test that covers it.
+- Every scenario in a spec delta needs a test that covers it: a test whose name starts with the scenario's name, or one marked `// Scenario: <name>` (`#` in shell test scripts).
+  Scenarios a unit test cannot check (UI, devices, workflow runs) go into `openspec/checked-by-hand.md` with how they are checked.
+  `./gradlew check` fails on a scenario with neither; `./gradlew checkScenarios -Pchange=<name>` checks a change's delta before archiving.
 - If code and spec disagree, raise it instead of silently changing either.
 
 
@@ -38,8 +40,9 @@ Behavior is specified with OpenSpec before it is implemented:
 # iOS project (needs Xcode and XcodeGen)
 xcodegen --spec apps/ios/project.yml
 
-# Validate specs
+# Validate specs, and check that every scenario has a test (also part of check)
 npx @fission-ai/openspec validate --all
+./gradlew checkScenarios
 ```
 
 

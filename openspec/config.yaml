@@ -22,7 +22,8 @@ rules:
   proposal:
     - Always state what is out of scope
   tasks:
-    - Include the tests that cover each spec scenario
+    - Include the tests that cover each spec scenario, named after the scenario or marked `// Scenario: <name>`; scenarios only checkable on the devices or by a workflow run go into openspec/checked-by-hand.md with how they are checked
+    - End with running `./gradlew checkScenarios -Pchange=<change-name>`
 
 # Per-artifact rules (optional)
 # Add custom rules for specific artifacts.

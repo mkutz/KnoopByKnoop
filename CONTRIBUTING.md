@@ -11,7 +11,10 @@ Every change in behavior starts as a change proposal in `openspec/changes/<chang
 1. **Propose:** `proposal.md` (why, what, out of scope), spec deltas in `specs/<capability>/spec.md`, and `tasks.md`.
    With Claude Code: `/opsx:propose "your idea"`.
 2. **Discuss** the proposal in a pull request or issue before implementing it.
-3. **Apply:** implement the tasks; each spec scenario gets a test. With Claude Code: `/opsx:apply`.
+3. **Apply:** implement the tasks; each spec scenario gets a test, named after the scenario or marked `// Scenario: <name>`.
+   Scenarios only checkable on the devices or by a workflow run are listed in `openspec/checked-by-hand.md` with how they are checked.
+   `./gradlew checkScenarios -Pchange=<change-id>` shows the change's scenarios still without either.
+   With Claude Code: `/opsx:apply`.
 4. **Archive:** once merged, move the deltas into `openspec/specs/`. With Claude Code: `/opsx:archive`.
 
 Validate specs with:
@@ -19,6 +22,8 @@ Validate specs with:
 ```bash
 npx @fission-ai/openspec validate --all
 ```
+
+The Specs workflow runs this and the scenario check on every push, also when only specs change.
 
 Pure maintenance (dependency updates, refactorings, build changes) needs no proposal.
 
