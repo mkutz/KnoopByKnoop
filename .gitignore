@@ -5,7 +5,8 @@ build/
 local.properties
 
 # IDEs
-.idea/
+.idea/*
+!.idea/icon.svg
 *.iml
 .vscode/
 .DS_Store
