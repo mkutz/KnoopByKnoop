@@ -6,7 +6,7 @@
 
 ## 2. State and setup
 
-- [ ] 2.1 `RideSetup` and `RideState`, `Navigation(setup, state)` with its public properties reading through, `with { }` in place of `copy(...)` with the `joinedRoute` rule in it, `start()` and `inLanguage()` building the two. The recorded rides and `NavigationTest` unchanged.
+- [x] 2.1 `RideSetup` and `RideState`, `Navigation(setup, state)` with its public properties reading through, `with { }` in place of `copy(...)` with the `joinedRoute` rule in it, `start()` and `inLanguage()` building the two. The recorded rides and `NavigationTest` unchanged.
 
 ## 3. Steps of `update()`
 
