@@ -3,8 +3,8 @@ Keeps the specs valid and every scenario tied to a test, or to a stated way it i
 
 ## ADDED Requirements
 
-### Requirement: Every scenario has a test or a stated check
-The build SHALL fail when a scenario of the specs has neither a test nor an entry in the list of scenarios checked otherwise. A test SHALL count for a scenario when its name starts with the scenario's name, ignoring case and punctuation, or when it is marked with the scenario's name; a scenario name of fewer than three words SHALL only count when the test name is exactly the scenario's name or the test is marked. Every entry of the list SHALL say how the scenario is checked. The failure SHALL name the capability, requirement and scenario of each scenario missing.
+### Requirement: Tests tied to scenarios by name
+A test SHALL count for a scenario when its name starts with the scenario's name, ignoring case and punctuation, or when it is marked with the scenario's name. For a scenario name of fewer than three words, only a test of exactly that name or a marked test SHALL count.
 
 #### Scenario: Test named after the scenario
 - **WHEN** the scenario "Cycle path beside a main road" has the test `Cycle path beside a main road is preferred when 20 percent longer`
@@ -17,6 +17,9 @@ The build SHALL fail when a scenario of the specs has neither a test nor an entr
 #### Scenario: Short scenario name
 - **WHEN** the scenario "Ready" has no test of exactly that name and no marked test, and a test is named `ready to route after the download`
 - **THEN** the scenario does not count as tested
+
+### Requirement: Every scenario has a test or a stated check
+The build SHALL fail when a scenario of the specs has neither a test nor an entry in the list of scenarios checked otherwise, naming the capability, requirement and scenario of each one. Every entry of the list SHALL say how the scenario is checked.
 
 #### Scenario: Scenario without a test
 - **WHEN** a commit adds the scenario "Knot in Flanders" to `network-data` without a test and without an entry in the list
