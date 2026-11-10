@@ -170,8 +170,9 @@ private constructor(
    */
   fun nearestOnCourses(position: GeoPoint, maxMeters: Double, count: Int = 1): List<CoursePlace> {
     val installed = installed
-    val latitudeMargin = maxMeters / 111_195.0
-    val longitudeMargin = latitudeMargin / kotlin.math.cos(position.latitude * kotlin.math.PI / 180)
+    val margins = marginsAt(position.latitude, maxMeters)
+    val latitudeMargin = margins.latitude
+    val longitudeMargin = margins.longitude
     val ferries = installed.graph.ferries.keys
     return installed.courses.indices
       .asSequence()

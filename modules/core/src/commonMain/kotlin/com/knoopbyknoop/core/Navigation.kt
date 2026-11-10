@@ -1,13 +1,9 @@
 package com.knoopbyknoop.core
 
-import kotlin.math.PI
 import kotlin.math.abs
-import kotlin.math.atan2
-import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
-import kotlin.math.sin
 
 /**
  * A position of the rider, as the platforms deliver it.
@@ -285,7 +281,7 @@ private constructor(
     if (offRoute && !arrived) {
       val target = wayToRoute(fix) ?: headedFor(nextIndex)
       val meters = distanceTo(fix, target)
-      val bearing = bearing(fix, target)
+      val bearing = bearing(fix.point, target)
       val distance = MapFeatures.formatDistance(meters.roundToInt(), language)
       val onNetwork =
         network
@@ -310,7 +306,7 @@ private constructor(
     if (offNetwork != null) {
       // On the way of a route point off the network, as on the way to the route, see
       // "Guidance to a route point off the network".
-      val bearing = bearing(fix, offNetwork)
+      val bearing = bearing(fix.point, offNetwork)
       val distance = MapFeatures.formatDistance(distanceTo(fix, offNetwork).roundToInt(), language)
       val guided = guidedWay?.headerTurn(language)
       val way = texts.way(distance, compass(bearing, language))
@@ -394,7 +390,7 @@ private constructor(
     ) {
       return null
     }
-    return turnOf(signedAngle(heading(before, arrivedAt), heading(leavesFrom, after)))
+    return turnOf(signedAngle(bearing(before, arrivedAt), bearing(leavesFrom, after)))
   }
 
   /**
@@ -1084,7 +1080,7 @@ private constructor(
   private fun spokenWay(fix: Fix, point: GeoPoint): String =
     speech.way(
       speech.spokenDistance(distanceTo(fix, point).roundToInt()),
-      compass(bearing(fix, point), speechLanguage),
+      compass(bearing(fix.point, point), speechLanguage),
     )
 
   private fun routeLine(fix: Fix): String =
@@ -1113,7 +1109,7 @@ private constructor(
   private fun guide(fix: Fix, startedNow: Boolean): Pair<Navigation, Notice?> {
     val target = headedFor(nextIndex)
     val meters = distanceTo(fix, target)
-    val bearing = bearing(fix, target)
+    val bearing = bearing(fix.point, target)
     val way = wayTo(fix, target, language)
     val last = guided
     val notice =
@@ -1532,19 +1528,8 @@ private fun distanceToNearestNode(fix: Fix, knot: Knot): Double =
 internal fun compass(bearing: Double, language: Language = Language.EN): String =
   language.texts.compassDirections[(((bearing + 22.5) % 360 + 360) % 360 / 45).toInt() % 8]
 
-/** The initial great-circle bearing from [fix] to [point], clockwise from north. */
-private fun bearing(fix: Fix, point: GeoPoint): Double {
-  val fromLatitude = fix.latitude * PI / 180
-  val toLatitude = point.latitude * PI / 180
-  val deltaLongitude = (point.longitude - fix.longitude) * PI / 180
-  val y = sin(deltaLongitude) * cos(toLatitude)
-  val x =
-    cos(fromLatitude) * sin(toLatitude) - sin(fromLatitude) * cos(toLatitude) * cos(deltaLongitude)
-  return (atan2(y, x) * 180 / PI + 360) % 360
-}
-
 private fun wayTo(fix: Fix, point: GeoPoint, language: Language): Guidance {
-  val bearing = bearing(fix, point)
+  val bearing = bearing(fix.point, point)
   val distance = MapFeatures.formatDistance(distanceTo(fix, point).roundToInt(), language)
   val direction = compass(bearing, language)
   return Guidance(distance, bearing, direction, language.texts.way(distance, direction))

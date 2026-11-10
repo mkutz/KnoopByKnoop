@@ -195,9 +195,8 @@ private fun List<GeoPoint>.dedupeStart() = if (size > 2 && this[0] == this[1]) d
 
 /** A rough distance in meters between two positions, for quick checks. */
 internal fun roughMeters(from: GeoPoint, to: GeoPoint): Double {
-  val metersPerDegree = 111_195.0
-  val deltaY = (to.latitude - from.latitude) * metersPerDegree
-  val deltaX = (to.longitude - from.longitude) * metersPerDegree * cos(from.latitude * PI / 180)
+  val deltaY = (to.latitude - from.latitude) * METERS_PER_DEGREE
+  val deltaX = (to.longitude - from.longitude) * METERS_PER_DEGREE * cos(from.latitude * PI / 180)
   return kotlin.math.sqrt(deltaX * deltaX + deltaY * deltaY)
 }
 

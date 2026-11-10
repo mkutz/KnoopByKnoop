@@ -1,7 +1,5 @@
 package com.knoopbyknoop.core
 
-import kotlin.math.PI
-import kotlin.math.cos
 import kotlin.math.floor
 
 /**
@@ -61,8 +59,9 @@ class KnotLocator(private val knots: Collection<Knot>) {
     radiusMeters: Double,
     positionsOf: (Knot) -> List<GeoPoint>,
   ): Knot? {
-    val latitudeRadius = radiusMeters / METERS_PER_DEGREE
-    val longitudeRadius = latitudeRadius / cos(latitude * PI / 180).coerceAtLeast(0.01)
+    val margins = marginsAt(latitude, radiusMeters)
+    val latitudeRadius = margins.latitude
+    val longitudeRadius = margins.longitude
     val (minimumColumn, minimumRow) =
       cellCoordinates(latitude - latitudeRadius, longitude - longitudeRadius)
     val (maximumColumn, maximumRow) =

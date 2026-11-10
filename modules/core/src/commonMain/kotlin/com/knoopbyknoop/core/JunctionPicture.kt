@@ -146,7 +146,5 @@ internal class PictureFrame(private val center: GeoPoint, heading: Double) {
       from.second + (to.second - from.second) * share
   }
 
-  private companion object {
-    const val METERS_PER_DEGREE = 111_195.0
-  }
+  private companion object {}
 }

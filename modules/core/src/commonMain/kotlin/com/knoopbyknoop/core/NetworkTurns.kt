@@ -104,7 +104,7 @@ private fun networkTurn(course: List<GeoPoint>, meters: Double, towards: Knot?):
   val afterMeters = distanceMeters(at.latitude, at.longitude, after.latitude, after.longitude)
   val known =
     beforeMeters >= Navigation.TURN_MIN_METERS && afterMeters >= Navigation.TURN_MIN_METERS
-  val direction = if (known) turnOf(signedAngle(heading(before, at), heading(at, after))) else null
+  val direction = if (known) turnOf(signedAngle(bearing(before, at), bearing(at, after))) else null
   val lead = line.stretch(meters, meters + WAY_SEARCH_AFTER_METERS)
   return NetworkTurn(meters, at, direction, towards, lead, line.length - meters)
 }

@@ -1,9 +1,6 @@
 package com.knoopbyknoop.core
 
-import kotlin.math.PI
 import kotlin.math.abs
-import kotlin.math.atan2
-import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
 
@@ -349,7 +346,7 @@ class PathRouter(private val file: PathSquareSource) {
     val onPath = along.first()
     val connection =
       distanceMeters(from.latitude, from.longitude, onPath.latitude, onPath.longitude)
-    return (connection >= SHORT_START_METERS && isTurningBack(heading, heading(from, onPath))) ||
+    return (connection >= SHORT_START_METERS && isTurningBack(heading, bearing(from, onPath))) ||
       (lengthOf(along) >= SHORT_START_METERS && isTurningBack(heading, headingAlong(along)))
   }
 
@@ -363,7 +360,7 @@ class PathRouter(private val file: PathSquareSource) {
     arriving: Step,
     taken: Step,
   ): Boolean {
-    val inbound = heading(firstPointBeyond(arrived.asReversed()), arrived.last())
+    val inbound = bearing(firstPointBeyond(arrived.asReversed()), arrived.last())
     fun turnOf(step: Step) = abs(signedAngle(inbound, headingAlong(step.points())))
     val takenTurn = turnOf(taken)
     return takenTurn < TURN_DEGREES &&
@@ -447,7 +444,7 @@ class PathRouter(private val file: PathSquareSource) {
     val from = line.pointAt(start - JunctionPicture.DIRECTION_FROM_METERS)
     val to = line.pointAt(start - JunctionPicture.DIRECTION_TO_METERS)
     val ahead = if (from == to) line.pointAt(start + HEADING_METERS) else to
-    val heading = (heading(if (from == to) center else from, ahead) + 360) % 360
+    val heading = bearing(if (from == to) center else from, ahead)
     val frame = PictureFrame(center, heading)
     val view = PICTURE_VIEW_METERS
     val lines = mutableListOf<PictureLine>()
@@ -463,8 +460,9 @@ class PathRouter(private val file: PathSquareSource) {
     val square = PathSquare.of(center.latitude, center.longitude)
     // Only segments with a point near the junction, checked cheaply first: the squares hold
     // thousands of them, and comparing them all with each other took minutes.
-    val latitudeReach = PICTURE_REACH_METERS / METERS_PER_DEGREE
-    val longitudeReach = latitudeReach / cos(center.latitude * PI / 180)
+    val reach = marginsAt(center.latitude, PICTURE_REACH_METERS)
+    val latitudeReach = reach.latitude
+    val longitudeReach = reach.longitude
     fun isNear(segment: PathSegment) =
       segment.points.any {
         abs(it.latitude - center.latitude) <= latitudeReach &&
@@ -552,7 +550,7 @@ class PathRouter(private val file: PathSquareSource) {
 
   /** The direction [points] set off in, over about [HEADING_METERS]. */
   private fun headingAlong(points: List<GeoPoint>) =
-    heading(points.first(), firstPointBeyond(points))
+    bearing(points.first(), firstPointBeyond(points))
 
   /**
    * The first of [points] at least [HEADING_METERS] from the first, else the last: a point of the
@@ -590,21 +588,11 @@ class PathRouter(private val file: PathSquareSource) {
     meters: List<Double>,
     junctions: List<Junction>,
   ): List<PathTurn> {
-    fun at(position: Double): GeoPoint {
-      val clamped = position.coerceIn(0.0, meters.last())
-      val index = meters.indexOfFirst { it >= clamped }.coerceAtLeast(1)
-      val length = meters[index] - meters[index - 1]
-      val along = if (length == 0.0) 0.0 else (clamped - meters[index - 1]) / length
-      val start = points[index - 1]
-      val end = points[index]
-      return GeoPoint(
-        start.latitude + (end.latitude - start.latitude) * along,
-        start.longitude + (end.longitude - start.longitude) * along,
-      )
-    }
+    val line = Polyline(points, meters)
+    fun at(position: Double) = line.pointAt(position)
     fun angle(fromMeters: Double, toMeters: Double): Double {
-      val inbound = heading(at(fromMeters - HEADING_METERS), at(fromMeters))
-      val outbound = heading(at(toMeters), at(toMeters + HEADING_METERS))
+      val inbound = bearing(at(fromMeters - HEADING_METERS), at(fromMeters))
+      val outbound = bearing(at(toMeters), at(toMeters + HEADING_METERS))
       return signedAngle(inbound, outbound)
     }
     val decisions = junctions.filter { it.exits >= 2 && it.atMeters > 0.0 }
@@ -762,8 +750,8 @@ class PathRouter(private val file: PathSquareSource) {
     if (inbound.size < 2 || outbound.size < 2) return 0.0
     val angle =
       signedAngle(
-        heading(inbound[inbound.size - 2], inbound.last()),
-        heading(outbound.first(), outbound[1]),
+        bearing(inbound[inbound.size - 2], inbound.last()),
+        bearing(outbound.first(), outbound[1]),
       )
     return if (abs(angle) > TURNING_BACK_DEGREES) TURNING_BACK_COST else 0.0
   }
@@ -808,8 +796,9 @@ class PathRouter(private val file: PathSquareSource) {
     fromId == other.fromId && toId == other.toId && points == other.points
 
   private fun squaresAround(place: GeoPoint): Set<PathSquare> {
-    val latitudeMargin = CONNECT_METERS / METERS_PER_DEGREE
-    val longitudeMargin = latitudeMargin / cos(place.latitude * PI / 180)
+    val margins = marginsAt(place.latitude, CONNECT_METERS)
+    val latitudeMargin = margins.latitude
+    val longitudeMargin = margins.longitude
     return listOf(-1, 1)
       .flatMap { latitudeSign ->
         listOf(-1, 1).map { longitudeSign ->
@@ -905,7 +894,6 @@ class PathRouter(private val file: PathSquareSource) {
     /** See `path-routing` "Memory on a long ride": about 50 MB in a region with many ways. */
     const val MAX_KEPT_SQUARES = 24
     const val MARGIN_DEGREES = 0.09
-    const val METERS_PER_DEGREE = 111_195.0
     const val STEPS_PER_NODE = 3
 
     /** Turns this close together are one, see "Turn notices on the guided way". */
@@ -949,13 +937,4 @@ internal fun turnOf(angle: Double): TurnDirection {
       if (angle < 0) TurnDirection.SHARP_LEFT else TurnDirection.SHARP_RIGHT
     else -> TurnDirection.BACK
   }
-}
-
-/**
- * The direction from [from] to [to] in degrees clockwise from north, in a local flat projection.
- */
-internal fun heading(from: GeoPoint, to: GeoPoint): Double {
-  val x = (to.longitude - from.longitude) * cos(from.latitude * PI / 180)
-  val y = to.latitude - from.latitude
-  return atan2(x, y) * 180 / PI
 }

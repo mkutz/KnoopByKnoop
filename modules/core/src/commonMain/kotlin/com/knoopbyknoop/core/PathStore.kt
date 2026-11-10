@@ -1,8 +1,6 @@
 package com.knoopbyknoop.core
 
 import kotlin.concurrent.Volatile
-import kotlin.math.PI
-import kotlin.math.cos
 import kotlin.math.max
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -55,7 +53,6 @@ object PathSquares {
 
   /** How far from a route's course ways are downloaded. */
   private const val AROUND_METERS = 5000.0
-  private const val METERS_PER_DEGREE = 111_195.0
 
   /** Course points further apart than this get points added between them. */
   private const val STEP_METERS = 2000.0
@@ -80,8 +77,9 @@ object PathSquares {
   fun near(course: List<GeoPoint>): Set<PathSquare> {
     val squares = LinkedHashSet<PathSquare>()
     fun addAround(point: GeoPoint) {
-      val latitudeMargin = AROUND_METERS / METERS_PER_DEGREE
-      val longitudeMargin = latitudeMargin / cos(point.latitude * PI / 180)
+      val margins = marginsAt(point.latitude, AROUND_METERS)
+      val latitudeMargin = margins.latitude
+      val longitudeMargin = margins.longitude
       val low = PathSquare.of(point.latitude - latitudeMargin, point.longitude - longitudeMargin)
       val high = PathSquare.of(point.latitude + latitudeMargin, point.longitude + longitudeMargin)
       for (latitude in low.latitudeIndex..high.latitudeIndex) {

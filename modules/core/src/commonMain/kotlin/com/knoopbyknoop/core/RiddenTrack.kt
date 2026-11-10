@@ -1,9 +1,6 @@
 package com.knoopbyknoop.core
 
-import kotlin.math.PI
 import kotlin.math.abs
-import kotlin.math.atan2
-import kotlin.math.cos
 import kotlin.math.max
 
 /**
@@ -52,8 +49,8 @@ data class RiddenTrack(
    * of `smooth-ridden-track`. A right-angle corner is not sharp enough.
    */
   private fun isSpike(from: Fix, spike: Fix, fix: Fix): Boolean {
-    val back = bearing(spike, from)
-    val on = bearing(spike, fix)
+    val back = bearing(spike.point, from.point)
+    val on = bearing(spike.point, fix.point)
     val turn = abs(((back - on + 540) % 360) - 180)
     if (turn >= SPIKE_ANGLE_DEGREES) return false
     val off =
@@ -82,7 +79,7 @@ data class RiddenTrack(
         distanceBetween(it, newest) >= DIRECTION_DISTANCE_METERS
       } ?: return null
     if (newest.timeMillis - from.timeMillis > DIRECTION_SPAN_MILLIS) return null
-    return bearing(from, newest)
+    return bearing(from.point, newest.point)
   }
 
   private companion object {
@@ -105,11 +102,3 @@ data class RiddenTrack(
 
 private fun distanceBetween(from: Fix, to: Fix) =
   distanceMeters(from.latitude, from.longitude, to.latitude, to.longitude)
-
-/** The bearing from [from] to [to], clockwise from north, on the short distances of a track. */
-private fun bearing(from: Fix, to: Fix): Double {
-  val north = to.latitude - from.latitude
-  val east = (to.longitude - from.longitude) * cos(from.latitude * PI / 180)
-  val degrees = atan2(east, north) * 180 / PI
-  return (degrees + 360) % 360
-}

@@ -40,7 +40,7 @@ fun trickyStretches(
     if (at < TRICKY_SPAN_METERS || length - at < TRICKY_SPAN_METERS) continue
     val before = line.pointAt(at - TRICKY_SPAN_METERS)
     val after = line.pointAt(at + TRICKY_SPAN_METERS)
-    val angle = signedAngle(heading(before, course[index]), heading(course[index], after))
+    val angle = signedAngle(bearing(before, course[index]), bearing(course[index], after))
     if (abs(angle) >= degrees) sharp += at
   }
   // Points closer than the two spans of a measurement see the same bend.

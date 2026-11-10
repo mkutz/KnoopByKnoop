@@ -31,6 +31,10 @@ fun distanceMeters(
   return 2 * EARTH_RADIUS_METERS * asin(sqrt(a))
 }
 
+/** Where [this] fix is. */
+internal val Fix.point: GeoPoint
+  get() = GeoPoint(latitude, longitude)
+
 /** The great-circle distance between two points. */
 internal fun distanceMeters(from: GeoPoint, to: GeoPoint): Double =
   distanceMeters(from.latitude, from.longitude, to.latitude, to.longitude)

@@ -218,7 +218,7 @@ class WayGuide {
       val to = leg.pointPosition
       val pointMeters =
         distanceMeters(fix.latitude, fix.longitude, to.latitude, to.longitude).roundToInt()
-      val bearing = (heading(GeoPoint(fix.latitude, fix.longitude), to) + 360) % 360
+      val bearing = bearing(fix.point, to)
       fun told(texts: Texts, distance: String, language: Language, pointDistance: String) =
         turn(texts, direction, stage, distance)
           .let { if (street != null) texts.into(it, street) else it }
