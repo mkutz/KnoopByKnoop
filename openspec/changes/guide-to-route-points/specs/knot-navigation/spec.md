@@ -42,16 +42,16 @@ When a route point is joined to the network by a way along paths, navigation SHA
 - **WHEN** the rider starts navigating at the start flag at home, whose way along paths joins the course of 02–28 after 600 m, turning left there towards 02
 - **THEN** the rider hears each turn of the way, and at the join "Turn left now onto the route towards 02", and then "Next 02" as usual
 
-### Requirement: Riding direction right after starting
-Positions less than 5 s apart SHALL NOT give the riding direction for a way search, so the settling of the position right after navigation starts does not count as riding. This holds for every way search, to a route point as off route.
-
-#### Scenario: Position settling at the start
-- **WHEN** navigation starts and the second position, one second after the first, lies 12 m from it
-- **THEN** the first way search has no riding direction and finds the cheapest way
+### Requirement: Way searched again from a precise position
+A way to a route point or back to the route found from a position less precise than 20 m SHALL be searched again with the next position of 20 m or better, so a position that is off at the start does not decide the way.
 
 #### Scenario: Starting beside the start flag
-- **WHEN** the rider starts navigating 15 m from the start flag, whose planned way leaves southwards, and the first positions lie 12 m apart to the north while they still stand
-- **THEN** the guided way follows the planned way south, not a way ahead to the north that is 160 m longer
+- **WHEN** the rider starts navigating at the start flag, whose planned way leaves southwards, the first position lies 30 m north of it with 30 m accuracy, and the way found from there runs east along another street
+- **THEN** with the next position of 8 m accuracy at the flag the way is searched again, and the guided way follows the planned way south
+
+#### Scenario: Precise from the start
+- **WHEN** the first position after starting is 5 m accurate
+- **THEN** the way found from it is kept, and not searched again for the next precise position
 
 ## MODIFIED Requirements
 
