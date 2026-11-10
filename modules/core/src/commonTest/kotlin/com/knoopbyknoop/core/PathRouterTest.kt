@@ -455,4 +455,36 @@ class PathRouterTest {
     }
     assertFailsWith<GraphFormatException> { file.segments(square) }
   }
+
+  @Test
+  fun `Broken path data finds no way and the next search works again`() {
+    val bytes =
+      PathFile.toBytes(
+        mapOf(
+          PathSquare.of(start.latitude, start.longitude) to
+            listOf(segment(1, 2, start, end, kind = PathKind.CYCLE))
+        ),
+        "2026-11-02",
+        "OSM",
+      )
+    val file = PathFile.open { offset, size ->
+      bytes.copyOfRange(offset.toInt(), offset.toInt() + size)
+    }
+    var broken = true
+    val router =
+      PathRouter(
+        object : PathSquareSource {
+          override fun segments(square: PathSquare): List<PathSegment> {
+            if (broken) throw GraphFormatException("Can't unpack: -3")
+            return file.segments(square)
+          }
+        }
+      )
+
+    assertNull(router.way(start, end))
+    assertEquals(0, router.loadedSquares)
+
+    broken = false
+    assertNotNull(router.way(start, end))
+  }
 }

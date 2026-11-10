@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Damaged path data no longer ends the app while it looks for a way along paths; the straight line stays instead
 - On a way back to the route, a drawing of a tricky junction ahead shows below the header with what to do, e.g. "In 90 m, keep left at the fork", from about 150 m before it; on the Pixel's lock screen the sentence
 - Off the route, the way back leads to where it saves the most, e.g. on to where the route goes next instead of back to where you left it
 - At the largest text sizes, the navigation header keeps its badges and arrows in one row with the distance below it, and on a way to the route the turn's distance is no longer cut short on the iPhone

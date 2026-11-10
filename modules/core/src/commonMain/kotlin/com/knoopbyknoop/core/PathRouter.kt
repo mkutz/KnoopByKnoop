@@ -170,12 +170,23 @@ class PathRouter(private val file: PathSquareSource) {
     private set
 
   /**
-   * The way from [from] to [to], or `null` if the squares between them don't connect them, see
-   * `path-routing` "No way found".
+   * The way from [from] to [to], or `null` if the squares between them don't connect them or the
+   * search fails, see `path-routing` "No way found". Never throws, as an exception would end the
+   * app on iOS.
    *
    * @param heading the riding direction, clockwise from north, if known
    */
-  fun way(from: GeoPoint, to: GeoPoint, heading: Double? = null): PathWay? {
+  fun way(from: GeoPoint, to: GeoPoint, heading: Double? = null): PathWay? =
+    try {
+      searchWay(from, to, heading)
+    } catch (exception: Exception) {
+      // Some squares may be half loaded; they are read again with the next search, see
+      // `path-routing` "Broken path data".
+      forgetSquares()
+      null
+    }
+
+  private fun searchWay(from: GeoPoint, to: GeoPoint, heading: Double?): PathWay? {
     if (loaded.size > MAX_KEPT_SQUARES) forgetSquares()
     val starts = candidates(from, leaving = true)
     val targets = candidates(to, leaving = false)

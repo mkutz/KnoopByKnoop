@@ -368,12 +368,10 @@ class NavigationService : Service() {
             pathRouterVersion = pathStore.version
           }
           val started = SystemClock.elapsedRealtime()
+          // Other failures give no way already, see `path-routing` "Broken path data".
           val way =
             try {
               router.way(search.from, search.to, search.heading)
-            } catch (exception: Exception) {
-              Log.w(LOG_TAG, "no guided way", exception)
-              null
             } catch (error: OutOfMemoryError) {
               // A long way in a dense area can take a lot, see `path-routing` "No way found".
               router.forgetSquares()
