@@ -2,7 +2,7 @@
 
 ## 1. Record the rides first
 
-- [ ] 1.1 `NavigationReplayTest` with the rides of the design, their expected texts written by the current code and committed; a coverage report of `Navigation.kt` (Kover or the IDE's) read, and rides added for branches of `update()` none of them reach. `./gradlew :modules:core:jvmTest` passes.
+- [x] 1.1 `NavigationReplayTest` with the rides of the design, their expected texts written by the current code and committed; a coverage report of `Navigation.kt` (Kover or the IDE's) read, and rides added for branches of `update()` none of them reach. `./gradlew :modules:core:jvmTest` passes.
 
 ## 2. State and setup
 
