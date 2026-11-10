@@ -11,7 +11,7 @@
 ## 3. Steps of `update()`
 
 - [x] 3.1 `backOnRoute` and `headingFor` in place of the repeated changes. Rides unchanged.
-- [ ] 3.2 `update()` as the steps of the design, each a function of the navigation before it, `confirming` part of a step's result. Rides unchanged.
+- [x] 3.2 `update()` as the steps of the design, each a function of the navigation before it, `confirming` part of a step's result. Rides unchanged.
 
 ## 4. Proof
 
