@@ -17,4 +17,4 @@ Each task replaces the copies of one helper and keeps `./gradlew :modules:core:j
 
 ## 3. Proof
 
-- [ ] 3.1 The replay again: the same notices and way searches as in 1.2, lengths within a meter; the geometry files written again give the same bytes as in 1.2. Both apps build (`./gradlew check`, `xcodebuild` as in the Build workflow), the core passes on the iOS simulator. `manual-checks.md` with the results. No CHANGELOG entry: nothing changes for riders.
+- [x] 3.1 The replay again: the same notices and way searches as in 1.2, lengths within a meter; the geometry files written again give the same bytes as in 1.2. Both apps build (`./gradlew check`, `xcodebuild` as in the Build workflow), the core passes on the iOS simulator. `manual-checks.md` with the results. No CHANGELOG entry: nothing changes for riders.
