@@ -126,6 +126,4 @@ class CourseTest {
       hypot(x(start) + fraction * segmentX, y(start) + fraction * segmentY)
     }
   }
-
-  private companion object {}
 }
