@@ -31,7 +31,7 @@ While navigating with the app open, the map SHALL follow the rider, keeping thei
 
 #### Scenario: Off route while following
 - **WHEN** the rider leaves the route while the map follows them
-- **THEN** the map shows their position and the next knot together
+- **THEN** the map shows their position and the end of the line to the route together, as described in "Way to the route on the map"
 
 #### Scenario: Steady base map while following
 - **WHEN** the map follows the rider past a supermarket and a parking with their icons on the base map
