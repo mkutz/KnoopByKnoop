@@ -210,6 +210,20 @@ class GuidedWayTest {
       startsBack = true,
     )
 
+  @Test
+  fun `Turn at the start of the way is told at once and shown until the rider follows it`() {
+    val way =
+      wayBehind().let { PathWay(it.points, it.meters, it.turns, startTurn = TurnDirection.LEFT) }
+
+    val first = GuidedWay.of(way).at(at(0.0))
+
+    assertEquals("Turn left now", first.notice?.text)
+    assertEquals("Left", first.way.view(Language.EN).turn)
+    assertEquals(TurnDirection.LEFT, first.way.headerTurn(Language.EN).turn)
+    assertNull(first.way.at(at(5.0)).notice, "once")
+    assertEquals("Follow the way", first.way.at(at(20.0)).way.view(Language.EN).turn)
+  }
+
   // Scenario: Way behind the rider
   @Test
   fun `A way behind the rider says to turn back and shows it until they follow it`() {

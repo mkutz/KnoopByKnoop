@@ -51,7 +51,7 @@
 - *Alternatives:* searching from the rider's nearest place on the planned way (robust, but a special case next to off route); keeping the planned way's points without a search (no turns or streets, nothing after an app update); accepting it.
 
 ### A turn at the start of a way (found 2026-11-10)
-- A new way whose first stretch leaves more than 45° to the side of the riding direction, and not against it, gets "Turn left now" or "Turn right now" at once, like a turn within 40 m; against the direction stays "Turn back now".
+- A new way whose first stretch leaves 60° or more to the side of the riding direction (a turn, not a slight one), and not against it, gets "Turn left now" or "Turn right now" at once; against the direction stays "Turn back now". Where the way's first turn comes within 40 m, that turn is told instead ("Turn close to the start of the way"). Like turning back, it is said once while the rider rides on without it ("Still riding away"): the recorded ride `siegburg-going-on`, riding 200 m beside the route, first got a new "Turn right now" with every way search, every 10 s.
 
 ## Risks / Trade-offs
 

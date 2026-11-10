@@ -107,6 +107,9 @@ data class DoubtfulJunction(
  *   into it, see `knot-navigation` "Guidance to a route point off the network"
  * @property doubtful its doubtful junctions, see `knot-navigation` "Doubtful junctions"
  * @property decisionMeters where it passes a junction with a choice of ways, for measuring
+ * @property startTurn the turn to take at once where the way starts more than
+ *   [PathRouter.START_TURN_DEGREES] to the side of the riding direction, see `knot-navigation`
+ *   "Turn notices on the guided way"; `null` straight ahead, against it, or without a direction
  */
 class PathWay(
   val points: List<GeoPoint>,
@@ -116,6 +119,7 @@ class PathWay(
   val firstName: String? = null,
   val doubtful: List<DoubtfulJunction> = listOf(),
   internal val decisionMeters: List<Double> = listOf(),
+  val startTurn: TurnDirection? = null,
 ) {
 
   val lengthMeters: Double
@@ -320,15 +324,39 @@ class PathRouter(private val file: PathSquareSource) {
     val waySegments = pieces.map { it.step.segment }
     val doubtful =
       merged(doubts).map { it.copy(picture = pictureOf(it, points, meters, waySegments)) }
+    val wayTurns = withDoubts(turns(points, meters, junctions), doubtful)
     return PathWay(
       points,
       meters,
-      withDoubts(turns(points, meters, junctions), doubtful),
+      wayTurns,
       startsBack(points, first.start?.points?.firstOrNull(), heading),
       pieces.firstOrNull()?.step?.segment?.name,
       doubtful,
       junctions.filter { it.exits >= 2 && it.atMeters > 0.0 }.map { it.atMeters },
+      startTurn(points, first.start?.points?.firstOrNull(), heading)?.takeIf {
+        // A turn close to the start is told as itself, see "Turn close to the start of the way".
+        (wayTurns.firstOrNull()?.atMeters ?: Double.MAX_VALUE) > TurnNotice.NOW_METERS
+      },
     )
+  }
+
+  /**
+   * The turn at the start of the way along [points] from [heading], joining the paths at [onPaths]:
+   * where it sets off more than [START_TURN_DEGREES] to the side, and not back.
+   */
+  private fun startTurn(
+    points: List<GeoPoint>,
+    onPaths: GeoPoint?,
+    heading: Double?,
+  ): TurnDirection? {
+    if (heading == null || points.size < 2) return null
+    val along = points.drop(points.indexOf(onPaths).coerceAtLeast(0))
+    if (along.size < 2 || setsOffBack(points.first(), along, heading)) return null
+    val setOff =
+      if (lengthOf(along) >= SHORT_START_METERS) headingAlong(along)
+      else bearing(points.first(), points.last())
+    val angle = signedAngle(heading, setOff)
+    return if (abs(angle) > START_TURN_DEGREES) turnOf(angle) else null
   }
 
   /** Whether the way along [points] starts against [heading], joining the paths at [onPaths]. */
@@ -835,6 +863,12 @@ class PathRouter(private val file: PathSquareSource) {
 
     /** See `path-routing` "No needless turning back". */
     const val TURNING_BACK_DEGREES = 135.0
+
+    /**
+     * A way setting off more to the side than this starts with a turn, see [PathWay.startTurn]: a
+     * turn, not a slight one, as [SLIGHT_DEGREES].
+     */
+    const val START_TURN_DEGREES = 60.0
     const val TURNING_BACK_COST = 200.0
 
     /** A start this close to a junction takes its direction from the way after the junction. */

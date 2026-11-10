@@ -349,13 +349,13 @@
 348 50.79412,7.17924 ±5 | LIVE | Off route, next 28, Follow the way, 230 m | 997 m west to 28 | guided Follow the way · 230 m
 349 50.79417,7.17911 ±5 | LIVE | Off route, next 28, Follow the way, 240 m | 997 m west to 28 | guided Follow the way · 240 m
 350 50.79422,7.17899 ±5 | LIVE | Off route, next 28, Follow the way, 250 m | 997 m west to 28 | guided Follow the way · 250 m
-351 50.79426,7.17887 ±5 | LIVE | way 215 m, turns  | Off route, next 28, Follow the way, 220 m | 997 m west to 28 | guided Follow the way · 220 m
-352 50.79431,7.17874 ±5 | LIVE | Off route, next 28, Follow the way, 210 m | 997 m west to 28 | guided Follow the way · 210 m
-353 50.79436,7.17862 ±5 | LIVE | Off route, next 28, Follow the way, 210 m | 997 m west to 28 | guided Follow the way · 210 m
-354 50.79442,7.17851 ±5 | LIVE | Off route, next 28, Follow the way, 230 m | 888 m west to 28 | guided Follow the way · 230 m
-355 50.79448,7.17841 ±5 | LIVE | Off route, next 28, Follow the way, 240 m | 888 m west to 28 | guided Follow the way · 240 m
-356 50.79454,7.17830 ±5 | LIVE | way 254 m, turns LEFT at 111 m | Off route, next 28, Left in 110 m, 250 m | 888 m west to 28 | guided Left in 110 m · 250 m
-357 50.79460,7.17819 ±5 | LIVE | Off route, next 28, Left in 100 m, 250 m | 888 m west to 28 | guided Left in 100 m · 250 m
+351 50.79426,7.17887 ±5 | LIVE | way 215 m, turns  | Off route, next 28, Right, 220 m | 997 m west to 28 | guided Right · 220 m
+352 50.79431,7.17874 ±5 | TURN Turn right now | LIVE | Off route, next 28, Right, 210 m | 997 m west to 28 | guided Right · 210 m
+353 50.79436,7.17862 ±5 | LIVE | Off route, next 28, Right, 210 m | 997 m west to 28 | guided Right · 210 m
+354 50.79442,7.17851 ±5 | LIVE | Off route, next 28, Right, 230 m | 888 m west to 28 | guided Right · 230 m
+355 50.79448,7.17841 ±5 | LIVE | Off route, next 28, Right, 240 m | 888 m west to 28 | guided Right · 240 m
+356 50.79454,7.17830 ±5 | LIVE | way 254 m, turns LEFT at 111 m | Off route, next 28, Sharp right, 250 m | 888 m west to 28 | guided Sharp right · 250 m
+357 50.79460,7.17819 ±5 | LIVE | Off route, next 28, Sharp right, 250 m | 888 m west to 28 | guided Sharp right · 250 m
 358 50.79466,7.17808 ±5 | TURN In 90 m, turn left | LIVE | Off route, next 28, Left in 90 m, 240 m | 888 m west to 28 | guided Left in 90 m · 240 m
 359 50.79473,7.17798 ±5 | LIVE | Off route, next 28, Left in 100 m, 250 m | 888 m west to 28 | guided Left in 100 m · 250 m
 360 50.79479,7.17787 ±5 | LIVE | Off route, next 28, Left in 100 m, 250 m | 888 m west to 28 | guided Left in 100 m · 250 m
@@ -387,8 +387,8 @@
 386 50.79664,7.17597 ±5 | LIVE | Off route, next 28, Turn back, 450 m | 680 m west to 28 | guided Turn back · 450 m
 387 50.79673,7.17596 ±5 | LIVE | Off route, next 28, Turn back, 460 m | 680 m west to 28 | guided Turn back · 460 m
 388 50.79682,7.17595 ±5 | LIVE | Off route, next 28, Turn back, 470 m | 680 m west to 28 | guided Turn back · 470 m
-389 50.79692,7.17595 ±5 | LIVE | way 155 m, turns  | Off route, next 28, Follow the way, 150 m | 680 m west to 28 | guided Follow the way · 150 m
-390 50.79701,7.17594 ±5 | LIVE | Off route, next 28, Follow the way, 140 m | 680 m west to 28 | guided Follow the way · 140 m
+389 50.79692,7.17595 ±5 | LIVE | way 155 m, turns  | Off route, next 28, Left, 150 m | 680 m west to 28 | guided Left · 150 m
+390 50.79701,7.17594 ±5 | TURN Turn left now | LIVE | Off route, next 28, Left, 140 m | 680 m west to 28 | guided Left · 140 m
 391 50.79710,7.17593 ±5 | LIVE | Off route, next 28, Follow the way, 130 m | 680 m west to 28 | guided Follow the way · 130 m
 392 50.79719,7.17592 ±5 | LIVE | Off route, next 28, Follow the way, 120 m | 680 m west to 28 | guided Follow the way · 120 m
 393 50.79728,7.17591 ±5 | LIVE | Off route, next 28, Follow the way, 110 m | 680 m west to 28 | guided Follow the way · 110 m

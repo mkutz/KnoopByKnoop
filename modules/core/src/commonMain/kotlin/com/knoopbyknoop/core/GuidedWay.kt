@@ -43,9 +43,15 @@ private constructor(
   private val turnBackTold: Boolean,
 ) {
 
-  /** The rider still has to turn back, see `knot-navigation` "Way behind the rider". */
-  private val turningBack: Boolean
-    get() = way.startsBack && place < FOLLOWING_METERS
+  /**
+   * The turn the rider still has to take where the way starts: back, see `knot-navigation` "Way
+   * behind the rider", or to the side, see "Turn at the start of the way".
+   */
+  private val startTurn: TurnDirection?
+    get() =
+      (if (way.startsBack) TurnDirection.BACK else way.startTurn)?.takeIf {
+        place < FOLLOWING_METERS
+      }
 
   /** How far it is along the way to its end, with the way there. */
   val remainingMeters: Double
@@ -59,12 +65,13 @@ private constructor(
     val (nearestPlace, distance) = nearest(fix)
     val position = GeoPoint(fix.latitude, fix.longitude)
     val away = if (distance > ON_WAY_METERS) distance else 0.0
+    val starting = startTurn
     val turnBack =
-      if (turningBack && !turnBackTold) {
+      if (starting != null && !turnBackTold) {
         Notice(
           NoticeKind.TURN,
-          language.texts.turnNow(TurnDirection.BACK),
-          speechLanguage.texts.turnNow(TurnDirection.BACK),
+          language.texts.turnNow(starting),
+          speechLanguage.texts.turnNow(starting),
         )
       } else null
     val told = turnBackTold || turnBack != null
@@ -107,7 +114,9 @@ private constructor(
   fun view(language: Language): GuidedWayView {
     val texts = language.texts
     val remaining = MapFeatures.formatDistance(TurnNotice.rounded(remainingMeters), language)
-    if (turningBack) return GuidedWayView(texts.turnName(TurnDirection.BACK), null, remaining)
+    startTurn?.let {
+      return GuidedWayView(texts.turnName(it), null, remaining)
+    }
     val turn = way.turns.firstOrNull { it.atMeters > place }
     return if (turn == null) {
       GuidedWayView(texts.followTheWay, null, remaining)
@@ -158,8 +167,9 @@ private constructor(
   private fun plainHeaderTurn(language: Language): GuidedHeader {
     val view = view(language)
     val remaining = view.remaining
-    if (turningBack)
-      return GuidedHeader(TurnDirection.BACK, null, null, remaining, view.description)
+    startTurn?.let {
+      return GuidedHeader(it, null, null, remaining, view.description)
+    }
     val turn = way.turns.firstOrNull { it.atMeters > place }
     return if (turn == null) {
       GuidedHeader(null, null, null, remaining, view.description)
@@ -282,8 +292,8 @@ private constructor(
     private const val LOOK_AHEAD_METERS = 300.0
 
     /**
-     * Follows [way], found while on [previous] if any: turning back is only said once while the
-     * rider keeps riding away, see "Still riding away".
+     * Follows [way], found while on [previous] if any: turning back, or a turn to the side at the
+     * start, is only said once while the rider keeps riding on without it, see "Still riding away".
      */
     fun of(way: PathWay, previous: GuidedWay? = null) =
       GuidedWay(
@@ -293,7 +303,10 @@ private constructor(
         0,
         0.0,
         null,
-        turnBackTold = way.startsBack && previous?.way?.startsBack == true && previous.turnBackTold,
+        turnBackTold =
+          previous?.turnBackTold == true &&
+            ((way.startsBack && previous.way.startsBack) ||
+              (way.startTurn != null && previous.way.startTurn != null)),
       )
   }
 }

@@ -283,6 +283,22 @@ class PathRouterTest {
     assertTrue(!way.startsBack)
   }
 
+  @Test
+  fun `A way setting off to the side of the riding direction starts with that turn`() {
+    val router = routerOf(segment(1, 2, start, at(500.0, 0.0)))
+
+    assertEquals(
+      TurnDirection.RIGHT,
+      router.way(start, at(500.0, 0.0), heading = 0.0)?.startTurn,
+      "east, riding north",
+    )
+    assertNull(router.way(start, at(500.0, 0.0), heading = 70.0)?.startTurn, "nearly ahead")
+    val back = assertNotNull(router.way(start, at(500.0, 0.0), heading = 270.0))
+    assertTrue(back.startsBack)
+    assertNull(back.startTurn, "back, not to the side")
+    assertNull(router.way(start, at(500.0, 0.0))?.startTurn, "without a direction")
+  }
+
   /** At 500 m, the way on to the north-east, and another one at [otherEast], [otherNorth]. */
   private fun bend(otherEast: Double, otherNorth: Double) =
     routerOf(

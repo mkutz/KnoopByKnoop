@@ -15,7 +15,7 @@ The maintainer wants the guidance to say what the rider sees: carry on along the
 - The planned route does not change.
 - **Found on the maintainer's starts of 2026-11-10** (iPhone and Pixel, a route of a start and an end flag): right after starting beside the start flag, the guided way led 1.3 km east instead of along the planned way south (1.14 km), and a turn at the very start of a guided way was not spoken. So:
   - a way found from a position less precise than 20 m is searched again with the next position of 20 m or better, to a route point as off route; the first position at the start was about 30 m off, and the way found from there stuck (decided with the maintainer: one logic for both);
-  - a way starting more than 45° to the side of the riding direction is told at once, e.g. "Turn left now".
+  - a way starting 60° or more to the side of the riding direction is told at once, e.g. "Turn left now".
 
 ## Out of Scope
 
