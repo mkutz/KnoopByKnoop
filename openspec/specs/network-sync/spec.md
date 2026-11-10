@@ -61,6 +61,22 @@ A downloaded file SHALL only be installed if its size and checksum match the ind
 - **WHEN** a downloaded file has a format version the app does not support
 - **THEN** it is not installed, and the user is asked to update the app
 
+#### Scenario: Retrying a corrupted download
+- **WHEN** a downloaded file was discarded as corrupted, on Android or iOS, and the app keeps running
+- **THEN** the download is retried no sooner than 30 s later, and after each further failure it waits at least twice as long, up to 5 hours; Android's job scheduler may start a retry later than that
+
+#### Scenario: Asked to update until it applies no more
+- **WHEN** the user was asked to update the app because of a file's format version, and starts the app again without updating it
+- **THEN** the info sheet still asks to update the app, on Android and iOS
+
+#### Scenario: Updated app
+- **WHEN** the user updated the app, and its next sync installs the files it couldn't read before
+- **THEN** the info sheet no longer asks to update the app
+
+#### Scenario: Published data readable again
+- **WHEN** the user was asked to update the app, and the published index lists again the files installed on the device
+- **THEN** the info sheet no longer asks to update the app, and the network no longer shows a failed update
+
 ### Requirement: Keep the networks current
 The app SHALL check the published index for newer data every time it starts, and SHALL install newer data in the background without the user doing anything. Coming back to the app from the background SHALL NOT count as a start.
 
