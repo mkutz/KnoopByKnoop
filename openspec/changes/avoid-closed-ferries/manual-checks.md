@@ -2,7 +2,7 @@
 
 ## Done on the emulator and in the simulator (2026-11-11)
 
-The check route is 14 → 15 straight across the ferry Mondorf–Graurheindorf, with the device at knot 14. The ferry closes at 19:00 on winter weekdays, and the checks ran at about 21:20. The ferry Lülsdorf–Wesseling from the task couldn't be used: its winter operating times count from Easter, which the ferry warning can't evaluate yet, so neither the warning nor the question comes for it in November.
+The check route is 14 → 15 straight across the ferry Mondorf–Graurheindorf, with the device at knot 14. The ferry closes at 19:00 on winter weekdays, and the checks ran at about 21:20. The ferry Lülsdorf–Wesseling from the task wasn't used: its operating times have Easter-based ranges and gave no status at 18:50 that day, so neither the warning nor the question would come then. Later that evening they did give one.
 
 | Scenario | Android (emulator) | iOS (simulator) |
 |---|---|---|

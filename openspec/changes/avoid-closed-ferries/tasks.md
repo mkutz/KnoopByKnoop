@@ -12,7 +12,7 @@
   - "No way around"
   - "Ferry without operating times"
 - [x] 1.3 A test on the real cut-out `rhine-luelsdorf` with the ferry Lülsdorf–Wesseling: a start in the evening gives the question with a detour over a bridge, and its length is plausible.
-  - Done 2026-11-11 (`RealFerryDetourTest`). Within the cut-out there is no bridge; the way around crosses on the ferry Mondorf–Graurheindorf (open until 21:00 in summer): 21 km and 1 h 15 min longer on a June Wednesday at 18:50. In November the ferry warning itself gives no estimate for Lülsdorf–Wesseling (its operating times use Easter dates), so the question doesn't come then either.
+  - Done 2026-11-11 (`RealFerryDetourTest`). Within the cut-out there is no bridge; the way around crosses on the ferry Mondorf–Graurheindorf (open until 21:00 in summer): 21 km and 1 h 15 min longer on a June Wednesday at 18:50. At 18:50 on Wed 2026-11-11 the operating times of Lülsdorf–Wesseling (with Easter-based ranges) gave no status, so neither the ferry warning nor the question would come then. At 21:55 the same evening they did; not investigated further.
 
 ## 2. Android
 
@@ -23,7 +23,7 @@
   - "Riding around it", "Map after the answer"
   - "Keeping the ferry"
   - "Question in all languages" (German)
-  - Done 2026-11-11 with the ferry Mondorf–Graurheindorf instead, closed at that hour, without changing the clock; Lülsdorf–Wesseling gets no estimate in winter (see 1.3). See `manual-checks.md`.
+  - Done 2026-11-11 with the ferry Mondorf–Graurheindorf instead, closed at that hour, without changing the clock; Lülsdorf–Wesseling gave no status at 18:50 (see 1.3). See `manual-checks.md`.
 
 ## 3. iOS
 
