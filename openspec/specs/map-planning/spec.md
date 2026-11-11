@@ -26,7 +26,11 @@ The map SHALL show the knots of the selected, installed network type with their 
 
 #### Scenario: No network access
 - **WHEN** the device has no network access
-- **THEN** the knots and connections are still shown and planning works, only the base map may be missing
+- **THEN** the knots and connections are still shown and planning works; the base map may be missing, except around the planned route once its map is stored, see `network-sync` "Base map around the route"
+
+#### Scenario: Riding without a connection
+- **WHEN** the base map of the planned route is stored and the rider navigates it with no network access
+- **THEN** streets, villages, rivers and woods are shown along the route, in the light and in the dark map
 
 #### Scenario: Attribution
 - **WHEN** the map is shown

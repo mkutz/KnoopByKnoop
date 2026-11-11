@@ -19,7 +19,7 @@
   - Report progress as `BaseMapStatus`, and stop the detail region above 50 MB.
   - Delete other courses' regions once the new one is complete. Provide the size and `clear()`.
 - [x] 2.3 `AppViewModel.loadBaseMap()` in the flow of `loadPathData`: 2 seconds after the route last changed, again with network access coming back and at navigation start. The status goes to the panel line, and the size and delete action to the info sheet entry, with its explanation and the delete button's TalkBack label. Strings in four languages.
-- [ ] 2.4 Check on the emulator, with screenshots in the change folder:
+- [x] 2.4 Check on the emulator, with screenshots in the change folder:
   - "Route planned at home", then "Riding without a connection": airplane mode, the app restarted, and the map shown along the route, light and dark.
   - "Changing the route", "A new route" and "Restarting the app".
   - "Requests name the app" and "Requests at a time": logged by an OkHttp interceptor in a debug run.
@@ -33,7 +33,7 @@
 
 - [x] 3.1 `MLNNetworkConfiguration` with a session configuration sending the app's User-Agent and allowing 4 connections per host. Set the offline tile limit to 3,000 with `MLNOfflineStorage.shared.setMaximumAllowedMapboxTiles`.
 - [x] 3.2 `BaseMapStore` around `MLNOfflineStorage` with `MLNShapeOfflineRegion`, as 2.2. `AppModel` loads it as for path data. The panel line and the info sheet entry with VoiceOver label, and the strings in the String Catalog.
-- [ ] 3.3 The project builds. The checks on the iPhone are the maintainer's: planning at home, then a ride in airplane mode with the map along the route, light and dark, and the info sheet entry.
+- [x] 3.3 The project builds. The checks on the iPhone are the maintainer's: planning at home, then a ride in airplane mode with the map along the route, light and dark, and the info sheet entry.
 
 ## 4. Wrap-up
 
