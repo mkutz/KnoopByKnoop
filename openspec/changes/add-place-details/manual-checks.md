@@ -6,7 +6,7 @@ Checked on 2026-11-10:
 
 - **Data:** the place details built locally with `pipeline places` from the Geofabrik extracts of 2026-11-08 (NL, BE, NRW): 3.3 MB, 99,738 places in 3,375 squares, 95% of the opening hours readable. The minicamping Manege Grol (an OSM way), the Fletcher Strandhotel and Het Wapen van Zeeland (nodes) were found in the squares of their icons, by the tiles' feature ids.
 - **Android:** the emulator (`Medium_Phone_API_37.0`) with the debug build. Nothing is published yet, so the 12 squares around Renesse were written into the app's store with a script (as if downloaded). Taps with `adb shell input tap`, the camera set in `camera.json`.
-- **iOS:** the project builds for the simulator. The card and the info sheet are the maintainer's checks (see below).
+- **iOS:** the maintainer's iPhone with a debug build from main, after the workflow had published the place details (2026-11-11): cards with opening hours, websites and phone numbers, also at a large text size.
 
 ## Scenarios
 
@@ -38,6 +38,7 @@ Checked on 2026-11-10:
 
 ## Found and fixed
 
+- **iOS card ran off the screen with large text:** it was centred 90 points below the place and kept inside the screen only sideways, so the taller card with details covered the place and its lower rows ran past the screen. It now hangs below the place, stays between the switch and the sheet, scrolls when taller, and grows wider with the text size. Checked by the maintainer on the iPhone at a large text size ([iOS](screenshots/ios-card-large-text.png)). Android's card is a dropdown menu the system keeps inside the screen.
 - **Android info sheet showed "None downloaded" with place details installed:** `loadPathData()` copied the state it had read before reading the ways' size, and so undid the place details' size set meanwhile. It now reads the size first.
 
 ## For the maintainer

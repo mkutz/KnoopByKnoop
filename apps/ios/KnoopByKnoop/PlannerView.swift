@@ -298,14 +298,17 @@ struct PlannerView: View {
       // The choices for a tapped place, at its flag and above the controls, see `map-planning`
       // "Choose a route point on the map". In the map's coordinates, which ignore the safe area.
       if let offer = model.offer {
-        GeometryReader { map in
+        // Below the place, kept between the controls at the top and the sheet, and scrolled when
+        // taller than that, e.g. with opening hours and contacts in a large text size. Above the
+        // attribution, like the map controls.
+        OfferPlacement(
+          anchor: offer.point,
+          top: screen.safeAreaInsets.top + notesTop,
+          bottom: (landscape ? screen.safeAreaInsets.bottom + 8 : restingSheetHeight) + attributionHeight + 8
+        ) {
           PlaceOfferMenu(
             canAddStop: offer.offer.canAddStop, place: offer.offer.place, nameOnly: offer.nameOnly,
             details: offer.details, choose: model.choose)
-            .fixedSize()
-            .position(
-              x: min(max(offer.point.x, 130), map.size.width - 130),
-              y: offer.point.y + 90)
         }
         .ignoresSafeArea()
       }
@@ -906,6 +909,48 @@ private struct WaypointRow: Equatable {
 
 /// The choices for a tapped place, shown below its flag on the map and following it while the map
 /// moves. Dismissed by tapping the map elsewhere.
+/// Places the tapped place's card in the map's coordinates: its top 40 points below the place (below
+/// its flag), moved up when it would reach `bottom`, never above `top`, and kept 10 points inside
+/// the sides, at most as wide as the map. A card taller than the space scrolls.
+private struct OfferPlacement<Card: View>: View {
+  let anchor: CGPoint
+  let top: CGFloat
+  let bottom: CGFloat
+  @ViewBuilder let card: Card
+
+  var body: some View {
+    CardLayout(anchor: anchor, top: top, bottom: bottom) {
+      ViewThatFits(in: .vertical) {
+        card
+        ScrollView { card }.scrollBounceBehavior(.basedOnSize)
+          .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
+          .clipShape(RoundedRectangle(cornerRadius: 14))
+      }
+    }
+  }
+
+  private struct CardLayout: Layout {
+    let anchor: CGPoint
+    let top: CGFloat
+    let bottom: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+      proposal.replacingUnspecifiedDimensions()
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+      guard let card = subviews.first else { return }
+      let lowest = bounds.maxY - bottom
+      let highest = bounds.minY + top
+      let size = card.sizeThatFits(
+        ProposedViewSize(width: bounds.width - 20, height: max(lowest - highest, 88)))
+      let x = min(max(anchor.x - size.width / 2, bounds.minX + 10), bounds.maxX - size.width - 10)
+      let y = max(min(bounds.minY + anchor.y + 40, lowest - size.height), highest)
+      card.place(at: CGPoint(x: x, y: y), anchor: .topLeading, proposal: ProposedViewSize(size))
+    }
+  }
+}
+
 private struct PlaceOfferMenu: View {
   let canAddStop: Bool
   /// The tapped place, shown with its icon and name, see `map-planning` "Tapping a place on the map".
@@ -916,6 +961,8 @@ private struct PlaceOfferMenu: View {
   let details: PlaceDetails?
   let choose: (PlaceChoice) -> Void
   @Environment(\.openURL) private var openURL
+  /// 240 points in the default text size, wider for larger text, up to the map's width.
+  @ScaledMetric(relativeTo: .body) private var width: CGFloat = 240
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -934,7 +981,7 @@ private struct PlaceOfferMenu: View {
       }
       if !nameOnly { choices }
     }
-    .frame(width: 240)
+    .frame(maxWidth: width)
     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
     .shadow(radius: 8)
   }
