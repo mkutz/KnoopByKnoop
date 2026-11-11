@@ -27,6 +27,8 @@ On a 378 km route with four closed ferries in dark mode, the question was hard t
 
 Checked again in the simulator in dark mode, route 21 → 15 with both ferries closed (`screenshots/ios-question.png`), and on the emulator (`screenshots/android-question.png`).
 
+The maintainer checked the reworked question and map on the iPhone on the same evening: "that's much better".
+
 ## Steps for the maintainer
 
 On a phone, in the evening after a ferry's last crossing (Mondorf–Graurheindorf closes at 19:00 on winter weekdays):
