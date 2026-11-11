@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Android 12 and older: navigation's notification and voice follow the language chosen in the app, not the phone's, also when the phone's language changes on the way
+
 ## 0.13.0
 
 - Campsites and hotels or guest houses are highlighted on the map with their own icons, a tent and a bed, next to food, supermarkets and the others

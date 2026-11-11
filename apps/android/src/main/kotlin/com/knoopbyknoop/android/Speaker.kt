@@ -15,7 +15,7 @@ import java.util.Locale
  */
 class Speaker(context: Context) {
 
-  private var locale = context.resources.configuration.locales[0]
+  private var locale = AppLocale.of(context)
 
   /**
    * The language the notices are spoken in: the app's where the phone has a voice for it, else

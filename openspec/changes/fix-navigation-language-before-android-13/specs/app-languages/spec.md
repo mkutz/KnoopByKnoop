@@ -39,7 +39,7 @@ The info sheet SHALL offer the app's language: System, the default, which follow
 - **WHEN** the rider chose Deutsch on an English phone with Android 12 and navigates
 - **THEN** the notification shows its words and numbers in German, e.g. "Beenden" and "1,6 km", and the notices are spoken in German where the phone has a German voice
 
-#### Scenario: Choosing a language while navigating on Android 12
-- **WHEN** the rider navigates in English on an English phone with Android 12 and chooses Deutsch in the info sheet
-- **THEN** the notification changes to German at once and later notices are spoken in German, as in "Language change while navigating"
+#### Scenario: Phone's language changed while navigating on Android 12
+- **WHEN** the rider chose Deutsch in the app on an English phone with Android 12, navigates, and changes the phone's language to French in the settings
+- **THEN** the notification and the notices stay German
 

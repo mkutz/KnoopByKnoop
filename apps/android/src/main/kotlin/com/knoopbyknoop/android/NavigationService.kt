@@ -54,6 +54,7 @@ import com.knoopbyknoop.core.WaySearch
 import com.knoopbyknoop.core.barMarks
 import com.knoopbyknoop.core.outside
 import java.time.Instant
+import java.util.Locale
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -198,6 +199,9 @@ class NavigationService : Service() {
 
   override fun onBind(intent: Intent?): IBinder? = null
 
+  /** A text in the app's language, also before Android 13, see [AppLocale]. */
+  private fun text(id: Int): String = AppLocale.context(this).getString(id)
+
   override fun onCreate() {
     super.onCreate()
     locations = LocationServices.getFusedLocationProviderClient(this)
@@ -224,13 +228,13 @@ class NavigationService : Service() {
         { ferryMoment(Instant.ofEpochMilli(it)) },
         // The texts in the app's language, the notices in the language there is a voice for, see
         // `app-languages` "Spoken notices in the language".
-        Language.of(resources.configuration.locales[0].language),
+        Language.of(AppLocale.of(this).language),
         speaker.language,
       )
     ServiceCompat.startForeground(
       this,
       NOTIFICATION_ID,
-      notification(getString(R.string.starting_navigation)),
+      notification(text(R.string.starting_navigation)),
       ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION,
     )
     session?.let { Navigating.update(it.state) }
@@ -292,23 +296,34 @@ class NavigationService : Service() {
       // as the notices are spoken.
       NotificationChannel(
           CHANNEL,
-          getString(R.string.channel_navigation),
+          text(R.string.channel_navigation),
           NotificationManager.IMPORTANCE_DEFAULT,
         )
         .apply {
-          description = getString(R.string.channel_description)
+          description = text(R.string.channel_description)
           setSound(null, null)
           enableVibration(false)
         }
     )
   }
 
-  /** Navigation follows the language at once, see `app-languages`. */
+  /**
+   * Navigation follows the language at once, see `app-languages`. The chosen one, not the phone's:
+   * before Android 13 a change of the phone's language reaches the service also when the rider
+   * chose another in the app.
+   */
   override fun onConfigurationChanged(newConfig: Configuration) {
     super.onConfigurationChanged(newConfig)
+    useLocale(AppLocale.of(this))
+  }
+
+  /**
+   * Writes and speaks in [locale] from now on, see `app-languages` "Language change while
+   * navigating". Does nothing for the language already in use.
+   */
+  private fun useLocale(locale: Locale) {
     createChannel()
     val current = session ?: return
-    val locale = newConfig.locales[0]
     val language = Language.of(locale.language)
     if (language == current.language) return
     speaker.useLocale(locale)
@@ -455,7 +470,7 @@ class NavigationService : Service() {
       .setOnlyAlertOnce(true)
       .setCategory(Notification.CATEGORY_NAVIGATION)
       .setVisibility(Notification.VISIBILITY_PUBLIC)
-      .addAction(Notification.Action.Builder(null, getString(R.string.stop), stop).build())
+      .addAction(Notification.Action.Builder(null, text(R.string.stop), stop).build())
       .build()
   }
 

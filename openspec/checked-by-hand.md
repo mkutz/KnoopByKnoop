@@ -15,6 +15,8 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Outside the app — on the iPhone
 - Names of the languages — on the devices
 - Switching without a pause — on Android
+- Navigation on Android 12 — on an Android 12 emulator with the app in another language than the phone, a replayed ride
+- Phone's language changed while navigating on Android 12 — on an Android 12 emulator, changing the phone's language during a replayed ride
 
 ## knot-navigation
 

@@ -5,13 +5,10 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.location.Location
 import android.net.ConnectivityManager
 import android.net.Network
-import android.os.LocaleList
 import androidx.annotation.StringRes
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -249,20 +246,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   private val places = PlaceDetailsData.store(application)
 
   /** The language of the core's texts, see `app-languages` "Language of the texts". */
-  private var language = Language.of(application.resources.configuration.locales[0].language)
+  private var language = Language.of(AppLocale.of(application).language)
 
-  /**
-   * A message in the app's language. Before Android 13 the application's own resources keep the
-   * phone's language, so they are read in the chosen one, see `app-languages` "Language setting".
-   */
-  private fun text(@StringRes id: Int, vararg arguments: Any): String {
-    val application = getApplication<Application>()
-    val chosen = AppCompatDelegate.getApplicationLocales()
-    if (chosen.isEmpty) return application.getString(id, *arguments)
-    val configuration = Configuration(application.resources.configuration)
-    configuration.setLocales(LocaleList.forLanguageTags(chosen.toLanguageTags()))
-    return application.createConfigurationContext(configuration).getString(id, *arguments)
-  }
+  /** A message in the app's language, also before Android 13, see [AppLocale]. */
+  private fun text(@StringRes id: Int, vararg arguments: Any): String =
+    AppLocale.context(getApplication()).getString(id, *arguments)
 
   private val sync = NetworkSync(application)
   private val connectivity = application.getSystemService(ConnectivityManager::class.java)

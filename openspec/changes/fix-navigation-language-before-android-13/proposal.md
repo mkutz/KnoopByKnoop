@@ -12,7 +12,7 @@ On Android 12 and older, a rider who chose another language in the app than the 
   - the numbers' decimal separator
   - the "starting navigation" text
   - the spoken notices, where the phone has a voice for the language
-- Android 12 and older: choosing another language in the info sheet while navigating switches navigation at once, as on Android 13 and later ("Language change while navigating").
+- Android 12 and older: a change of the phone's language while navigating no longer switches navigation away from the language chosen in the app. The info sheet isn't there while navigating, so the phone's settings are the only way the language can change during a ride.
 - No change on Android 13 and later or on iOS, where this already works.
 
 Out of scope:
@@ -36,5 +36,4 @@ None.
   - `NavigationService.kt`: texts, the session's language, the channel
   - `Speaker.kt`: the voice's locale
   - a shared helper for the chosen language, also used by `AppViewModel.text()`
-  - the info sheet's language choice, which tells a running navigation about the change
 - No core, iOS, pipeline or data changes.
