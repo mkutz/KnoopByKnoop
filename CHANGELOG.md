@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The waypoint list and the coming knots while navigating name the village, town or city each knot lies in, and the coming knots show where the route crosses into another country, province or state
 - With the phone locked while navigating, the screen lights up with each spoken notice and shows it, silently. On the iPhone the app asks once for permission to show notifications
 
 ## 0.14.0

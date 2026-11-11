@@ -109,6 +109,8 @@ A scenario gets a test as soon as one can check it; its line goes then.
 
 ## map-planning
 
+- Place in the waypoint list — on the emulator with the new data: "Start · Lohmar", "Stop · Siegburg" for 06 → 02 → 28
+- Waypoint in the open — the same route: 28 shows "End" only
 - Stop in every language — on the emulator and in the simulator: the same size in German, named "Beenden"
 - Stop with a screen reader — TalkBack on the emulator, VoiceOver's label in the simulator's accessibility tree: "Stop", in German "Beenden"
 - Riding without a connection — on the devices: airplane mode, the app restarted, the route's map shown along it, light and dark

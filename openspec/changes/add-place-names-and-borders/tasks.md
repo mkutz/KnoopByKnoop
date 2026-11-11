@@ -45,4 +45,4 @@
 ## 6. Wrap-up
 
 - [ ] 6.1 Publish the new data with the pipeline workflow, and check that the published apps (0.14.0) still read it.
-- [ ] 6.2 `manual-checks.md` with the device scenarios and the maintainer's steps (does the place name match the town sign, on a ride). Put a CHANGELOG line under Unreleased. `./gradlew check` and `npx @fission-ai/openspec validate --all` pass. Finally run `./gradlew checkScenarios -Pchange=add-place-names-and-borders`.
+- [x] 6.2 `manual-checks.md` with the device scenarios and the maintainer's steps (does the place name match the town sign, on a ride). Put a CHANGELOG line under Unreleased. `./gradlew check` and `npx @fission-ai/openspec validate --all` pass. Finally run `./gradlew checkScenarios -Pchange=add-place-names-and-borders`.
