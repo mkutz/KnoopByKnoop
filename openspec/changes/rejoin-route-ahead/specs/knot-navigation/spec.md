@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Way to the route on the map
-While navigating and off route, the map SHALL show a dashed straight line from the rider's position to the point of the route ahead of them where the way back plus the route from there to the next knot is shortest: on the course of the leg to the next knot, after the last place the rider was on the route. The nearest such point SHALL be the target unless another saves at least 100 m; once the line leads to such a point ahead, it SHALL keep leading ahead until that saves less than 50 m. Without the network's courses, or before the first knot, the line SHALL go to the next knot. On a guided way, the map SHALL show a solid line along that way instead of the dashed line. While the map follows the rider, it SHALL keep both the rider and the end of that line in view.
+While navigating and off route, the map SHALL show a dashed straight line from the rider's position to the point of the route ahead of them where the way back plus the route from there to the next knot is shortest: on the course of the leg to the next knot, after the last place the rider was on the route. The nearest such point SHALL be the target unless another saves at least 100 m; once the line leads to such a point ahead, it SHALL keep leading ahead until that saves less than 50 m. Without the network's courses, or before the first knot, the line SHALL go to the next knot. On a guided way, the map SHALL show a solid line along that way instead of the dashed line. While the map follows the rider, it SHALL keep both the rider and the end of that line in view, except close before a tricky spot on a guided way (see "Zoom at a tricky spot").
 
 #### Scenario: Line to the route
 - **WHEN** the rider heading to 02 left the course to the west and is off route 150 m from it, with 02 1.7 km ahead
@@ -42,3 +42,7 @@ While navigating and off route, the map SHALL show a dashed straight line from t
 #### Scenario: Steady target
 - **WHEN** the line leads to a point ahead because that saves more than 100 m, and with the next position it saves only about 70 m
 - **THEN** the line keeps leading ahead, not back to the nearest point
+
+#### Scenario: Doubtful junction on the way back
+- **WHEN** the rider is off route on a guided way 1.2 km long and comes within 150 m of a doubtful junction on it
+- **THEN** the map zooms in on the junction, and the end of the line may leave the view until they are past it
