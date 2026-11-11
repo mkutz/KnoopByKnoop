@@ -26,9 +26,10 @@
 
 ### iOS: a silent notification, not a Live Activity alert
 - **Check of 2026-11-08 (task 1.1):** a Live Activity update with `AlertConfiguration` and a silent sound expanded the Dynamic Island while the phone was unlocked, but did not light up a locked screen. A throwaway queuing it on every scene change also alerted two or three times in a row.
-- So `Navigator` posts a local notification per update with notices, while the app is not on screen: the notices' text, no sound, `interruptionLevel` active, replaced by the next one (same identifier), and removed when navigation ends. A delivered notification lights up the locked screen, unless a Focus holds it back.
+- So `Navigator` posts a local notification per update with notices, while the app is not on screen: the notices' text, no sound, `interruptionLevel` active. Each one is posted under a new identifier after the previous one is removed, and the last is removed when navigation ends. A delivered notification lights up the locked screen, unless a Focus holds it back.
 - **Permission:** notifications need the person's permission. It is asked when navigation starts the first time; without it, nothing alerts and navigation works as before.
 - **Check first:** a throwaway build posts one such notification 10 s after locking, once. On the maintainer's iPhone: does the screen light up, is it silent, what does the Watch show?
+- **Result (2026-11-11):** the locked screen lit up. The first time the notification showed on the lock screen next to the Live Activity. On a repeat it went only to the Notification Center, so a notification that is still there is replaced without showing again. Hence a new identifier per notice, with the previous one removed first.
 
 ### Android: the notification alerts once at these moments
 - A second channel, "Navigation alerts", with `IMPORTANCE_HIGH`, no sound and no vibration. On an update with notices, the same ongoing notification is posted on it with `setOnlyAlertOnce(false)`; afterwards back on the quiet channel.
