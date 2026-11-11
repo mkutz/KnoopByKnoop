@@ -738,7 +738,10 @@ struct NetworkMapView: UIViewRepresentable {
               latitude: pointFeature.coordinate.latitude, longitude: pointFeature.coordinate.longitude,
               name: feature.attribute(forKey: "name") as? String,
               className: feature.attribute(forKey: "class") as? String,
-              subclass: feature.attribute(forKey: "subclass") as? String)
+              subclass: feature.attribute(forKey: "subclass") as? String,
+              // The tiles' id, which names the OpenStreetMap object, see `network-data` "Published
+              // place details".
+              featureId: (feature.identifier as? NSNumber).map { KotlinLong(longLong: $0.int64Value) })
           else { return nil }
           let screen = mapView.convert(pointFeature.coordinate, toPointTo: mapView)
           return (place, hypot(screen.x - point.x, screen.y - point.y))

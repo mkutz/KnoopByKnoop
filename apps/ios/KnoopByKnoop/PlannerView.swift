@@ -301,10 +301,10 @@ struct PlannerView: View {
         GeometryReader { map in
           PlaceOfferMenu(
             canAddStop: offer.offer.canAddStop, place: offer.offer.place, nameOnly: offer.nameOnly,
-            choose: model.choose)
+            details: offer.details, choose: model.choose)
             .fixedSize()
             .position(
-              x: min(max(offer.point.x, 110), map.size.width - 110),
+              x: min(max(offer.point.x, 130), map.size.width - 130),
               y: offer.point.y + 90)
         }
         .ignoresSafeArea()
@@ -912,7 +912,10 @@ private struct PlaceOfferMenu: View {
   let place: MapPlace?
   /// Whether only the place's name is shown, without choices.
   let nameOnly: Bool
+  /// What OpenStreetMap tells about the place, see `map-planning` "Contacts on the place card".
+  let details: PlaceDetails?
   let choose: (PlaceChoice) -> Void
+  @Environment(\.openURL) private var openURL
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -926,13 +929,61 @@ private struct PlaceOfferMenu: View {
         }
         .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
         .padding(.horizontal, 16)
+        if let details { detailRows(details) }
         if !nameOnly { Divider() }
       }
       if !nameOnly { choices }
     }
-    .frame(width: 200)
+    .frame(width: 240)
     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
     .shadow(radius: 8)
+  }
+
+  /// Whether the place is open now with its opening hours, its website and its phone number, each
+  /// left out when OpenStreetMap doesn't have it.
+  @ViewBuilder private func detailRows(_ details: PlaceDetails) -> some View {
+    if let hours = details.openingHours {
+      // Kept current every minute like the ferries, see "Closing while the card is shown".
+      TimelineView(.everyMinute) { context in
+        let status = details.openingStatusAt(
+          now: RouteFerries.ferryMoment(context.date), language: AppLanguage.current)
+        HStack(alignment: .top, spacing: 12) {
+          Image(systemName: "clock").foregroundStyle(.secondary).accessibilityHidden(true)
+          VStack(alignment: .leading, spacing: 2) {
+            if let status {
+              Text(verbatim: status.text).font(.subheadline).foregroundStyle(status.open ? .green : .red)
+            }
+            Text(verbatim: hours).font(.footnote).foregroundStyle(.secondary)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 6)
+        .accessibilityElement(children: .combine)
+      }
+    }
+    if let website = details.displayWebsite, let uri = details.websiteUri, let url = URL(string: uri) {
+      detailButton("globe", website) { openURL(url) }
+        .accessibilityLabel(Text("\(website), opens the website in the browser", bundle: AppLanguage.bundle))
+    }
+    if let phone = details.displayPhone, let uri = details.dialUri, let url = URL(string: uri) {
+      // iOS asks before calling, see "Calling a hotel".
+      detailButton("phone", phone) { openURL(url) }
+        .accessibilityLabel(Text("\(phone), opens the phone app to call", bundle: AppLanguage.bundle))
+    }
+  }
+
+  private func detailButton(_ symbol: String, _ text: String, action: @escaping () -> Void) -> some View {
+    Button(action: action) {
+      HStack(spacing: 12) {
+        Image(systemName: symbol).accessibilityHidden(true)
+        Text(verbatim: text).lineLimit(1).truncationMode(.middle)
+      }
+      .font(.subheadline)
+      .frame(maxWidth: .infinity, minHeight: 36, alignment: .leading)
+      .padding(.horizontal, 16)
+    }
   }
 
   /// The name of a kind of place, for a place without a name of its own.
@@ -943,6 +994,8 @@ private struct PlaceOfferMenu: View {
     case "bicycle": return "Bicycle shop"
     case "railway": return "Railway station"
     case "toilets": return "Toilets"
+    case "campsite": return "Campsite"
+    case "lodging": return "Hotel or guest house"
     default: return "Drinking water"
     }
   }

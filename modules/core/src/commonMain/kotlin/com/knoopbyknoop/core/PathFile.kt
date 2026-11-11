@@ -86,50 +86,19 @@ data class PathSquare(val latitudeIndex: Int, val longitudeIndex: Int) {
  * The published ways around the networks, in squares that can be read on their own, see
  * `network-data` "Published path data". A segment is in the squares of both of its ends, so a
  * junction's square holds all segments meeting there.
- *
- * @property read reads a range of the file
  */
-class PathFile
-private constructor(
-  val dataDate: String,
-  val attribution: String,
-  private val directory: Map<PathSquare, Entry>,
-  private val dataOffset: Long,
-  private val read: (offset: Long, size: Int) -> ByteArray,
-) : PathSquareSource {
+class PathFile private constructor(private val opened: SquareFile.Opened) : PathSquareSource {
 
-  /** Where a square is in the file, counted from the end of the directory, and its checksum. */
-  class Entry(val offset: Long, val size: Int, val rawSize: Int, val sha256: String)
+  val dataDate: String
+    get() = opened.directory.dataDate
 
-  /** What a directory says, for downloading single squares. */
-  class Directory(
-    val dataDate: String,
-    val attribution: String,
-    val entries: Map<PathSquare, Entry>,
-  )
-
-  /** What the index says about a path file's directory, see `network-data`. */
-  class DirectoryInfo(
-    val formatVersion: Int,
-    val dataDate: String,
-    val offset: Long,
-    val size: Int,
-    val sha256: String,
-  )
-
-  /** A square as it is in the file. */
-  class EncodedSquare(val square: PathSquare, val bytes: ByteArray, val rawSize: Int)
-
-  /** What the directory holds about a square. */
-  class SquareInfo(val square: PathSquare, val size: Int, val rawSize: Int, val sha256: String)
+  val attribution: String
+    get() = opened.directory.attribution
 
   /** The segments of [square], none if it isn't in the file. */
   override fun segments(square: PathSquare): List<PathSegment> {
-    val entry = directory[square] ?: return listOf()
-    val bytes = read(dataOffset + entry.offset, entry.size)
-    if (sha256Hex(bytes) != entry.sha256)
-      throw GraphFormatException("Path square $square is broken")
-    return decode(bytes, entry.rawSize)
+    val (entry, bytes) = opened.bytes(square) ?: return listOf()
+    return readSquare(SQUARES.unpack(square, entry, bytes))
   }
 
   companion object {
@@ -139,73 +108,32 @@ private constructor(
 
     const val FORMAT_VERSION = 2
 
-    private val MAGIC = "KBKP".encodeToByteArray()
-    private const val HEADER_SIZE = 9
+    /** The container of the path file's squares. */
+    val SQUARES = SquareFile("KBKP", FORMAT_VERSION, "path file")
+
     private const val COORDINATE_SCALE = 100_000.0
     private const val COST_SCALE = 100.0
     private const val FORWARD = 1
     private const val BACKWARD = 2
 
     /** [segments] as [square]'s part of the file. */
-    fun encode(square: PathSquare, segments: List<PathSegment>): EncodedSquare {
-      val raw = writeSquare(segments)
-      return EncodedSquare(square, deflate(raw), raw.size)
-    }
+    fun encode(square: PathSquare, segments: List<PathSegment>): EncodedSquare =
+      SQUARES.encode(square, writeSquare(segments))
 
     /**
      * What comes before the squares' bytes in the file, for squares described by their sizes and
      * checksums in the order of their bytes.
      */
-    fun header(squares: List<SquareInfo>, dataDate: String, attribution: String): ByteArray {
-      val directory = ByteWriter()
-      directory.string(dataDate)
-      directory.string(attribution)
-      directory.varint(squares.size.toLong())
-      var offset = 0L
-      squares.forEach {
-        directory.varint(zigzag(it.square.latitudeIndex.toLong()))
-        directory.varint(zigzag(it.square.longitudeIndex.toLong()))
-        directory.varint(offset)
-        directory.varint(it.size.toLong())
-        directory.varint(it.rawSize.toLong())
-        directory.string(it.sha256)
-        offset += it.size
-      }
-      val directoryBytes = directory.toByteArray()
-      val result = ByteArray(HEADER_SIZE + directoryBytes.size)
-      MAGIC.copyInto(result)
-      result[MAGIC.size] = FORMAT_VERSION.toByte()
-      for (shift in 0..3) {
-        result[MAGIC.size + 1 + shift] = (directoryBytes.size ushr (24 - 8 * shift)).toByte()
-      }
-      directoryBytes.copyInto(result, HEADER_SIZE)
-      return result
-    }
+    fun header(squares: List<SquareInfo>, dataDate: String, attribution: String): ByteArray =
+      SQUARES.header(squares, dataDate, attribution)
 
     /** The whole file's bytes for [squares], for files small enough to hold in memory. */
     fun toBytes(
       squares: Map<PathSquare, List<PathSegment>>,
       dataDate: String,
       attribution: String,
-    ): ByteArray {
-      val encoded =
-        squares.entries
-          .sortedWith(compareBy({ it.key.latitudeIndex }, { it.key.longitudeIndex }))
-          .map { encode(it.key, it.value) }
-      val header =
-        header(
-          encoded.map { SquareInfo(it.square, it.bytes.size, it.rawSize, sha256Hex(it.bytes)) },
-          dataDate,
-          attribution,
-        )
-      val result = header.copyOf(header.size + encoded.sumOf { it.bytes.size })
-      var position = header.size
-      encoded.forEach {
-        it.bytes.copyInto(result, position)
-        position += it.bytes.size
-      }
-      return result
-    }
+    ): ByteArray =
+      SQUARES.toBytes(squares.mapValues { writeSquare(it.value) }, dataDate, attribution)
 
     /**
      * Opens a path file through [read], which reads a range of it.
@@ -213,64 +141,14 @@ private constructor(
      * @throws UnsupportedFormatVersionException for a format version this core doesn't know, see
      *   `network-data` "Versioned path format"
      */
-    fun open(read: (offset: Long, size: Int) -> ByteArray): PathFile {
-      val directorySize = directorySize(read)
-      val parsed = parseDirectory(read(HEADER_SIZE.toLong(), directorySize))
-      return PathFile(
-        parsed.dataDate,
-        parsed.attribution,
-        parsed.entries,
-        HEADER_SIZE.toLong() + directorySize,
-        read,
-      )
-    }
+    fun open(read: (offset: Long, size: Int) -> ByteArray): PathFile = PathFile(SQUARES.open(read))
 
     /** The directory in [bytes], the range of the file the index names. */
-    fun parseDirectory(bytes: ByteArray): Directory {
-      val reader = ByteReader(bytes)
-      val dataDate = reader.string()
-      val attribution = reader.string()
-      val directory = HashMap<PathSquare, Entry>()
-      repeat(reader.count()) {
-        val square =
-          PathSquare(unzigzag(reader.varint()).toInt(), unzigzag(reader.varint()).toInt())
-        directory[square] = Entry(reader.varint(), reader.count(), reader.count(), reader.string())
-      }
-      return Directory(dataDate, attribution, directory)
-    }
-
-    /** The segments in a square's [bytes], as they are in the file. */
-    internal fun decode(bytes: ByteArray, rawSize: Int): List<PathSegment> =
-      readSquare(inflate(bytes, rawSize))
+    fun parseDirectory(bytes: ByteArray): SquareDirectory = SQUARES.parseDirectory(bytes)
 
     /** What the index needs to know of the path file read through [read]. */
-    fun directoryInfo(read: (offset: Long, size: Int) -> ByteArray): DirectoryInfo {
-      val size = directorySize(read)
-      val bytes = read(HEADER_SIZE.toLong(), size)
-      return DirectoryInfo(
-        FORMAT_VERSION,
-        ByteReader(bytes).string(),
-        HEADER_SIZE.toLong(),
-        size,
-        sha256Hex(bytes),
-      )
-    }
-
-    private fun directorySize(read: (offset: Long, size: Int) -> ByteArray): Int {
-      val header = read(0, HEADER_SIZE)
-      if (header.size < HEADER_SIZE || !header.copyOf(MAGIC.size).contentEquals(MAGIC)) {
-        throw GraphFormatException("Not a path file")
-      }
-      val version = header[MAGIC.size].toInt() and 0xFF
-      if (version != FORMAT_VERSION) {
-        throw UnsupportedFormatVersionException("Path file format $version is not supported")
-      }
-      var size = 0
-      for (shift in 0..3) {
-        size = (size shl 8) or (header[MAGIC.size + 1 + shift].toInt() and 0xFF)
-      }
-      return size
-    }
+    fun directoryInfo(read: (offset: Long, size: Int) -> ByteArray): SquareDirectoryInfo =
+      SQUARES.directoryInfo(read)
 
     private fun scaled(degrees: Double) = (degrees * COORDINATE_SCALE).roundToLong()
 
@@ -326,7 +204,7 @@ private constructor(
       return writer.toByteArray()
     }
 
-    private fun readSquare(bytes: ByteArray): List<PathSegment> {
+    internal fun readSquare(bytes: ByteArray): List<PathSegment> {
       val reader = ByteReader(bytes)
       val names = List(reader.count()) { reader.string() }
       val nodeCount = reader.count()

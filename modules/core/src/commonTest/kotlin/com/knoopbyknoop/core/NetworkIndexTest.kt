@@ -69,6 +69,36 @@ class NetworkIndexTest {
     assertEquals(null, NetworkIndex.parse(index.toJson()).paths)
   }
 
+  private val places = PathIndexEntry("places.places", 500, "2026-11-10", 1, 9, 50, "def")
+
+  /** The index as the apps knew it before place details, with their parser's rules. */
+  @Serializable
+  private data class IndexWithPaths(
+    val formatVersion: Int,
+    val generatedAt: String,
+    val files: List<NetworkIndexEntry>,
+    val paths: PathIndexEntry? = null,
+  )
+
+  @Test
+  fun `An earlier app reads the index with place details`() {
+    val json = NetworkIndex(1, "2026-11-10T03:00:00Z", listOf(entry), paths, places).toJson()
+
+    val earlier = Json { ignoreUnknownKeys = true }.decodeFromString<IndexWithPaths>(json)
+
+    assertEquals(listOf(entry), earlier.files)
+    assertEquals(paths, earlier.paths)
+    assertEquals(places, NetworkIndex.parse(json).places)
+  }
+
+  @Test
+  fun `An index without place details has no entry for them`() {
+    val index = NetworkIndex(1, "2026-11-10T03:00:00Z", listOf(entry), paths)
+
+    assertFalse("places" in index.toJson())
+    assertEquals(null, NetworkIndex.parse(index.toJson()).places)
+  }
+
   @Test
   fun `The directory info describes the file`() {
     val square = PathSquare(800, 100)

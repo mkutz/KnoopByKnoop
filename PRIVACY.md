@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Last updated: 6 November 2026
+Last updated: 10 November 2026
 
 This policy covers the Knoop by Knoop apps for Android and iOS.
 
@@ -10,7 +10,7 @@ This policy covers the Knoop by Knoop apps for Android and iOS.
 Knoop by Knoop has no accounts, no ads, no analytics and no crash reporting.
 Your location and your routes stay on your device.
 The app only talks to three services to download network data, show the base map and search for places.
-When you plan a cycling route, GitHub can also see its rough area, as the ways around it are downloaded from there, but never where you are.
+When you plan a route or tap a place while planning, GitHub can also see its rough area, as the ways and the place details around it are downloaded from there, but never where you are.
 
 
 ## Who is responsible
@@ -23,7 +23,7 @@ mail@knoopbyknoop.com
 ## Data that stays on your device
 
 - **Location.** While you navigate, the app uses your location to tell you the next knot. It is only used on the device and never sent anywhere. The app only accesses your location while it is in use, or while navigation runs, shown by a notification.
-- **Routes and settings.** Your current route, the downloaded networks and ways, and your settings are stored on the device. They are removed when you uninstall the app.
+- **Routes and settings.** Your current route, the downloaded networks, ways and place details, and your settings are stored on the device. They are removed when you uninstall the app.
 - **Shared routes.** When you share a route as a link or QR code, the link contains the route's knots. It is only passed to whoever you share it with.
 
 
@@ -35,11 +35,13 @@ The app sends no identifiers of its own.
 
 | Service | Purpose | What it receives |
 |---|---|---|
-| [GitHub](https://github.com) (GitHub, Inc., USA) | Downloading the knooppunt networks, on first start and at most once a day, and the ways around a planned cycling route | IP address, the rough area of planned cycling routes |
+| [GitHub](https://github.com) (GitHub, Inc., USA) | Downloading the knooppunt networks, on first start and at most once a day, the ways around a planned cycling route, and the place details around a planned route or a place tapped while planning | IP address, the rough area of planned routes and of places tapped while planning |
 | [OpenFreeMap](https://openfreemap.org) | Base map tiles while the map is shown | IP address, the map area being shown |
 | [Photon](https://photon.komoot.io) by komoot (komoot GmbH, Germany) | Place search | IP address, the text you type into the search field, the centre of the network area |
 
 **Guidance away from the route.** The app downloads the ways within about 5 km of a cycling route you planned, in squares of about 7 by 4 km, from GitHub. The squares requested show GitHub the rough area of that route, along with your IP address, and may be downloaded while you navigate if they weren't complete before. They are chosen from the route alone: your position is never used to choose them and never sent. The way back to the route is worked out on your device. You can delete the downloaded ways in the info sheet; they are downloaded again for the next route you plan.
+
+**Place details.** The websites, phone numbers and opening hours of the places on the map are downloaded from GitHub in the same squares: those within about 5 km of a route you planned, cycling or hiking, and the square of a place you tap while planning, if it isn't on the device yet. This shows GitHub the rough area of the route or of the place, along with your IP address. While you navigate, tapping a place never downloads anything. Opening a place's website or calling its number happens in your browser or phone app, not in Knoop by Knoop. You can delete the downloaded place details in the info sheet.
 
 These services process the data under their own privacy policies:
 [GitHub](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement),

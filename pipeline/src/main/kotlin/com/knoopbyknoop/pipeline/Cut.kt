@@ -5,6 +5,7 @@ import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkGraph
 import com.knoopbyknoop.core.PathFile
 import com.knoopbyknoop.core.PathSquare
+import com.knoopbyknoop.core.SquareInfo
 import com.knoopbyknoop.core.sha256Hex
 import java.io.RandomAccessFile
 import java.nio.file.Path
@@ -86,7 +87,7 @@ fun cutPaths(read: (offset: Long, size: Int) -> ByteArray, box: Box): ByteArray 
   val header =
     PathFile.header(
       squares.map { (square, entry) ->
-        PathFile.SquareInfo(square, entry.size, entry.rawSize, entry.sha256)
+        SquareInfo(square, entry.size, entry.rawSize, entry.sha256)
       },
       directory.dataDate,
       directory.attribution,

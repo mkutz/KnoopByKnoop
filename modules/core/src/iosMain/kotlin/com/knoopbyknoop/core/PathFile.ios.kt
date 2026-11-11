@@ -29,6 +29,13 @@ fun openPathStore(directory: String): PathStore = PathStore(DirectoryPathStoreFi
 /** Loads squares into [store] from the published path data, by range. */
 fun pathDownloader(store: PathStore): PathDownloader = PathDownloader(store, HttpPathDataOrigin())
 
+/** The squares of place details in the app-private [directory]. */
+fun openPlaceStore(directory: String): PlaceStore = PlaceStore(DirectoryPathStoreFiles(directory))
+
+/** Loads squares into [store] from the published place details, by range. */
+fun placeDownloader(store: PlaceStore): PlaceDownloader =
+  PlaceDownloader(store, HttpPathDataOrigin())
+
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 private class DirectoryPathStoreFiles(private val directory: String) : PathStoreFiles {
 

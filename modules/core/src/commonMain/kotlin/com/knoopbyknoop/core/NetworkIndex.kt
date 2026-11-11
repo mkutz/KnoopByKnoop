@@ -11,6 +11,8 @@ import kotlinx.serialization.json.Json
  * @property generatedAt when the pipeline wrote this index, as ISO instant
  * @property paths the path file, in an entry of its own, see `network-data` "Path data in the
  *   index": a new kind of file in [files] would make released apps refuse the whole index
+ * @property places the place details file, in an entry of its own like [paths], see `network-data`
+ *   "Place details in the index"
  */
 @Serializable
 data class NetworkIndex(
@@ -18,6 +20,7 @@ data class NetworkIndex(
   val generatedAt: String,
   val files: List<NetworkIndexEntry>,
   val paths: PathIndexEntry? = null,
+  val places: PathIndexEntry? = null,
 ) {
 
   fun toJson(): String = json.encodeToString(this)
@@ -69,8 +72,9 @@ data class NetworkIndexEntry(
 }
 
 /**
- * The published path file, see [PathFile]. Its squares are checked by the checksums in its
- * directory, so the directory's range and checksum are enough to trust all of it.
+ * A published file of squares, see [SquareFile]: the path file or the place details. Its squares
+ * are checked by the checksums in its directory, so the directory's range and checksum are enough
+ * to trust all of it.
  *
  * @property file the file name, relative to the index
  * @property directoryOffset where the directory starts in the file

@@ -1,0 +1,14 @@
+The files in this directory are vector tiles of the base map, as OpenFreeMap served them on
+2026-11-10 (planet 20261101_080013_pt, OpenMapTiles schema), stored for the tests in
+`BaseMapPlacesTest`, see the change `add-place-details`.
+
+They are derived from OpenStreetMap data:
+© OpenStreetMap contributors, available under the Open Database License (ODbL) 1.0,
+https://www.openstreetmap.org/copyright
+© OpenMapTiles, https://openmaptiles.org/ (schema), served by OpenFreeMap, https://openfreemap.org/
+
+Unlike the rest of this repository, which is under the Apache License 2.0, these files are under
+the ODbL.
+
+Tiles (zoom/x/y):
+- renesse-14-8363-5431   14/8363/5431   Renesse: campsites, hotels, guest houses and restaurants

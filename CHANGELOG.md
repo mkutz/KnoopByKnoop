@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Campsites and hotels or guest houses are highlighted on the map with their own icons, a tent and a bed, next to food, supermarkets and the others
+- Tapping a highlighted place shows what OpenStreetMap knows about it: whether it is open now and until when, with its opening hours, its website and its phone number. Tap the website to open it, or the number to call it. The details are downloaded around planned routes, also hiking routes, so they are there offline on the way, and for a place tapped while planning. The info sheet shows their size and can delete them
+
 ## 0.12.0
 
 - Starting beside a start flag off the network, the way to the network now follows the planned way: a way found from a first, still imprecise position is looked for again as soon as the position is precise, instead of staying, e.g. a longer way around the block. The same holds off route

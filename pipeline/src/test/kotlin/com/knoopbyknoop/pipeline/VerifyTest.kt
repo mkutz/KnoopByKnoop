@@ -14,6 +14,8 @@ import com.knoopbyknoop.core.PathFile
 import com.knoopbyknoop.core.PathKind
 import com.knoopbyknoop.core.PathSegment
 import com.knoopbyknoop.core.PathSquare
+import com.knoopbyknoop.core.PlaceDetails
+import com.knoopbyknoop.core.PlaceFile
 import com.knoopbyknoop.core.sha256Hex
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
@@ -74,6 +76,7 @@ class VerifyTest {
       NetworkGeometry.straightLines(graphs.getValue(network)).toBytes(sha256Hex(graphBytes))
     },
     paths: ByteArray? = pathBytes(),
+    places: ByteArray? = null,
   ): Path {
     into.createDirectories()
     for ((network, graph) in graphs) {
@@ -83,6 +86,7 @@ class VerifyTest {
       into.resolve(geometryFileName(network)).writeBytes(geometryOf(network, graphBytes))
     }
     if (paths != null) into.resolve(PATHS_FILE).writeBytes(paths)
+    if (places != null) into.resolve(PLACES_FILE).writeBytes(places)
     index(into)
     return into
   }
@@ -141,6 +145,48 @@ class VerifyTest {
     val verification = verifyRebuild(rebuilt)
 
     assertEquals(listOf("hiking.geometry is MISMATCHING_GEOMETRY"), verification.failures)
+  }
+
+  private fun placeBytes() =
+    PlaceFile.toBytes(
+      mapOf(
+        PathSquare(827, 60) to
+          mapOf(PlaceFile.nodeFeatureId(1) to PlaceDetails("https://a.nl", null, null)),
+        PathSquare(827, 61) to
+          mapOf(PlaceFile.nodeFeatureId(2) to PlaceDetails(null, "+31 1", "Mo-Su 08:00-18:00")),
+      ),
+      "2026-11-10",
+      ATTRIBUTION,
+    )
+
+  @Test
+  fun `a rebuild with place details reads every square of them`() {
+    val verification = verifyRebuild(rebuild(places = placeBytes()), published())
+
+    assertEquals(listOf(), verification.failures)
+    assertTrue(verification.log.any { it == "$PLACES_FILE: 2 squares, 2 places" })
+  }
+
+  // Scenario: Failed places build
+  @Test
+  fun `a rebuild without place details still passes`() {
+    val verification = verifyRebuild(rebuild(places = null), published())
+
+    assertEquals(listOf(), verification.failures)
+    assertTrue(verification.log.any { it == "place details: not published in this run" })
+  }
+
+  @Test
+  fun `a changed byte in a place details square fails`() {
+    val rebuilt = rebuild(places = placeBytes())
+    val places = rebuilt.resolve(PLACES_FILE)
+    val bytes = places.readBytes()
+    bytes[bytes.size - 1] = (bytes[bytes.size - 1] + 1).toByte()
+    places.writeBytes(bytes)
+
+    val verification = verifyRebuild(rebuilt)
+
+    assertTrue(verification.failures.single().startsWith("$PLACES_FILE has 1 broken squares"))
   }
 
   @Test

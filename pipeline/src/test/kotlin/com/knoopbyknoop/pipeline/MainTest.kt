@@ -7,6 +7,9 @@ import com.knoopbyknoop.core.NetworkIndex
 import com.knoopbyknoop.core.NetworkType
 import com.knoopbyknoop.core.NewKnots
 import com.knoopbyknoop.core.PathFile
+import com.knoopbyknoop.core.PathSquare
+import com.knoopbyknoop.core.PlaceDetails
+import com.knoopbyknoop.core.PlaceFile
 import com.knoopbyknoop.core.PlanningSession
 import com.knoopbyknoop.core.RouteSummary
 import java.nio.file.Path
@@ -85,6 +88,43 @@ class MainTest {
     assertEquals(PathFile.FORMAT_VERSION, paths.formatVersion)
     assertEquals(output.resolve(PATHS_FILE).toFile().length(), paths.sizeBytes)
     assertEquals(4, NetworkIndex.parse(output.resolve("index.json").readText()).files.size)
+  }
+
+  @Test
+  fun `the index lists the place details when there are some`() {
+    val output = directory.resolve("with-places")
+    build("nl-be-nrw", output, neighboringExtracts())
+    index(output)
+    assertNull(NetworkIndex.parse(output.resolve("index.json").readText()).places)
+
+    val extract = directory.resolve("places.osm.pbf")
+    PbfWriter.write(
+      extract,
+      replicationTimestamp = 1_793_000_000,
+      nodes =
+        listOf(
+          OsmNode(1, 51.73, 3.77, mapOf("tourism" to "camp_site", "phone" to "+31 111 1")),
+          OsmNode(2, 51.73, 3.77, mapOf("amenity" to "pharmacy", "phone" to "+31 111 2")),
+        ),
+      ways = listOf(),
+      relations = listOf(),
+    )
+    places(output.resolve(PLACES_FILE), listOf(extract))
+    index(output)
+
+    val index = NetworkIndex.parse(output.resolve("index.json").readText())
+    val places = assertNotNull(index.places)
+    assertEquals(PLACES_FILE, places.file)
+    assertEquals(PlaceFile.FORMAT_VERSION, places.formatVersion)
+    assertEquals(output.resolve(PLACES_FILE).toFile().length(), places.sizeBytes)
+    val file = PlaceFile.open { offset, size ->
+      output.resolve(PLACES_FILE).readBytes().copyOfRange(offset.toInt(), offset.toInt() + size)
+    }
+    assertEquals(
+      mapOf(PlaceFile.nodeFeatureId(1) to PlaceDetails(null, "+31 111 1", null)),
+      file.details(PathSquare.of(51.73, 3.77)),
+    )
+    assertEquals(4, index.files.size)
   }
 
   @Test

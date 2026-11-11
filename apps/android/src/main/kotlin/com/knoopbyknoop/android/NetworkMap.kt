@@ -863,6 +863,9 @@ private class MapHolder {
             feature.getStringPropertyOrNull("name"),
             feature.getStringPropertyOrNull("class"),
             feature.getStringPropertyOrNull("subclass"),
+            // The tiles' id, which names the OpenStreetMap object, see `network-data` "Published
+            // place details".
+            feature.id()?.toLongOrNull(),
           ) ?: return@mapNotNull null
         val screen = map.projection.toScreenLocation(LatLng(point.latitude(), point.longitude()))
         place to (screen.x - x) * (screen.x - x) + (screen.y - y) * (screen.y - y)

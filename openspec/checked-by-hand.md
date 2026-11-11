@@ -218,6 +218,12 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Knots and position stay on top — on the devices
 - Tunnel — on the devices
 - Place while navigating — on the devices while navigating
+- Opening the website — on the devices: tap a place's website on its card
+- Calling a hotel — on the devices: tap a place's phone number, the dialler opens without calling
+- Details arriving after the tap — on the devices: tap a place whose square is not installed while planning online
+- Contacts with a screen reader — on the devices with TalkBack and VoiceOver
+- Closing while the card is shown — on the devices: keep a card open over a place's closing time
+- Opening hours with a screen reader — on the devices with TalkBack and VoiceOver
 - Closing the card — on the devices
 
 ## network-data
@@ -227,6 +233,7 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Geometry size budget — by a run of the network data workflow
 - Failed path build — by a run of the network data workflow
 - Path data size budget — by a run of the network data workflow
+- Place details size budget — by a run of the network data workflow
 
 ## network-sync
 
@@ -247,6 +254,10 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - No path data installed — on the devices
 - Explanation — on the devices in each language
 - Delete button with a screen reader — on the devices with a screen reader
+- Opening the info sheet with place details — on the devices
+- No place details installed — on the devices
+- Explaining place details — on the devices in English, German, Dutch and French
+- Place details delete button with a screen reader — on the devices with TalkBack and VoiceOver
 
 ## path-routing
 

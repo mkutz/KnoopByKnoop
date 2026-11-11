@@ -45,8 +45,11 @@ import com.knoopbyknoop.core.NewKnots
 import com.knoopbyknoop.core.PathDataStatus
 import com.knoopbyknoop.core.PathDownloader
 import com.knoopbyknoop.core.PathSquares
+import com.knoopbyknoop.core.PlaceDetails
+import com.knoopbyknoop.core.PlaceDownloader
 import com.knoopbyknoop.core.PlaceHit
 import com.knoopbyknoop.core.PlaceSearch
+import com.knoopbyknoop.core.PlaceSquares
 import com.knoopbyknoop.core.PlanningSession
 import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteKnot
@@ -108,6 +111,11 @@ data class PlaceOffer(
   val y: Float,
   /** Whether only the place's name is shown, without choices, see "Tapping a place on the map". */
   val nameOnly: Boolean = false,
+  /**
+   * The place's details once found, see `map-planning` "Contacts on the place card"; `null` before
+   * or without them.
+   */
+  val details: PlaceDetails? = null,
 )
 
 /** What to make of an offered place, see `map-planning` "What a chosen route point does". */
@@ -173,6 +181,15 @@ data class AppState(
    * navigation starts, see `network-sync` "Deleting with a route planned".
    */
   val pathDataDeletedFor: List<GeoPoint>? = null,
+  /** The data date of the installed place details. */
+  val placeDetailsDate: String? = null,
+  /** The space the installed place details take, in bytes, see `network-sync`. */
+  val placeDetailsBytes: Long = 0,
+  /**
+   * The course of the route planned when the place details were deleted, until the route changes or
+   * navigation starts, see `network-sync` "Deleting place details with a route planned".
+   */
+  val placeDetailsDeletedFor: List<GeoPoint>? = null,
   /** The navigation, or `null` when not navigating, see `knot-navigation`. */
   val navigation: NavigationState? = null,
   /**
@@ -229,6 +246,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   private val storage = NetworkStorage(application.filesDir)
   private val settings = application.getSharedPreferences("settings", Context.MODE_PRIVATE)
   private val paths = PathData.store(application)
+  private val places = PlaceDetailsData.store(application)
 
   /** The language of the core's texts, see `app-languages` "Language of the texts". */
   private var language = Language.of(application.resources.configuration.locales[0].language)
@@ -297,7 +315,88 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     state = state.copy(online = connectivity.activeNetwork != null)
     viewModelScope.launch { Navigating.state.collect { state = state.copy(navigation = it) } }
     viewModelScope.launch { loadPathData() }
+    viewModelScope.launch { loadPlaceDetails() }
   }
+
+  /**
+   * Keeps the place details around the planned route on the device, for cycling and hiking, see
+   * `network-sync` "Place details around the route": like the path data, 2 seconds after the route
+   * last changed.
+   */
+  private suspend fun loadPlaceDetails() {
+    updatePlaceDetailsInfo()
+    snapshotFlow {
+      listOf(state.online, state.session, state.layers, state.placeDetailsDeletedFor)
+    }
+      .distinctUntilChanged()
+      .collectLatest {
+        val course =
+          PlaceSquares.courseToLoad(plannedCourse(), state.placeDetailsDeletedFor)
+            ?: return@collectLatest
+        delay(PATH_DATA_DELAY_MILLIS)
+        val job = currentCoroutineContext()
+        withContext(Dispatchers.IO) {
+          PlaceDownloader(places, HttpPathDataOrigin())
+            .loadAround(course, System.currentTimeMillis(), isCancelled = { !job.isActive })
+        }
+        job.ensureActive()
+        updatePlaceDetailsInfo()
+        refreshOfferDetails()
+      }
+  }
+
+  private suspend fun updatePlaceDetailsInfo() {
+    val bytes = withContext(Dispatchers.IO) { places.installedBytes() }
+    state = state.copy(placeDetailsBytes = bytes, placeDetailsDate = places.dataDate)
+  }
+
+  /**
+   * Shows the details of the offered place, from the installed squares; while planning, its square
+   * is downloaded if it's missing, see `network-sync` "Place details for a tapped place".
+   */
+  private fun lookUpDetails(place: MapPlace) {
+    viewModelScope.launch {
+      refreshOfferDetails()
+      val square =
+        PlaceSquares.squareToLoad(place.position, state.navigating, places) ?: return@launch
+      if (!state.online) return@launch
+      withContext(Dispatchers.IO) {
+        PlaceDownloader(places, HttpPathDataOrigin())
+          .loadSquare(square, plannedCourse(), System.currentTimeMillis())
+      }
+      updatePlaceDetailsInfo()
+      refreshOfferDetails()
+    }
+  }
+
+  /** The offered place's details as installed now, see "Details arriving after the tap". */
+  private suspend fun refreshOfferDetails() {
+    val place = state.offer?.offer?.place ?: return
+    val details = withContext(Dispatchers.IO) { places.detailsOf(place) }
+    val offer = state.offer ?: return
+    if (offer.offer.place == place && offer.details != details) {
+      state = state.copy(offer = offer.copy(details = details))
+    }
+  }
+
+  /**
+   * Deletes the downloaded place details; they come again for a changed route, a place tapped while
+   * planning, or when navigation starts, see `network-sync` "Place details in the info sheet".
+   */
+  fun deletePlaceDetails() {
+    state =
+      state.copy(
+        placeDetailsDate = null,
+        placeDetailsBytes = 0,
+        placeDetailsDeletedFor = plannedCourse() ?: listOf(),
+        offer = state.offer?.copy(details = null),
+      )
+    viewModelScope.launch(Dispatchers.IO) { places.clear() }
+  }
+
+  /** The language of the core's texts, e.g. for a place's opening status. */
+  val textLanguage: Language
+    get() = language
 
   /**
    * Keeps the squares around the planned route on the device, see `network-sync` "Path data around
@@ -306,7 +405,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
    * navigation starts goes on, as only the route decides what is requested.
    */
   private suspend fun loadPathData() {
-    state = state.copy(pathDataBytes = withContext(Dispatchers.IO) { paths.installedBytes() })
+    // Read before copying: a state read before suspending would undo what changed meanwhile.
+    val installedBytes = withContext(Dispatchers.IO) { paths.installedBytes() }
+    state = state.copy(pathDataBytes = installedBytes)
     snapshotFlow { listOf(state.online, state.session, state.layers, state.pathDataDeletedFor) }
       .distinctUntilChanged()
       .collectLatest {
@@ -375,7 +476,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val knots = (session.route?.summary as? RouteSummary.Complete)?.knots ?: return
     val network = loaded ?: return
     // The route's squares are wanted again, see `network-sync` "Deleting with a route planned".
-    state = state.copy(pathDataDeletedFor = null)
+    state = state.copy(pathDataDeletedFor = null, placeDetailsDeletedFor = null)
     NavigationService.start(
       getApplication(),
       NavigationRoute(
@@ -652,12 +753,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
       is MapTap.OnKnot -> update(session.tap(tapped.knot, state.newKnots))
       is MapTap.OnRoutePoint -> {}
       // While navigating, a place shows its name only, see `map-planning` "Place while navigating".
-      is MapTap.Offer ->
+      is MapTap.Offer -> {
         if (!state.navigating) state = state.copy(offer = PlaceOffer(tapped, x, y))
         else if (tapped.place != null) {
           state = state.copy(offer = PlaceOffer(tapped, x, y, nameOnly = true))
         }
-      is MapTap.PlaceOnly ->
+        tapped.place?.let(::lookUpDetails)
+      }
+      is MapTap.PlaceOnly -> {
         state =
           state.copy(
             offer =
@@ -668,6 +771,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 nameOnly = true,
               )
           )
+        lookUpDetails(tapped.place)
+      }
       // See `map-planning` "Too far from the network".
       is MapTap.TooFar ->
         if (!state.navigating) {

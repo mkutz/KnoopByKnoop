@@ -97,6 +97,7 @@ fun InfoSheet(state: AppState, viewModel: AppViewModel, onDismiss: () -> Unit) {
         }
       }
       WaysEntry(state, viewModel)
+      PlaceDetailsEntry(state, viewModel)
       if (state.needsAppUpdate) {
         Text(
           stringResource(R.string.needs_app_update),
@@ -154,6 +155,47 @@ private fun WaysEntry(state: AppState, viewModel: AppViewModel) {
   }
   Text(
     stringResource(R.string.ways_explanation),
+    style = MaterialTheme.typography.bodyMedium,
+    modifier = Modifier.padding(top = 8.dp),
+  )
+}
+
+/**
+ * The downloaded place details, after the ways, with their size and a button to delete them, see
+ * `network-sync` "Place details in the info sheet".
+ */
+@Composable
+private fun PlaceDetailsEntry(state: AppState, viewModel: AppViewModel) {
+  val date = state.placeDetailsDate
+  val installed = date != null && state.placeDetailsBytes > 0
+  Row(
+    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Column(modifier = Modifier.weight(1f)) {
+      Text(stringResource(R.string.place_details), style = MaterialTheme.typography.titleMedium)
+      Text(
+        if (installed) {
+          stringResource(R.string.data_of, date!!) + " · " + megabytes(state.placeDetailsBytes)
+        } else {
+          stringResource(R.string.place_details_none)
+        },
+        style = MaterialTheme.typography.bodyMedium,
+      )
+    }
+    if (installed) {
+      val description = stringResource(R.string.place_details_delete_description)
+      TextButton(onClick = viewModel::deletePlaceDetails) {
+        // See "Place details delete button with a screen reader".
+        Text(
+          stringResource(R.string.ways_delete),
+          modifier = Modifier.clearAndSetSemantics { contentDescription = description },
+        )
+      }
+    }
+  }
+  Text(
+    stringResource(R.string.place_details_explanation),
     style = MaterialTheme.typography.bodyMedium,
     modifier = Modifier.padding(top = 8.dp),
   )

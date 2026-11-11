@@ -28,7 +28,18 @@ enum class PlaceKind(val key: String, val colour: Long, val matches: Map<String,
     "water",
     0xFF00897B,
     mapOf("drinking_water" to setOf("drinking_water"), "toilets" to setOf("toilets")),
+  ),
+  /** Campsites, not those for motorhomes only (`caravan_site`). */
+  CAMPSITE("campsite", 0xFF5E6E1A, mapOf("campsite" to setOf("camp_site"))),
+  /** Hotels and guest houses, not holiday homes (`chalet`). */
+  LODGING(
+    "lodging",
+    0xFF4B3FB5,
+    mapOf("lodging" to setOf("hotel", "motel", "hostel", "guest_house")),
   );
+
+  /** All subclasses of this kind, whatever their class. */
+  private val subclasses: Set<String> by lazy { matches.values.flatten().toSet() }
 
   /** The name of this kind's icon in the map style. */
   val iconName: String
@@ -61,6 +72,21 @@ enum class PlaceKind(val key: String, val colour: Long, val matches: Map<String,
     fun ofKey(kindKey: String?): PlaceKind? =
       entries.firstOrNull { it.key == kindKey }
         ?: WATER.takeIf { kindKey == "drinking_water" || kindKey == "toilets" }
+
+    /**
+     * The OpenStreetMap keys the tiles' subclasses come from: a subclass is the value of one of
+     * them, e.g. `amenity=restaurant` or `tourism=camp_site`.
+     */
+    private val OSM_KEYS = listOf("amenity", "shop", "railway", "tourism")
+
+    /**
+     * The kind of an OpenStreetMap object with [tags], `null` for other places: the same places the
+     * map highlights, for the place details the pipeline publishes, see `network-data` "Published
+     * place details".
+     */
+    fun ofTags(tags: Map<String, String>): PlaceKind? = OSM_KEYS.firstNotNullOfOrNull { key ->
+      tags[key]?.let { value -> entries.firstOrNull { kind -> kind.subclasses.contains(value) } }
+    }
 
     /** The kind of a place with the tiles' [className] and [subclass], `null` for other places. */
     fun of(className: String?, subclass: String?): PlaceKind? = entries.firstOrNull {
@@ -118,17 +144,20 @@ enum class PlaceKind(val key: String, val colour: Long, val matches: Map<String,
  *
  * @property name the place's local name, `null` without one
  * @property subclass the tiles' subclass, which tells drinking water from toilets
+ * @property featureId the tiles' id of its feature, which names its OpenStreetMap object, see
+ *   [PlaceFile.nodeFeatureId]; `null` if the tile has none
  */
 data class MapPlace(
   val position: GeoPoint,
   val name: String?,
   val kind: PlaceKind,
   val subclass: String,
+  val featureId: Long? = null,
 ) {
 
   /**
    * What the place is, for its name in the app's language when it has none: `food`, `supermarket`,
-   * `bicycle`, `railway`, `drinking_water` or `toilets`.
+   * `bicycle`, `railway`, `drinking_water`, `toilets`, `campsite` or `lodging`.
    */
   val kindKey: String
     get() = if (kind == PlaceKind.WATER) subclass else kind.key
@@ -141,9 +170,16 @@ data class MapPlace(
       name: String?,
       className: String?,
       subclass: String?,
+      featureId: Long? = null,
     ): MapPlace? {
       val kind = PlaceKind.of(className, subclass) ?: return null
-      return MapPlace(GeoPoint(latitude, longitude), name?.ifBlank { null }, kind, subclass!!)
+      return MapPlace(
+        GeoPoint(latitude, longitude),
+        name?.ifBlank { null },
+        kind,
+        subclass!!,
+        featureId,
+      )
     }
   }
 }

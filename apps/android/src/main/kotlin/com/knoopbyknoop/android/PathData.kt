@@ -5,6 +5,7 @@ import com.knoopbyknoop.core.NetworkIndex
 import com.knoopbyknoop.core.PathDataOrigin
 import com.knoopbyknoop.core.PathStore
 import com.knoopbyknoop.core.PathStoreFiles
+import com.knoopbyknoop.core.PlaceStore
 import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -23,6 +24,20 @@ object PathData {
             .also {
               store = it
             }
+      }
+}
+
+/** The squares of place details on the device, see `network-sync` "Keeping place details". */
+object PlaceDetailsData {
+
+  @Volatile private var store: PlaceStore? = null
+
+  fun store(context: Context): PlaceStore =
+    store
+      ?: synchronized(this) {
+        store
+          ?: PlaceStore(FilePathStoreFiles(File(context.applicationContext.filesDir, "places")))
+            .also { store = it }
       }
 }
 

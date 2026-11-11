@@ -10,6 +10,7 @@ import com.knoopbyknoop.core.NetworkGraph
 import com.knoopbyknoop.core.NetworkIndex
 import com.knoopbyknoop.core.NetworkInstaller
 import com.knoopbyknoop.core.PathFile
+import com.knoopbyknoop.core.PlaceFile
 import com.knoopbyknoop.core.ShortestPathRouter
 import com.knoopbyknoop.core.distanceMeters
 import com.knoopbyknoop.core.sha256Hex
@@ -150,6 +151,7 @@ fun verify(
   }
 
   if (pathFloor != null) checkPaths(directory, index, pathFloor, log, ::fail)
+  checkPlaces(directory, index, log, ::fail)
 
   when {
     publishedBase == null -> log += "drop not checked: no published data given"
@@ -254,6 +256,62 @@ private fun checkPaths(
         log +=
           "${entry.file}: ${squares.size} squares, $segments segments " +
             "(floor ${floor.squares}, ${floor.segments})"
+      }
+    }
+  } catch (exception: GraphFormatException) {
+    fail("${entry.file} cannot be read: ${exception.message}")
+  }
+}
+
+/**
+ * Every square of the place details unpacked and checked against its checksum, if they are
+ * published; a failed places build leaves them out of the index, see `network-data` "Failed places
+ * build".
+ */
+private fun checkPlaces(
+  directory: Path,
+  index: NetworkIndex,
+  log: MutableList<String>,
+  fail: (String) -> Unit,
+) {
+  val entry = index.places
+  if (entry == null) {
+    log += "place details: not published in this run"
+    return
+  }
+  val file = directory.resolve(entry.file)
+  if (!file.exists()) {
+    fail("${entry.file} is in index.json but missing")
+    return
+  }
+  try {
+    RandomAccessFile(file.toFile(), "r").use { access ->
+      val read = { offset: Long, size: Int ->
+        access.seek(offset)
+        ByteArray(size).also(access::readFully)
+      }
+      val directoryBytes = read(entry.directoryOffset, entry.directorySize)
+      if (
+        access.length() != entry.sizeBytes || sha256Hex(directoryBytes) != entry.directorySha256
+      ) {
+        fail("${entry.file} does not match index.json")
+        return
+      }
+      val places = PlaceFile.open(read)
+      val squares = PlaceFile.SQUARES.parseDirectory(directoryBytes).entries.keys
+      var entries = 0L
+      val broken = ArrayList<String>()
+      for (square in squares) {
+        try {
+          entries += places.details(square).size
+        } catch (exception: GraphFormatException) {
+          broken += "${square.latitudeIndex}/${square.longitudeIndex}"
+        }
+      }
+      if (broken.isNotEmpty()) {
+        fail("${entry.file} has ${broken.size} broken squares: ${broken.take(5).joinToString()}")
+      } else {
+        log += "${entry.file}: ${squares.size} squares, $entries places"
       }
     }
   } catch (exception: GraphFormatException) {

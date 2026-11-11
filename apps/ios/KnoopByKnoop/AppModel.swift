@@ -70,6 +70,9 @@ struct PlaceOffer: Identifiable {
   /// Whether only the place's name is shown, without choices, see `map-planning` "Tapping a place
   /// on the map".
   var nameOnly = false
+  /// The place's details once found, see `map-planning` "Contacts on the place card"; `nil` before
+  /// or without them.
+  var details: PlaceDetails?
 }
 
 /// What to make of an offered place, see `map-planning` "What a chosen route point does".
@@ -115,6 +118,14 @@ final class AppModel: ObservableObject {
   /// navigation starts, see `network-sync` "Deleting with a route planned".
   private var pathDataDeletedFor: [GeoPoint]?
   private var pathDataLoad: (task: Task<Void, Never>, cancellation: PathDataCancellation, course: [GeoPoint], online: Bool)?
+  /// The data date of the installed place details.
+  @Published private(set) var placeDetailsDate: String? = PlaceDetailsData.store.dataDate
+  /// The space the installed place details take, in bytes, see `network-sync`.
+  @Published private(set) var placeDetailsBytes: Int64 = PlaceDetailsData.store.installedBytes()
+  /// The course of the route planned when the place details were deleted, until the route changes
+  /// or navigation starts, see `network-sync` "Deleting place details with a route planned".
+  private var placeDetailsDeletedFor: [GeoPoint]?
+  private var placeDetailsLoad: (task: Task<Void, Never>, cancellation: PathDataCancellation, course: [GeoPoint], online: Bool)?
   @Published var message: String?
   /// Whether the `message` offers to open the app's settings, e.g. to allow location access.
   @Published var messageOpensSettings = false
@@ -208,6 +219,10 @@ final class AppModel: ObservableObject {
       pathDataDeletedFor = nil
       loadPathData()
     }
+    if placeDetailsDeletedFor != nil {
+      placeDetailsDeletedFor = nil
+      loadPlaceDetails()
+    }
     Navigator.shared.onDenied = { [weak self] in
       self?.message = String(localized: "Knoop by Knoop needs location access to navigate. You can allow it in Settings.", bundle: AppLanguage.bundle)
     }
@@ -283,7 +298,10 @@ final class AppModel: ObservableObject {
     guard let loaded, let session else { return }
     // While navigating, a place shows its name only, see `map-planning` "Place while navigating".
     if navigating {
-      if let place { offer = nameOnly(place, at: point) }
+      if let place {
+        offer = nameOnly(place, at: point)
+        lookUpDetails(place)
+      }
       return
     }
     let newKnots = newKnots
@@ -293,10 +311,13 @@ final class AppModel: ObservableObject {
       position: GeoPoint(latitude: latitude, longitude: longitude), radiusMeters: radiusMeters, knot: knot,
       geometry: loaded.geometry, place: place)
     switch tapped {
-    case let placeOnly as MapTapPlaceOnly: offer = nameOnly(placeOnly.place, at: point)
+    case let placeOnly as MapTapPlaceOnly:
+      offer = nameOnly(placeOnly.place, at: point)
+      lookUpDetails(placeOnly.place)
     case let onKnot as MapTapOnKnot: change { $0.tap(knot: onKnot.knot, newKnots: newKnots) }
     case let place as MapTapOffer:
       offer = PlaceOffer(offer: place, point: point)
+      if let tappedPlace = place.place { lookUpDetails(tappedPlace) }
     // See `map-planning` "Too far from the network".
     case let tooFar as MapTapTooFar:
       let kilometers = Int(tooFar.limitMeters / 1000)
@@ -431,6 +452,7 @@ final class AppModel: ObservableObject {
         geometry: loaded.hasGeometry ? loaded.geometry : nil)
     }
     loadPathData()
+    loadPlaceDetails()
   }
 
   /// Keeps the squares around the planned route on the device, see `network-sync` "Path data around
@@ -494,6 +516,82 @@ final class AppModel: ObservableObject {
 
   /// Deletes the downloaded ways; the planned route's squares come again once it changes or
   /// navigation starts, see `network-sync` "Path data in the info sheet".
+  /// Keeps the place details around the planned route on the device, for cycling and hiking, see
+  /// `network-sync` "Place details around the route": like the path data, 2 seconds after the route
+  /// last changed.
+  private func loadPlaceDetails() {
+    guard
+      let wanted = PlaceSquares.shared.courseToLoad(course: plannedCourse(), deletedFor: placeDetailsDeletedFor)
+    else {
+      placeDetailsLoad?.cancellation.cancel()
+      placeDetailsLoad?.task.cancel()
+      placeDetailsLoad = nil
+      return
+    }
+    if let running = placeDetailsLoad, running.course == wanted, running.online == online { return }
+    placeDetailsLoad?.cancellation.cancel()
+    placeDetailsLoad?.task.cancel()
+    let cancellation = PathDataCancellation()
+    let task = Task { [weak self] in
+      try? await Task.sleep(for: .seconds(2))
+      guard !Task.isCancelled else { return }
+      nonisolated(unsafe) let course = wanted
+      await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+        PathData.queue.async {
+          _ = PathFile_iosKt.placeDownloader(store: PlaceDetailsData.store).loadAround(
+            course: course,
+            nowMillis: Int64(Date().timeIntervalSince1970 * 1000),
+            isCancelled: { KotlinBoolean(bool: cancellation.isCancelled) })
+          continuation.resume()
+        }
+      }
+      guard !cancellation.isCancelled else { return }
+      self?.placeDetailsChanged()
+    }
+    placeDetailsLoad = (task, cancellation, wanted, online)
+  }
+
+  /// Shows what is installed now: the info sheet's entry and the open card's details.
+  private func placeDetailsChanged() {
+    placeDetailsDate = PlaceDetailsData.store.dataDate
+    placeDetailsBytes = PlaceDetailsData.store.installedBytes()
+    refreshOfferDetails()
+  }
+
+  /// Shows the details of the offered `place` from the installed squares; while planning, its
+  /// square is downloaded if it's missing, see `network-sync` "Place details for a tapped place".
+  private func lookUpDetails(_ place: MapPlace) {
+    refreshOfferDetails()
+    guard online,
+      let square = PlaceSquares.shared.squareToLoad(
+        position: place.position, navigating: navigating, store: PlaceDetailsData.store)
+    else { return }
+    nonisolated(unsafe) let course = plannedCourse()
+    PathData.queue.async { [weak self] in
+      _ = PathFile_iosKt.placeDownloader(store: PlaceDetailsData.store).loadSquare(
+        square: square, course: course, nowMillis: Int64(Date().timeIntervalSince1970 * 1000))
+      DispatchQueue.main.async { MainActor.assumeIsolated { self?.placeDetailsChanged() } }
+    }
+  }
+
+  /// The offered place's details as installed now, see "Details arriving after the tap".
+  private func refreshOfferDetails() {
+    guard let place = offer?.offer.place else { return }
+    let details = PlaceDetailsData.store.detailsOf(place: place)
+    if offer?.offer.place == place, offer?.details != details { offer?.details = details }
+  }
+
+  /// Deletes the downloaded place details; they come again for a changed route, a place tapped while
+  /// planning, or when navigation starts, see `network-sync` "Place details in the info sheet".
+  func deletePlaceDetails() {
+    placeDetailsDeletedFor = plannedCourse() ?? []
+    loadPlaceDetails()
+    placeDetailsDate = nil
+    placeDetailsBytes = 0
+    offer?.details = nil
+    PathData.queue.async { PlaceDetailsData.store.clear() }
+  }
+
   func deletePathData() {
     pathDataDeletedFor = plannedCourse() ?? []
     loadPathData()
@@ -772,6 +870,7 @@ final class AppModel: ObservableObject {
   private func networkAccessChanged(_ isOnline: Bool) {
     online = isOnline
     loadPathData()
+    loadPlaceDetails()
     if isOnline && syncPending { Task { await sync() } }
   }
 

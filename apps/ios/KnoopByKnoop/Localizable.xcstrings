@@ -554,28 +554,6 @@
         }
       }
     },
-    "Food, supermarkets, bike shops, stations, water and toilets": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Essen, Supermärkte, Fahrradläden, Bahnhöfe, Wasser und Toiletten"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Eten, supermarkten, fietsenwinkels, stations, water en toiletten"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Restauration, supermarchés, magasins de vélos, gares, eau et toilettes"
-          }
-        }
-      }
-    },
     "Guides you back to the route along suitable paths, also without a connection. The app downloads the ways around planned cycling routes from GitHub, so GitHub can see the rough area of a route, but never where you are.": {
       "localizations": {
         "de": {
@@ -2400,6 +2378,182 @@
           "stringUnit": {
             "state": "translated",
             "value": "Les chemins de cet itinéraire n'ont pas pu être chargés"
+          }
+        }
+      }
+    },
+    "Food, supermarkets, bike shops, stations, water, toilets, campsites and hotels": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Essen, Supermärkte, Fahrradläden, Bahnhöfe, Wasser, Toiletten, Campingplätze und Hotels"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eten, supermarkten, fietsenwinkels, stations, water, toiletten, campings en hotels"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restauration, supermarchés, magasins de vélos, gares, eau, toilettes, campings et hôtels"
+          }
+        }
+      }
+    },
+    "Campsite": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Campingplatz"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camping"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camping"
+          }
+        }
+      }
+    },
+    "Hotel or guest house": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hotel oder Pension"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hotel of pension"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hôtel ou chambre d’hôtes"
+          }
+        }
+      }
+    },
+    "%@, opens the website in the browser": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, öffnet die Website im Browser"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, opent de website in de browser"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, ouvre le site web dans le navigateur"
+          }
+        }
+      }
+    },
+    "%@, opens the phone app to call": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, öffnet die Telefon-App zum Anrufen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, opent de telefoonapp om te bellen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, ouvre l’application Téléphone pour appeler"
+          }
+        }
+      }
+    },
+    "Place details": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ortsdetails"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plaatsgegevens"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Détails des lieux"
+          }
+        }
+      }
+    },
+    "Delete downloaded place details": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heruntergeladene Ortsdetails löschen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gedownloade plaatsgegevens verwijderen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer les détails des lieux téléchargés"
+          }
+        }
+      }
+    },
+    "Websites, phone numbers and opening hours of the places on the map. The app downloads them from GitHub around planned routes and for places you tap while planning, so GitHub can see the rough area of a route or a place, but never where you are.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Websites, Telefonnummern und Öffnungszeiten der Orte auf der Karte. Die App lädt sie rund um geplante Routen und für Orte, die du beim Planen antippst, von GitHub. GitHub sieht so ungefähr, wo eine Route oder ein Ort liegt, aber nie, wo du bist."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Websites, telefoonnummers en openingstijden van de plaatsen op de kaart. De app downloadt ze van GitHub rond geplande routes en voor plaatsen die je bij het plannen aantikt. GitHub kan zo ongeveer zien waar een route of plaats ligt, maar nooit waar jij bent."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sites web, numéros de téléphone et horaires d'ouverture des lieux sur la carte. L'app les télécharge depuis GitHub autour des itinéraires planifiés et pour les lieux que vous touchez en planifiant. GitHub peut ainsi voir la zone approximative d'un itinéraire ou d'un lieu, mais jamais où vous êtes."
           }
         }
       }

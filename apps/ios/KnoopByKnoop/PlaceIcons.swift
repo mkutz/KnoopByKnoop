@@ -19,6 +19,8 @@ enum PlaceIcons {
     case .supermarket: return "cart.fill"
     case .bicycle: return "bicycle"
     case .railway: return "lightrail.fill"
+    case .campsite: return "tent.fill"
+    case .lodging: return "bed.double.fill"
     default: return "drop.fill"
     }
   }
@@ -39,6 +41,8 @@ enum PlaceIcons {
     case "bicycle": String(localized: "Bicycle shop", bundle: AppLanguage.bundle)
     case "railway": String(localized: "Railway station", bundle: AppLanguage.bundle)
     case "toilets": String(localized: "Toilets", bundle: AppLanguage.bundle)
+    case "campsite": String(localized: "Campsite", bundle: AppLanguage.bundle)
+    case "lodging": String(localized: "Hotel or guest house", bundle: AppLanguage.bundle)
     default: String(localized: "Drinking water", bundle: AppLanguage.bundle)
     }
   }

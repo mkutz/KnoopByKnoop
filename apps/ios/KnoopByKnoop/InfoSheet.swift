@@ -30,7 +30,7 @@ struct InfoSheet: View {
           Toggle(isOn: $places) {
             VStack(alignment: .leading) {
               Text("Places on the map")
-              Text("Food, supermarkets, bike shops, stations, water and toilets")
+              Text("Food, supermarkets, bike shops, stations, water, toilets, campsites and hotels")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
             }
@@ -81,6 +81,24 @@ struct InfoSheet: View {
             "Guides you back to the route along suitable paths, also without a connection. The app downloads the ways around planned cycling routes from GitHub, so GitHub can see the rough area of a route, but never where you are."
           )
         }
+        // The downloaded place details, see `network-sync` "Place details in the info sheet".
+        Section {
+          HStack {
+            VStack(alignment: .leading) {
+              Text("Place details").font(.headline)
+              Text(placeDetailsDescription).font(.subheadline).foregroundStyle(.secondary)
+            }
+            Spacer()
+            if model.placeDetailsDate != nil, model.placeDetailsBytes > 0 {
+              Button("Delete") { model.deletePlaceDetails() }
+                .accessibilityLabel(Text("Delete downloaded place details"))
+            }
+          }
+        } footer: {
+          Text(
+            "Websites, phone numbers and opening hours of the places on the map. The app downloads them from GitHub around planned routes and for places you tap while planning, so GitHub can see the rough area of a route or a place, but never where you are."
+          )
+        }
         Section {
           Text(
             "Knot network data © OpenStreetMap contributors, available under the Open Database License (ODbL 1.0), openstreetmap.org/copyright"
@@ -106,6 +124,16 @@ struct InfoSheet: View {
       return String(localized: "None downloaded", bundle: AppLanguage.bundle)
     }
     let megabytes = (Double(model.pathDataBytes) / 1_000_000).formatted(
+      .number.precision(.fractionLength(1)).locale(AppLanguage.locale))
+    return String(localized: "Data of \(date)", bundle: AppLanguage.bundle) + " · \(megabytes) MB"
+  }
+
+  /// The place details' data date and size in MB with one decimal, or that none are downloaded.
+  private var placeDetailsDescription: String {
+    guard let date = model.placeDetailsDate, model.placeDetailsBytes > 0 else {
+      return String(localized: "None downloaded", bundle: AppLanguage.bundle)
+    }
+    let megabytes = (Double(model.placeDetailsBytes) / 1_000_000).formatted(
       .number.precision(.fractionLength(1)).locale(AppLanguage.locale))
     return String(localized: "Data of \(date)", bundle: AppLanguage.bundle) + " · \(megabytes) MB"
   }

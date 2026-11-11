@@ -67,6 +67,21 @@ jobs:
             "$RUNNER_TEMP/belgium.osm.pbf" \
             "$RUNNER_TEMP/nordrhein-westfalen.osm.pbf"
 
+      # See `network-data` "Failed places build".
+      # Place details may fail without failing the networks and the path data: the publish job then
+      # keeps the published ones, see `network-data` "Published place details".
+      - name: Build place details
+        continue-on-error: true
+        env:
+          JAVA_OPTS: -Xmx8g
+        run: |
+          pipeline/build/install/pipeline/bin/pipeline places \
+            "$GITHUB_WORKSPACE/network-data/places.details" \
+            "$RUNNER_TEMP/netherlands.osm.pbf" \
+            "$RUNNER_TEMP/belgium.osm.pbf" \
+            "$RUNNER_TEMP/nordrhein-westfalen.osm.pbf" \
+            || { rm -f "$GITHUB_WORKSPACE/network-data/places.details"; exit 1; }
+
       - uses: actions/upload-artifact@v7
         with:
           name: network-data
@@ -74,6 +89,7 @@ jobs:
             network-data/*.graph
             network-data/*.geometry
             network-data/*.paths
+            network-data/*.details
           if-no-files-found: error
 
   # Runs only when the build succeeded, so a failed run keeps the last publication.
@@ -110,6 +126,22 @@ jobs:
           check cycling.graph 5000000
           check cycling.geometry 10000000
           check cycling.paths 150000000
+          # See `network-data` "Place details size budget".
+          # Too big place details are left out of this run, not the whole publication.
+          if [ -e network-data/places.details ] && ! check places.details 10000000; then
+            rm network-data/places.details
+          fi
+
+      # Without new place details, the published ones stay: the release step below removes every
+      # asset this run doesn't have.
+      - name: Keep published place details
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ ! -e network-data/places.details ]; then
+            gh release download network-data --pattern places.details --dir network-data \
+              || echo "No place details published yet"
+          fi
 
       - name: Write index
         run: ./gradlew :pipeline:run --args="index $GITHUB_WORKSPACE/network-data"

@@ -1153,6 +1153,8 @@ private fun placeKindLabel(kindKey: String) =
     "bicycle" -> R.string.place_bicycle
     "railway" -> R.string.place_railway
     "toilets" -> R.string.place_toilets
+    "campsite" -> R.string.place_campsite
+    "lodging" -> R.string.place_lodging
     else -> R.string.place_drinking_water
   }
 
@@ -1186,6 +1188,7 @@ private fun PlaceOfferMenu(offer: PlaceOffer, viewModel: AppViewModel) {
             style = MaterialTheme.typography.titleMedium,
           )
         }
+        offer.details?.let { PlaceDetailsRows(it, viewModel.textLanguage) }
         if (!offer.nameOnly) HorizontalDivider()
       }
       if (offer.nameOnly) return@DropdownMenu

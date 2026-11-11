@@ -121,6 +121,79 @@ class PlaceKindTest {
   }
 
   @Test
+  fun `Campsites near Renesse show the campsite icon and hotels and guest houses the hotel icon`() {
+    val dunes =
+      mapOf(
+        Place("campsite", "camp_site") to PlaceKind.CAMPSITE,
+        Place("lodging", "hotel") to PlaceKind.LODGING,
+        Place("lodging", "motel") to PlaceKind.LODGING,
+        Place("lodging", "hostel") to PlaceKind.LODGING,
+        Place("lodging", "guest_house") to PlaceKind.LODGING,
+      )
+    for ((place, kind) in dunes) {
+      assertEquals(kind, PlaceKind.of(place.className, place.subclass), "$place")
+      assertTrue(shown(place), "$place")
+      assertEquals(kind.iconName, icon(place), "$place")
+    }
+    assertTrue(PlaceKind.CAMPSITE.colour != PlaceKind.LODGING.colour)
+  }
+
+  @Test
+  fun `Motorhome sites and holiday homes are left to the base map`() {
+    for (place in listOf(Place("campsite", "caravan_site"), Place("lodging", "chalet"))) {
+      assertNull(PlaceKind.of(place.className, place.subclass), "$place")
+      assertFalse(shown(place), "$place")
+      assertEquals(true, evaluate(Json.parseToJsonElement(PlaceKind.notPlacesFilter), place))
+    }
+  }
+
+  @Test
+  fun `every highlighted subclass has its OpenStreetMap tag`() {
+    val tags =
+      mapOf(
+        "restaurant" to "amenity",
+        "cafe" to "amenity",
+        "fast_food" to "amenity",
+        "bar" to "amenity",
+        "pub" to "amenity",
+        "biergarten" to "amenity",
+        "ice_cream" to "amenity",
+        "supermarket" to "shop",
+        "bicycle" to "shop",
+        "station" to "railway",
+        "halt" to "railway",
+        "drinking_water" to "amenity",
+        "toilets" to "amenity",
+        "camp_site" to "tourism",
+        "hotel" to "tourism",
+        "motel" to "tourism",
+        "hostel" to "tourism",
+        "guest_house" to "tourism",
+      )
+    for (kind in PlaceKind.entries) {
+      for ((className, subclasses) in kind.matches) {
+        for (subclass in subclasses) {
+          val key = tags[subclass] ?: error("No tag for $subclass")
+          assertEquals(kind, PlaceKind.ofTags(mapOf(key to subclass)), "$className/$subclass")
+        }
+      }
+    }
+    assertEquals(
+      PlaceKind.CAMPSITE,
+      PlaceKind.ofTags(mapOf("tourism" to "camp_site", "name" to "Duinhoeve")),
+    )
+  }
+
+  // Scenario: Places that are not highlighted
+  @Test
+  fun `a pharmacy or a holiday home is no highlighted place`() {
+    assertNull(PlaceKind.ofTags(mapOf("amenity" to "pharmacy", "website" to "https://a.nl")))
+    assertNull(PlaceKind.ofTags(mapOf("tourism" to "chalet", "website" to "https://b.nl")))
+    assertNull(PlaceKind.ofTags(mapOf("tourism" to "caravan_site")))
+    assertNull(PlaceKind.ofTags(mapOf("building" to "yes")))
+  }
+
+  @Test
   fun `places drawn as areas are not shown twice`() {
     assertFalse(shown(Place("grocery", "supermarket", geometry = "Polygon")))
   }
