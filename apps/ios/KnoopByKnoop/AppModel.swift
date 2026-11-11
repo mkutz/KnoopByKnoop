@@ -237,14 +237,65 @@ final class AppModel: ObservableObject {
           session: session, geometry: loaded.hasGeometry ? loaded.geometry : nil,
           position: GeoPoint(latitude: fix.latitude, longitude: fix.longitude))
       }
-      if let choice { startChoice = choice } else { navigate() }
+      if case .found(let fix) = result {
+        startPosition = GeoPoint(latitude: fix.latitude, longitude: fix.longitude)
+      } else {
+        startPosition = nil
+      }
+      if let choice { startChoice = choice } else { checkFerries() }
     }
+  }
+
+  /// Navigate's question whether to ride around a ferry closed by the time the rider gets there,
+  /// see `knot-navigation` "Riding around a closed ferry".
+  @Published var ferryDetour: FerryDetour?
+
+  /// Where the rider was when Navigate was pressed, for the ferries' arrival.
+  private var startPosition: GeoPoint?
+
+  /// Asks about ferries closed by the time the rider gets there before navigating; navigates at
+  /// once when none is.
+  private func checkFerries() {
+    guard let session, let loaded, let startPosition else {
+      navigate()
+      return
+    }
+    let detour = FerryDetour.companion.of(
+      session: session, geometry: loaded.hasGeometry ? loaded.geometry : nil, position: startPosition,
+      nowMillis: Int64(Date().timeIntervalSince1970 * 1000),
+      localTime: { millis in
+        RouteFerries.ferryMoment(Date(timeIntervalSince1970: Double(millis.int64Value) / 1000))
+      }, language: AppLanguage.current)
+    if let detour { ferryDetour = detour } else { navigate() }
+  }
+
+  /// Plans the way around the closed ferries for good, then navigates, see "Riding around it".
+  func rideAroundFerries() {
+    guard let around = ferryDetour?.around else { return }
+    ferryDetour = nil
+    change { _ in around }
+    let pending = changes
+    Task {
+      await pending?.value
+      navigate()
+    }
+  }
+
+  /// Navigates over the closed ferry, see "Keeping the ferry".
+  func keepFerries() {
+    ferryDetour = nil
+    navigate()
+  }
+
+  /// The question dismissed: nothing starts, as with the start question.
+  func dismissFerryDetour() {
+    ferryDetour = nil
   }
 
   /// Rides to the plan's start, see `knot-navigation` "Riding to the start".
   func rideToStart() {
     startChoice = nil
-    navigate()
+    checkFerries()
   }
 
   /// Starts the plan on the route nearby for good, then navigates, see "Starting nearby".
@@ -255,7 +306,7 @@ final class AppModel: ObservableObject {
     let pending = changes
     Task {
       await pending?.value
-      navigate()
+      checkFerries()
     }
   }
 
@@ -743,7 +794,7 @@ final class AppModel: ObservableObject {
         let restored = snapshot.restore(graph: graph)
         return (restored.session, restored.removedWaypoints)
       }
-      return (PlanningSession.companion.start(graph: graph, waypoints: []), [])
+      return (PlanningSession.companion.start(graph: graph, waypoints: [], avoidedFerries: []), [])
     }.value
     loading = false
     guard network == self.network else { return }

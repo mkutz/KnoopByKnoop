@@ -205,6 +205,30 @@ struct PlannerView: View {
       }
     }
     .confirmationDialog(
+      "Closed ferry ahead",
+      isPresented: Binding(
+        get: { model.ferryDetour != nil }, set: { if !$0 { model.dismissFerryDetour() } }),
+      titleVisibility: .visible, presenting: model.ferryDetour
+    ) { detour in
+      // See `knot-navigation` "Riding around a closed ferry".
+      if detour.around != nil {
+        Button("Ride around it · \(detour.extraDistance ?? "") longer, about \(detour.extraTime ?? "")") {
+          model.rideAroundFerries()
+        }
+        Button("Keep the ferry") { model.keepFerries() }
+      } else {
+        Button("Navigate with the ferry") { model.keepFerries() }
+      }
+      Button("Cancel", role: .cancel) { model.dismissFerryDetour() }
+    } message: { detour in
+      let warnings = detour.warnings.joined(separator: "\n")
+      if detour.around == nil {
+        Text(warnings + "\n" + String(localized: "There is no way around it.", bundle: AppLanguage.bundle))
+      } else {
+        Text(warnings)
+      }
+    }
+    .confirmationDialog(
       "Where do you want to start?",
       isPresented: Binding(
         get: { model.startChoice != nil }, set: { if !$0 { model.dismissStartChoice() } }),
@@ -282,6 +306,10 @@ struct PlannerView: View {
         bottomInset: (landscape ? screen.safeAreaInsets.bottom + 8 : restingSheetHeight) + attributionHeight + 8,
         onIdle: model.mapIdle,
         shownKnot: model.shownKnot,
+        detour: model.ferryDetour,
+        // The question stands above the panel, from about two fifths of the whole screen down; the
+        // map reaches behind the safe areas.
+        detourBottomPadding: (screen.size.height + screen.safeAreaInsets.top + screen.safeAreaInsets.bottom) * 0.62,
         offerPlace: model.offer?.offer.position,
         offerFlag: model.offer?.nameOnly != true,
         onOfferMoved: { point in DispatchQueue.main.async { model.offerMoved(to: point) } }

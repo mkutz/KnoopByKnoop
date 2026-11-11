@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Navigate asks first when a ferry on the route will be closed by the time you get there, or closes shortly after: ride around it, with how much longer the way around is, or keep the ferry. The map shows the way around while asking. Riding around changes the plan for good, so the ferry stays avoided when the route is edited later
 - The waypoint list and the coming knots while navigating name the village, town or city each knot lies in, and the coming knots show where the route crosses into another country, province or state
 - With the phone locked while navigating, the screen lights up with each spoken notice and shows it, silently. On the iPhone the app asks once for permission to show notifications
 

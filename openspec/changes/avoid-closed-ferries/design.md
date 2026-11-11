@@ -42,7 +42,8 @@
 3. **Order at Navigate.** First the start question (it may cut the plan), then the ferry check on the plan as it is then, with the same position.
 
 4. **The question.**
-   - Android: a dialog like the start choice. iOS: a `confirmationDialog`.
+   - Android: a card at the bottom of the screen without dimming, so the map above stays readable (a centred dialog would hide the way around). iOS: a `confirmationDialog`, which iOS 26 shows as a card above the panel.
+   - Dismissing it starts nothing, as with the start question. Without a position within the 10 seconds Navigate waits, it navigates without asking, also as with the start question.
    - **Texts:**
      - the warnings as the message
      - "Ride around it · 6.3 km longer, about 24 min"
@@ -52,7 +53,7 @@
      The extra time uses `RouteProgress.formatDuration` and the length `MapFeatures.formatDistance`. Strings in four languages in the apps; the core gives the numbers and the warnings.
 
 5. **The map.**
-   - While the question is open, the app passes the detour's line and bounds to the map. The map draws the line in a distinct style (dashed, darker green, under the knots) and fits the bounds, with padding for the dialog and the panel.
+   - While the question is open, the app passes the detour's line and bounds to the map. The map draws the line dashed in the route's orange with a casing, apart from the solid route, and fits the bounds above the question: on Android by the card's measured height; on iOS the fit is measured on the screen and corrected, as MapLibre's own fit doesn't keep a padding that large, against the whole screen, since the map reaches behind the safe areas.
    - On answer the line is removed; riding around shows the new plan's route, as after any edit.
 
 ## Risks / Trade-offs

@@ -106,6 +106,11 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - The lock screen behind the navigation — on Android
 - Another app on top — on Android
 - Not navigating — on Android
+- Riding around it — on the emulator and in the simulator: Navigate on a route over a closed ferry, "Ride around it", navigation starts on the way around and the saved route keeps the ferry avoided (`avoid-closed-ferries` manual checks)
+- Keeping the ferry — on the emulator: "Keep the ferry" navigates over the ferry with the plan unchanged, and the spoken ferry warning follows
+- Question in all languages — on the emulator in German; the strings in Dutch and French are reviewed in the string files
+- Map while asking — on the emulator and in the simulator: the map shows the ferry and the dashed way around above the question
+- Map after the answer — on the emulator and in the simulator: after the answer the dashed line is gone and the map shows the chosen route
 
 ## map-planning
 

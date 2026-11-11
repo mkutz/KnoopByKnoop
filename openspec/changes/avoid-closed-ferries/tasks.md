@@ -23,11 +23,12 @@
   - "Riding around it", "Map after the answer"
   - "Keeping the ferry"
   - "Question in all languages" (German)
+  - Done 2026-11-11 with the ferry Mondorf–Graurheindorf instead, closed at that hour, without changing the clock; Lülsdorf–Wesseling gets no estimate in winter (see 1.3). See `manual-checks.md`.
 
 ## 3. iOS
 
-- [ ] 3.1 The same in `AppModel`, `PlannerView` (a `confirmationDialog`) and `NetworkMapView` (the line and the bounds). Strings in the String Catalog. The project builds; a simulator check of the question and the map.
+- [x] 3.1 The same in `AppModel`, `PlannerView` (a `confirmationDialog`) and `NetworkMapView` (the line and the bounds). Strings in the String Catalog. The project builds; a simulator check of the question and the map.
 
 ## 4. Wrap-up
 
-- [ ] 4.1 `manual-checks.md` with the device scenarios and the maintainer's steps (a ride planned over a ferry in the evening). A CHANGELOG line under Unreleased. List the scenarios a unit test can't check in `openspec/checked-by-hand.md`. `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; then run `./gradlew checkScenarios -Pchange=avoid-closed-ferries`.
+- [x] 4.1 `manual-checks.md` with the device scenarios and the maintainer's steps (a ride planned over a ferry in the evening). A CHANGELOG line under Unreleased. List the scenarios a unit test can't check in `openspec/checked-by-hand.md`. `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; then run `./gradlew checkScenarios -Pchange=avoid-closed-ferries`.

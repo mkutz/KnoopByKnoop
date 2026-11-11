@@ -142,6 +142,11 @@ struct NetworkMapView: UIViewRepresentable {
   /// A coming knot to show while navigating, see `knot-navigation` "Showing a coming knot on the
   /// map".
   var shownKnot: ShownKnot? = nil
+  /// The way around a closed ferry while Navigate asks about it, shown with the ferry, see
+  /// `knot-navigation` "Detour on the map".
+  var detour: FerryDetour? = nil
+  /// How much of the map's bottom the question and the panel cover, kept clear of `detour`.
+  var detourBottomPadding: CGFloat = 0
   /// A tapped place offered as a route point, marked with a flag on the map, see `map-planning`
   /// "Choose a route point on the map".
   var offerPlace: GeoPoint? = nil
@@ -346,6 +351,7 @@ struct NetworkMapView: UIViewRepresentable {
     context.coordinator.showTrack(track)
     context.coordinator.showLegAhead(navigating: navigating, courseAhead: courseAhead, geometry: layers?.geometry)
     context.coordinator.showKnot(shownKnot, on: mapView)
+    context.coordinator.showDetour(detour, bottomPadding: detourBottomPadding, on: mapView)
     context.coordinator.onLocate = onLocate
     context.coordinator.showLocating(locating, available: onLocate != nil)
     context.coordinator.nearestButton?.accessibilityLabel =
@@ -525,6 +531,55 @@ struct NetworkMapView: UIViewRepresentable {
     private var shownRequest = 0
 
     /// Shows the knot at the navigation zoom and stops following the rider, as a move by hand.
+    private var detour: FerryDetour?
+
+    /// Draws the way around a closed ferry and moves the map onto it and the ferry, clear of the
+    /// question at the bottom, see `knot-navigation` "Detour on the map"; `nil` removes the line.
+    func showDetour(_ newDetour: FerryDetour?, bottomPadding: CGFloat, on mapView: MLNMapView) {
+      guard newDetour !== detour else { return }
+      detour = newDetour
+      if let style = style { updateDetour(on: style) }
+      guard let bounds = newDetour?.bounds else { return }
+      let coordinateBounds = MLNCoordinateBounds(
+        sw: CLLocationCoordinate2D(latitude: bounds.minLatitude, longitude: bounds.minLongitude),
+        ne: CLLocationCoordinate2D(latitude: bounds.maxLatitude, longitude: bounds.maxLongitude))
+      // Fitted, then measured on the screen and moved, so the ferry and the way around show between
+      // the controls at the top and the question; the map's own fit doesn't keep that much padding.
+      let padding = clearPadding(in: mapView)
+      let size = mapView.bounds.size
+      let top = padding.top
+      let bottom = size.height - max(padding.bottom, bottomPadding)
+      guard bottom - top > 40 else { return }
+      mapView.setVisibleCoordinateBounds(coordinateBounds, animated: false)
+      for _ in 0..<3 {
+        let north = mapView.convert(coordinateBounds.ne, toPointTo: mapView)
+        let south = mapView.convert(coordinateBounds.sw, toPointTo: mapView)
+        let east = north.x
+        let west = south.x
+        let scale = max(
+          (south.y - north.y) / (bottom - top), (east - west) / (size.width - padding.left - padding.right))
+        if scale > 0 { mapView.zoomLevel -= log2(scale) }
+        let middle = CGPoint(
+          x: (mapView.convert(coordinateBounds.ne, toPointTo: mapView).x
+            + mapView.convert(coordinateBounds.sw, toPointTo: mapView).x) / 2,
+          y: (mapView.convert(coordinateBounds.ne, toPointTo: mapView).y
+            + mapView.convert(coordinateBounds.sw, toPointTo: mapView).y) / 2)
+        let wanted = CGPoint(x: (padding.left + size.width - padding.right) / 2, y: (top + bottom) / 2)
+        let center = mapView.convert(mapView.centerCoordinate, toPointTo: mapView)
+        mapView.centerCoordinate = mapView.convert(
+          CGPoint(x: center.x + middle.x - wanted.x, y: center.y + middle.y - wanted.y), toCoordinateFrom: mapView)
+      }
+    }
+
+    private func updateDetour(on style: MLNStyle) {
+      var shape: MLNShape? = nil
+      if let line = detour?.line, line.count >= 2 {
+        var coordinates = line.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+        shape = MLNPolylineFeature(coordinates: &coordinates, count: UInt(coordinates.count))
+      }
+      (style.source(withIdentifier: "detour") as? MLNShapeSource)?.shape = shape
+    }
+
     func showKnot(_ shown: ShownKnot?, on mapView: MLNMapView) {
       guard let shown, shown.request != shownRequest else { return }
       shownRequest = shown.request
@@ -889,6 +944,7 @@ struct NetworkMapView: UIViewRepresentable {
       addLayers(to: style)
       placesPredicates = nil
       updatePlaces(on: style)
+      updateDetour(on: style)
       update()
       // The appearance may have changed again while this style was loading.
       reloadStyleIfAppearanceChanged(on: mapView)
@@ -1361,6 +1417,22 @@ struct NetworkMapView: UIViewRepresentable {
       guidedLayer.lineCap = NSExpression(forConstantValue: "round")
       guidedLayer.lineJoin = NSExpression(forConstantValue: "round")
       style.addLayer(guidedLayer)
+      // The way around a closed ferry while Navigate asks: dashed, apart from the solid route, see
+      // `knot-navigation` "Detour on the map".
+      let detourSource = MLNShapeSource(identifier: "detour", shape: nil)
+      style.addSource(detourSource)
+      let detourCasing = MLNLineStyleLayer(identifier: "detour-casing", source: detourSource)
+      detourCasing.lineColor = NSExpression(forConstantValue: casing)
+      detourCasing.lineWidth = NSExpression(forConstantValue: 8)
+      detourCasing.lineCap = NSExpression(forConstantValue: "round")
+      detourCasing.lineJoin = NSExpression(forConstantValue: "round")
+      style.addLayer(detourCasing)
+      let detourLayer = MLNLineStyleLayer(identifier: "detour", source: detourSource)
+      detourLayer.lineColor = NSExpression(forConstantValue: UIColor(Color.knoopOrange))
+      detourLayer.lineWidth = NSExpression(forConstantValue: 5)
+      detourLayer.lineDashPattern = NSExpression(forConstantValue: [1.5, 1])
+      detourLayer.lineJoin = NSExpression(forConstantValue: "round")
+      style.addLayer(detourLayer)
       let nextKnotSource = MLNShapeSource(identifier: "next-knot", shape: nil)
       style.addSource(nextKnotSource)
       let nextKnotLayer = MLNCircleStyleLayer(identifier: "next-knot", source: nextKnotSource)

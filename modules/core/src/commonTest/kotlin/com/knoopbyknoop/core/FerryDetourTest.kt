@@ -105,7 +105,7 @@ class FerryDetourTest {
   }
 
   @Test
-  fun `Ferry closed on the way, the way to the start counts`() {
+  fun `Ferry closed on the way counting the way to the start`() {
     // The rider is 4.4 km before the start: 16.5 minutes more, so 19:00 becomes about 19:17.
     val session = planned(graph())
     val away = GeoPoint(start.latitude, start.longitude - 4_400 / metersPerDegreeLongitude)
@@ -124,7 +124,7 @@ class FerryDetourTest {
   }
 
   @Test
-  fun `Ferry open when the rider gets there, but closing within 15 minutes after`() {
+  fun `Ferry open when the rider gets there but closing within 15 minutes after asks too`() {
     // Arrival 18:50, closing 19:00.
     assertNotNull(detour(graph(), "17:30"))
   }
@@ -157,7 +157,7 @@ class FerryDetourTest {
   }
 
   @Test
-  fun `the line is the way around where it parts from the route, and the map shows it with the ferry`() {
+  fun `the line is the way around where it parts from the route and the map shows it with the ferry`() {
     val detour = assertNotNull(detour(graph(), "18:20"))
 
     val points = listOf(river, bridge, farBank).map { GeoPoint(it.latitude, it.longitude) }
