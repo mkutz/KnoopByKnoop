@@ -6,31 +6,35 @@ Guides the rider along a planned route knot by knot: it tells which number to fo
 ## Requirements
 
 ### Requirement: Start navigation
-A complete route SHALL be navigable. Navigation SHALL be started by the user while the app is open, and SHALL begin where the rider is: at a knot of the route, within 30 m of any of the nodes it is tagged on, or on its course; more than 100 m from the course, it SHALL lead to the first knot of the route. Standing within 30 m of several consecutive knots of the route, it SHALL begin after the last of them. Without courses, it SHALL begin at the route knot nearest to the rider. It SHALL need location access only while the app is in use, not always.
+A complete route SHALL be navigable. Navigation SHALL be started by the user while the app is open, and SHALL begin at the first waypoint of the route: within 30 m of any of the nodes it is tagged on, plus as far as the position may be off, it SHALL begin after it; elsewhere it SHALL lead there, see "Start on the route nearby" for when the app asks first. Standing within 30 m of several consecutive knots at the start of the route, it SHALL begin after the last of them. On the way to the start, the notices SHALL say "To the start" instead of "Off route", the header SHALL show the way as in "Header on the way to the route", and reaching the start SHALL be told as passing a knot. Within 200 m of the start, the first leg's course SHALL count as the way there. It SHALL need location access only while the app is in use, not always.
 
 #### Scenario: Start at the first knot
 - **WHEN** the route runs 24, 45, 12, 31 and the rider starts navigation standing at knot 24
 - **THEN** navigation begins with 45 as the next knot
 
 #### Scenario: Start at a knot in the middle of the route
-- **WHEN** the rider starts navigation standing at knot 12 of the route 24, 45, 12, 31
-- **THEN** navigation begins with 31 as the next knot
+- **WHEN** the rider starts navigation standing at knot 12 of the route 24, 45, 12, 31, is asked and starts on the route nearby
+- **THEN** the plan starts at 12 and navigation begins with 31 as the next knot
 
 #### Scenario: Start between two knots
-- **WHEN** the rider starts navigation on the course of the route between 45 and 12
+- **WHEN** the rider starts navigation on the course of the route between 45 and 12, is asked and starts on the route nearby
 - **THEN** navigation begins with 12 as the next knot
 
 #### Scenario: Start at a double knot
-- **WHEN** the route runs 24, 45, 46, 12, 46 is 10 m after 45, and the rider starts navigation standing between 45 and 46
+- **WHEN** the route runs 45, 46, 12, 46 is 10 m after 45, and the rider starts navigation standing between 45 and 46
 - **THEN** navigation begins with 12 as the next knot
+
+#### Scenario: Start with an imprecise position
+- **WHEN** the rider starts navigation 50 m from knot 24 of the route 24, 45, 12, 31, with a first position accurate to 30 m
+- **THEN** navigation begins with 45 as the next knot, without "To the start"
 
 #### Scenario: Start at another node of a merged knot
 - **WHEN** knot 24 of the route 24, 45, 12, 31 is tagged on two nodes 195 m apart, and the rider starts navigation standing at the node that is not the knot's position on the map
 - **THEN** navigation begins with 45 as the next knot
 
 #### Scenario: Start away from the route
-- **WHEN** the rider starts navigation 2 km away from the course of the route 24, 45, 12, 31, nearest to route knot 45
-- **THEN** navigation begins with 24, the first knot, as the next knot and says the rider is off route
+- **WHEN** the rider starts navigation 2 km away from the course of the route 24, 45, 12, 31 and 3 km from 24
+- **THEN** navigation begins with 24, the first knot, as the next knot and says "To the start, 24, 3 km" with its direction
 
 #### Scenario: Incomplete route
 - **WHEN** the route has no start, no end, or an unreachable leg
@@ -41,12 +45,24 @@ A complete route SHALL be navigable. Navigation SHALL be started by the user whi
 - **THEN** navigation does not start, and the app says that it needs location access to navigate
 
 #### Scenario: Joining the route on the way to the start
-- **WHEN** the rider started away from the route, heads for 24 and on the way passes 12 of the route
-- **THEN** navigation continues from 12 with 31 as the next knot, as when skipping ahead
+- **WHEN** the rider rides to the first knot 06 of the route 06 → 02 → 28, and the way there follows the course of 06 → 02 against the route for 800 m
+- **THEN** 06 stays the next knot, and the rider is told neither "Back on route" nor "Wrong direction" nor to turn back
+
+#### Scenario: Following a course on the way to the start
+- **WHEN** the rider heads for 24 and follows the course of the leg from 45 to 12 in the route's direction for 300 m
+- **THEN** 24 stays the next knot
+
+#### Scenario: Reaching the start
+- **WHEN** the rider on the way to 24 comes within 30 m of it
+- **THEN** the app says "Next 45, then 12", as when passing a knot, not "Back on route"
+
+#### Scenario: On the course close to the first knot
+- **WHEN** the rider heads for 24 and comes within 30 m of the course of the leg from 24 to 45, 80 m from 24
+- **THEN** the rider is on the way to 24 along its course, with 24 still the next knot
 
 #### Scenario: Start away from the route without courses
-- **WHEN** the network's courses are not installed and the rider starts navigation nearest to route knot 45
-- **THEN** navigation begins with 45 as the next knot
+- **WHEN** the network's courses are not installed and the rider starts navigation nearest to route knot 45, 2 km from 24, without being asked
+- **THEN** navigation begins with 24 as the next knot
 
 ### Requirement: Number to follow
 While navigating and close to the next knot, from when the rider is reminded of it (see "Reminder before a knot"), the app SHALL show the number to follow there as its most prominent information, e.g. "At 45 follow 12", with the knots as badges like on the map. Farther away, it SHALL show the next knot and the distance to it as its most prominent information, e.g. "Next 45", with the number to follow after it smaller, e.g. "then 12". In the same line as the next knot, it SHALL show the distance to the next knot along the route, or straight to it while off route or while the next knot is the first knot of the route. When the next knot is the end of the route, it SHALL say so instead.
@@ -126,11 +142,15 @@ When the rider comes within 200 m of the next knot, the app SHALL remind them of
 - **THEN** the app does not give a separate reminder for it, because the announcement on passing already named it
 
 ### Requirement: Skipping ahead
-When the rider passes a later knot of the route than the next knot, navigation SHALL continue from that knot, as if the knots before it were passed.
+When the rider passes a later knot of the route than the next knot, navigation SHALL continue from that knot, as if the knots before it were passed. Before the start of the route is reached, passing a later knot SHALL NOT skip ahead.
 
 #### Scenario: Shortcut
 - **WHEN** the rider heading to 45 on the route 24, 45, 12, 31 passes 12 without passing 45
 - **THEN** 31 becomes the next knot and the app says "Next 31"
+
+#### Scenario: Passing a later knot on the way to the start
+- **WHEN** the rider heading for the first knot 24 of the route 24, 45, 12, 31 passes 12
+- **THEN** 24 stays the next knot and the app says nothing about 12
 
 ### Requirement: Off route
 The rider SHALL be told they are off route when they pass a knot that is not on the route, or are more than 100 m away from the course of the route. They SHALL be back on route only when they pass a knot of the route or come within 30 m of the course, so a path running alongside the route does not count as the route. The notice SHALL name the next knot and the straight distance and compass direction to it, e.g. "Off route, next 45, 1.7 km to the north-east". While off route without a guided way, a guidance notice SHALL repeat the distance and direction when the rider got 500 m closer to the knot or its direction changed by more than 45° since the last notice. On a guided way, the turn notices SHALL replace these guidance notices. The planned route SHALL NOT change.
@@ -936,7 +956,7 @@ Wherever navigation gives a straight distance or direction to the next knot, or 
 - **THEN** the distance, the direction and the dashed line go to the main position of 02
 
 ### Requirement: Leg ahead on the map
-While navigating, the map SHALL show the course to the next knot thick and with arrows, and the rest of the route thin and without arrows. When a knot is passed, the course to the new next knot SHALL take its place. The ridden track SHALL stay on top of the route. Starting on a stretch the route uses in both directions, navigation SHALL begin with its first use.
+While navigating, the map SHALL show the course to the next knot thick and with arrows, and the rest of the route thin and without arrows. When a knot is passed, the course to the new next knot SHALL take its place. The ridden track SHALL stay on top of the route. Starting on the route nearby on a stretch the route uses in both directions, the plan SHALL start on its first use.
 
 #### Scenario: Which way at a fork
 - **WHEN** the rider nears a fork where the route also comes back on the other branch, with 28 as the next knot
@@ -955,8 +975,8 @@ While navigating, the map SHALL show the course to the next knot thick and with 
 - **THEN** the course to 28 stays thick with its arrows
 
 #### Scenario: Starting on a stretch used twice
-- **WHEN** the rider starts navigating the round trip 02, 28, 27, 28, 02 on the course between 02 and 28, not at a knot
-- **THEN** 28 is the next knot, not 02 on the way back, even if the way back's course is a few metres nearer
+- **WHEN** the rider starts on the route nearby on the round trip 02, 27, 02, which rides 02, 28, 27, 28, 02, on the course between 02 and 28, not at a knot
+- **THEN** the plan starts there on the way out and 28 is the next knot, not 02 on the way back
 
 #### Scenario: Ending navigation
 - **WHEN** navigation ends
@@ -1173,8 +1193,8 @@ While navigating a cycling route and off route, the app SHALL find a way along s
 - **THEN** the guided way ends, and the app says they are back on route, as in "Off route"
 
 #### Scenario: Skipping ahead on the guided way
-- **WHEN** the rider following a guided way to 24 passes 12, a later knot of the route
-- **THEN** the guided way ends and navigation continues from 12, as when skipping ahead
+- **WHEN** the rider left the route on the leg to 45 and, following a guided way back, passes 12, a later knot of the route
+- **THEN** the guided way ends and navigation continues from 12, as when skipping ahead; on a guided way to the start, passing a later knot does not skip ahead, see "Skipping ahead"
 
 ### Requirement: Navigating with route points
 A route point SHALL be passed, reached and aimed at like a knot, with the same radius, also around the end of its way where the way stops short of the point, and SHALL count for reminders, distances and arrival. Everywhere a number would name it, on screen, outside the app and in the voice, it SHALL be named as the start, the stop or the end in the app's language. Navigating SHALL NOT compute a route point's way anew.
@@ -1185,11 +1205,11 @@ A route point SHALL be passed, reached and aimed at like a knot, with the same r
 
 #### Scenario: Starting away from the point
 - **WHEN** the rider starts navigating 400 m from the route point at the start
-- **THEN** they are off route with the way to the start, in words instead of a number
+- **THEN** they are on the way to the start, told "To the start" with the way there, in words instead of a number
 
 #### Scenario: Joining further along
-- **WHEN** the rider joins the route between the route point and 02 without reaching the point
-- **THEN** they are on route with 02 next
+- **WHEN** the rider on the way to the route point at the start reaches the route between the point and 02 without reaching the point
+- **THEN** the point stays the next waypoint, as on the way to any start
 
 #### Scenario: A stop next
 - **WHEN** the rider passes 28 and a route point is the next stop, then 27
@@ -1221,7 +1241,7 @@ A route point SHALL be passed, reached and aimed at like a knot, with the same r
 
 #### Scenario: All languages
 - **WHEN** the app's language is German, Dutch or French
-- **THEN** the wording for the start, stop and end is in that language, in the texts and the voice
+- **THEN** the wording for the start, stop and end, and "To the start", is in that language, in the texts and the voice
 
 ### Requirement: Riding the way to a route point
 On a way along paths to a route point, the rider SHALL be told the distance and direction with the line on the map, with no directions at each turn, and leaving the way SHALL count as off route as on a course. On a straight line, which cannot be followed, the rider SHALL NOT be told they are off route, and SHALL be told the distance and direction to where it leads.
@@ -1246,29 +1266,57 @@ On a way along paths to a route point, the rider SHALL be told the distance and 
 - **WHEN** the rider navigates a route with a way along paths to a route point, without internet access
 - **THEN** the way and its guidance work as with internet access
 
-### Requirement: Joining the course on the way to the start
-While navigation leads to the first knot of the route, a rider who follows the course of a leg of the route for at least 50 m, within 30 m of it, SHALL join the route there: the next knot SHALL be the end of that leg, as when starting on the course. Crossing a course SHALL NOT join it. Until joined, the rider SHALL NOT be told they are back on route, except within 200 m of the first knot, where its course counts as the way there, as in "Distance to the first knot".
+### Requirement: Start on the route nearby
+When navigation is started more than 30 m from the start and a place on the course before the first stop, more than 200 m along it from the start, is less than half as far as the start, the app SHALL ask once whether to ride to the start or to start on the route nearby, each with its straight distance. Starting nearby SHALL make that place the start of the plan, for good, before navigation begins.
 
-#### Scenario: Reaching the course and following it
-- **WHEN** the rider started navigating the route 06 → 02 250 m from its course, heads for 06, reaches the course 4 km before 06 and rides 100 m along it towards 02
-- **THEN** navigation continues with 02 as the next knot, the line ahead is drawn, and the rider is told they are back on route
+#### Scenario: Asked near the course
+- **WHEN** the route runs 06 → 02 → 28 with 02 a stop, and the rider starts navigation 250 m from the course of 06 → 02 and 4.4 km from 06
+- **THEN** the app asks "Ride to 06 · 4.4 km" or "Start on the route nearby · 250 m"
 
-#### Scenario: Crossing the course
-- **WHEN** the rider heads for the first knot 24 of the route 24, 45, 12, 31 and crosses the course of the leg from 45 to 12 at a right angle
-- **THEN** navigation keeps 24 as the next knot and the rider stays off route
+#### Scenario: Riding to the start
+- **WHEN** the rider is asked and chooses to ride to 06
+- **THEN** the plan stays as it was, and navigation leads to 06
 
-#### Scenario: Reaching the course of the first leg near the start
-- **WHEN** the rider heads for 24 and follows the course of the leg from 24 to 45 from 300 m after 24 on
-- **THEN** navigation continues with 45 as the next knot
+#### Scenario: Starting nearby
+- **WHEN** the rider is asked and chooses to start on the route nearby
+- **THEN** the plan starts at a route point at the nearest place on the course of 06 → 02, as "Start here" on a course places it, 06 is no longer in the plan, 02 and 28 stay, and navigation leads to that point
 
-#### Scenario: On the course close to the first knot
-- **WHEN** the rider heads for 24 and comes within 30 m of the course of the leg from 24 to 45, 80 m from 24
-- **THEN** the rider is back on route with 24 still the next knot, as before
+#### Scenario: Nearby at a knot
+- **WHEN** the nearest place on the course is within 30 m of 05, a knot of the route between 06 and 02, and the rider starts nearby
+- **THEN** the plan starts at 05, without a route point
 
-#### Scenario: Following the course against the route
-- **WHEN** the rider reaches the course of the leg from 45 to 12 and follows it towards 45
-- **THEN** navigation continues with 12 as the next knot and, after riding on, tells the rider they ride the wrong way, as on the route
+#### Scenario: On the course past the start
+- **WHEN** the rider starts navigation on the course 2 km after 06
+- **THEN** the app asks, and starting nearby starts the plan where the rider is and navigation begins with the next knot after that place
+
+#### Scenario: At the start
+- **WHEN** the rider starts navigation within 30 m of 06
+- **THEN** the app does not ask and navigation begins at 06
+
+#### Scenario: Close to the start along the course
+- **WHEN** the nearest place on the course is 150 m along it from 06
+- **THEN** the app does not ask and navigation leads to 06
+
+#### Scenario: Course not much closer
+- **WHEN** the rider starts navigation 1.5 km from the course of 06 → 02 and 2 km from 06
+- **THEN** the app does not ask and navigation leads to 06
+
+#### Scenario: Only before the first stop
+- **WHEN** the rider starts navigation 100 m from the course of 02 → 28 and 5 km from the course of 06 → 02 and from 06
+- **THEN** the app does not ask and navigation leads to 06, so no stop is dropped
 
 #### Scenario: Without courses
-- **WHEN** the network's courses are not installed
-- **THEN** navigation behaves as before, as it began at the nearest knot
+- **WHEN** the network's courses are not installed, and the rider starts navigation 300 m from 05, a knot of the route before 02, and 4 km from 06
+- **THEN** the app asks, and starting nearby makes 05 the start of the plan
+
+#### Scenario: Position unknown
+- **WHEN** the rider starts navigation and no position is known within 10 seconds
+- **THEN** the app does not ask and navigation leads to the start
+
+#### Scenario: Question dismissed
+- **WHEN** the rider dismisses the question without choosing
+- **THEN** navigation does not start, the plan stays as it was, and the location is no longer used
+
+#### Scenario: The plan after the ride
+- **WHEN** the rider started nearby, and then stops navigation or arrives
+- **THEN** the planner shows the route from the new start, as it was ridden

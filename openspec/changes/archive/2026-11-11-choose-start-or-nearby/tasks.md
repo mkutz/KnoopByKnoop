@@ -75,7 +75,7 @@
 ## 5. iOS
 
 - [x] 5.1 `AppModel.startNavigation` does the same as 4.1 with a `confirmationDialog`. Strings in the String Catalog in all four languages. The project builds.
-- [ ] 5.2 Check on the iPhone (the maintainer's, instead of the simulator): the dialog away from the start, both choices, dismissing, and the cut plan in the planner after Stop.
+- [x] 5.2 Check on the iPhone (the maintainer's, instead of the simulator): the dialog away from the start, both choices, dismissing, and the cut plan in the planner after Stop.
 
 ## 6. Wrap-up
 
