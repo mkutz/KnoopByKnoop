@@ -8,10 +8,10 @@
 
 ## 2. Apps
 
-- [ ] 2.1 iOS: ask for notification permission when navigation starts the first time; post the silent notification for each update with notices while the app is not on screen, as a new notification after removing the previous one (a replaced one was not shown again in the check of 1.2); remove it when navigation ends; strings in all four languages. Builds with `xcodebuild`.
-- [ ] 2.2 Android: the "Navigation alerts" channel without sound or vibration, the alerting post for each update with notices and back; strings in all four languages. Builds.
-- [ ] 2.3 Check on the emulator with the screen off and a mocked ride: the screen turns on with each notice, not in between.
+- [x] 2.1 iOS: ask for notification permission when navigation starts the first time; post the silent notification for each update with notices while the app is not on screen, as a new notification after removing the previous one (a replaced one was not shown again in the check of 1.2); remove it when navigation ends; strings in all four languages. Builds with `xcodebuild`.
+- [x] 2.2 Android: the "Navigation alerts" channel without sound or vibration, the alerting post for each update with notices and back; strings in all four languages. Builds.
+- [x] 2.3 Check on the emulator with the screen off and a mocked ride: the screen turns on with each notice, not in between. 2026-11-11: an alert is posted with each notice and none in between; the emulator has no "wake screen for notifications", so its screen stayed off, and the Pixel shows whether it lights up (manual-checks).
 
 ## 3. Release
 
-- [ ] 3.1 Changelog line, and manual checks for the maintainer's ride on both phones: the screen lights up with each spoken notice, silently, not in between; and the Watch.
+- [x] 3.1 Changelog line, and manual checks for the maintainer's ride on both phones: the screen lights up with each spoken notice, silently, not in between; and the Watch.

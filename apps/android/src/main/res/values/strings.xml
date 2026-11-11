@@ -138,4 +138,6 @@
   <string name="base_map_none">None stored</string>
   <string name="base_map_delete_description">Delete the stored map</string>
   <string name="base_map_explanation">The map around a planned route, stored so it shows without a connection too. The app downloads it from OpenFreeMap, which can see the rough area of a route, but never where you are.</string>
+  <string name="channel_alerts">Navigation alerts</string>
+  <string name="channel_alerts_description">Lights up the screen with each spoken notice while navigating, without a sound</string>
 </resources>

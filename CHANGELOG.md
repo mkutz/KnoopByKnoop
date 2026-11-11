@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- With the phone locked while navigating, the screen lights up with each spoken notice and shows it, silently. On the iPhone the app asks once for permission to show notifications
+
 ## 0.14.0
 
 - The map around a planned route is stored on the phone, so streets, villages and rivers are shown along it without a connection too, in the light and the dark map. The panel says when it is loaded, and the info sheet shows its size and can delete it. The info sheet scrolls now

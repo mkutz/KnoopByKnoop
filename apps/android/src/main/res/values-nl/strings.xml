@@ -132,4 +132,6 @@
   <string name="base_map_none">Niets opgeslagen</string>
   <string name="base_map_delete_description">Opgeslagen kaart verwijderen</string>
   <string name="base_map_explanation">De kaart rond een geplande route, opgeslagen zodat hij ook zonder verbinding te zien is. De app downloadt hem van OpenFreeMap, dat het ruwe gebied van een route kan zien, maar nooit waar je bent.</string>
+  <string name="channel_alerts">Navigatiemeldingen</string>
+  <string name="channel_alerts_description">Zet het scherm aan bij elke gesproken melding tijdens het navigeren, zonder geluid</string>
 </resources>

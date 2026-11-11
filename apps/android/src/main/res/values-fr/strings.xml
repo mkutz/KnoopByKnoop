@@ -132,4 +132,6 @@
   <string name="base_map_none">Aucune enregistrée</string>
   <string name="base_map_delete_description">Supprimer la carte enregistrée</string>
   <string name="base_map_explanation">La carte autour d\'un itinéraire planifié, enregistrée pour s\'afficher aussi sans connexion. L\'app la télécharge depuis OpenFreeMap, qui peut voir la zone approximative d\'un itinéraire, mais jamais où vous êtes.</string>
+  <string name="channel_alerts">Alertes de navigation</string>
+  <string name="channel_alerts_description">Allume l\'écran à chaque annonce vocale pendant la navigation, sans son</string>
 </resources>

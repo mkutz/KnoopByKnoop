@@ -45,6 +45,7 @@ import com.knoopbyknoop.core.NavigationSession
 import com.knoopbyknoop.core.NavigationState
 import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.Precision
+import com.knoopbyknoop.core.ScreenWake
 import com.knoopbyknoop.core.SessionEnd
 import com.knoopbyknoop.core.SessionStep
 import com.knoopbyknoop.core.TurnDirection
@@ -186,6 +187,10 @@ class NavigationService : Service() {
 
   /** What the notification shows now. */
   private var notified: NotificationContent? = null
+  /**
+   * Whether the notification shown last alerted, so the next one goes back to the quiet channel.
+   */
+  private var alerted = false
   private var precision: Precision? = null
 
   private val wayFinder by lazy { WayFinder(PathData.store(this)) }
@@ -286,7 +291,10 @@ class NavigationService : Service() {
         speaker.whenSilent { scope.launch { stop() } }
       }
       SessionEnd.NONE -> {
-        step.state?.let(::notifyOfChange)
+        // With a spoken notice while the app is not on screen, the notification alerts once and
+        // lights up the screen, see `knot-navigation` "Waking the screen for notices".
+        val alert = ScreenWake.alertText(step.notices, Navigating.visible.value) != null
+        step.state?.let { notifyOfChange(it, alert) }
         step.precision?.let(::request)
       }
     }
@@ -308,6 +316,19 @@ class NavigationService : Service() {
         )
         .apply {
           description = text(R.string.channel_description)
+          setSound(null, null)
+          enableVibration(false)
+        }
+    )
+    // High importance, so a locked screen lights up; silent, as the notice is spoken.
+    manager.createNotificationChannel(
+      NotificationChannel(
+          ALERT_CHANNEL,
+          text(R.string.channel_alerts),
+          NotificationManager.IMPORTANCE_HIGH,
+        )
+        .apply {
+          description = text(R.string.channel_alerts_description)
           setSound(null, null)
           enableVibration(false)
         }
@@ -379,16 +400,25 @@ class NavigationService : Service() {
     }
   }
 
-  private fun notifyOfChange(state: NavigationState) {
+  /**
+   * Shows [state] in the notification; with [alert], on the alerting channel, once, and the next
+   * change back on the quiet one.
+   */
+  private fun notifyOfChange(state: NavigationState, alert: Boolean = false) {
     val navigation = state.navigation ?: return
     val fix = state.position ?: return
     val content =
       NotificationContent.of(navigation, fix, state.guidedWay, state.direction, route?.geometry)
-    // Only on a change: the position comes every second while the app is visible.
-    if (content != notified) {
+    // Only on a change or an alert: the position comes every second while the app is visible.
+    if (content != notified || alert || alerted) {
+      if (alert) Log.i(LOG_TAG, "screen wake: ${content.title}")
       notified = content
+      alerted = alert
       getSystemService(NotificationManager::class.java)
-        .notify(NOTIFICATION_ID, notification(content.title, content.text, content))
+        .notify(
+          NOTIFICATION_ID,
+          notification(content.title, content.text, content, alert = alert),
+        )
     }
   }
 
@@ -428,6 +458,7 @@ class NavigationService : Service() {
     title: String,
     text: String? = null,
     content: NotificationContent? = null,
+    alert: Boolean = false,
   ): Notification {
     val open =
       PendingIntent.getActivity(
@@ -443,7 +474,7 @@ class NavigationService : Service() {
         Intent(this, NavigationService::class.java).setAction(ACTION_STOP),
         PendingIntent.FLAG_IMMUTABLE,
       )
-    return Notification.Builder(this, CHANNEL)
+    return Notification.Builder(this, if (alert) ALERT_CHANNEL else CHANNEL)
       .also { builder ->
         content?.let {
           val large =
@@ -474,7 +505,7 @@ class NavigationService : Service() {
       .setContentText(text)
       .setContentIntent(open)
       .setOngoing(true)
-      .setOnlyAlertOnce(true)
+      .setOnlyAlertOnce(!alert)
       .setCategory(Notification.CATEGORY_NAVIGATION)
       .setVisibility(Notification.VISIBILITY_PUBLIC)
       .addAction(Notification.Action.Builder(null, text(R.string.stop), stop).build())
@@ -515,6 +546,9 @@ class NavigationService : Service() {
 
   companion object {
     private const val CHANNEL = "navigation"
+
+    /** The channel that lights up the screen with a notice, see "Waking the screen for notices". */
+    private const val ALERT_CHANNEL = "navigation-alerts"
 
     /**
      * Notices and precision changes are logged, to check navigation on a simulated ride and to tune

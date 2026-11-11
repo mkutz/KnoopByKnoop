@@ -3,6 +3,7 @@ import AVFoundation
 import CoreLocation
 import KnoopByKnoopCore
 import UIKit
+import UserNotifications
 import os
 
 /// A route to navigate: the core's route, and how each of its knots takes part in it, for the badges
@@ -89,6 +90,8 @@ final class Navigator: NSObject, ObservableObject {
   func start(_ plan: NavigationPlan) {
     guard state == nil else { return }
     self.plan = plan
+    // For the screen to light up with the notices; asked once, see "Waking the screen for notices".
+    UNUserNotificationCenter.current().requestAuthorization(options: [.alert]) { _, _ in }
     switch manager.authorizationStatus {
     case .notDetermined:
       waitingForAccess = true
@@ -128,6 +131,7 @@ final class Navigator: NSObject, ObservableObject {
     backgroundSession?.invalidate()
     backgroundSession = nil
     UserDefaults.standard.removeObject(forKey: Self.sessionActiveKey)
+    removeWake()
     plan = nil
     session = nil
     precision = nil
@@ -187,6 +191,7 @@ final class Navigator: NSObject, ObservableObject {
       logger.notice("notice: \(notice.text, privacy: .public)")
       speak(notice.speech)
     }
+    if let text = ScreenWake.shared.alertText(notices: step.notices, visible: visible) { wake(text) }
     if let newState = step.state { state = newState }
     if step.end == .now {
       stop()
@@ -199,6 +204,30 @@ final class Navigator: NSObject, ObservableObject {
       if let newState = step.state { showActivity(newState) }
       if let precision = step.precision { request(precision) }
     }
+  }
+
+  /// The identifier of the notification shown for the last notice, see `wake(_:)`.
+  private var wakeIdentifier: String?
+
+  /// Lights up a locked screen with `text`: a silent notification, see `knot-navigation` "Waking
+  /// the screen for notices". Each one is new, after the previous one is removed: one replaced
+  /// under the same identifier was not shown again (the check of 2026-11-11).
+  private func wake(_ text: String) {
+    removeWake()
+    let content = UNMutableNotificationContent()
+    content.body = text
+    content.sound = nil
+    content.interruptionLevel = .active
+    let identifier = UUID().uuidString
+    wakeIdentifier = identifier
+    UNUserNotificationCenter.current().add(
+      UNNotificationRequest(identifier: identifier, content: content, trigger: nil))
+  }
+
+  private func removeWake() {
+    guard let identifier = wakeIdentifier else { return }
+    UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [identifier])
+    wakeIdentifier = nil
   }
 
   private func showActivity(_ state: NavigationState) {

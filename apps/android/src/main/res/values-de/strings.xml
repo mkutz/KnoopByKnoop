@@ -132,4 +132,6 @@
   <string name="base_map_none">Keine gespeichert</string>
   <string name="base_map_delete_description">Gespeicherte Karte löschen</string>
   <string name="base_map_explanation">Die Karte rund um eine geplante Route, gespeichert, damit sie auch ohne Verbindung angezeigt wird. Die App lädt sie von OpenFreeMap, das den ungefähren Bereich einer Route sehen kann, aber nie, wo du bist.</string>
+  <string name="channel_alerts">Navigationshinweise</string>
+  <string name="channel_alerts_description">Schaltet bei jeder gesprochenen Ansage während der Navigation den Bildschirm ein, ohne Ton</string>
 </resources>
