@@ -959,7 +959,9 @@ private class MapHolder {
     if (newPosition == null || !following) return
     val map = map ?: return
     val rider = LatLng(newPosition.latitude, newPosition.longitude)
-    if (newWayToRoute != null) {
+    // Off route, close before a doubtful junction on the guided way, the zoom on it wins over the
+    // end of the way back, see `knot-navigation` "Doubtful junction off route".
+    if (newWayToRoute != null && newFocus?.kind != MapFocusKind.TRICKY_SPOT) {
       // Off route, the rider and the end of the way back, so they see where the route is.
       val bounds =
         LatLngBounds.Builder()

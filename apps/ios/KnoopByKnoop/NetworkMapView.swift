@@ -639,7 +639,9 @@ struct NetworkMapView: UIViewRepresentable {
       updateRecenterButton()
       updateNavigation()
       guard following, let newPosition else { return }
-      if let newWayToRoute {
+      // Off route, close before a doubtful junction on the guided way, the zoom on it wins over the
+      // end of the way back, see `knot-navigation` "Doubtful junction off route".
+      if let newWayToRoute, newFocus?.kind != .trickySpot {
         // Off route, the rider and the end of the way back, so they see where the route is, no
         // closer than following, as the way back can be short.
         let rider = CLLocationCoordinate2D(latitude: newPosition.latitude, longitude: newPosition.longitude)

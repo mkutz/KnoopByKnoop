@@ -26,7 +26,7 @@
 ## 5. Doubtful junctions (after `add-junction-pictures`)
 
 - [x] 5.1 Core: doubtful junctions on the guided way count as tricky spots, and off route they win over keeping the end of the way in view. Tests: "Doubtful junction off route", "Doubtful junction on the way back".
-- [ ] 5.2 Check both apps with a mocked ride off route past a doubtful junction.
+- [x] 5.2 Check both apps with a mocked ride off route past a doubtful junction. Android on the emulator with a replayed real ride (2026-11-11), which found and fixed the off-route camera ignoring the junction in both apps; iOS builds with the same fix, the iPhone on the maintainer's ride.
 
 ## 6. Wrap-up
 
