@@ -465,6 +465,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val network = loaded ?: return
     // The route's squares are wanted again, see `network-sync` "Deleting with a route planned".
     state = state.copy(pathDataDeletedFor = null, placeDetailsDeletedFor = null)
+    Navigating.lateCourses.value = null
     NavigationService.start(
       getApplication(),
       NavigationRoute(
@@ -1020,6 +1021,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
       if (reattached !== session) update(reattached)
       else state = state.copy(layers = layersFor(session))
     }
+    // A navigation started before the courses had loaded takes them now, see `knot-navigation`
+    // "Courses loaded after the start".
+    if (state.navigating)
+      state.session?.let {
+        Navigating.lateCourses.value = withCourses.geometry.withRoutePoints(it.routeGraph)
+      }
     findWays()
   }
 

@@ -20,6 +20,7 @@ A scenario gets a test as soon as one can check it; its line goes then.
 
 ## knot-navigation
 
+- Courses on a slow phone — on the emulator, where the courses take about 20 s: Navigate pressed before they have loaded, a recorded ride replayed
 - Header of steady height on a guided way — on the devices, finding and losing a way with a long street name ahead
 - Location access denied — on the devices
 - Screen off — on the devices

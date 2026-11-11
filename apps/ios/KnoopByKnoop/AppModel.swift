@@ -684,6 +684,11 @@ final class AppModel: ObservableObject {
         storage.saveRoute(RouteSnapshot.companion.of(session: reattached))
       }
       show(reattached)
+      // A navigation started before the courses had loaded takes them now, see `knot-navigation`
+      // "Courses loaded after the start".
+      if navigating {
+        Navigator.shared.takeCourses(withCourses.geometry.withRoutePoints(routeGraph: reattached.routeGraph))
+      }
     }
     findWays()
   }

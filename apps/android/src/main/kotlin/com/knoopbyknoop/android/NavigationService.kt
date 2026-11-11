@@ -61,6 +61,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -243,6 +244,12 @@ class NavigationService : Service() {
     scope.launch {
       Navigating.visible.drop(1).collect { visible ->
         session?.state?.navigation?.let { request(it.precision(visible)) }
+      }
+    }
+    // Courses loaded after the start, see `knot-navigation` "Courses loaded after the start".
+    scope.launch {
+      Navigating.lateCourses.filterNotNull().collect { geometry ->
+        session?.let { act(it.withCourses(geometry)) }
       }
     }
     return START_NOT_STICKY

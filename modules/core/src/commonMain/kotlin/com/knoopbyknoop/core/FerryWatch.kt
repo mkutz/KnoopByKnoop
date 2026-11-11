@@ -81,6 +81,20 @@ private constructor(
     metersPerSecond: Double,
   ): FerryWatch = renew(offset, timeMillis, nextIndex, metersPerSecond, warn = false).first
 
+  /**
+   * This watch on a route with [newOffsets], e.g. once the courses have loaded, with the same
+   * warnings given, see `knot-navigation` "Courses loaded after the start".
+   */
+  fun onRoute(
+    newOffsets: List<Double>,
+    offset: Double,
+    timeMillis: Long,
+    nextIndex: Int,
+    metersPerSecond: Double,
+  ): FerryWatch =
+    FerryWatch(ferries, newOffsets, localTime, arrivals, warned, language, speechLanguage)
+      .renewed(offset, timeMillis, nextIndex, metersPerSecond)
+
   /** This watch in other languages, with the same warnings given, see "Language change". */
   fun inLanguage(
     newLanguage: Language,

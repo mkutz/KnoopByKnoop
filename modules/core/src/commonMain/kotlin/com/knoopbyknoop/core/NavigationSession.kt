@@ -76,7 +76,7 @@ class SessionStep(
  * @param speechLanguage the language the notices are spoken in
  */
 class NavigationSession(
-  private val route: NavigationRoute,
+  private var route: NavigationRoute,
   private val localTime: ((Long) -> LocalMoment)? = null,
   language: Language = Language.EN,
   speechLanguage: Language = language,
@@ -160,6 +160,21 @@ class NavigationSession(
       return SessionStep.NOTHING
     }
     state = state.copy(guidedWay = wayGuide.way)
+    return SessionStep(state)
+  }
+
+  /**
+   * Navigates along the courses of [geometry] from now on, when navigation started before they had
+   * loaded, see `knot-navigation` "Courses loaded after the start". Before the first fix the start
+   * takes them; nothing is told, and nothing changes after the end or with courses already there.
+   */
+  fun withCourses(geometry: NetworkGeometry): SessionStep {
+    if (ending || route.geometry != null) return SessionStep.NOTHING
+    route = NavigationRoute(route.knots, route.graph, geometry, route.stops)
+    val navigation = state.navigation ?: return SessionStep.NOTHING
+    val changed = navigation.withCourses(geometry, route.graph, route.stops)
+    if (changed === navigation) return SessionStep.NOTHING
+    state = state.copy(navigation = changed)
     return SessionStep(state)
   }
 

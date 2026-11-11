@@ -681,6 +681,60 @@ class Navigation private constructor(private val setup: RideSetup, private val s
    * This navigation in other languages with the rider at [fix], everything else as it was, see
    * `app-languages` "Language change while navigating".
    */
+  /**
+   * This navigation, started without courses, along the courses of [geometry] from now on, see
+   * `knot-navigation` "Courses loaded after the start": the knots passed stay passed, the next knot
+   * moves up only when the rider is already past it along the course, and nothing is told. Whether
+   * the rider is off route is decided by the next fix. Unchanged when it has courses already or
+   * [geometry] has none for the route.
+   *
+   * @param graph and [stops] as for [start]
+   */
+  fun withCourses(geometry: NetworkGeometry, graph: NetworkGraph, stops: Set<Int>): Navigation {
+    if (setup.courses != null || arrived) return this
+    val newSetup = setupOf(knots, graph, geometry, stops, localTime)
+    val courses = newSetup.courses ?: return this
+    val fix = lastFix
+    val leg = legOnCourse(fix, courses, OFF_COURSE_METERS)
+    val next = if (leg != null && leg + 1 > nextIndex) leg + 1 else nextIndex
+    val newRoute = newSetup.route
+    val newPlace = newRoute.placeOf(fix, next)
+    val newPace = pace.copy(lastOffset = newPlace, lastMillis = fix.timeMillis)
+    return Navigation(
+      newSetup,
+      state.copy(
+        nextIndex = next,
+        offRoute = false,
+        offRouteKnot = null,
+        place = newPlace,
+        pace = newPace,
+        ferryWatch =
+          ferryWatch?.onRoute(
+            newRoute.offsets,
+            newPlace,
+            fix.timeMillis,
+            next,
+            newPace.metersPerSecond,
+          ),
+        progressLine =
+          newRoute.line(
+            newPlace,
+            next,
+            newPace.metersPerSecond,
+            fix.timeMillis,
+            localTime,
+            language,
+            if (next == 0) newRoute.straightTo(fix, 0) else null,
+          ),
+        linePlace = newPlace,
+        guided = null,
+        directionWatch = null,
+        joining = null,
+        rejoin = null,
+      ),
+    )
+  }
+
   fun inLanguage(newLanguage: Language, newSpeechLanguage: Language, fix: Fix): Navigation {
     val navigation = with {
       it.copy(
@@ -1481,6 +1535,51 @@ class Navigation private constructor(private val setup: RideSetup, private val s
     private const val LINE_MAX_MILLIS = 30_000L
 
     /**
+     * What stays the same for a ride through [knots], with the courses of [geometry] or straight
+     * lines without; the one place for it, so a start and courses taken later agree, see
+     * [withCourses].
+     */
+    private fun setupOf(
+      knots: List<Knot>,
+      graph: NetworkGraph,
+      geometry: NetworkGeometry?,
+      stops: Set<Int>,
+      localTime: ((Long) -> LocalMoment)?,
+    ): RideSetup {
+      val courses = geometry?.let { network ->
+        knots.zipWithNext { from, to -> network.courseOf(from, to) ?: return@let null }
+      }
+      val drawnCourses =
+        geometry?.courses(knots)
+          ?: knots.zipWithNext { from, to -> listOf(pointOf(from), pointOf(to)) }
+      val headedFor = knots.mapIndexed { index, knot ->
+        when {
+          geometry == null -> pointOf(knot)
+          index == 0 -> drawnCourses.firstOrNull()?.firstOrNull() ?: pointOf(knot)
+          else ->
+            drawnCourses.getOrNull(index - 1)?.let { geometry.firstReachedOn(it, knot) }
+              ?: pointOf(knot)
+        }
+      }
+      val route = RouteProgress.of(knots, graph, courses, stops, headedFor)
+      return RideSetup(
+        knots = knots,
+        courses = courses,
+        signpostCourses =
+          geometry?.let { network ->
+            knots.zipWithNext { from, to -> network.signpostCoursesOf(from, to) }
+          } ?: listOf(),
+        drawnCourses = drawnCourses,
+        locator = KnotLocator(graph.knots.values),
+        routeKnotIds = knots.map { it.id }.toSet(),
+        route = route,
+        localTime = localTime,
+        legTurns = courses?.let { legTurnsOf(knots, graph, it) } ?: knots.drop(1).map { null },
+        tricky = routeTricky(courses, route.offsets),
+      )
+    }
+
+    /**
      * Starts navigating the route through [knots] where [fix] is, see `knot-navigation` "Start
      * navigation".
      *
@@ -1505,9 +1604,9 @@ class Navigation private constructor(private val setup: RideSetup, private val s
       speechLanguage: Language = language,
     ): NavigationUpdate? {
       if (knots.size < 2) return null
-      val courses = geometry?.let { network ->
-        knots.zipWithNext { from, to -> network.courseOf(from, to) ?: return@let null }
-      }
+      val setup = setupOf(knots, graph, geometry, stops, localTime)
+      val courses = setup.courses
+      val route = setup.route
       val startIndex =
         knots
           .dropLast(1)
@@ -1523,19 +1622,6 @@ class Navigation private constructor(private val setup: RideSetup, private val s
           courses != null -> 0 to true
           else -> knots.indices.minBy { distanceTo(fix, pointOf(knots[it])) } to false
         }
-      val drawnCourses =
-        geometry?.courses(knots)
-          ?: knots.zipWithNext { from, to -> listOf(pointOf(from), pointOf(to)) }
-      val headedFor = knots.mapIndexed { index, knot ->
-        when {
-          geometry == null -> pointOf(knot)
-          index == 0 -> drawnCourses.firstOrNull()?.firstOrNull() ?: pointOf(knot)
-          else ->
-            drawnCourses.getOrNull(index - 1)?.let { geometry.firstReachedOn(it, knot) }
-              ?: pointOf(knot)
-        }
-      }
-      val route = RouteProgress.of(knots, graph, courses, stops, headedFor)
       val place = if (startIndex >= 0) route.offsets[startIndex] else route.placeOf(fix, nextIndex)
       val pace = Pace(place, fix.timeMillis, route.assumedMetersPerSecond)
       val ferries = localTime?.let {
@@ -1553,22 +1639,7 @@ class Navigation private constructor(private val setup: RideSetup, private val s
       }
       val navigation =
         Navigation(
-            RideSetup(
-              knots = knots,
-              courses = courses,
-              signpostCourses =
-                geometry?.let { network ->
-                  knots.zipWithNext { from, to -> network.signpostCoursesOf(from, to) }
-                } ?: listOf(),
-              drawnCourses = drawnCourses,
-              locator = KnotLocator(graph.knots.values),
-              routeKnotIds = knots.map { it.id }.toSet(),
-              route = route,
-              localTime = localTime,
-              legTurns =
-                courses?.let { legTurnsOf(knots, graph, it) } ?: knots.drop(1).map { null },
-              tricky = routeTricky(courses, route.offsets),
-            ),
+            setup,
             RideState(
               nextIndex = nextIndex,
               offRoute = offRoute,

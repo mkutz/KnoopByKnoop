@@ -5,7 +5,7 @@ When navigation was started before the network's courses had loaded, it SHALL ta
 
 #### Scenario: Courses arriving on the course
 - **WHEN** the rider started navigation before the courses had loaded, rides on the course between 45 and 46, and the courses finish loading
-- **THEN** the next knot is still 46, the distance to it is measured along the course to its signpost, and nothing is spoken for the change
+- **THEN** the next knot is still 46, the map draws the course of the leg ahead instead of a straight line, and nothing is spoken for the change
 
 #### Scenario: Knots passed before the courses
 - **WHEN** the rider passed 45 and 46 before the courses had loaded, and they then finish loading

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Navigation started before the network's courses had loaded takes them as soon as they are there, instead of going on without them for the whole ride, which meant no "Off route" and distances to the knots' main positions
 - Off route, the map now zooms in on a tricky junction on the way back, as it does on the route; before, it kept showing the rider and the end of the way back
 - Android 12 and older: navigation's notification and voice follow the language chosen in the app, not the phone's, also when the phone's language changes on the way
 

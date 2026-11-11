@@ -211,4 +211,87 @@ class NavigationSessionTest {
     assertEquals(Language.DE, assertNotNull(step.state).navigation!!.language)
     assertEquals(Language.DE, session.state.navigation!!.language)
   }
+
+  // Requirement: Courses loaded after the start
+
+  /** The leg 45-12 bends 300 m north on its course, further than off route is. */
+  private val bentGeometry =
+    NetworkGeometry(
+      graph,
+      listOf(
+        listOf(
+          GeoPoint(knot24.latitude, knot24.longitude),
+          GeoPoint(knot45.latitude, knot45.longitude),
+        ),
+        listOf(
+          GeoPoint(knot45.latitude, knot45.longitude),
+          GeoPoint(latitude(300.0), longitude(1500.0)),
+          GeoPoint(knot12.latitude, knot12.longitude),
+        ),
+        listOf(
+          GeoPoint(knot12.latitude, knot12.longitude),
+          GeoPoint(knot31.latitude, knot31.longitude),
+        ),
+      ),
+    )
+
+  /** A session started before the courses had loaded. */
+  private val withoutCourses = NavigationSession(NavigationRoute(knots, graph, null))
+
+  @Test
+  fun `Courses arriving on the course keep the next knot and draw the course ahead`() {
+    withoutCourses.ride(0.0, 1040.0)
+    withoutCourses.at(fix(1100.0, north = 60.0))
+    val straight = withoutCourses.state.navigation!!.courseAhead
+
+    val step = withoutCourses.withCourses(bentGeometry)
+
+    val navigation = assertNotNull(step.state).navigation!!
+    assertEquals(knot12, navigation.nextKnot)
+    assertTrue(step.notices.isEmpty())
+    assertEquals(2, straight?.size)
+    assertEquals(bentGeometry.courseOf(knot45, knot12), navigation.courseAhead)
+  }
+
+  @Test
+  fun `Knots passed before the courses stay passed and are not announced again`() {
+    withoutCourses.ride(0.0, 2120.0)
+
+    val step = withoutCourses.withCourses(bentGeometry)
+    val later = withoutCourses.ride(2160.0, 2400.0)
+
+    assertEquals(knot31, assertNotNull(step.state).navigation!!.nextKnot)
+    val texts = later.flatMap { it.notices }.map { it.text }
+    assertTrue(texts.none { "45" in it || "12" in it }, texts.toString())
+  }
+
+  @Test
+  fun `Off route when the courses arrive is told on the next fix`() {
+    withoutCourses.ride(0.0, 1480.0)
+
+    val taken = withoutCourses.withCourses(bentGeometry)
+    val next = withoutCourses.at(fix(1520.0))
+
+    assertTrue(!assertNotNull(taken.state).navigation!!.offRoute)
+    assertTrue(assertNotNull(next.state).navigation!!.offRoute)
+    assertTrue(next.notices.any { it.text.startsWith("Off route") }, next.notices.toString())
+  }
+
+  @Test
+  fun `courses before the first fix are taken by the start`() {
+    assertSame(SessionStep.NOTHING, withoutCourses.withCourses(bentGeometry))
+
+    val first = withoutCourses.at(fix(1500.0))
+
+    assertTrue(assertNotNull(first.state).navigation!!.offRoute)
+  }
+
+  @Test
+  fun `courses are taken once and not after the end`() {
+    withoutCourses.ride(0.0, 400.0)
+    withoutCourses.withCourses(bentGeometry)
+
+    assertSame(SessionStep.NOTHING, withoutCourses.withCourses(bentGeometry))
+    assertSame(SessionStep.NOTHING, session.also { it.ride(0.0, 3000.0) }.withCourses(bentGeometry))
+  }
 }

@@ -254,6 +254,20 @@ class FerryWarningTest {
   }
 
   @Test
+  fun `warned once also after the courses arrive`() {
+    val ride = ride(10_000, 9_900, 200, 1000, ferryLegs = mapOf(2 to broekhuizen))
+    val started = ride.start("18:00")
+    assertEquals(1, started.ferryNotices().size)
+
+    val withCourses =
+      started.navigation.withCourses(NetworkGeometry.straightLines(ride.graph), ride.graph, setOf())
+    val update = withCourses.update(ride.fixAt(1, "18:40"))
+
+    assertEquals(listOf(), update.ferryNotices())
+    assertEquals(FerryArrivalState.WARNING, update.navigation.ferryArrival(2)?.state)
+  }
+
+  @Test
   fun `ferry without a name`() {
     assertEquals(
       listOf("The ferry closes at 19:00, before you get there around 19:15"),

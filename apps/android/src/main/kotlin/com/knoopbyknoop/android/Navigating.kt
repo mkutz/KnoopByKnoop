@@ -2,6 +2,7 @@ package com.knoopbyknoop.android
 
 import com.knoopbyknoop.core.NavigationRoute
 import com.knoopbyknoop.core.NavigationState
+import com.knoopbyknoop.core.NetworkGeometry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,6 +25,12 @@ object Navigating {
 
   /** Whether the phone is locked with the app over the lock screen. */
   val overLockScreen = MutableStateFlow(false)
+
+  /**
+   * The network's courses, once they have loaded after navigation started without them, see
+   * `knot-navigation` "Courses loaded after the start"; `null` until then.
+   */
+  val lateCourses = MutableStateFlow<NetworkGeometry?>(null)
 
   /** The route for the next start of [NavigationService]. */
   @Volatile var route: NavigationRoute? = null

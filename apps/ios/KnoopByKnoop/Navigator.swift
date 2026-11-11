@@ -158,6 +158,20 @@ final class Navigator: NSObject, ObservableObject {
     startActivity()
   }
 
+  /// Navigates along `geometry` from now on, when navigation started before the courses had loaded,
+  /// see `knot-navigation` "Courses loaded after the start". Waiting for location access, the plan
+  /// takes them.
+  func takeCourses(_ geometry: NetworkGeometry) {
+    if let session {
+      act(session.withCourses(geometry: geometry))
+    } else if let plan, plan.route.geometry == nil {
+      let route = plan.route
+      self.plan = NavigationPlan(
+        route: NavigationRoute(knots: route.knots, graph: route.graph, geometry: geometry, stops: route.stops),
+        roles: plan.roles)
+    }
+  }
+
   private func onLocation(_ location: CLLocation) {
     guard let session, location.horizontalAccuracy >= 0 else { return }
     let fix = Fix(
