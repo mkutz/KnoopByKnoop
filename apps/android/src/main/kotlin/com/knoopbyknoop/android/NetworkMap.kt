@@ -1112,7 +1112,8 @@ private class MapHolder {
       .getSourceAs<GeoJsonSource>("detour")
       ?.setGeoJson(
         if (lines.isNotEmpty())
-          lines.joinToString(",", """{"type": "MultiLineString", "coordinates": [""", "]}") { line ->
+          lines.joinToString(",", """{"type": "MultiLineString", "coordinates": [""", "]}") { line
+            ->
             line.joinToString(",", "[", "]") { "[${it.longitude}, ${it.latitude}]" }
           }
         else """{"type": "FeatureCollection", "features": []}"""

@@ -168,7 +168,7 @@ class FerryDetourTest {
   }
 
   @Test
-  fun `the map shows the nearest closed ferry with its way around, further ones are drawn too`() {
+  fun `the map shows the nearest closed ferry with its way around and draws further ones too`() {
     // A second river 40 km further east, with its own closed ferry (8–9) and bridge (10).
     val second = knot(8, 62_433.0)
     val secondFarBank = knot(9, 62_633.0)
