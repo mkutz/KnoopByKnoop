@@ -174,7 +174,20 @@ private struct CompactLeading: View {
   let state: NavigationActivityAttributes.ContentState
 
   var body: some View {
-    Minimal(state: state)
+    // Close to a knot the whole plate with the turn's arrow, see `knot-navigation` "Turn at the
+    // next knot"; the minimal island has room for the number only.
+    if let row = state.row, row.kind == .close, let follow = row.follow {
+      // The sign and the turn's arrow without the plate, which the narrow region would cut off.
+      HStack(spacing: 2) {
+        SignKnot(knot: follow, side: 20)
+        let turn = row.turnDegrees
+        Image(systemName: turn == nil ? "arrow.right" : turn == 180 ? "arrow.uturn.down" : "arrow.up")
+          .font(.system(size: 12, weight: .bold))
+          .rotationEffect(.degrees(turn == nil || turn == 180 ? 0 : turn!))
+      }
+    } else {
+      Minimal(state: state)
+    }
   }
 }
 

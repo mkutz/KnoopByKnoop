@@ -17,7 +17,7 @@
 
 ## 3. iOS
 
-- [ ] 3.1 The same in the header, the Live Activity and the Dynamic Island. The project builds, and simulator screenshots show the same routes as 2.1.
+- [x] 3.1 The same in the header, the Live Activity and the Dynamic Island. The project builds, and simulator screenshots show the same routes as 2.1.
 
 ## 4. Wrap-up
 
@@ -30,4 +30,4 @@
 
 ## Notes
 
-- 3.1, 2026-11-09: the header and the Live Activity on the lock screen checked in the simulator; open is the Dynamic Island, which the simulator's screenshots don't show, for the maintainer's iPhone.
+- 3.1, 2026-11-09: the header and the Live Activity on the lock screen checked in the simulator. 2026-11-11: the Dynamic Island too, with the app in the background; the compact island now shows the turn's arrow; its look around the real camera is for the maintainer's iPhone.

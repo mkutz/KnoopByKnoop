@@ -29,3 +29,12 @@ Checked on 2026-11-09 on the emulator and in the simulator with mocked rides alo
 ## For the maintainer
 
 On a ride, compare the plate's arrow with the real signpost at five knots, including a roundabout or offset junction if the ride passes one, and Siegburg 02 with its two signposts.
+
+## Dynamic Island in the simulator (task 3.1), 2026-11-11
+
+The iPhone 18 Pro simulator does show the island once the app is in the background: a UI test started navigating on 32 → 06 → 02 from 32, 156 m before 06, where the route turns left towards 02.
+
+- **Expanded** (long press): 06, 156 m → the plate of 02 with ← ([screenshot](screenshots/ios-sim-island-expanded-left.png)).
+- **Compact:** before this check it showed only the sign of the number to follow, without the turn ([before](screenshots/ios-sim-island-before-arrow.png)). It now shows the sign with the turn's arrow next to it, without the plate, which the narrow region would cut off ([after](screenshots/ios-sim-island-compact-left.png)). The simulator still cuts the sign's left edge, as it did the plain sign before. How it looks around the real camera is for the iPhone.
+- **Minimal** (shared with another app's activity): the number only, as before ("Dynamic Island with room for one number").
+
