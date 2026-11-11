@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Off route, the map now zooms in on a tricky junction on the way back, as it does on the route; before, it kept showing the rider and the end of the way back
 - Android 12 and older: navigation's notification and voice follow the language chosen in the app, not the phone's, also when the phone's language changes on the way
 
 ## 0.13.0
