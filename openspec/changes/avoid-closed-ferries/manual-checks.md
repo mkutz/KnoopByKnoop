@@ -18,6 +18,15 @@ Also seen on the way:
 - With a stale position 85 km away, the arrival was estimated at 02:35. That's correct for that position, and shows the way to the start counts.
 - Without a position within the 10 seconds Navigate waits, it navigates without asking, as it does for the start question. This happened once in the simulator.
 
+## After the maintainer's first look on the iPhone (2026-11-11)
+
+On a 378 km route with four closed ferries in dark mode, the question was hard to read (the system dialog is see-through glass over the busy map), the map zoomed out to half of North Rhine-Westphalia because the line ran from the first to the last change, and one ferry was listed twice. Fixed:
+- iOS shows the question in the panel at half height instead of a dialog, as the info and the confirmations are shown.
+- The way around is split into its separate detours; all are drawn, and the map zooms to the nearest closed ferry and the way around it.
+- Each warning is listed once.
+
+Checked again in the simulator in dark mode, route 21 → 15 with both ferries closed (`screenshots/ios-question.png`), and on the emulator (`screenshots/android-question.png`).
+
 ## Steps for the maintainer
 
 On a phone, in the evening after a ferry's last crossing (Mondorf–Graurheindorf closes at 19:00 on winter weekdays):

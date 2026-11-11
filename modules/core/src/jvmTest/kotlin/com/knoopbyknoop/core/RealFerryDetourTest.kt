@@ -51,6 +51,7 @@ class RealFerryDetourTest {
       assertTrue(knot.latitude in bounds.minLatitude..bounds.maxLatitude, knot.ref)
       assertTrue(knot.longitude in bounds.minLongitude..bounds.maxLongitude, knot.ref)
     }
-    assertTrue(detour.line.size > 10, "the line follows the courses, ${detour.line.size} points")
+    val line = detour.lines.single()
+    assertTrue(line.size > 10, "the line follows the courses, ${line.size} points")
   }
 }

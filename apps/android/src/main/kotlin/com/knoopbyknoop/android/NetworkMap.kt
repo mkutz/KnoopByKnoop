@@ -1107,13 +1107,13 @@ private class MapHolder {
   }
 
   private fun updateDetour(style: Style) {
-    val line = detour?.line.orEmpty()
+    val lines = detour?.lines.orEmpty().filter { it.size >= 2 }
     style
       .getSourceAs<GeoJsonSource>("detour")
       ?.setGeoJson(
-        if (line.size >= 2)
-          line.joinToString(",", """{"type": "LineString", "coordinates": [""", "]}") {
-            "[${it.longitude}, ${it.latitude}]"
+        if (lines.isNotEmpty())
+          lines.joinToString(",", """{"type": "MultiLineString", "coordinates": [""", "]}") { line ->
+            line.joinToString(",", "[", "]") { "[${it.longitude}, ${it.latitude}]" }
           }
         else """{"type": "FeatureCollection", "features": []}"""
       )

@@ -29,8 +29,8 @@
      - the warnings (one line per ferry)
      - the avoided connections
      - the new route's knots, its extra metres and its extra time at the usual pace
-     - the detour's line: the new route's course between the first and the last knot where it differs from the planned one
-     - the bounds of that line together with the ferries' courses
+     - the detour's lines: each stretch where the new route parts from the planned one until it joins it again
+     - the bounds of the nearest closed ferry and the way around it; on a long route with ferries far apart, the whole route would be too far out to see anything
 
      It is `null` when nothing is closed.
 
@@ -42,7 +42,7 @@
 3. **Order at Navigate.** First the start question (it may cut the plan), then the ferry check on the plan as it is then, with the same position.
 
 4. **The question.**
-   - Android: a card at the bottom of the screen without dimming, so the map above stays readable (a centred dialog would hide the way around). iOS: a `confirmationDialog`, which iOS 26 shows as a card above the panel.
+   - Android: a card at the bottom of the screen without dimming, so the map above stays readable (a centred dialog would hide the way around). iOS: in the panel at half height, as the info and confirmations are shown there; a `confirmationDialog` was see-through glass and hard to read on the map.
    - Dismissing it starts nothing, as with the start question. Without a position within the 10 seconds Navigate waits, it navigates without asking, also as with the start question.
    - **Texts:**
      - the warnings as the message

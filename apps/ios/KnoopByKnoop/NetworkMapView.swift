@@ -573,10 +573,11 @@ struct NetworkMapView: UIViewRepresentable {
 
     private func updateDetour(on style: MLNStyle) {
       var shape: MLNShape? = nil
-      if let line = detour?.line, line.count >= 2 {
+      let lines: [MLNPolylineFeature] = (detour?.lines ?? []).filter { $0.count >= 2 }.map { line in
         var coordinates = line.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
-        shape = MLNPolylineFeature(coordinates: &coordinates, count: UInt(coordinates.count))
+        return MLNPolylineFeature(coordinates: &coordinates, count: UInt(coordinates.count))
       }
+      if !lines.isEmpty { shape = MLNShapeCollectionFeature(shapes: lines) }
       (style.source(withIdentifier: "detour") as? MLNShapeSource)?.shape = shape
     }
 

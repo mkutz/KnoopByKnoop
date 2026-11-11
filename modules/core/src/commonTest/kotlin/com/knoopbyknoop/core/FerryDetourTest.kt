@@ -148,7 +148,7 @@ class FerryDetourTest {
     assertEquals(1, detour.warnings.size)
     assertNull(detour.around)
     assertNull(detour.extraDistance)
-    assertEquals(listOf(), detour.line)
+    assertEquals(listOf(), detour.lines)
   }
 
   @Test
@@ -161,10 +161,51 @@ class FerryDetourTest {
     val detour = assertNotNull(detour(graph(), "18:20"))
 
     val points = listOf(river, bridge, farBank).map { GeoPoint(it.latitude, it.longitude) }
-    assertEquals(points, detour.line.distinct())
+    assertEquals(points, detour.lines.single().distinct())
     assertEquals(river.longitude, detour.bounds.minLongitude, 1e-9)
     assertEquals(bridge.latitude, detour.bounds.maxLatitude, 1e-9)
     assertEquals(river.latitude, detour.bounds.minLatitude, 1e-9)
+  }
+
+  @Test
+  fun `the map shows the nearest closed ferry with its way around, further ones are drawn too`() {
+    // A second river 40 km further east, with its own closed ferry (8–9) and bridge (10).
+    val second = knot(8, 62_433.0)
+    val secondFarBank = knot(9, 62_633.0)
+    val last = knot(11, 63_633.0)
+    val secondBridge = knot(10, 62_533.0, north = 3_000.0)
+    val first = graph()
+    val crossing = Connection(second.id, secondFarBank.id, 200)
+    val graph =
+      NetworkGraph(
+        first.knots.values + listOf(second, secondFarBank, secondBridge, last),
+        first.connections +
+          listOf(
+            Connection(end.id, second.id, 40_000),
+            crossing,
+            Connection(secondFarBank.id, last.id, 1_000),
+            Connection(second.id, secondBridge.id, 3_300),
+            Connection(secondBridge.id, secondFarBank.id, 3_200),
+          ),
+        first.ferries + (crossing to Ferry(name = "Second", openingHours = "Mo-Su 07:00-19:00")),
+      )
+    val session = PlanningSession.start(graph, listOf(start, last))
+
+    val detour =
+      assertNotNull(
+        FerryDetour.of(
+          session,
+          null,
+          GeoPoint(start.latitude, start.longitude),
+          millisAt("18:20"),
+          ::localTime,
+        )
+      )
+
+    assertEquals(2, detour.warnings.size)
+    assertEquals(2, detour.lines.size)
+    assertTrue(detour.bounds.maxLongitude < end.longitude, "only the first river is in view")
+    assertEquals(bridge.latitude, detour.bounds.maxLatitude, 1e-9)
   }
 
   @Test

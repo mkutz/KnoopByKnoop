@@ -125,6 +125,11 @@ struct PlannerView: View {
           // sheet for good, as the sheet is never presented again.
           .modifier(MessageAlert(model: model, active: !landscape))
       }
+      // Half the screen while asking about a closed ferry, so the question fits and the way around
+      // shows above it.
+      .onChange(of: model.ferryDetour != nil) { _, asking in
+        if !landscape { detent = asking ? .medium : planningDetent }
+      }
       // The keyboard covers the smallest sheet, but not a higher one, which would hide the field.
       .onChange(of: keyboardShown) { _, shown in
         if shown && !landscape && !searching { detent = planningDetent }
@@ -183,6 +188,9 @@ struct PlannerView: View {
     Group {
       if showInfo {
         InfoSheet(model: model, onDone: { showInfo = false })
+      } else if let detour = model.ferryDetour {
+        // In the panel, opaque, rather than a dialog over the map, which was hard to read on it.
+        FerryDetourQuestion(model: model, detour: detour)
       } else if let session = model.session, model.layers != nil, !model.loading {
         WaypointSheet(
           // The highest the navigation part was while navigating, so the sheet does not jump when
@@ -202,30 +210,6 @@ struct PlannerView: View {
           })
       } else {
         ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-      }
-    }
-    .confirmationDialog(
-      "Closed ferry ahead",
-      isPresented: Binding(
-        get: { model.ferryDetour != nil }, set: { if !$0 { model.dismissFerryDetour() } }),
-      titleVisibility: .visible, presenting: model.ferryDetour
-    ) { detour in
-      // See `knot-navigation` "Riding around a closed ferry".
-      if detour.around != nil {
-        Button("Ride around it · \(detour.extraDistance ?? "") longer, about \(detour.extraTime ?? "")") {
-          model.rideAroundFerries()
-        }
-        Button("Keep the ferry") { model.keepFerries() }
-      } else {
-        Button("Navigate with the ferry") { model.keepFerries() }
-      }
-      Button("Cancel", role: .cancel) { model.dismissFerryDetour() }
-    } message: { detour in
-      let warnings = detour.warnings.joined(separator: "\n")
-      if detour.around == nil {
-        Text(warnings + "\n" + String(localized: "There is no way around it.", bundle: AppLanguage.bundle))
-      } else {
-        Text(warnings)
       }
     }
     .confirmationDialog(
@@ -307,9 +291,10 @@ struct PlannerView: View {
         onIdle: model.mapIdle,
         shownKnot: model.shownKnot,
         detour: model.ferryDetour,
-        // The question stands above the panel, from about two fifths of the whole screen down; the
-        // map reaches behind the safe areas.
-        detourBottomPadding: (screen.size.height + screen.safeAreaInsets.top + screen.safeAreaInsets.bottom) * 0.62,
+        // The question is in the panel, which is at half the whole screen while asking; the map
+        // reaches behind the safe areas.
+        detourBottomPadding: (screen.size.height + screen.safeAreaInsets.top + screen.safeAreaInsets.bottom) * 0.5
+          + attributionHeight + 8,
         offerPlace: model.offer?.offer.position,
         offerFlag: model.offer?.nameOnly != true,
         onOfferMoved: { point in DispatchQueue.main.async { model.offerMoved(to: point) } }
@@ -1225,4 +1210,57 @@ private struct AttributionOverlay: View {
 struct NavigationHeightKey: Equatable {
   let typeSize: DynamicTypeSize
   let picture: Bool
+}
+
+/// Navigate's question about ferries closed by the time the rider gets there, see
+/// `knot-navigation` "Riding around a closed ferry".
+private struct FerryDetourQuestion: View {
+  @ObservedObject var model: AppModel
+  let detour: FerryDetour
+
+  var body: some View {
+    ScrollView {
+      VStack(alignment: .leading, spacing: 12) {
+        Text("Closed ferry ahead")
+          .font(.title3.weight(.semibold))
+          .accessibilityAddTraits(.isHeader)
+        ForEach(detour.warnings, id: \.self) { warning in
+          Text(warning).font(.body).fixedSize(horizontal: false, vertical: true)
+        }
+        if detour.around == nil {
+          Text("There is no way around it.").font(.body)
+        }
+        VStack(spacing: 10) {
+          if detour.around != nil {
+            Button {
+              model.rideAroundFerries()
+            } label: {
+              Text("Ride around it · \(detour.extraDistance ?? "") longer, about \(detour.extraTime ?? "")")
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            Button {
+              model.keepFerries()
+            } label: {
+              Text("Keep the ferry").frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+          } else {
+            Button {
+              model.keepFerries()
+            } label: {
+              Text("Navigate with the ferry").frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+          }
+          Button("Cancel", role: .cancel) { model.dismissFerryDetour() }
+        }
+        .controlSize(.large)
+        .padding(.top, 4)
+      }
+      .padding(.horizontal, 20)
+      .padding(.top, 24)
+      .padding(.bottom, 16)
+    }
+  }
 }
