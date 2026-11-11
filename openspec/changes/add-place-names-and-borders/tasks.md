@@ -32,15 +32,15 @@
   - "Crossing into another country" and "Crossing a province border" (texts in English and German)
   - a connection ridden backwards
   - back and forth along a border: crossings less than 500 m apart on one connection merge into one, and none shows when the route ends up where it was
-- [ ] 3.3 The size of the cycling graph stays below 5 MB, with the real data (the "Size budget" check).
+- [x] 3.3 The size of the cycling graph stays below 5 MB, with the real data (the "Size budget" check).
 
 ## 4. Android
 
-- [ ] 4.1 The waypoint list with " · place", and the coming knots list with places, border lines and their TalkBack texts. Strings for "Border" in four languages. Check on the emulator with the new data: "Place in the waypoint list", "Waypoint in the open", "Places in the list", a border crossing on a route from Limburg (NL) into Limburg (BE), and TalkBack's texts. Screenshots in the change folder.
+- [x] 4.1 The waypoint list with " · place", and the coming knots list with places, border lines and their TalkBack texts. Strings for "Border" in four languages. Check on the emulator with the new data: "Place in the waypoint list", "Waypoint in the open", "Places in the list", a border crossing on a route from Limburg (NL) into Limburg (BE), and TalkBack's texts. Screenshots in the change folder.
 
 ## 5. iOS
 
-- [ ] 5.1 The same in `PlannerView.swift` and `ProgressPanel.swift`, with the strings in the String Catalog. The project builds; simulator screenshots of the same routes and VoiceOver's labels.
+- [x] 5.1 The same in `PlannerView.swift` and `ProgressPanel.swift`, with the strings in the String Catalog. The project builds; simulator screenshots of the same routes and VoiceOver's labels.
 
 ## 6. Wrap-up
 
