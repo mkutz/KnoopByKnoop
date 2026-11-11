@@ -126,6 +126,11 @@
   <string name="path_data_loading">Loading ways for this route…</string>
   <string name="path_data_ready">Ways for this route are loaded</string>
   <string name="path_data_unavailable">Ways for this route couldn\'t be loaded</string>
+  <string name="ferry_detour_title">Closed ferry ahead</string>
+  <string name="ferry_detour_around">Ride around it · %1$s longer, about %2$s</string>
+  <string name="ferry_detour_keep">Keep the ferry</string>
+  <string name="ferry_detour_none">There is no way around it.</string>
+  <string name="ferry_detour_navigate">Navigate with the ferry</string>
   <string name="start_choice_title">Where do you want to start?</string>
   <string name="start_choice_text">You are closer to the route than to its start.</string>
   <string name="start_nearby">Start on the route nearby · %1$s</string>

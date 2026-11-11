@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -94,18 +95,24 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
 import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
+import com.knoopbyknoop.core.FerryDetour
 import com.knoopbyknoop.core.HeaderRow
 import com.knoopbyknoop.core.IndexedNetworkType
 import com.knoopbyknoop.core.Knot
@@ -167,11 +174,14 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
   val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
   // The same map in both layouts: moving it instead of creating a new one keeps its position when
   // the device is rotated, see `map-planning` "Landscape layout".
+  // How high the question about a closed ferry is, so the map shows the detour above it.
+  var detourCardHeight by remember { mutableIntStateOf(0) }
   val mapArea = remember {
     movableContentOf { currentState: AppState, modifier: Modifier ->
       MapArea(
         currentState,
         viewModel,
+        detourBottomPadding = detourCardHeight,
         searching = searching,
         onSearch = { searching = true },
         onCloseSearch = closeSearch,
@@ -300,6 +310,9 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
   }
 
   state.startChoice?.let { choice -> StartChoiceDialog(choice, viewModel) }
+  state.ferryDetour?.let { detour ->
+    FerryDetourQuestion(detour, viewModel, onHeight = { detourCardHeight = it })
+  }
 
   pendingNetwork?.let { network ->
     AlertDialog(
@@ -340,6 +353,7 @@ private val topInsets: WindowInsets
 private fun MapArea(
   state: AppState,
   viewModel: AppViewModel,
+  detourBottomPadding: Int,
   searching: Boolean,
   onSearch: () -> Unit,
   onCloseSearch: () -> Unit,
@@ -437,6 +451,8 @@ private fun MapArea(
       nearestKnots = state.nearestKnots,
       onNearestShown = viewModel::nearestKnotsShown,
       shownKnot = state.shownKnot,
+      detour = state.ferryDetour,
+      detourBottomPadding = detourBottomPadding,
       topControlsBottom = topControlsBottom,
       topControlsStart = topControlsStart,
       offerPlace = state.offer?.offer?.position,
@@ -1234,6 +1250,78 @@ private fun PlaceOfferMenu(offer: PlaceOffer, viewModel: AppViewModel) {
         text = { Text(stringResource(R.string.end_here)) },
         onClick = { viewModel.choose(PlaceChoice.END) },
       )
+    }
+  }
+}
+
+/**
+ * Navigate's question about ferries closed by the time the rider gets there, see `knot-navigation`
+ * "Riding around a closed ferry": a card at the bottom without dimming, so the way around stays in
+ * view on the map above it, see "Detour on the map".
+ */
+@Composable
+private fun FerryDetourQuestion(
+  detour: FerryDetour,
+  viewModel: AppViewModel,
+  onHeight: (Int) -> Unit,
+) {
+  Dialog(
+    onDismissRequest = { viewModel.dismissFerryDetour() },
+    properties = DialogProperties(usePlatformDefaultWidth = false),
+  ) {
+    (LocalView.current.parent as? DialogWindowProvider)?.window?.setDimAmount(0f)
+    Box(
+      modifier =
+        Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).padding(16.dp),
+      contentAlignment = Alignment.BottomCenter,
+    ) {
+      Surface(
+        shape = MaterialTheme.shapes.extraLarge,
+        tonalElevation = 6.dp,
+        shadowElevation = 6.dp,
+        modifier = Modifier.widthIn(max = 560.dp).onSizeChanged { onHeight(it.height) },
+      ) {
+        Column(modifier = Modifier.padding(24.dp)) {
+          Text(
+            stringResource(R.string.ferry_detour_title),
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.semantics { heading() },
+          )
+          Spacer(Modifier.height(16.dp))
+          for (warning in detour.warnings) {
+            Text(warning, style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(8.dp))
+          }
+          if (detour.around == null)
+            Text(
+              stringResource(R.string.ferry_detour_none),
+              style = MaterialTheme.typography.bodyMedium,
+            )
+          Spacer(Modifier.height(16.dp))
+          Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.End,
+          ) {
+            if (detour.around != null) {
+              TextButton(onClick = { viewModel.rideAroundFerries() }) {
+                Text(
+                  stringResource(
+                    R.string.ferry_detour_around,
+                    detour.extraDistance.orEmpty(),
+                    detour.extraTime.orEmpty(),
+                  )
+                )
+              }
+              TextButton(onClick = { viewModel.keepFerries() }) {
+                Text(stringResource(R.string.ferry_detour_keep))
+              }
+            } else
+              TextButton(onClick = { viewModel.keepFerries() }) {
+                Text(stringResource(R.string.ferry_detour_navigate))
+              }
+          }
+        }
+      }
     }
   }
 }

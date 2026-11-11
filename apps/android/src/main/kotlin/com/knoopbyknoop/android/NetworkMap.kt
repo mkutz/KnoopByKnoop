@@ -31,6 +31,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.knoopbyknoop.core.FerryDetour
 import com.knoopbyknoop.core.Fix
 import com.knoopbyknoop.core.GeoBounds
 import com.knoopbyknoop.core.GeoPoint
@@ -182,6 +183,9 @@ private const val TOUCH_TARGET_DP = 24f
 private const val GREEN = "#2E9E5B"
 private const val ORANGE = "#F28C28"
 
+/** The width of the way around a closed ferry, see `knot-navigation` "Detour on the map". */
+private const val DETOUR_WIDTH = 5f
+
 /** The base map's vector source, with the places. */
 private const val BASE_MAP_SOURCE = "openmaptiles"
 
@@ -276,6 +280,13 @@ fun NetworkMap(
   onNearestShown: () -> Unit = {},
   /** A coming knot to show while navigating, see `knot-navigation` "Showing a coming knot". */
   shownKnot: ShownKnot? = null,
+  /**
+   * The way around a closed ferry while Navigate asks about it, shown together with the ferry, see
+   * `knot-navigation` "Detour on the map".
+   */
+  detour: FerryDetour? = null,
+  /** How much of the map's bottom the question covers, in pixels, kept clear of [detour]. */
+  detourBottomPadding: Int = 0,
   /**
    * A tapped place offered as a route point, marked with a flag, see `map-planning` "Choose a route
    * point on the map".
@@ -417,6 +428,7 @@ fun NetworkMap(
   }
   LaunchedEffect(places) { holder.showPlaces(places) }
   LaunchedEffect(shownKnot) { shownKnot?.let { holder.showKnot(it.knot) } }
+  LaunchedEffect(detour, detourBottomPadding) { holder.showDetour(detour, detourBottomPadding) }
   // The offline style has no base map; it is loaded as soon as network access is back.
   LaunchedEffect(online) { if (online && holder.usesOfflineStyle) holder.loadBaseMap() }
   // Switched in place, the camera stays, see `map-planning` "Switching while the app is open".
@@ -640,6 +652,7 @@ private class MapHolder {
     updateMarker(loaded)
     updateOffer(loaded)
     updateNavigation(loaded)
+    updateDetour(loaded)
     updateTrack(loaded)
     updateLegAhead(loaded)
     update()
@@ -1064,6 +1077,48 @@ private class MapHolder {
     )
   }
 
+  private var detour: FerryDetour? = null
+
+  /**
+   * Draws the way around a closed ferry and moves the map onto it and the ferry, clear of the
+   * question's [bottomPadding], see `knot-navigation` "Detour on the map"; `null` removes the line.
+   */
+  fun showDetour(newDetour: FerryDetour?, bottomPadding: Int) {
+    detour = newDetour
+    style?.let { updateDetour(it) }
+    val bounds = newDetour?.bounds ?: return
+    val map = map ?: return
+    val camera =
+      map.getCameraForLatLngBounds(
+        LatLngBounds.from(
+          bounds.maxLatitude,
+          bounds.maxLongitude,
+          bounds.minLatitude,
+          bounds.minLongitude,
+        ),
+        intArrayOf(
+          FOCUS_PADDING,
+          compassTop + FOCUS_PADDING,
+          FOCUS_PADDING,
+          bottomPadding + FOCUS_PADDING,
+        ),
+      ) ?: return
+    map.animateCamera(CameraUpdateFactory.newCameraPosition(camera))
+  }
+
+  private fun updateDetour(style: Style) {
+    val line = detour?.line.orEmpty()
+    style
+      .getSourceAs<GeoJsonSource>("detour")
+      ?.setGeoJson(
+        if (line.size >= 2)
+          line.joinToString(",", """{"type": "LineString", "coordinates": [""", "]}") {
+            "[${it.longitude}, ${it.latitude}]"
+          }
+        else """{"type": "FeatureCollection", "features": []}"""
+      )
+  }
+
   /** Shows [knot] at the navigation zoom and stops following the rider, as a move by hand. */
   fun showKnot(knot: Knot) {
     following = false
@@ -1328,6 +1383,7 @@ private class MapHolder {
         "route",
         "route-ahead",
         "route-point-ways",
+        "detour",
         "way-to-route",
         "guided-way",
         "next-knot",
@@ -1383,6 +1439,26 @@ private class MapHolder {
           PropertyFactory.lineColor(problem),
           PropertyFactory.lineWidth(4f),
           PropertyFactory.lineDasharray(arrayOf(2f, 2f)),
+        )
+    )
+    // The way around a closed ferry while Navigate asks: dashed, apart from the solid route, see
+    // `knot-navigation` "Detour on the map".
+    style.addLayer(
+      LineLayer("detour-casing", "detour")
+        .withProperties(
+          PropertyFactory.lineColor(if (dark) "#000000" else "#FFFFFF"),
+          PropertyFactory.lineWidth(DETOUR_WIDTH + 3f),
+          PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+          PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+        )
+    )
+    style.addLayer(
+      LineLayer("detour", "detour")
+        .withProperties(
+          PropertyFactory.lineColor(ORANGE),
+          PropertyFactory.lineWidth(DETOUR_WIDTH),
+          PropertyFactory.lineDasharray(arrayOf(1.5f, 1f)),
+          PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
         )
     )
     // Arrows along the route show the riding direction: each leg runs from its start to its end.

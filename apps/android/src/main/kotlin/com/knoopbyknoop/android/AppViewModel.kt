@@ -23,6 +23,7 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.knoopbyknoop.core.BaseMapArea
 import com.knoopbyknoop.core.BaseMapSquares
+import com.knoopbyknoop.core.FerryDetour
 import com.knoopbyknoop.core.Fix
 import com.knoopbyknoop.core.GeoBounds
 import com.knoopbyknoop.core.GeoPoint
@@ -61,6 +62,7 @@ import com.knoopbyknoop.core.hasStraightLines
 import com.knoopbyknoop.core.reattached
 import com.knoopbyknoop.core.routePointFor
 import com.knoopbyknoop.core.tapAt
+import java.time.Instant
 import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -212,6 +214,11 @@ data class AppState(
    * `knot-navigation` "Start on the route nearby".
    */
   val startChoice: StartChoice? = null,
+  /**
+   * Navigate's question whether to ride around a ferry closed by the time the rider gets there, see
+   * `knot-navigation` "Riding around a closed ferry".
+   */
+  val ferryDetour: FerryDetour? = null,
 ) {
   val status: NetworkStatus
     get() = catalog.status(network)
@@ -534,14 +541,59 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         )
       }
       Log.i("Navigation", "start choice: ${location != null}, ${choice?.nearbyMeters}")
-      if (choice == null) navigate() else state = state.copy(startChoice = choice)
+      startPosition = location?.let { GeoPoint(it.latitude, it.longitude) }
+      if (choice == null) checkFerries() else state = state.copy(startChoice = choice)
     }
+  }
+
+  /** Where the rider was when Navigate was pressed, for the ferries' arrival, or `null`. */
+  private var startPosition: GeoPoint? = null
+
+  /**
+   * Asks about ferries closed by the time the rider gets there before navigating, see
+   * `knot-navigation` "Riding around a closed ferry"; navigates at once when none is.
+   */
+  private fun checkFerries() {
+    val session = state.session ?: return
+    val network = loaded ?: return
+    val position = startPosition
+    val detour = position?.let {
+      FerryDetour.of(
+        session,
+        network.geometry.takeIf { network.hasGeometry },
+        it,
+        System.currentTimeMillis(),
+        { millis -> ferryMoment(Instant.ofEpochMilli(millis)) },
+        language,
+      )
+    }
+    Log.i("Navigation", "ferry detour: ${detour?.warnings?.size}, ${detour?.extraDistance}")
+    if (detour == null) navigate() else state = state.copy(ferryDetour = detour)
+  }
+
+  /** Plans the way around the closed ferries for good, then navigates, see "Riding around it". */
+  fun rideAroundFerries() {
+    val around = state.ferryDetour?.around ?: return
+    state = state.copy(ferryDetour = null)
+    update(around)
+    navigate()
+  }
+
+  /** Navigates over the closed ferry, see "Keeping the ferry". */
+  fun keepFerries() {
+    state = state.copy(ferryDetour = null)
+    navigate()
+  }
+
+  /** The question dismissed: nothing starts, as with the start question. */
+  fun dismissFerryDetour() {
+    state = state.copy(ferryDetour = null)
   }
 
   /** Rides to the plan's start, see `knot-navigation` "Riding to the start". */
   fun rideToStart() {
     state = state.copy(startChoice = null)
-    navigate()
+    checkFerries()
   }
 
   /** Starts the plan on the route nearby for good, then navigates, see "Starting nearby". */
@@ -550,7 +602,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val session = state.session ?: return
     state = state.copy(startChoice = null)
     update(session.startOnRouteAt(choice.nearby))
-    navigate()
+    checkFerries()
   }
 
   /** The question dismissed: nothing starts, see "Question dismissed". */

@@ -16,9 +16,9 @@
 
 ## 2. Android
 
-- [ ] 2.1 `AppViewModel`: the check after the start choice, and the state for the question and the map. "Ride around it" sets the plan with `avoidingFerries`, saves it and navigates; "Keep the ferry" navigates. Strings in four languages.
-- [ ] 2.2 The dialog, and the map's detour line and fit to the bounds.
-- [ ] 2.3 Check on the emulator with the ferry Lülsdorf–Wesseling at a time when it's closed (the emulator's time zone and clock set accordingly), with screenshots:
+- [x] 2.1 `AppViewModel`: the check after the start choice, and the state for the question and the map. "Ride around it" sets the plan with `avoidingFerries`, saves it and navigates; "Keep the ferry" navigates. Strings in four languages.
+- [x] 2.2 The dialog, and the map's detour line and fit to the bounds.
+- [x] 2.3 Check on the emulator with the ferry Lülsdorf–Wesseling at a time when it's closed (the emulator's time zone and clock set accordingly), with screenshots:
   - "Ferry closed on the way", "Map while asking"
   - "Riding around it", "Map after the answer"
   - "Keeping the ferry"

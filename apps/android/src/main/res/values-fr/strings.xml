@@ -120,6 +120,11 @@
   <string name="path_data_loading">Chargement des chemins de cet itinéraire…</string>
   <string name="path_data_ready">Les chemins de cet itinéraire sont chargés</string>
   <string name="path_data_unavailable">Les chemins de cet itinéraire n\'ont pas pu être chargés</string>
+  <string name="ferry_detour_title">Bac fermé</string>
+  <string name="ferry_detour_around">Contourner · %1$s de plus, environ %2$s</string>
+  <string name="ferry_detour_keep">Garder le bac</string>
+  <string name="ferry_detour_none">Il n’y a pas de détour possible.</string>
+  <string name="ferry_detour_navigate">Naviguer avec le bac</string>
   <string name="start_choice_title">Où voulez-vous partir ?</string>
   <string name="start_choice_text">Vous êtes plus près de l\'itinéraire que de son départ.</string>
   <string name="start_nearby">Partir de l\'itinéraire à proximité · %1$s</string>
