@@ -25,8 +25,16 @@ fun interface Router {
   fun shortestPath(from: Knot, to: Knot): Path?
 }
 
-/** A [Router] finding the shortest path over a [NetworkGraph] (Dijkstra). */
-class ShortestPathRouter(private val graph: NetworkGraph) : Router {
+/**
+ * A [Router] finding the shortest path over a [NetworkGraph] (Dijkstra).
+ *
+ * @param avoided connections left out, as pairs of knot IDs, the smaller first, e.g. closed
+ *   ferries, see `knot-navigation` "Riding around a closed ferry"
+ */
+class ShortestPathRouter(
+  private val graph: NetworkGraph,
+  private val avoided: Set<Pair<Long, Long>> = setOf(),
+) : Router {
 
   override fun shortestPath(from: Knot, to: Knot): Path? {
     if (from !in graph || to !in graph) return null
@@ -46,6 +54,7 @@ class ShortestPathRouter(private val graph: NetworkGraph) : Router {
       // "Passing a route point that is not on this leg".
       if (knot.isRoutePoint && knot.id != from.id) continue
       for ((neighbor, lengthMeters) in graph.neighborsOf(knot)) {
+        if (avoided.isNotEmpty() && pairOf(knot.id, neighbor.id) in avoided) continue
         val neighborDistance = distance + lengthMeters
         if (neighborDistance < (distances[neighbor.id] ?: Int.MAX_VALUE)) {
           distances[neighbor.id] = neighborDistance
@@ -60,3 +69,7 @@ class ShortestPathRouter(private val graph: NetworkGraph) : Router {
     return Path(knots, lengthMeters)
   }
 }
+
+/** The knot IDs [first] and [second] as an avoided connection, the smaller first. */
+fun pairOf(first: Long, second: Long): Pair<Long, Long> =
+  minOf(first, second) to maxOf(first, second)

@@ -5,7 +5,7 @@ When navigation is started and a ferry on the route is closed at the estimated a
 
 #### Scenario: Ferry closed on the way
 - **WHEN** the rider starts navigating at 18:20 a route over the ferry Lülsdorf–Wesseling, which closes at 19:00, and gets there around 19:40 at the usual pace
-- **THEN** the app asks with the warning "The ferry Lülsdorf–Wesseling closes at 19:00, before you get there around 19:40", "Ride around it · 6.3 km longer, about 25 min" and "Keep the ferry"
+- **THEN** the app asks with the warning "The ferry Lülsdorf–Wesseling closes at 19:00, before you get there around 19:40", "Ride around it · 6.3 km longer, about 24 min" and "Keep the ferry"
 
 #### Scenario: Riding around it
 - **WHEN** the rider chooses to ride around the ferry

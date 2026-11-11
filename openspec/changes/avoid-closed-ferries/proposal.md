@@ -9,7 +9,7 @@ A route over a ferry that is closed by the time the rider gets there only shows 
 - **A check on Navigate.** After the question where to start, the app estimates the arrival at each ferry on the route from the rider's position at the usual pace, as the ferry warning does.
 - **The question.** If a ferry is closed then, or closes within 15 minutes after, the app asks before navigating:
   - the warning, e.g. "The ferry Lülsdorf–Wesseling closes at 19:00, before you get there around 19:40"
-  - **Ride around it · 6.3 km longer, about 25 min**
+  - **Ride around it · 6.3 km longer, about 24 min**
   - **Keep the ferry**
 - **The map shows the detour** while the question is open: it zooms to the ferry and the detour, and draws the detour as a second line next to the planned route.
 - **Riding around it changes the plan for good.**

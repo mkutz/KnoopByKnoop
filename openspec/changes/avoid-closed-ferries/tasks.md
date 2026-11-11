@@ -2,16 +2,17 @@
 
 ## 1. Core
 
-- [ ] 1.1 `ShortestPathRouter` with avoided connections, `PlanningSession.avoidedFerries` and `avoidingFerries`, and `RouteSnapshot.avoidedFerries` (absent in older snapshots). Tests:
+- [x] 1.1 `ShortestPathRouter` with avoided connections, `PlanningSession.avoidedFerries` and `avoidingFerries`, and `RouteSnapshot.avoidedFerries` (absent in older snapshots). Tests:
   - "Editing the plan afterwards" (a knot added still avoids the ferry; a snapshot round trip keeps it)
   - an older snapshot without the field reads as before
-- [ ] 1.2 `FerryDetour.of`: arrivals from the rider's position with `FerryWatch`, the detour with repeated leaving out, the extra length and time, the line and bounds. Tests on a synthetic network with a ferry and a bridge:
+- [x] 1.2 `FerryDetour.of`: arrivals from the rider's position with `FerryWatch`, the detour with repeated leaving out, the extra length and time, the line and bounds. Tests on a synthetic network with a ferry and a bridge:
   - "Ferry closed on the way"
   - "Ferry open when the rider gets there"
   - "Another ferry on the detour"
   - "No way around"
   - "Ferry without operating times"
-- [ ] 1.3 A test on the real cut-out `rhine-luelsdorf` with the ferry Lülsdorf–Wesseling: a start in the evening gives the question with a detour over a bridge, and its length is plausible.
+- [x] 1.3 A test on the real cut-out `rhine-luelsdorf` with the ferry Lülsdorf–Wesseling: a start in the evening gives the question with a detour over a bridge, and its length is plausible.
+  - Done 2026-11-11 (`RealFerryDetourTest`). Within the cut-out there is no bridge; the way around crosses on the ferry Mondorf–Graurheindorf (open until 21:00 in summer): 21 km and 1 h 15 min longer on a June Wednesday at 18:50. In November the ferry warning itself gives no estimate for Lülsdorf–Wesseling (its operating times use Easter dates), so the question doesn't come then either.
 
 ## 2. Android
 

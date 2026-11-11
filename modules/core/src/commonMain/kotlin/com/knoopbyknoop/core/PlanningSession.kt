@@ -37,6 +37,11 @@ private constructor(
   val routeGraph: NetworkGraph,
   private val router: Router,
   val endFirst: Boolean = false,
+  /**
+   * The ferries the plan avoids, as knot ID pairs, see `knot-navigation` "Riding around a closed
+   * ferry"; kept while the plan is edited.
+   */
+  val avoidedFerries: Set<Pair<Long, Long>> = setOf(),
 ) {
 
   val network: NetworkType = requireNotNull(graph.network) { "Cannot plan on an empty network" }
@@ -109,7 +114,7 @@ private constructor(
   fun addStopAt(point: Knot): PlanningSession {
     val route = requireNotNull(route) { "A stop needs a route" }
     val newGraph = graph.withRoutePoints(routePoints + point)
-    val newRouter = ShortestPathRouter(newGraph)
+    val newRouter = ShortestPathRouter(newGraph, avoidedFerries)
     return withRoute(route.using(newRouter).insertStop(point), newGraph, newRouter)
   }
 
@@ -140,7 +145,19 @@ private constructor(
     else planned(remaining)
   }
 
-  fun clear(): PlanningSession = copy(listOf(), route = null)
+  fun clear(): PlanningSession =
+    PlanningSession(graph, listOf(), null, graph, ShortestPathRouter(graph))
+
+  /**
+   * The same waypoints planned again without [ferries], and without those avoided before, see
+   * `knot-navigation` "Riding around a closed ferry".
+   */
+  fun avoidingFerries(ferries: Set<Pair<Long, Long>>): PlanningSession {
+    val avoided = avoidedFerries + ferries
+    val newRouter = ShortestPathRouter(routeGraph, avoided)
+    val newRoute = if (waypoints.size >= 2) Route.plan(waypoints, newRouter) else null
+    return PlanningSession(graph, waypoints, newRoute, routeGraph, newRouter, endFirst, avoided)
+  }
 
   /** An empty session on another network, e.g. hiking instead of cycling. */
   fun switchTo(otherGraph: NetworkGraph): PlanningSession = start(otherGraph)
@@ -153,9 +170,16 @@ private constructor(
     val newPoints = newWaypoints.filter { it.isRoutePoint }.distinct()
     val sameGraph = newPoints.toSet() == routePoints.toSet()
     val newGraph = if (sameGraph) routeGraph else graph.withRoutePoints(newPoints)
-    val newRouter = if (sameGraph) router else ShortestPathRouter(newGraph)
+    val newRouter = if (sameGraph) router else ShortestPathRouter(newGraph, avoidedFerries)
     if (newWaypoints.size < 2)
-      return PlanningSession(graph, newWaypoints, null, newGraph, newRouter)
+      return PlanningSession(
+        graph,
+        newWaypoints,
+        null,
+        newGraph,
+        newRouter,
+        avoidedFerries = avoidedFerries,
+      )
     val newRoute =
       route?.using(newRouter)?.withWaypoints(newWaypoints) ?: Route.plan(newWaypoints, newRouter)
     return withRoute(newRoute, newGraph, newRouter)
@@ -165,25 +189,52 @@ private constructor(
     newRoute: Route,
     newGraph: NetworkGraph = routeGraph,
     newRouter: Router = router,
-  ) = PlanningSession(graph, newRoute.waypoints, newRoute, newGraph, newRouter)
+  ) =
+    PlanningSession(
+      graph,
+      newRoute.waypoints,
+      newRoute,
+      newGraph,
+      newRouter,
+      avoidedFerries = avoidedFerries,
+    )
 
   private fun copy(newWaypoints: List<Knot>, route: Route?, endFirst: Boolean = false) =
     if (newWaypoints.filter { it.isRoutePoint }.toSet() == routePoints.toSet())
-      PlanningSession(graph, newWaypoints, route, routeGraph, router, endFirst)
+      PlanningSession(graph, newWaypoints, route, routeGraph, router, endFirst, avoidedFerries)
     else {
       val newGraph = graph.withRoutePoints(newWaypoints)
-      PlanningSession(graph, newWaypoints, route, newGraph, ShortestPathRouter(newGraph), endFirst)
+      PlanningSession(
+        graph,
+        newWaypoints,
+        route,
+        newGraph,
+        ShortestPathRouter(newGraph, avoidedFerries),
+        endFirst,
+        avoidedFerries,
+      )
     }
 
   companion object {
 
     /** A session on [graph], optionally continuing with [waypoints], e.g. a restored route. */
-    fun start(graph: NetworkGraph, waypoints: List<Knot> = listOf()): PlanningSession {
+    fun start(
+      graph: NetworkGraph,
+      waypoints: List<Knot> = listOf(),
+      avoidedFerries: Set<Pair<Long, Long>> = setOf(),
+    ): PlanningSession {
       val installed = graph.installed
       val routeGraph = installed.withRoutePoints(waypoints)
-      val router = ShortestPathRouter(routeGraph)
+      val router = ShortestPathRouter(routeGraph, avoidedFerries)
       val route = if (waypoints.size >= 2) Route.plan(waypoints, router) else null
-      return PlanningSession(installed, waypoints, route, routeGraph, router)
+      return PlanningSession(
+        installed,
+        waypoints,
+        route,
+        routeGraph,
+        router,
+        avoidedFerries = avoidedFerries,
+      )
     }
   }
 }

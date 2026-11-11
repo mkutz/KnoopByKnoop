@@ -45,7 +45,7 @@
    - Android: a dialog like the start choice. iOS: a `confirmationDialog`.
    - **Texts:**
      - the warnings as the message
-     - "Ride around it · 6.3 km longer, about 25 min"
+     - "Ride around it · 6.3 km longer, about 24 min"
      - "Keep the ferry"
      - without a way around, the message "There is no way around it" and only "Navigate with the ferry"
 
