@@ -4,6 +4,7 @@
 
 - [x] 1.1 A throwaway iPhone build: an alerting Live Activity update with a silent sound file, 10 s after leaving the app. Result 2026-11-08 on the maintainer's ride: the Dynamic Island expanded while unlocked, a locked screen did not light up. Led to notifications instead, see the design.
 - [ ] 1.2 A throwaway iPhone build: one silent local notification 10 s after locking, once. On the maintainer's iPhone: does the screen light up, is it silent, what does the Watch show? Stop and reconsider if the screen does not light up.
+  - 2026-11-11: built and installed on the maintainer's iPhone, not committed. It asks for notification permission at launch. On the first trip to the background while navigating it posts "Wake check: 45 ahead, then 12" 10 s later, without sound and with interruption level active. The result is still open.
 
 ## 2. Apps
 
