@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.net.ConnectivityManager
 import android.net.Network
+import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,6 +53,7 @@ import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteKnot
 import com.knoopbyknoop.core.RouteSnapshot
 import com.knoopbyknoop.core.RouteSummary
+import com.knoopbyknoop.core.StartChoice
 import com.knoopbyknoop.core.WayFinder
 import com.knoopbyknoop.core.hasStraightLines
 import com.knoopbyknoop.core.reattached
@@ -197,6 +199,11 @@ data class AppState(
    * A tapped place whose choices are shown, see `map-planning` "Choose a route point on the map".
    */
   val offer: PlaceOffer? = null,
+  /**
+   * Navigate's question whether to ride to the start or start on the route nearby, see
+   * `knot-navigation` "Start on the route nearby".
+   */
+  val startChoice: StartChoice? = null,
 ) {
   val status: NetworkStatus
     get() = catalog.status(network)
@@ -458,8 +465,51 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     viewModelScope.launch(Dispatchers.IO) { paths.clear() }
   }
 
-  /** Starts navigating the planned route; location access must be granted. */
+  /**
+   * Starts navigating the planned route; location access must be granted. Away from the start but
+   * close to the route, asks first, see `knot-navigation` "Start on the route nearby": with one
+   * position, given up after [START_POSITION_TIMEOUT_MILLIS], then navigation starts without
+   * asking.
+   */
   fun startNavigation() {
+    val session = state.session ?: return
+    val network = loaded ?: return
+    if (session.route == null) return
+    viewModelScope.launch {
+      val location = withTimeoutOrNull(START_POSITION_TIMEOUT_MILLIS) { currentLocation() }
+      val choice = location?.let {
+        StartChoice.of(
+          session,
+          network.geometry.takeIf { network.hasGeometry },
+          GeoPoint(it.latitude, it.longitude),
+        )
+      }
+      Log.i("Navigation", "start choice: ${location != null}, ${choice?.nearbyMeters}")
+      if (choice == null) navigate() else state = state.copy(startChoice = choice)
+    }
+  }
+
+  /** Rides to the plan's start, see `knot-navigation` "Riding to the start". */
+  fun rideToStart() {
+    state = state.copy(startChoice = null)
+    navigate()
+  }
+
+  /** Starts the plan on the route nearby for good, then navigates, see "Starting nearby". */
+  fun startNearby() {
+    val choice = state.startChoice ?: return
+    val session = state.session ?: return
+    state = state.copy(startChoice = null)
+    update(session.startOnRouteAt(choice.nearby))
+    navigate()
+  }
+
+  /** The question dismissed: nothing starts, see "Question dismissed". */
+  fun dismissStartChoice() {
+    state = state.copy(startChoice = null)
+  }
+
+  private fun navigate() {
     val session = state.session ?: return
     val knots = (session.route?.summary as? RouteSummary.Complete)?.knots ?: return
     val network = loaded ?: return
@@ -1082,6 +1132,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
 /** How long finding the position on request may take, see "Show my position". */
 private const val LOCATE_TIMEOUT_MILLIS = 15_000L
+
+/** How long Navigate waits for a position to decide whether to ask, see "Position unknown". */
+private const val START_POSITION_TIMEOUT_MILLIS = 10_000L
 
 private const val KEY_APPEARANCE = "appearance"
 private const val KEY_PLACES = "places"

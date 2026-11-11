@@ -110,6 +110,12 @@ internal interface Texts {
 
   fun offRoute(next: String, way: String): String
 
+  /** On the way to the start knot, e.g. `To the start, 06, 4.4 km to the north`. */
+  fun toStart(start: String, way: String): String
+
+  /** On the way to a route point at the start, e.g. `To the start, 300 m to the north`. */
+  fun toStartPoint(way: String): String
+
   /** Off route, the guidance, e.g. `Next 45, 1.7 km to the north-east`. */
   fun guidance(next: String, way: String): String
 
@@ -347,6 +353,10 @@ internal object EnglishTexts : Texts {
     if (after != null) "$next ahead, then $after" else "$next ahead, the end"
 
   override fun offRoute(next: String, way: String) = "Off route, next $next, $way"
+
+  override fun toStart(start: String, way: String) = "To the start, $start, $way"
+
+  override fun toStartPoint(way: String) = "To the start, $way"
 
   override fun guidance(next: String, way: String) = "Next $next, $way"
 
@@ -619,6 +629,10 @@ internal object GermanTexts : Texts {
 
   override fun offRoute(next: String, way: String) =
     "Abseits der Route, nächster Knotenpunkt $next, $way"
+
+  override fun toStart(start: String, way: String) = "Zum Start, Knotenpunkt $start, $way"
+
+  override fun toStartPoint(way: String) = "Zum Start, $way"
 
   override fun guidance(next: String, way: String) = "Nächster Knotenpunkt $next, $way"
 
@@ -910,6 +924,10 @@ internal object DutchTexts : Texts {
   override fun offRoute(next: String, way: String) =
     "Van de route af, volgend knooppunt $next, $way"
 
+  override fun toStart(start: String, way: String) = "Naar de start, knooppunt $start, $way"
+
+  override fun toStartPoint(way: String) = "Naar de start, $way"
+
   override fun guidance(next: String, way: String) = "Volgend knooppunt $next, $way"
 
   override fun backOnRoute(next: String) = "Terug op de route, volgend knooppunt $next"
@@ -1195,6 +1213,10 @@ internal object FrenchTexts : Texts {
 
   override fun offRoute(next: String, way: String) =
     "Hors itinéraire, prochain point-nœud $next, $way"
+
+  override fun toStart(start: String, way: String) = "Vers le départ, point-nœud $start, $way"
+
+  override fun toStartPoint(way: String) = "Vers le départ, $way"
 
   override fun guidance(next: String, way: String) = "Prochain point-nœud $next, $way"
 

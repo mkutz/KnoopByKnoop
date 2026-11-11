@@ -73,7 +73,8 @@ class NavigationSessionTest {
 
   @Test
   fun `arriving speaks the arrival and ends after it`() {
-    session.at(fix(2000.0))
+    session.at(fix(0.0))
+    session.ride(40.0, 2000.0)
 
     val steps = session.ride(2500.0, 3000.0)
 
@@ -85,7 +86,8 @@ class NavigationSessionTest {
 
   @Test
   fun `after arriving later fixes and ways change nothing`() {
-    session.at(fix(2000.0))
+    session.at(fix(0.0))
+    session.ride(40.0, 2000.0)
     session.ride(2500.0, 3000.0)
     val arrived = session.state
 

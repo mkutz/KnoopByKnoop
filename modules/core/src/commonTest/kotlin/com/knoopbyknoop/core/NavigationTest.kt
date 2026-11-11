@@ -85,14 +85,27 @@ class NavigationTest {
 
   @Test
   fun `start at a knot in the middle of the route`() {
-    val started = start(east = 2000.0)
+    // Started on the route nearby at 12: the plan starts there, see `StartChoiceTest`.
+    val started = start(east = 2000.0, knots = listOf(knot12, knot31))
 
     assertEquals(knot31, started.navigation.nextKnot)
   }
 
   @Test
   fun `start between two knots`() {
-    val started = start(east = 1500.0, north = 20.0)
+    // Started on the route nearby between 45 and 12: the plan starts at a route point there.
+    val place = CoursePlace(graph.connectionBetween(45, 12)!!, 0.5, point(1500.0), 20.0)
+    val start = routePointKnot(point(1500.0), NetworkType.CYCLING, place)
+    val pointGraph = graph.withRoutePoints(listOf(start))
+    val started =
+      assertNotNull(
+        Navigation.start(
+          listOf(start, knot12, knot31),
+          pointGraph,
+          geometry.withRoutePoints(pointGraph),
+          fix(1500.0, north = 20.0),
+        )
+      )
 
     assertEquals(knot12, started.navigation.nextKnot)
     assertFalse(started.navigation.offRoute)
@@ -105,7 +118,7 @@ class NavigationTest {
     assertEquals(knot24, started.navigation.nextKnot, "the first knot, not 45 nearest")
     assertTrue(started.navigation.offRoute)
     assertEquals(
-      listOf("Off route, next 24, 2.2 km to the north-west"),
+      listOf("To the start, 24, 2.2 km to the north-west"),
       started.notices.map { it.text },
     )
   }
@@ -114,100 +127,52 @@ class NavigationTest {
   fun `start away from the route without courses`() {
     val started = start(east = 1000.0, north = -2000.0, geometry = null)
 
-    assertEquals(knot45, started.navigation.nextKnot)
+    assertEquals(knot24, started.navigation.nextKnot)
   }
 
   @Test
   fun `joining the route on the way to the start`() {
-    val started = start(east = 2000.0, north = -500.0)
-    assertEquals(knot24, started.navigation.nextKnot)
-
-    val (navigation, notices) = started.navigation.ride(fix(2000.0, north = -40.0), fix(2000.0))
-
-    assertEquals(knot31, navigation.nextKnot)
-    assertFalse(navigation.offRoute)
-    assertEquals("Back on route, next 31", notices.last().text)
-  }
-
-  // Requirement: Joining the course on the way to the start (`join-route-before-first-knot`)
-
-  @Test
-  fun `reaching the course and following it`() {
-    // Like the ride of 2026-11-08: started 250 m off, reaching the course between 45 and 12.
-    val started = start(east = 1500.0, north = -250.0)
-    assertEquals(knot24, started.navigation.nextKnot)
+    // The way to 24 follows the course of 45 → 12 against the route, as from Dreesch to 06.
+    val started = start(east = 1900.0, north = -250.0)
 
     val (navigation, notices) =
       started.navigation.ride(
-        fix(1500.0, -100.0),
-        fix(1500.0, -10.0),
-        fix(1540.0, -5.0),
-        fix(1600.0),
-      )
-
-    assertEquals(knot12, navigation.nextKnot)
-    assertFalse(navigation.offRoute)
-    assertEquals("Back on route, next 12", notices.last().text)
-    assertNotNull(navigation.courseAhead, "the line ahead")
-  }
-
-  @Test
-  fun `reaching the course says nothing until following it`() {
-    val started = start(east = 1500.0, north = -250.0)
-
-    val (navigation, notices) = started.navigation.ride(fix(1500.0, -10.0), fix(1510.0))
-
-    assertEquals(knot24, navigation.nextKnot)
-    assertTrue(navigation.offRoute)
-    assertTrue(notices.none { it.kind == NoticeKind.BACK_ON_ROUTE })
-  }
-
-  @Test
-  fun `crossing the course`() {
-    val started = start(east = 1500.0, north = -250.0)
-
-    val (navigation, notices) =
-      started.navigation.ride(
-        fix(1500.0, -40.0),
-        fix(1500.0, 0.0),
-        fix(1500.0, 40.0),
-        fix(1500.0, 250.0),
+        fix(1900.0, -10.0),
+        *(1..20).map { fix(1900.0 - it * 40.0) }.toTypedArray(),
       )
 
     assertEquals(knot24, navigation.nextKnot)
-    assertTrue(navigation.offRoute)
-    assertTrue(notices.none { it.kind == NoticeKind.BACK_ON_ROUTE })
-  }
-
-  @Test
-  fun `reaching the course of the first leg near the start`() {
-    val started = start(east = 300.0, north = -250.0)
-    assertEquals(knot24, started.navigation.nextKnot)
-
-    val (navigation, _) = started.navigation.ride(fix(300.0, -10.0), fix(360.0), fix(420.0))
-
-    assertEquals(knot45, navigation.nextKnot)
-  }
-
-  @Test
-  fun `following the course against the route`() {
-    val started = start(east = 1500.0, north = -250.0)
-
-    val (joined, _) = started.navigation.ride(fix(1500.0, -10.0), fix(1440.0))
-    assertEquals(knot12, joined.nextKnot)
-    val (riding, notices) = joined.ride(*(1..8).map { fix(1440.0 - it * 40.0) }.toTypedArray())
-
     assertTrue(
-      notices.any { it.kind == NoticeKind.WRONG_WAY } || riding.wrongWay,
-      "told they ride the wrong way: ${notices.map { it.text }}",
+      notices.none {
+        it.kind in setOf(NoticeKind.BACK_ON_ROUTE, NoticeKind.WRONG_WAY, NoticeKind.TURN)
+      },
+      notices.map { it.text }.toString(),
     )
   }
 
   @Test
-  fun `joining without courses`() {
-    val started = start(east = 1700.0, north = -250.0, geometry = null)
+  fun `following a course on the way to the start`() {
+    val started = start(east = 1100.0, north = -250.0)
 
-    assertEquals(knot12, started.navigation.nextKnot, "the nearest knot, as before")
+    val (navigation, notices) =
+      started.navigation.ride(
+        fix(1100.0, -10.0),
+        *(1..8).map { fix(1100.0 + it * 40.0) }.toTypedArray(),
+      )
+
+    assertEquals(knot24, navigation.nextKnot)
+    assertTrue(notices.none { it.kind == NoticeKind.BACK_ON_ROUTE })
+  }
+
+  @Test
+  fun `reaching the start`() {
+    val started = start(east = -500.0, north = 0.0)
+
+    val (navigation, notices) = ride(started.navigation, from = -460.0, to = 0.0)
+
+    assertEquals(knot45, navigation.nextKnot)
+    assertEquals("Next 45, then 12", notices.last().text)
+    assertTrue(notices.none { it.kind == NoticeKind.BACK_ON_ROUTE })
   }
 
   @Test
@@ -313,7 +278,16 @@ class NavigationTest {
 
   @Test
   fun `start at a double knot`() {
-    val started = startDoubleKnot(east = 1005.0)
+    // The route runs 45, 46, 12, with 46 10 m after 45.
+    val started =
+      assertNotNull(
+        Navigation.start(
+          doubleKnotRoute.drop(1),
+          doubleKnotGraph,
+          NetworkGeometry.straightLines(doubleKnotGraph),
+          fix(1005.0),
+        )
+      )
 
     assertEquals(knot12, started.navigation.nextKnot)
     assertEquals(listOf("Next 12"), started.notices.map { it.text })
@@ -404,7 +378,7 @@ class NavigationTest {
 
     assertEquals(knot24, navigation.nextKnot)
     assertFalse(navigation.offRoute)
-    assertEquals("Back on route, next 24", notices.first().text)
+    assertTrue(notices.none { it.kind == NoticeKind.BACK_ON_ROUTE }, "on the way along its course")
     assertTrue(navigation.display.close)
     assertEquals("80 m", navigation.progress(navigation.lastFix).nextKnotDistance)
     assertEquals("80 m to 24", navigation.progressLine)
@@ -453,7 +427,7 @@ class NavigationTest {
 
   @Test
   fun `next knot in the middle of the route is close within 200 m`() {
-    val navigation = start(east = 850.0).navigation
+    val (navigation, _) = ride(start(east = 0.0).navigation, from = 40.0, to = 850.0)
 
     assertEquals("45", navigation.display.next)
     assertTrue(navigation.display.close)
@@ -492,6 +466,17 @@ class NavigationTest {
   }
 
   // Requirement: Skipping ahead
+
+  @Test
+  fun `passing a later knot on the way to the start`() {
+    val started = start(east = 2000.0, north = -500.0)
+
+    val (navigation, notices) =
+      started.navigation.ride(fix(2000.0, north = -40.0), fix(2000.0), fix(2000.0, north = 60.0))
+
+    assertEquals(knot24, navigation.nextKnot)
+    assertTrue(notices.none { "12" in it.text || "31" in it.text }, notices.toString())
+  }
 
   @Test
   fun `shortcut`() {
@@ -1003,6 +988,8 @@ class NavigationTest {
 
   private fun point(knot: Knot) = GeoPoint(knot.latitude, knot.longitude)
 
+  private fun point(east: Double, north: Double = 0.0) = GeoPoint(latitude(north), longitude(east))
+
   @Test
   fun `which way at a fork`() {
     // Out to 45 and back: the course is the one in riding direction, also on the way back.
@@ -1014,38 +1001,6 @@ class NavigationTest {
 
     assertEquals(knot24, back.nextKnot)
     assertEquals(listOf(point(knot45), point(knot24)), back.courseAhead)
-  }
-
-  @Test
-  fun `starting on a stretch used twice`() {
-    // Two connections between the knots, so the way back can run 5 m nearer to the rider.
-    val knot46 = knot(46, "46", east = 1000.0)
-    val graph =
-      NetworkGraph(
-        listOf(knot24, knot45, knot46),
-        listOf(Connection(24, 45, 1000), Connection(45, 46, 10), Connection(46, 24, 1000)),
-      )
-    val geometry =
-      NetworkGeometry(
-        graph,
-        listOf(
-          listOf(point(knot24), GeoPoint(latitude(10.0), longitude(500.0)), point(knot45)),
-          listOf(point(knot45), point(knot46)),
-          listOf(point(knot46), GeoPoint(latitude(5.0), longitude(500.0)), point(knot24)),
-        ),
-      )
-
-    val started =
-      assertNotNull(
-        Navigation.start(
-          listOf(knot24, knot45, knot46, knot24),
-          graph,
-          geometry,
-          fix(500.0, north = 5.0),
-        )
-      )
-
-    assertEquals(1, started.navigation.nextIndex)
   }
 
   @Test
@@ -1083,7 +1038,8 @@ class NavigationTest {
 
   @Test
   fun `words and line outside the app`() {
-    val (close, _) = start(east = 850.0).navigation.ride(fix(850.0))
+    val (close, _) =
+      ride(start(east = 0.0).navigation, from = 40.0, to = 800.0).first.ride(fix(850.0))
     assertEquals("150 m to 45", close.progressLine.substringBefore(" ·"))
 
     val german = close.inLanguage(Language.DE, Language.DE, close.lastFix)
@@ -1462,9 +1418,9 @@ class NavigationTest {
 
   @Test
   fun `arriving`() {
-    val started = start(east = 2000.0)
+    val started = start(east = 0.0)
 
-    val (navigation, notices) = ride(started.navigation, from = 2500.0, to = 3000.0)
+    val (navigation, notices) = ride(started.navigation, from = 40.0, to = 3000.0)
 
     assertTrue(navigation.arrived)
     assertEquals("You've arrived", notices.last().text)
@@ -1475,7 +1431,7 @@ class NavigationTest {
 
   @Test
   fun `next knot in the middle of the route`() {
-    val display = start(east = 850.0).navigation.display
+    val display = ride(start(east = 0.0).navigation, from = 40.0, to = 850.0).first.display
 
     assertEquals("At 45 follow 12", display.text)
     assertEquals("12", display.follow)
@@ -1491,7 +1447,7 @@ class NavigationTest {
 
   @Test
   fun `next knot is the end`() {
-    val display = start(east = 2000.0).navigation.display
+    val display = ride(start(east = 0.0).navigation, from = 40.0, to = 2100.0).first.display
 
     assertEquals("31 is the end", display.text)
     assertNull(display.follow)

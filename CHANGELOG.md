@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Started away from the route's start but close to the route, Navigate asks whether to ride to the start or to start on the route nearby. Starting nearby begins the plan where the route is closest, before its first stop. On the way to the start, navigation says "To the start" and no longer joins the route by itself, which could lead along a course against the route and then call it the wrong way
 - Navigation started before the network's courses had loaded takes them as soon as they are there, instead of going on without them for the whole ride, which meant no "Off route" and distances to the knots' main positions
 - Off route, the map now zooms in on a tricky junction on the way back, as it does on the route; before, it kept showing the rider and the end of the way back
 - Android 12 and older: navigation's notification and voice follow the language chosen in the app, not the phone's, also when the phone's language changes on the way

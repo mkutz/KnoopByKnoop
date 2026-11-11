@@ -111,11 +111,13 @@ import com.knoopbyknoop.core.IndexedNetworkType
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.KnotPlate
 import com.knoopbyknoop.core.KnotRole
+import com.knoopbyknoop.core.MapFeatures
 import com.knoopbyknoop.core.NavigationState
 import com.knoopbyknoop.core.NewKnots
 import com.knoopbyknoop.core.PathDataStatus
 import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteSummary
+import com.knoopbyknoop.core.StartChoice
 import com.knoopbyknoop.core.hasStraightLines
 import kotlin.math.ceil
 import kotlin.math.roundToInt
@@ -295,6 +297,8 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
       mapArea(state, Modifier.fillMaxSize().padding(padding))
     }
   }
+
+  state.startChoice?.let { choice -> StartChoiceDialog(choice, viewModel) }
 
   pendingNetwork?.let { network ->
     AlertDialog(
@@ -1208,4 +1212,33 @@ private fun PlaceOfferMenu(offer: PlaceOffer, viewModel: AppViewModel) {
       )
     }
   }
+}
+
+/**
+ * Navigate's question away from the start but close to the route, see `knot-navigation` "Start on
+ * the route nearby".
+ */
+@Composable
+private fun StartChoiceDialog(choice: StartChoice, viewModel: AppViewModel) {
+  val language = viewModel.textLanguage
+  val startDistance = MapFeatures.formatDistance(choice.startMeters, language)
+  val nearbyDistance = MapFeatures.formatDistance(choice.nearbyMeters, language)
+  AlertDialog(
+    onDismissRequest = { viewModel.dismissStartChoice() },
+    title = { Text(stringResource(R.string.start_choice_title)) },
+    text = { Text(stringResource(R.string.start_choice_text)) },
+    confirmButton = {
+      TextButton(onClick = { viewModel.startNearby() }) {
+        Text(stringResource(R.string.start_nearby, nearbyDistance))
+      }
+    },
+    dismissButton = {
+      TextButton(onClick = { viewModel.rideToStart() }) {
+        Text(
+          if (choice.start.isRoutePoint) stringResource(R.string.ride_to_start_point, startDistance)
+          else stringResource(R.string.ride_to_start, choice.start.ref, startDistance)
+        )
+      }
+    },
+  )
 }

@@ -126,4 +126,9 @@
   <string name="path_data_loading">Loading ways for this route…</string>
   <string name="path_data_ready">Ways for this route are loaded</string>
   <string name="path_data_unavailable">Ways for this route couldn\'t be loaded</string>
+  <string name="start_choice_title">Where do you want to start?</string>
+  <string name="start_choice_text">You are closer to the route than to its start.</string>
+  <string name="start_nearby">Start on the route nearby · %1$s</string>
+  <string name="ride_to_start">Ride to %1$s · %2$s</string>
+  <string name="ride_to_start_point">Ride to the start · %1$s</string>
 </resources>

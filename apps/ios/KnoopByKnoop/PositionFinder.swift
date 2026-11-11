@@ -16,6 +16,7 @@ final class PositionFinder: NSObject, CLLocationManagerDelegate {
   private let manager = CLLocationManager()
   private var completion: ((Result) -> Void)?
   private var timeout: Task<Void, Never>?
+  private var timeoutDuration: Duration = .seconds(15)
 
   override init() {
     super.init()
@@ -28,10 +29,11 @@ final class PositionFinder: NSObject, CLLocationManagerDelegate {
     manager.authorizationStatus == .authorizedWhenInUse || manager.authorizationStatus == .authorizedAlways
   }
 
-  /// Asks for access "when in use" first if it was never asked for.
-  func find(_ completion: @escaping (Result) -> Void) {
+  /// Asks for access "when in use" first if it was never asked for; gives up after [timeout].
+  func find(timeout: Duration = .seconds(15), _ completion: @escaping (Result) -> Void) {
     guard self.completion == nil else { return }
     self.completion = completion
+    timeoutDuration = timeout
     switch manager.authorizationStatus {
     case .notDetermined: manager.requestWhenInUseAuthorization()
     case .denied, .restricted: finish(.denied)
@@ -42,7 +44,7 @@ final class PositionFinder: NSObject, CLLocationManagerDelegate {
   private func request() {
     manager.requestLocation()
     timeout = Task { [weak self] in
-      try? await Task.sleep(for: .seconds(15))
+      try? await Task.sleep(for: self?.timeoutDuration ?? .seconds(15))
       guard !Task.isCancelled else { return }
       self?.finish(.notFound)
     }

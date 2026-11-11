@@ -1,0 +1,483 @@
+0 50.80134,7.21105 ±5 | OFF_ROUTE To the start, 06, 4.4 km to the north | LIVE | way 4824 m, turns LEFT at 214 m, RIGHT at 341 m, STRAIGHT at 921 m, STRAIGHT at 1214 m, STRAIGHT at 1691 m, STRAIGHT at 1735 m, STRAIGHT at 1811 m, STRAIGHT at 2528 m, STRAIGHT at 3622 m, STRAIGHT at 4035 m, LEFT at 4081 m, LEFT at 4630 m, STRAIGHT at 4665 m | Next 06, Left in 210 m, Schillerstraße, 4.8 km | 4.4 km north to 06 | guided Left in 210 m · 4.8 km
+1 50.80142,7.21101 ±5 | LIVE | Next 06, Left in 200 m, Schillerstraße, 4.8 km | 4.4 km north to 06 | guided Left in 200 m · 4.8 km
+2 50.80151,7.21100 ±5 | LIVE | Next 06, Left in 190 m, Schillerstraße, 4.8 km | 4.4 km north to 06 | guided Left in 190 m · 4.8 km
+3 50.80160,7.21098 ±5 | LIVE | Next 06, Left in 180 m, Schillerstraße, 4.8 km | 4.4 km north to 06 | guided Left in 180 m · 4.8 km
+4 50.80169,7.21096 ±5 | LIVE | Next 06, Left in 170 m, Schillerstraße, 4.8 km | 4.4 km north to 06 | guided Left in 170 m · 4.8 km
+5 50.80178,7.21094 ±5 | LIVE | Next 06, Left in 160 m, Schillerstraße, 4.8 km | 4.4 km north to 06 | guided Left in 160 m · 4.8 km
+6 50.80187,7.21093 ±5 | LIVE | Next 06, Left in 150 m, Schillerstraße, 4.8 km | 4.4 km north to 06 | guided Left in 150 m · 4.8 km
+7 50.80196,7.21091 ±5 | LIVE | Next 06, Left in 140 m, Schillerstraße, 4.8 km | 4.4 km north to 06 | guided Left in 140 m · 4.8 km
+8 50.80205,7.21089 ±5 | LIVE | Next 06, Left in 130 m, Schillerstraße, 4.7 km | 4.4 km north to 06 | guided Left in 130 m · 4.7 km
+9 50.80213,7.21087 ±5 | LIVE | Next 06, Left in 120 m, Schillerstraße, 4.7 km | 4.4 km north to 06 | guided Left in 120 m · 4.7 km
+10 50.80222,7.21086 ±5 | LIVE | Next 06, Left in 110 m, Schillerstraße, 4.7 km | 4.4 km north to 06 | guided Left in 110 m · 4.7 km
+11 50.80231,7.21084 ±5 | LIVE | Next 06, Left in 100 m, Schillerstraße, 4.7 km | 4.3 km north to 06 | guided Left in 100 m · 4.7 km
+12 50.80240,7.21082 ±5 | TURN In 90 m, turn left | LIVE | Next 06, Left in 90 m, Schillerstraße, 4.7 km | 4.3 km north to 06 | guided Left in 90 m · 4.7 km
+13 50.80249,7.21080 ±5 | LIVE | Next 06, Left in 80 m, Schillerstraße, 4.7 km | 4.3 km north to 06 | guided Left in 80 m · 4.7 km
+14 50.80258,7.21078 ±5 | LIVE | Next 06, Left in 70 m, Schillerstraße, 4.7 km | 4.3 km north to 06 | guided Left in 70 m · 4.7 km
+15 50.80267,7.21077 ±5 | LIVE | Next 06, Left in 60 m, Schillerstraße, 4.7 km | 4.3 km north to 06 | guided Left in 60 m · 4.7 km
+16 50.80276,7.21075 ±5 | LIVE | Next 06, Left in 50 m, Schillerstraße, 4.7 km | 4.3 km north to 06 | guided Left in 50 m · 4.7 km
+17 50.80285,7.21073 ±5 | LIVE | Next 06, Left in 40 m, Schillerstraße, 4.7 km | 4.3 km north to 06 | guided Left in 40 m · 4.7 km
+18 50.80294,7.21071 ±5 | LIVE | Next 06, Left in 30 m, Schillerstraße, 4.6 km | 4.3 km north to 06 | guided Left in 30 m · 4.6 km
+19 50.80303,7.21069 ±5 | LIVE | Next 06, Left in 20 m, Schillerstraße, 4.6 km | 4.3 km north to 06 | guided Left in 20 m · 4.6 km
+20 50.80312,7.21068 ±5 | LIVE | Next 06, Left in 10 m, Schillerstraße, 4.6 km | 4.3 km north to 06 | guided Left in 10 m · 4.6 km
+21 50.80321,7.21066 ±5 | LIVE | Next 06, Left in 0 m, Schillerstraße, 4.6 km | 4.2 km north to 06 | guided Left in 0 m · 4.6 km
+22 50.80329,7.21060 ±5 | LIVE | Next 06, Right in 120 m, Aulgasse, 4.6 km | 4.2 km north to 06 | guided Right in 120 m · 4.6 km
+23 50.80336,7.21052 ±5 | LIVE | Next 06, Right in 110 m, Aulgasse, 4.6 km | 4.2 km north to 06 | guided Right in 110 m · 4.6 km
+24 50.80344,7.21045 ±5 | LIVE | Next 06, Right in 100 m, Aulgasse, 4.6 km | 4.2 km north to 06 | guided Right in 100 m · 4.6 km
+25 50.80351,7.21037 ±5 | TURN In 90 m, turn right | LIVE | Next 06, Right in 90 m, Aulgasse, 4.6 km | 4.2 km north to 06 | guided Right in 90 m · 4.6 km
+26 50.80355,7.21024 ±5 | LIVE | Next 06, Right in 80 m, Aulgasse, 4.6 km | 4.2 km north to 06 | guided Right in 80 m · 4.6 km
+27 50.80357,7.21010 ±5 | LIVE | Next 06, Right in 70 m, Aulgasse, 4.6 km | 4.2 km north to 06 | guided Right in 70 m · 4.6 km
+28 50.80358,7.20996 ±5 | LIVE | Next 06, Right in 60 m, Aulgasse, 4.5 km | 4.2 km north to 06 | guided Right in 60 m · 4.5 km
+29 50.80359,7.20982 ±5 | LIVE | Next 06, Right in 50 m, Aulgasse, 4.5 km | 4.2 km north to 06 | guided Right in 50 m · 4.5 km
+30 50.80361,7.20968 ±5 | LIVE | Next 06, Right in 40 m, Aulgasse, 4.5 km | 4.2 km north to 06 | guided Right in 40 m · 4.5 km
+31 50.80362,7.20954 ±5 | LIVE | Next 06, Right in 30 m, Aulgasse, 4.5 km | 4.2 km north to 06 | guided Right in 30 m · 4.5 km
+32 50.80363,7.20939 ±5 | LIVE | Next 06, Right in 20 m, Aulgasse, 4.5 km | 4.2 km north to 06 | guided Right in 20 m · 4.5 km
+33 50.80365,7.20925 ±5 | LIVE | Next 06, Right in 10 m, Aulgasse, 4.5 km | 4.2 km north to 06 | guided Right in 10 m · 4.5 km
+34 50.80366,7.20911 ±5 | LIVE | Next 06, Right in 0 m, Aulgasse, 4.5 km | 4.2 km north to 06 | guided Right in 0 m · 4.5 km
+35 50.80375,7.20911 ±5 | LIVE | Next 06, Straight on in 570 m, 4.5 km | 4.2 km north to 06 | guided Straight on in 570 m · 4.5 km
+36 50.80384,7.20911 ±5 | LIVE | Next 06, Straight on in 560 m, 4.5 km | 4.2 km north to 06 | guided Straight on in 560 m · 4.5 km
+37 50.80393,7.20912 ±5 | LIVE | Next 06, Straight on in 550 m, 4.5 km | 4.2 km north to 06 | guided Straight on in 550 m · 4.5 km
+38 50.80402,7.20912 ±5 | LIVE | Next 06, Straight on in 540 m, 4.4 km | 4.1 km north to 06 | guided Straight on in 540 m · 4.4 km
+39 50.80411,7.20912 ±5 | LIVE | Next 06, Straight on in 530 m, 4.4 km | 4.1 km north to 06 | guided Straight on in 530 m · 4.4 km
+40 50.80420,7.20912 ±5 | LIVE | Next 06, Straight on in 520 m, 4.4 km | 4.1 km north to 06 | guided Straight on in 520 m · 4.4 km
+41 50.80429,7.20912 ±5 | LIVE | Next 06, Straight on in 510 m, 4.4 km | 4.1 km north to 06 | guided Straight on in 510 m · 4.4 km
+42 50.80438,7.20913 ±5 | LIVE | Next 06, Straight on in 500 m, 4.4 km | 4.1 km north to 06 | guided Straight on in 500 m · 4.4 km
+43 50.80447,7.20913 ±5 | LIVE | Next 06, Straight on in 490 m, 4.4 km | 4.1 km north to 06 | guided Straight on in 490 m · 4.4 km
+44 50.80456,7.20912 ±5 | LIVE | Next 06, Straight on in 480 m, 4.4 km | 4.1 km north to 06 | guided Straight on in 480 m · 4.4 km
+45 50.80465,7.20911 ±5 | LIVE | Next 06, Straight on in 470 m, 4.4 km | 4.1 km north to 06 | guided Straight on in 470 m · 4.4 km
+46 50.80474,7.20909 ±5 | LIVE | Next 06, Straight on in 460 m, 4.4 km | 4.1 km north to 06 | guided Straight on in 460 m · 4.4 km
+47 50.80483,7.20908 ±5 | LIVE | Next 06, Straight on in 450 m, 4.4 km | 4.1 km north to 06 | guided Straight on in 450 m · 4.4 km
+48 50.80492,7.20907 ±5 | LIVE | Next 06, Straight on in 440 m, 4.3 km | 4.1 km north to 06 | guided Straight on in 440 m · 4.3 km
+49 50.80501,7.20905 ±5 | LIVE | Next 06, Straight on in 430 m, 4.3 km | 4.0 km north to 06 | guided Straight on in 430 m · 4.3 km
+50 50.80509,7.20904 ±5 | LIVE | Next 06, Straight on in 420 m, 4.3 km | 4.0 km north to 06 | guided Straight on in 420 m · 4.3 km
+51 50.80518,7.20902 ±5 | LIVE | Next 06, Straight on in 410 m, 4.3 km | 4.0 km north to 06 | guided Straight on in 410 m · 4.3 km
+52 50.80527,7.20901 ±5 | LIVE | Next 06, Straight on in 400 m, 4.3 km | 4.0 km north to 06 | guided Straight on in 400 m · 4.3 km
+53 50.80536,7.20900 ±5 | LIVE | Next 06, Straight on in 390 m, 4.3 km | 4.0 km north to 06 | guided Straight on in 390 m · 4.3 km
+54 50.80545,7.20898 ±5 | LIVE | Next 06, Straight on in 380 m, 4.3 km | 4.0 km north to 06 | guided Straight on in 380 m · 4.3 km
+55 50.80554,7.20897 ±5 | LIVE | Next 06, Straight on in 370 m, 4.3 km | 4.0 km north to 06 | guided Straight on in 370 m · 4.3 km
+56 50.80563,7.20896 ±5 | LIVE | Next 06, Straight on in 360 m, 4.3 km | 4.0 km north to 06 | guided Straight on in 360 m · 4.3 km
+57 50.80572,7.20895 ±5 | LIVE | Next 06, Straight on in 350 m, 4.3 km | 4.0 km north to 06 | guided Straight on in 350 m · 4.3 km
+58 50.80581,7.20894 ±5 | LIVE | Next 06, Straight on in 340 m, 4.2 km | 4.0 km north to 06 | guided Straight on in 340 m · 4.2 km
+59 50.80590,7.20893 ±5 | LIVE | Next 06, Straight on in 330 m, 4.2 km | 4.0 km north to 06 | guided Straight on in 330 m · 4.2 km
+60 50.80599,7.20892 ±5 | LIVE | Next 06, Straight on in 320 m, 4.2 km | 3.9 km north to 06 | guided Straight on in 320 m · 4.2 km
+61 50.80608,7.20891 ±5 | LIVE | Next 06, Straight on in 310 m, 4.2 km | 3.9 km north to 06 | guided Straight on in 310 m · 4.2 km
+62 50.80617,7.20890 ±5 | LIVE | Next 06, Straight on in 300 m, 4.2 km | 3.9 km north to 06 | guided Straight on in 300 m · 4.2 km
+63 50.80626,7.20889 ±5 | LIVE | Next 06, Straight on in 290 m, 4.2 km | 3.9 km north to 06 | guided Straight on in 290 m · 4.2 km
+64 50.80635,7.20887 ±5 | LIVE | Next 06, Straight on in 280 m, 4.2 km | 3.9 km north to 06 | guided Straight on in 280 m · 4.2 km
+65 50.80644,7.20886 ±5 | LIVE | Next 06, Straight on in 270 m, 4.2 km | 3.9 km north to 06 | guided Straight on in 270 m · 4.2 km
+66 50.80653,7.20885 ±5 | LIVE | Next 06, Straight on in 260 m, 4.2 km | 3.9 km north to 06 | guided Straight on in 260 m · 4.2 km
+67 50.80662,7.20885 ±5 | LIVE | Next 06, Straight on in 250 m, 4.2 km | 3.9 km north to 06 | guided Straight on in 250 m · 4.2 km
+68 50.80671,7.20888 ±5 | LIVE | Next 06, Straight on in 240 m, 4.1 km | 3.9 km north to 06 | guided Straight on in 240 m · 4.1 km
+69 50.80680,7.20890 ±5 | LIVE | Next 06, Straight on in 230 m, 4.1 km | 3.9 km north to 06 | guided Straight on in 230 m · 4.1 km
+70 50.80689,7.20892 ±5 | LIVE | Next 06, Straight on in 220 m, 4.1 km | 3.9 km north to 06 | guided Straight on in 220 m · 4.1 km
+71 50.80697,7.20894 ±5 | LIVE | Next 06, Straight on in 210 m, 4.1 km | 3.8 km north to 06 | guided Straight on in 210 m · 4.1 km
+72 50.80706,7.20897 ±5 | LIVE | Next 06, Straight on in 200 m, 4.1 km | 3.8 km north to 06 | guided Straight on in 200 m · 4.1 km
+73 50.80715,7.20899 ±5 | LIVE | Next 06, Straight on in 190 m, 4.1 km | 3.8 km north to 06 | guided Straight on in 190 m · 4.1 km
+74 50.80724,7.20901 ±5 | LIVE | Next 06, Straight on in 180 m, 4.1 km | 3.8 km north to 06 | guided Straight on in 180 m · 4.1 km
+75 50.80733,7.20904 ±5 | LIVE | Next 06, Straight on in 170 m, 4.1 km | 3.8 km north to 06 | guided Straight on in 170 m · 4.1 km
+76 50.80742,7.20906 ±5 | LIVE | Next 06, Straight on in 160 m, 4.1 km | 3.8 km north to 06 | guided Straight on in 160 m · 4.1 km
+77 50.80751,7.20908 ±5 | LIVE | Next 06, Straight on in 150 m, 4.1 km | 3.8 km north to 06 | guided Straight on in 150 m · 4.1 km
+78 50.80760,7.20911 ±5 | LIVE | Next 06, Straight on in 140 m, 4.0 km | 3.8 km north to 06 | guided Straight on in 140 m · 4.0 km
+79 50.80769,7.20913 ±5 | LIVE | Next 06, Straight on in 130 m, 4.0 km | 3.8 km north to 06 | guided Straight on in 130 m · 4.0 km
+80 50.80777,7.20914 ±5 | LIVE | Next 06, Straight on in 120 m, 4.0 km | 3.8 km north to 06 | guided Straight on in 120 m · 4.0 km
+81 50.80786,7.20915 ±5 | LIVE | Next 06, Straight on in 110 m, 4.0 km | 3.8 km north to 06 | guided Straight on in 110 m · 4.0 km
+82 50.80795,7.20916 ±5 | LIVE | Next 06, Straight on in 100 m, 4.0 km | 3.6 km north to 06 | guided Straight on in 100 m · 4.0 km
+83 50.80804,7.20918 ±5 | TURN In 90 m, keep left at the fork | LIVE | Next 06, Straight on in 90 m, 4.0 km | 3.6 km north to 06 | guided Straight on in 90 m · 4.0 km
+84 50.80813,7.20919 ±5 | LIVE | Next 06, Straight on in 80 m, 4.0 km | 3.6 km north to 06 | guided Straight on in 80 m · 4.0 km
+85 50.80822,7.20920 ±5 | LIVE | Next 06, Straight on in 70 m, 4.0 km | 3.6 km north to 06 | guided Straight on in 70 m · 4.0 km
+86 50.80831,7.20922 ±5 | LIVE | Next 06, Straight on in 60 m, 4.0 km | 3.6 km north to 06 | guided Straight on in 60 m · 4.0 km
+87 50.80840,7.20923 ±5 | LIVE | Next 06, Straight on in 50 m, 4.0 km | 3.6 km north to 06 | guided Straight on in 50 m · 4.0 km
+88 50.80849,7.20924 ±5 | LIVE | Next 06, Straight on in 40 m, 3.9 km | 3.6 km north to 06 | guided Straight on in 40 m · 3.9 km
+89 50.80858,7.20925 ±5 | LIVE | Next 06, Straight on in 30 m, 3.9 km | 3.6 km north to 06 | guided Straight on in 30 m · 3.9 km
+90 50.80867,7.20927 ±5 | LIVE | Next 06, Straight on in 20 m, 3.9 km | 3.6 km north to 06 | guided Straight on in 20 m · 3.9 km
+91 50.80876,7.20928 ±5 | LIVE | Next 06, Straight on in 10 m, 3.9 km | 3.6 km north to 06 | guided Straight on in 10 m · 3.9 km
+92 50.80885,7.20929 ±5 | LIVE | Next 06, To the cycle path in 290 m, 3.9 km | 3.6 km north to 06 | guided To the cycle path in 290 m · 3.9 km
+93 50.80894,7.20930 ±5 | LIVE | Next 06, To the cycle path in 280 m, 3.9 km | 3.5 km north to 06 | guided To the cycle path in 280 m · 3.9 km
+94 50.80903,7.20932 ±5 | LIVE | Next 06, To the cycle path in 270 m, 3.9 km | 3.5 km north to 06 | guided To the cycle path in 270 m · 3.9 km
+95 50.80912,7.20933 ±5 | LIVE | Next 06, To the cycle path in 260 m, 3.9 km | 3.5 km north to 06 | guided To the cycle path in 260 m · 3.9 km
+96 50.80921,7.20935 ±5 | LIVE | Next 06, To the cycle path in 250 m, 3.9 km | 3.5 km north to 06 | guided To the cycle path in 250 m · 3.9 km
+97 50.80930,7.20935 ±5 | LIVE | Next 06, To the cycle path in 240 m, 3.9 km | 3.5 km north to 06 | guided To the cycle path in 240 m · 3.9 km
+98 50.80939,7.20935 ±5 | LIVE | Next 06, To the cycle path in 230 m, 3.8 km | 3.5 km north to 06 | guided To the cycle path in 230 m · 3.8 km
+99 50.80948,7.20935 ±5 | LIVE | Next 06, To the cycle path in 220 m, 3.8 km | 3.5 km north to 06 | guided To the cycle path in 220 m · 3.8 km
+100 50.80957,7.20934 ±5 | LIVE | Next 06, To the cycle path in 210 m, 3.8 km | 3.5 km north to 06 | guided To the cycle path in 210 m · 3.8 km
+101 50.80966,7.20934 ±5 | LIVE | Next 06, To the cycle path in 200 m, 3.8 km | 3.5 km north to 06 | guided To the cycle path in 200 m · 3.8 km
+102 50.80975,7.20934 ±5 | LIVE | Next 06, To the cycle path in 190 m, 3.8 km | 3.5 km north to 06 | guided To the cycle path in 190 m · 3.8 km
+103 50.80984,7.20933 ±5 | LIVE | Next 06, To the cycle path in 180 m, 3.8 km | 3.5 km north to 06 | guided To the cycle path in 180 m · 3.8 km
+104 50.80992,7.20928 ±5 | LIVE | Next 06, To the cycle path in 170 m, 3.8 km | 3.4 km north to 06 | guided To the cycle path in 170 m · 3.8 km
+105 50.81001,7.20923 ±5 | LIVE | Next 06, To the cycle path in 160 m, 3.8 km | 3.4 km north to 06 | guided To the cycle path in 160 m · 3.8 km
+106 50.81009,7.20918 ±5 | LIVE | Next 06, To the cycle path in 150 m, 3.8 km | 3.4 km north to 06 | guided To the cycle path in 150 m · 3.8 km
+107 50.81017,7.20913 ±5 | LIVE | Next 06, To the cycle path in 140 m, 3.8 km | 3.4 km north to 06 | guided To the cycle path in 140 m · 3.8 km
+108 50.81026,7.20908 ±5 | LIVE | Next 06, To the cycle path in 130 m, 3.7 km | 3.4 km north to 06 | guided To the cycle path in 130 m · 3.7 km
+109 50.81034,7.20903 ±5 | LIVE | Next 06, To the cycle path in 120 m, 3.7 km | 3.4 km north to 06 | guided To the cycle path in 120 m · 3.7 km
+110 50.81043,7.20898 ±5 | LIVE | Next 06, To the cycle path in 110 m, 3.7 km | 3.4 km north to 06 | guided To the cycle path in 110 m · 3.7 km
+111 50.81051,7.20893 ±5 | LIVE | Next 06, To the cycle path in 100 m, 3.7 km | 3.4 km north to 06 | guided To the cycle path in 100 m · 3.7 km
+112 50.81060,7.20888 ±5 | TURN In 90 m, take the cycle path ahead | LIVE | Next 06, To the cycle path in 90 m, 3.7 km | 3.4 km north to 06 | guided To the cycle path in 90 m · 3.7 km
+113 50.81067,7.20881 ±5 | LIVE | Next 06, To the cycle path in 80 m, 3.7 km | 3.4 km north to 06 | guided To the cycle path in 80 m · 3.7 km
+114 50.81074,7.20872 ±5 | LIVE | Next 06, To the cycle path in 70 m, 3.7 km | 3.4 km north to 06 | guided To the cycle path in 70 m · 3.7 km
+115 50.81081,7.20863 ±5 | LIVE | Next 06, To the cycle path in 60 m, 3.7 km | 3.3 km north to 06 | guided To the cycle path in 60 m · 3.7 km
+116 50.81088,7.20854 ±5 | LIVE | Next 06, To the cycle path in 50 m, 3.7 km | 3.3 km north to 06 | guided To the cycle path in 50 m · 3.7 km
+117 50.81096,7.20846 ±5 | LIVE | Next 06, To the cycle path in 40 m, 3.7 km | 3.3 km north to 06 | guided To the cycle path in 40 m · 3.7 km
+118 50.81103,7.20837 ±5 | LIVE | Next 06, To the cycle path in 30 m, 3.6 km | 3.3 km north to 06 | guided To the cycle path in 30 m · 3.6 km
+119 50.81110,7.20828 ±5 | LIVE | Next 06, To the cycle path in 20 m, 3.6 km | 3.3 km north to 06 | guided To the cycle path in 20 m · 3.6 km
+120 50.81117,7.20819 ±5 | LIVE | Next 06, To the cycle path in 10 m, 3.6 km | 3.3 km north to 06 | guided To the cycle path in 10 m · 3.6 km
+121 50.81124,7.20811 ±5 | LIVE | Next 06, To the cycle path in 0 m, 3.6 km | 3.3 km north to 06 | guided To the cycle path in 0 m · 3.6 km
+122 50.81128,7.20799 ±5 | LIVE | Next 06, Straight on in 470 m, 3.6 km | 3.3 km north to 06 | guided Straight on in 470 m · 3.6 km
+123 50.81131,7.20785 ±5 | LIVE | Next 06, Straight on in 460 m, 3.6 km | 3.3 km north to 06 | guided Straight on in 460 m · 3.6 km
+124 50.81137,7.20774 ±5 | LIVE | Next 06, Straight on in 450 m, 3.6 km | 3.3 km north to 06 | guided Straight on in 450 m · 3.6 km
+125 50.81142,7.20762 ±5 | LIVE | Next 06, Straight on in 440 m, 3.6 km | 3.3 km north to 06 | guided Straight on in 440 m · 3.6 km
+126 50.81148,7.20751 ±5 | LIVE | Next 06, Straight on in 430 m, 3.6 km | 3.3 km north to 06 | guided Straight on in 430 m · 3.6 km
+127 50.81153,7.20740 ±5 | LIVE | Next 06, Straight on in 420 m, 3.6 km | 3.3 km north to 06 | guided Straight on in 420 m · 3.6 km
+128 50.81159,7.20729 ±5 | LIVE | Next 06, Straight on in 410 m, 3.5 km | 3.3 km north to 06 | guided Straight on in 410 m · 3.5 km
+129 50.81164,7.20718 ±5 | LIVE | Next 06, Straight on in 400 m, 3.5 km | 3.2 km north to 06 | guided Straight on in 400 m · 3.5 km
+130 50.81170,7.20706 ±5 | LIVE | Next 06, Straight on in 390 m, 3.5 km | 3.2 km north to 06 | guided Straight on in 390 m · 3.5 km
+131 50.81175,7.20695 ±5 | LIVE | Next 06, Straight on in 380 m, 3.5 km | 3.2 km north to 06 | guided Straight on in 380 m · 3.5 km
+132 50.81181,7.20684 ±5 | LIVE | Next 06, Straight on in 370 m, 3.5 km | 3.2 km north to 06 | guided Straight on in 370 m · 3.5 km
+133 50.81188,7.20674 ±5 | LIVE | Next 06, Straight on in 360 m, 3.5 km | 3.2 km north to 06 | guided Straight on in 360 m · 3.5 km
+134 50.81194,7.20664 ±5 | LIVE | Next 06, Straight on in 350 m, 3.5 km | 3.2 km north to 06 | guided Straight on in 350 m · 3.5 km
+135 50.81200,7.20654 ±5 | LIVE | Next 06, Straight on in 340 m, 3.5 km | 3.2 km north to 06 | guided Straight on in 340 m · 3.5 km
+136 50.81207,7.20644 ±5 | LIVE | Next 06, Straight on in 330 m, 3.5 km | 3.2 km north to 06 | guided Straight on in 330 m · 3.5 km
+137 50.81213,7.20634 ±5 | LIVE | Next 06, Straight on in 320 m, 3.5 km | 3.2 km north to 06 | guided Straight on in 320 m · 3.5 km
+138 50.81219,7.20624 ±5 | LIVE | Next 06, Straight on in 310 m, 3.4 km | 3.2 km north to 06 | guided Straight on in 310 m · 3.4 km
+139 50.81226,7.20614 ±5 | LIVE | Next 06, Straight on in 300 m, 3.4 km | 3.2 km north to 06 | guided Straight on in 300 m · 3.4 km
+140 50.81232,7.20604 ±5 | LIVE | Next 06, Straight on in 290 m, 3.4 km | 3.2 km north to 06 | guided Straight on in 290 m · 3.4 km
+141 50.81239,7.20596 ±5 | LIVE | Next 06, Straight on in 280 m, 3.4 km | 3.2 km north to 06 | guided Straight on in 280 m · 3.4 km
+142 50.81247,7.20588 ±5 | LIVE | Next 06, Straight on in 270 m, 3.4 km | 3.1 km north to 06 | guided Straight on in 270 m · 3.4 km
+143 50.81255,7.20581 ±5 | LIVE | Next 06, Straight on in 260 m, 3.4 km | 3.1 km north to 06 | guided Straight on in 260 m · 3.4 km
+144 50.81262,7.20573 ±5 | LIVE | Next 06, Straight on in 250 m, 3.4 km | 3.1 km north to 06 | guided Straight on in 250 m · 3.4 km
+145 50.81270,7.20565 ±5 | LIVE | Next 06, Straight on in 240 m, 3.4 km | 3.1 km north to 06 | guided Straight on in 240 m · 3.4 km
+146 50.81278,7.20558 ±5 | LIVE | Next 06, Straight on in 230 m, 3.4 km | 3.1 km north to 06 | guided Straight on in 230 m · 3.4 km
+147 50.81285,7.20550 ±5 | LIVE | Next 06, Straight on in 220 m, 3.4 km | 3.1 km north to 06 | guided Straight on in 220 m · 3.4 km
+148 50.81293,7.20543 ±5 | LIVE | Next 06, Straight on in 210 m, 3.3 km | 3.1 km north to 06 | guided Straight on in 210 m · 3.3 km
+149 50.81301,7.20535 ±5 | LIVE | Next 06, Straight on in 200 m, 3.3 km | 3.1 km north to 06 | guided Straight on in 200 m · 3.3 km
+150 50.81309,7.20529 ±5 | LIVE | Next 06, Straight on in 190 m, 3.3 km | 3.1 km north to 06 | guided Straight on in 190 m · 3.3 km
+151 50.81317,7.20526 ±5 | LIVE | Next 06, Straight on in 180 m, 3.3 km | 3.1 km north to 06 | guided Straight on in 180 m · 3.3 km
+152 50.81326,7.20522 ±5 | LIVE | Next 06, Straight on in 170 m, 3.3 km | 3.1 km north to 06 | guided Straight on in 170 m · 3.3 km
+153 50.81335,7.20519 ±5 | LIVE | Next 06, Straight on in 160 m, 3.3 km | 3.0 km north to 06 | guided Straight on in 160 m · 3.3 km
+154 50.81343,7.20515 ±5 | LIVE | Next 06, Straight on in 150 m, 3.3 km | 3.0 km north to 06 | guided Straight on in 150 m · 3.3 km
+155 50.81352,7.20511 ±5 | LIVE | Next 06, Straight on in 140 m, 3.3 km | 3.0 km north to 06 | guided Straight on in 140 m · 3.3 km
+156 50.81361,7.20508 ±5 | LIVE | Next 06, Straight on in 130 m, 3.3 km | 3.0 km north to 06 | guided Straight on in 130 m · 3.3 km
+157 50.81370,7.20504 ±5 | LIVE | Next 06, Straight on in 120 m, 3.3 km | 3.0 km north to 06 | guided Straight on in 120 m · 3.3 km
+158 50.81378,7.20501 ±5 | LIVE | Next 06, Straight on in 110 m, 3.2 km | 3.0 km north to 06 | guided Straight on in 110 m · 3.2 km
+159 50.81387,7.20499 ±5 | TURN In 100 m, cross the main road | LIVE | Next 06, Straight on in 100 m, 3.2 km | 3.0 km north to 06 | guided Straight on in 100 m · 3.2 km
+160 50.81396,7.20499 ±5 | LIVE | Next 06, Straight on in 90 m, 3.2 km | 3.0 km north to 06 | guided Straight on in 90 m · 3.2 km
+161 50.81405,7.20498 ±5 | LIVE | Next 06, Straight on in 80 m, 3.2 km | 3.0 km north to 06 | guided Straight on in 80 m · 3.2 km
+162 50.81414,7.20497 ±5 | LIVE | Next 06, Straight on in 70 m, 3.2 km | 3.0 km north to 06 | guided Straight on in 70 m · 3.2 km
+163 50.81423,7.20496 ±5 | LIVE | Next 06, Straight on in 60 m, 3.2 km | 3.0 km north to 06 | guided Straight on in 60 m · 3.2 km
+164 50.81432,7.20496 ±5 | LIVE | Next 06, Straight on in 50 m, 3.2 km | 2.9 km north to 06 | guided Straight on in 50 m · 3.2 km
+165 50.81441,7.20495 ±5 | LIVE | Next 06, Straight on in 40 m, 3.2 km | 2.9 km north to 06 | guided Straight on in 40 m · 3.2 km
+166 50.81450,7.20494 ±5 | LIVE | Next 06, Straight on in 30 m, 3.2 km | 2.9 km north to 06 | guided Straight on in 30 m · 3.2 km
+167 50.81459,7.20493 ±5 | LIVE | Next 06, Straight on in 20 m, 3.2 km | 2.9 km north to 06 | guided Straight on in 20 m · 3.2 km
+168 50.81468,7.20493 ±5 | LIVE | Next 06, Straight on in 10 m, 3.1 km | 2.9 km north to 06 | guided Straight on in 10 m · 3.1 km
+169 50.81477,7.20492 ±5 | TURN In 40 m, cross the main road | LIVE | Next 06, Straight on in 40 m, 3.1 km | 2.9 km north to 06 | guided Straight on in 40 m · 3.1 km
+170 50.81486,7.20492 ±5 | LIVE | Next 06, Straight on in 30 m, 3.1 km | 2.9 km north to 06 | guided Straight on in 30 m · 3.1 km
+171 50.81495,7.20492 ±5 | LIVE | Next 06, Straight on in 20 m, 3.1 km | 2.9 km north to 06 | guided Straight on in 20 m · 3.1 km
+172 50.81504,7.20492 ±5 | LIVE | Next 06, Straight on in 10 m, 3.1 km | 2.9 km north to 06 | guided Straight on in 10 m · 3.1 km
+173 50.81513,7.20492 ±5 | LIVE | Next 06, Straight on in 0 m, 3.1 km | 2.9 km north to 06 | guided Straight on in 0 m · 3.1 km
+174 50.81522,7.20492 ±5 | TURN In 70 m, cross the main road | LIVE | Next 06, Straight on in 70 m, 3.1 km | 2.9 km north to 06 | guided Straight on in 70 m · 3.1 km
+175 50.81531,7.20492 ±5 | LIVE | Next 06, Straight on in 60 m, 3.1 km | 2.8 km north to 06 | guided Straight on in 60 m · 3.1 km
+176 50.81540,7.20493 ±5 | LIVE | Next 06, Straight on in 50 m, 3.1 km | 2.8 km north to 06 | guided Straight on in 50 m · 3.1 km
+177 50.81549,7.20493 ±5 | LIVE | Next 06, Straight on in 40 m, 3.1 km | 2.8 km north to 06 | guided Straight on in 40 m · 3.1 km
+178 50.81558,7.20494 ±5 | LIVE | Next 06, Straight on in 30 m, 3.0 km | 2.8 km north to 06 | guided Straight on in 30 m · 3.0 km
+179 50.81567,7.20495 ±5 | LIVE | Next 06, Straight on in 20 m, 3.0 km | 2.8 km north to 06 | guided Straight on in 20 m · 3.0 km
+180 50.81576,7.20495 ±5 | LIVE | Next 06, Straight on in 10 m, 3.0 km | 2.8 km north to 06 | guided Straight on in 10 m · 3.0 km
+181 50.81585,7.20496 ±5 | LIVE | Next 06, Straight on in 720 m, 3.0 km | 2.8 km north to 06 | guided Straight on in 720 m · 3.0 km
+182 50.81594,7.20497 ±5 | LIVE | Next 06, Straight on in 710 m, 3.0 km | 2.8 km north to 06 | guided Straight on in 710 m · 3.0 km
+183 50.81603,7.20497 ±5 | LIVE | Next 06, Straight on in 700 m, 3.0 km | 2.8 km north to 06 | guided Straight on in 700 m · 3.0 km
+184 50.81612,7.20498 ±5 | LIVE | Next 06, Straight on in 690 m, 3.0 km | 2.8 km north to 06 | guided Straight on in 690 m · 3.0 km
+185 50.81621,7.20499 ±5 | LIVE | Next 06, Straight on in 680 m, 3.0 km | 2.8 km north to 06 | guided Straight on in 680 m · 3.0 km
+186 50.81630,7.20499 ±5 | LIVE | Next 06, Straight on in 670 m, 3.0 km | 2.7 km north to 06 | guided Straight on in 670 m · 3.0 km
+187 50.81639,7.20500 ±5 | LIVE | Next 06, Straight on in 660 m, 3.0 km | 2.7 km north to 06 | guided Straight on in 660 m · 3.0 km
+188 50.81648,7.20501 ±5 | LIVE | Next 06, Straight on in 650 m, 2.9 km | 2.7 km north to 06 | guided Straight on in 650 m · 2.9 km
+189 50.81657,7.20501 ±5 | LIVE | Next 06, Straight on in 640 m, 2.9 km | 2.7 km north to 06 | guided Straight on in 640 m · 2.9 km
+190 50.81666,7.20502 ±5 | LIVE | Next 06, Straight on in 630 m, 2.9 km | 2.7 km north to 06 | guided Straight on in 630 m · 2.9 km
+191 50.81675,7.20503 ±5 | LIVE | Next 06, Straight on in 620 m, 2.9 km | 2.7 km north to 06 | guided Straight on in 620 m · 2.9 km
+192 50.81684,7.20503 ±5 | LIVE | Next 06, Straight on in 610 m, 2.9 km | 2.7 km north to 06 | guided Straight on in 610 m · 2.9 km
+193 50.81693,7.20503 ±5 | LIVE | Next 06, Straight on in 600 m, 2.9 km | 2.7 km north to 06 | guided Straight on in 600 m · 2.9 km
+194 50.81702,7.20504 ±5 | LIVE | Next 06, Straight on in 590 m, 2.9 km | 2.7 km north to 06 | guided Straight on in 590 m · 2.9 km
+195 50.81711,7.20504 ±5 | LIVE | Next 06, Straight on in 580 m, 2.9 km | 2.7 km north to 06 | guided Straight on in 580 m · 2.9 km
+196 50.81720,7.20504 ±5 | LIVE | Next 06, Straight on in 570 m, 2.9 km | 2.7 km north to 06 | guided Straight on in 570 m · 2.9 km
+197 50.81729,7.20504 ±5 | LIVE | Next 06, Straight on in 560 m, 2.9 km | 2.6 km north to 06 | guided Straight on in 560 m · 2.9 km
+198 50.81738,7.20505 ±5 | LIVE | Next 06, Straight on in 550 m, 2.8 km | 2.6 km north to 06 | guided Straight on in 550 m · 2.8 km
+199 50.81747,7.20505 ±5 | LIVE | Next 06, Straight on in 540 m, 2.8 km | 2.6 km north to 06 | guided Straight on in 540 m · 2.8 km
+200 50.81756,7.20505 ±5 | LIVE | Next 06, Straight on in 530 m, 2.8 km | 2.6 km north to 06 | guided Straight on in 530 m · 2.8 km
+201 50.81765,7.20506 ±5 | LIVE | Next 06, Straight on in 520 m, 2.8 km | 2.6 km north to 06 | guided Straight on in 520 m · 2.8 km
+202 50.81774,7.20506 ±5 | LIVE | Next 06, Straight on in 510 m, 2.8 km | 2.6 km north to 06 | guided Straight on in 510 m · 2.8 km
+203 50.81783,7.20506 ±5 | LIVE | Next 06, Straight on in 500 m, 2.8 km | 2.6 km north to 06 | guided Straight on in 500 m · 2.8 km
+204 50.81792,7.20506 ±5 | LIVE | Next 06, Straight on in 490 m, 2.8 km | 2.6 km north to 06 | guided Straight on in 490 m · 2.8 km
+205 50.81801,7.20507 ±5 | LIVE | Next 06, Straight on in 480 m, 2.8 km | 2.6 km north to 06 | guided Straight on in 480 m · 2.8 km
+206 50.81810,7.20507 ±5 | LIVE | Next 06, Straight on in 470 m, 2.8 km | 2.6 km north to 06 | guided Straight on in 470 m · 2.8 km
+207 50.81819,7.20507 ±5 | LIVE | Next 06, Straight on in 460 m, 2.8 km | 2.6 km north to 06 | guided Straight on in 460 m · 2.8 km
+208 50.81828,7.20507 ±5 | LIVE | Next 06, Straight on in 450 m, 2.7 km | 2.5 km north to 06 | guided Straight on in 450 m · 2.7 km
+209 50.81837,7.20508 ±5 | LIVE | Next 06, Straight on in 440 m, 2.7 km | 2.5 km north to 06 | guided Straight on in 440 m · 2.7 km
+210 50.81846,7.20508 ±5 | LIVE | Next 06, Straight on in 430 m, 2.7 km | 2.5 km north to 06 | guided Straight on in 430 m · 2.7 km
+211 50.81855,7.20508 ±5 | LIVE | Next 06, Straight on in 420 m, 2.7 km | 2.5 km north to 06 | guided Straight on in 420 m · 2.7 km
+212 50.81864,7.20508 ±5 | LIVE | Next 06, Straight on in 410 m, 2.7 km | 2.5 km north to 06 | guided Straight on in 410 m · 2.7 km
+213 50.81873,7.20509 ±5 | LIVE | Next 06, Straight on in 400 m, 2.7 km | 2.5 km north to 06 | guided Straight on in 400 m · 2.7 km
+214 50.81882,7.20509 ±5 | LIVE | Next 06, Straight on in 390 m, 2.7 km | 2.5 km north to 06 | guided Straight on in 390 m · 2.7 km
+215 50.81891,7.20509 ±5 | LIVE | Next 06, Straight on in 380 m, 2.7 km | 2.5 km north to 06 | guided Straight on in 380 m · 2.7 km
+216 50.81900,7.20510 ±5 | LIVE | Next 06, Straight on in 370 m, 2.7 km | 2.5 km north to 06 | guided Straight on in 370 m · 2.7 km
+217 50.81909,7.20510 ±5 | LIVE | Next 06, Straight on in 360 m, 2.7 km | 2.5 km north to 06 | guided Straight on in 360 m · 2.7 km
+218 50.81918,7.20510 ±5 | LIVE | Next 06, Straight on in 350 m, 2.6 km | 2.5 km north to 06 | guided Straight on in 350 m · 2.6 km
+219 50.81927,7.20510 ±5 | LIVE | Next 06, Straight on in 340 m, 2.6 km | 2.4 km north to 06 | guided Straight on in 340 m · 2.6 km
+220 50.81936,7.20511 ±5 | LIVE | Next 06, Straight on in 330 m, 2.6 km | 2.4 km north to 06 | guided Straight on in 330 m · 2.6 km
+221 50.81945,7.20511 ±5 | LIVE | Next 06, Straight on in 320 m, 2.6 km | 2.4 km north to 06 | guided Straight on in 320 m · 2.6 km
+222 50.81954,7.20511 ±5 | LIVE | Next 06, Straight on in 310 m, 2.6 km | 2.4 km north to 06 | guided Straight on in 310 m · 2.6 km
+223 50.81963,7.20511 ±5 | LIVE | Next 06, Straight on in 300 m, 2.6 km | 2.4 km north to 06 | guided Straight on in 300 m · 2.6 km
+224 50.81972,7.20512 ±5 | LIVE | Next 06, Straight on in 290 m, 2.6 km | 2.4 km north to 06 | guided Straight on in 290 m · 2.6 km
+225 50.81981,7.20512 ±5 | LIVE | Next 06, Straight on in 280 m, 2.6 km | 2.4 km north to 06 | guided Straight on in 280 m · 2.6 km
+226 50.81990,7.20512 ±5 | LIVE | Next 06, Straight on in 270 m, 2.6 km | 2.4 km north to 06 | guided Straight on in 270 m · 2.6 km
+227 50.81999,7.20512 ±5 | LIVE | Next 06, Straight on in 260 m, 2.6 km | 2.4 km north to 06 | guided Straight on in 260 m · 2.6 km
+228 50.82008,7.20513 ±5 | LIVE | Next 06, Straight on in 250 m, 2.5 km | 2.4 km north to 06 | guided Straight on in 250 m · 2.5 km
+229 50.82017,7.20513 ±5 | LIVE | Next 06, Straight on in 240 m, 2.5 km | 2.4 km north to 06 | guided Straight on in 240 m · 2.5 km
+230 50.82026,7.20513 ±5 | LIVE | Next 06, Straight on in 230 m, 2.5 km | 2.3 km north to 06 | guided Straight on in 230 m · 2.5 km
+231 50.82035,7.20513 ±5 | LIVE | Next 06, Straight on in 220 m, 2.5 km | 2.3 km north to 06 | guided Straight on in 220 m · 2.5 km
+232 50.82044,7.20514 ±5 | LIVE | Next 06, Straight on in 210 m, 2.5 km | 2.3 km north to 06 | guided Straight on in 210 m · 2.5 km
+233 50.82053,7.20514 ±5 | LIVE | Next 06, Straight on in 200 m, 2.5 km | 2.3 km north to 06 | guided Straight on in 200 m · 2.5 km
+234 50.82062,7.20514 ±5 | LIVE | Next 06, Straight on in 190 m, 2.5 km | 2.3 km north to 06 | guided Straight on in 190 m · 2.5 km
+235 50.82071,7.20515 ±5 | LIVE | Next 06, Straight on in 180 m, 2.5 km | 2.3 km north to 06 | guided Straight on in 180 m · 2.5 km
+236 50.82080,7.20515 ±5 | LIVE | Next 06, Straight on in 170 m, 2.5 km | 2.3 km north to 06 | guided Straight on in 170 m · 2.5 km
+237 50.82089,7.20515 ±5 | LIVE | Next 06, Straight on in 160 m, 2.5 km | 2.3 km north to 06 | guided Straight on in 160 m · 2.5 km
+238 50.82098,7.20515 ±5 | LIVE | Next 06, Straight on in 150 m, 2.4 km | 2.3 km north to 06 | guided Straight on in 150 m · 2.4 km
+239 50.82107,7.20516 ±5 | LIVE | Next 06, Straight on in 140 m, 2.4 km | 2.3 km north to 06 | guided Straight on in 140 m · 2.4 km
+240 50.82116,7.20516 ±5 | LIVE | Next 06, Straight on in 130 m, 2.4 km | 2.3 km north to 06 | guided Straight on in 130 m · 2.4 km
+241 50.82125,7.20516 ±5 | LIVE | Next 06, Straight on in 120 m, 2.4 km | 2.1 km north to 06 | guided Straight on in 120 m · 2.4 km
+242 50.82134,7.20516 ±5 | LIVE | Next 06, Straight on in 110 m, 2.4 km | 2.1 km north to 06 | guided Straight on in 110 m · 2.4 km
+243 50.82143,7.20517 ±5 | TURN In 100 m, cross the main road | LIVE | Next 06, Straight on in 100 m, 2.4 km | 2.1 km north to 06 | guided Straight on in 100 m · 2.4 km
+244 50.82152,7.20517 ±5 | LIVE | Next 06, Straight on in 90 m, 2.4 km | 2.1 km north to 06 | guided Straight on in 90 m · 2.4 km
+245 50.82161,7.20516 ±5 | LIVE | Next 06, Straight on in 80 m, 2.4 km | 2.1 km north to 06 | guided Straight on in 80 m · 2.4 km
+246 50.82170,7.20515 ±5 | LIVE | Next 06, Straight on in 70 m, 2.4 km | 2.1 km north to 06 | guided Straight on in 70 m · 2.4 km
+247 50.82179,7.20514 ±5 | LIVE | Next 06, Straight on in 60 m, 2.4 km | 2.1 km north to 06 | guided Straight on in 60 m · 2.4 km
+248 50.82188,7.20512 ±5 | LIVE | Next 06, Straight on in 50 m, 2.3 km | 2.1 km north to 06 | guided Straight on in 50 m · 2.3 km
+249 50.82197,7.20511 ±5 | LIVE | Next 06, Straight on in 40 m, 2.3 km | 2.1 km north to 06 | guided Straight on in 40 m · 2.3 km
+250 50.82206,7.20510 ±5 | LIVE | Next 06, Straight on in 30 m, 2.3 km | 2.1 km north to 06 | guided Straight on in 30 m · 2.3 km
+251 50.82215,7.20509 ±5 | LIVE | Next 06, Straight on in 20 m, 2.3 km | 2.1 km north to 06 | guided Straight on in 20 m · 2.3 km
+252 50.82224,7.20508 ±5 | LIVE | Next 06, Straight on in 10 m, 2.3 km | 2.0 km north to 06 | guided Straight on in 10 m · 2.3 km
+253 50.82233,7.20509 ±5 | LIVE | Next 06, Straight on in 1.1 km, 2.3 km | 2.0 km north to 06 | guided Straight on in 1.1 km · 2.3 km
+254 50.82241,7.20513 ±5 | LIVE | Next 06, Straight on in 1.1 km, 2.3 km | 2.0 km north to 06 | guided Straight on in 1.1 km · 2.3 km
+255 50.82250,7.20513 ±5 | LIVE | Next 06, Straight on in 1.1 km, 2.3 km | 2.0 km north to 06 | guided Straight on in 1.1 km · 2.3 km
+256 50.82259,7.20509 ±5 | LIVE | Next 06, Straight on in 1.1 km, 2.3 km | 2.0 km north to 06 | guided Straight on in 1.1 km · 2.3 km
+257 50.82267,7.20504 ±5 | LIVE | Next 06, Straight on in 1.1 km, 2.3 km | 2.0 km north to 06 | guided Straight on in 1.1 km · 2.3 km
+258 50.82275,7.20510 ±5 | LIVE | Next 06, Straight on in 1.0 km, 2.2 km | 2.0 km north to 06 | guided Straight on in 1.0 km · 2.2 km
+259 50.82284,7.20516 ±5 | LIVE | Next 06, Straight on in 1.0 km, 2.2 km | 2.0 km north to 06 | guided Straight on in 1.0 km · 2.2 km
+260 50.82292,7.20520 ±5 | LIVE | Next 06, Straight on in 1.0 km, 2.2 km | 2.0 km north to 06 | guided Straight on in 1.0 km · 2.2 km
+261 50.82301,7.20521 ±5 | LIVE | Next 06, Straight on in 1.0 km, 2.2 km | 2.0 km north to 06 | guided Straight on in 1.0 km · 2.2 km
+262 50.82310,7.20521 ±5 | LIVE | Next 06, Straight on in 1.0 km, 2.2 km | 2.0 km north to 06 | guided Straight on in 1.0 km · 2.2 km
+263 50.82319,7.20522 ±5 | LIVE | Next 06, Straight on in 990 m, 2.2 km | 1.9 km north to 06 | guided Straight on in 990 m · 2.2 km
+264 50.82328,7.20522 ±5 | LIVE | Next 06, Straight on in 980 m, 2.2 km | 1.9 km north to 06 | guided Straight on in 980 m · 2.2 km
+265 50.82337,7.20523 ±5 | LIVE | Next 06, Straight on in 970 m, 2.2 km | 1.9 km north to 06 | guided Straight on in 970 m · 2.2 km
+266 50.82346,7.20524 ±5 | LIVE | Next 06, Straight on in 960 m, 2.2 km | 1.9 km north to 06 | guided Straight on in 960 m · 2.2 km
+267 50.82355,7.20524 ±5 | LIVE | Next 06, Straight on in 950 m, 2.2 km | 1.9 km north to 06 | guided Straight on in 950 m · 2.2 km
+268 50.82364,7.20525 ±5 | LIVE | Next 06, Straight on in 940 m, 2.1 km | 1.9 km north to 06 | guided Straight on in 940 m · 2.1 km
+269 50.82373,7.20525 ±5 | LIVE | Next 06, Straight on in 930 m, 2.1 km | 1.9 km north to 06 | guided Straight on in 930 m · 2.1 km
+270 50.82382,7.20526 ±5 | LIVE | Next 06, Straight on in 920 m, 2.1 km | 1.9 km north to 06 | guided Straight on in 920 m · 2.1 km
+271 50.82391,7.20526 ±5 | LIVE | Next 06, Straight on in 910 m, 2.1 km | 1.9 km north to 06 | guided Straight on in 910 m · 2.1 km
+272 50.82400,7.20527 ±5 | LIVE | Next 06, Straight on in 900 m, 2.1 km | 1.9 km north to 06 | guided Straight on in 900 m · 2.1 km
+273 50.82409,7.20527 ±5 | LIVE | Next 06, Straight on in 890 m, 2.1 km | 1.9 km north to 06 | guided Straight on in 890 m · 2.1 km
+274 50.82418,7.20528 ±5 | LIVE | Next 06, Straight on in 880 m, 2.1 km | 1.8 km north to 06 | guided Straight on in 880 m · 2.1 km
+275 50.82427,7.20529 ±5 | LIVE | Next 06, Straight on in 870 m, 2.1 km | 1.8 km north to 06 | guided Straight on in 870 m · 2.1 km
+276 50.82436,7.20529 ±5 | LIVE | Next 06, Straight on in 860 m, 2.1 km | 1.8 km north to 06 | guided Straight on in 860 m · 2.1 km
+277 50.82445,7.20530 ±5 | LIVE | Next 06, Straight on in 850 m, 2.1 km | 1.8 km north to 06 | guided Straight on in 850 m · 2.1 km
+278 50.82454,7.20530 ±5 | LIVE | Next 06, Straight on in 840 m, 2.0 km | 1.8 km north to 06 | guided Straight on in 840 m · 2.0 km
+279 50.82463,7.20531 ±5 | LIVE | Next 06, Straight on in 830 m, 2.0 km | 1.8 km north to 06 | guided Straight on in 830 m · 2.0 km
+280 50.82472,7.20531 ±5 | LIVE | Next 06, Straight on in 820 m, 2.0 km | 1.8 km north to 06 | guided Straight on in 820 m · 2.0 km
+281 50.82481,7.20532 ±5 | LIVE | Next 06, Straight on in 810 m, 2.0 km | 1.8 km north to 06 | guided Straight on in 810 m · 2.0 km
+282 50.82490,7.20532 ±5 | LIVE | Next 06, Straight on in 800 m, 2.0 km | 1.8 km north to 06 | guided Straight on in 800 m · 2.0 km
+283 50.82499,7.20533 ±5 | LIVE | Next 06, Straight on in 790 m, 2.0 km | 1.8 km north to 06 | guided Straight on in 790 m · 2.0 km
+284 50.82508,7.20534 ±5 | LIVE | Next 06, Straight on in 780 m, 2.0 km | 1.8 km north to 06 | guided Straight on in 780 m · 2.0 km
+285 50.82517,7.20534 ±5 | LIVE | Next 06, Straight on in 770 m, 2.0 km | 1.7 km north to 06 | guided Straight on in 770 m · 2.0 km
+286 50.82526,7.20535 ±5 | LIVE | Next 06, Straight on in 760 m, 2.0 km | 1.7 km north to 06 | guided Straight on in 760 m · 2.0 km
+287 50.82535,7.20535 ±5 | LIVE | Next 06, Straight on in 750 m, 2.0 km | 1.7 km north to 06 | guided Straight on in 750 m · 2.0 km
+288 50.82544,7.20536 ±5 | LIVE | Next 06, Straight on in 740 m, 1.9 km | 1.7 km north to 06 | guided Straight on in 740 m · 1.9 km
+289 50.82553,7.20536 ±5 | LIVE | Next 06, Straight on in 730 m, 1.9 km | 1.7 km north to 06 | guided Straight on in 730 m · 1.9 km
+290 50.82562,7.20537 ±5 | LIVE | Next 06, Straight on in 720 m, 1.9 km | 1.7 km north to 06 | guided Straight on in 720 m · 1.9 km
+291 50.82571,7.20537 ±5 | LIVE | Next 06, Straight on in 710 m, 1.9 km | 1.7 km north to 06 | guided Straight on in 710 m · 1.9 km
+292 50.82580,7.20537 ±5 | LIVE | Next 06, Straight on in 700 m, 1.9 km | 1.7 km north to 06 | guided Straight on in 700 m · 1.9 km
+293 50.82589,7.20537 ±5 | LIVE | Next 06, Straight on in 690 m, 1.9 km | 1.7 km north to 06 | guided Straight on in 690 m · 1.9 km
+294 50.82598,7.20538 ±5 | LIVE | Next 06, Straight on in 680 m, 1.9 km | 1.7 km north to 06 | guided Straight on in 680 m · 1.9 km
+295 50.82607,7.20538 ±5 | LIVE | Next 06, Straight on in 670 m, 1.9 km | 1.7 km north to 06 | guided Straight on in 670 m · 1.9 km
+296 50.82616,7.20538 ±5 | LIVE | Next 06, Straight on in 660 m, 1.9 km | 1.6 km north to 06 | guided Straight on in 660 m · 1.9 km
+297 50.82625,7.20539 ±5 | LIVE | Next 06, Straight on in 650 m, 1.9 km | 1.6 km north to 06 | guided Straight on in 650 m · 1.9 km
+298 50.82634,7.20539 ±5 | LIVE | Next 06, Straight on in 640 m, 1.8 km | 1.6 km north to 06 | guided Straight on in 640 m · 1.8 km
+299 50.82643,7.20539 ±5 | LIVE | Next 06, Straight on in 630 m, 1.8 km | 1.6 km north to 06 | guided Straight on in 630 m · 1.8 km
+300 50.82652,7.20539 ±5 | LIVE | Next 06, Straight on in 620 m, 1.8 km | 1.6 km north to 06 | guided Straight on in 620 m · 1.8 km
+301 50.82661,7.20539 ±5 | LIVE | Next 06, Straight on in 610 m, 1.8 km | 1.6 km north to 06 | guided Straight on in 610 m · 1.8 km
+302 50.82670,7.20540 ±5 | LIVE | Next 06, Straight on in 600 m, 1.8 km | 1.6 km north to 06 | guided Straight on in 600 m · 1.8 km
+303 50.82679,7.20540 ±5 | LIVE | Next 06, Straight on in 590 m, 1.8 km | 1.6 km north to 06 | guided Straight on in 590 m · 1.8 km
+304 50.82688,7.20540 ±5 | LIVE | Next 06, Straight on in 580 m, 1.8 km | 1.6 km north to 06 | guided Straight on in 580 m · 1.8 km
+305 50.82697,7.20540 ±5 | LIVE | Next 06, Straight on in 570 m, 1.8 km | 1.6 km north to 06 | guided Straight on in 570 m · 1.8 km
+306 50.82706,7.20541 ±5 | LIVE | Next 06, Straight on in 560 m, 1.8 km | 1.6 km north to 06 | guided Straight on in 560 m · 1.8 km
+307 50.82715,7.20541 ±5 | LIVE | Next 06, Straight on in 550 m, 1.8 km | 1.5 km north to 06 | guided Straight on in 550 m · 1.8 km
+308 50.82724,7.20541 ±5 | LIVE | Next 06, Straight on in 540 m, 1.7 km | 1.5 km north to 06 | guided Straight on in 540 m · 1.7 km
+309 50.82733,7.20541 ±5 | LIVE | Next 06, Straight on in 530 m, 1.7 km | 1.5 km north to 06 | guided Straight on in 530 m · 1.7 km
+310 50.82742,7.20542 ±5 | LIVE | Next 06, Straight on in 520 m, 1.7 km | 1.5 km north to 06 | guided Straight on in 520 m · 1.7 km
+311 50.82751,7.20542 ±5 | LIVE | Next 06, Straight on in 510 m, 1.7 km | 1.5 km north to 06 | guided Straight on in 510 m · 1.7 km
+312 50.82760,7.20542 ±5 | LIVE | Next 06, Straight on in 500 m, 1.7 km | 1.5 km north to 06 | guided Straight on in 500 m · 1.7 km
+313 50.82769,7.20542 ±5 | LIVE | Next 06, Straight on in 490 m, 1.7 km | 1.5 km north to 06 | guided Straight on in 490 m · 1.7 km
+314 50.82778,7.20543 ±5 | LIVE | Next 06, Straight on in 480 m, 1.7 km | 1.5 km north to 06 | guided Straight on in 480 m · 1.7 km
+315 50.82787,7.20543 ±5 | LIVE | Next 06, Straight on in 470 m, 1.7 km | 1.5 km north to 06 | guided Straight on in 470 m · 1.7 km
+316 50.82796,7.20543 ±5 | LIVE | Next 06, Straight on in 460 m, 1.7 km | 1.5 km north to 06 | guided Straight on in 460 m · 1.7 km
+317 50.82805,7.20543 ±5 | LIVE | Next 06, Straight on in 450 m, 1.7 km | 1.5 km north to 06 | guided Straight on in 450 m · 1.7 km
+318 50.82814,7.20544 ±5 | LIVE | Next 06, Straight on in 440 m, 1.6 km | 1.4 km north to 06 | guided Straight on in 440 m · 1.6 km
+319 50.82823,7.20544 ±5 | LIVE | Next 06, Straight on in 430 m, 1.6 km | 1.4 km north to 06 | guided Straight on in 430 m · 1.6 km
+320 50.82832,7.20544 ±5 | LIVE | Next 06, Straight on in 420 m, 1.6 km | 1.4 km north to 06 | guided Straight on in 420 m · 1.6 km
+321 50.82841,7.20545 ±5 | LIVE | Next 06, Straight on in 410 m, 1.6 km | 1.4 km north to 06 | guided Straight on in 410 m · 1.6 km
+322 50.82850,7.20545 ±5 | LIVE | Next 06, Straight on in 400 m, 1.6 km | 1.4 km north to 06 | guided Straight on in 400 m · 1.6 km
+323 50.82859,7.20546 ±5 | LIVE | Next 06, Straight on in 390 m, 1.6 km | 1.4 km north to 06 | guided Straight on in 390 m · 1.6 km
+324 50.82868,7.20546 ±5 | LIVE | Next 06, Straight on in 380 m, 1.6 km | 1.4 km north to 06 | guided Straight on in 380 m · 1.6 km
+325 50.82877,7.20546 ±5 | LIVE | Next 06, Straight on in 370 m, 1.6 km | 1.4 km north to 06 | guided Straight on in 370 m · 1.6 km
+326 50.82886,7.20547 ±5 | LIVE | Next 06, Straight on in 360 m, 1.6 km | 1.4 km north to 06 | guided Straight on in 360 m · 1.6 km
+327 50.82895,7.20547 ±5 | LIVE | Next 06, Straight on in 350 m, 1.6 km | 1.4 km north to 06 | guided Straight on in 350 m · 1.6 km
+328 50.82904,7.20548 ±5 | LIVE | Next 06, Straight on in 340 m, 1.5 km | 1.4 km north to 06 | guided Straight on in 340 m · 1.5 km
+329 50.82913,7.20548 ±5 | LIVE | Next 06, Straight on in 330 m, 1.5 km | 1.3 km north to 06 | guided Straight on in 330 m · 1.5 km
+330 50.82922,7.20548 ±5 | LIVE | Next 06, Straight on in 320 m, 1.5 km | 1.3 km north to 06 | guided Straight on in 320 m · 1.5 km
+331 50.82931,7.20548 ±5 | LIVE | Next 06, Straight on in 310 m, 1.5 km | 1.3 km north to 06 | guided Straight on in 310 m · 1.5 km
+332 50.82940,7.20549 ±5 | LIVE | Next 06, Straight on in 300 m, 1.5 km | 1.3 km north to 06 | guided Straight on in 300 m · 1.5 km
+333 50.82949,7.20549 ±5 | LIVE | Next 06, Straight on in 290 m, 1.5 km | 1.3 km north to 06 | guided Straight on in 290 m · 1.5 km
+334 50.82958,7.20549 ±5 | LIVE | Next 06, Straight on in 280 m, 1.5 km | 1.3 km north to 06 | guided Straight on in 280 m · 1.5 km
+335 50.82967,7.20549 ±5 | LIVE | Next 06, Straight on in 270 m, 1.5 km | 1.3 km north to 06 | guided Straight on in 270 m · 1.5 km
+336 50.82976,7.20550 ±5 | LIVE | Next 06, Straight on in 260 m, 1.5 km | 1.3 km north to 06 | guided Straight on in 260 m · 1.5 km
+337 50.82985,7.20550 ±5 | LIVE | Next 06, Straight on in 250 m, 1.5 km | 1.3 km north to 06 | guided Straight on in 250 m · 1.5 km
+338 50.82994,7.20550 ±5 | LIVE | Next 06, Straight on in 240 m, 1.4 km | 1.3 km north to 06 | guided Straight on in 240 m · 1.4 km
+339 50.83003,7.20550 ±5 | LIVE | Next 06, Straight on in 230 m, 1.4 km | 1.3 km north to 06 | guided Straight on in 230 m · 1.4 km
+340 50.83012,7.20551 ±5 | LIVE | Next 06, Straight on in 220 m, 1.4 km | 1.2 km north to 06 | guided Straight on in 220 m · 1.4 km
+341 50.83021,7.20551 ±5 | LIVE | Next 06, Straight on in 210 m, 1.4 km | 1.2 km north to 06 | guided Straight on in 210 m · 1.4 km
+342 50.83030,7.20552 ±5 | LIVE | Next 06, Straight on in 200 m, 1.4 km | 1.2 km north to 06 | guided Straight on in 200 m · 1.4 km
+343 50.83039,7.20552 ±5 | LIVE | Next 06, Straight on in 190 m, 1.4 km | 1.2 km north to 06 | guided Straight on in 190 m · 1.4 km
+344 50.83048,7.20553 ±5 | LIVE | Next 06, Straight on in 180 m, 1.4 km | 1.2 km north to 06 | guided Straight on in 180 m · 1.4 km
+345 50.83057,7.20554 ±5 | LIVE | Next 06, Straight on in 170 m, 1.4 km | 1.2 km north to 06 | guided Straight on in 170 m · 1.4 km
+346 50.83066,7.20555 ±5 | LIVE | Next 06, Straight on in 160 m, 1.4 km | 1.2 km north to 06 | guided Straight on in 160 m · 1.4 km
+347 50.83075,7.20555 ±5 | LIVE | Next 06, Straight on in 150 m, 1.4 km | 1.2 km north to 06 | guided Straight on in 150 m · 1.4 km
+348 50.83084,7.20556 ±5 | LIVE | Next 06, Straight on in 140 m, 1.3 km | 1.2 km north to 06 | guided Straight on in 140 m · 1.3 km
+349 50.83093,7.20557 ±5 | LIVE | Next 06, Straight on in 130 m, 1.3 km | 1.2 km north to 06 | guided Straight on in 130 m · 1.3 km
+350 50.83102,7.20559 ±5 | LIVE | Next 06, Straight on in 120 m, 1.3 km | 1.2 km north to 06 | guided Straight on in 120 m · 1.3 km
+351 50.83111,7.20561 ±5 | LIVE | Next 06, Straight on in 110 m, 1.3 km | 1.1 km north to 06 | guided Straight on in 110 m · 1.3 km
+352 50.83119,7.20564 ±5 | TURN In 100 m, keep right at the fork | LIVE | Next 06, Straight on in 100 m, 1.3 km | 1.1 km north to 06 | guided Straight on in 100 m · 1.3 km
+353 50.83128,7.20566 ±5 | LIVE | Next 06, Straight on in 90 m, 1.3 km | 1.1 km north to 06 | guided Straight on in 90 m · 1.3 km
+354 50.83137,7.20569 ±5 | LIVE | Next 06, Straight on in 80 m, 1.3 km | 1.1 km north to 06 | guided Straight on in 80 m · 1.3 km
+355 50.83146,7.20571 ±5 | LIVE | Next 06, Straight on in 70 m, 1.3 km | 1.1 km north to 06 | guided Straight on in 70 m · 1.3 km
+356 50.83155,7.20574 ±5 | LIVE | Next 06, Straight on in 60 m, 1.3 km | 1.1 km north to 06 | guided Straight on in 60 m · 1.3 km
+357 50.83164,7.20576 ±5 | LIVE | Next 06, Straight on in 50 m, 1.3 km | 1.1 km north to 06 | guided Straight on in 50 m · 1.3 km
+358 50.83173,7.20579 ±5 | LIVE | Next 06, Straight on in 40 m, 1.2 km | 1.1 km north to 06 | guided Straight on in 40 m · 1.2 km
+359 50.83181,7.20581 ±5 | LIVE | Next 06, Straight on in 30 m, 1.2 km | 1.1 km north to 06 | guided Straight on in 30 m · 1.2 km
+360 50.83190,7.20584 ±5 | LIVE | Next 06, Straight on in 20 m, 1.2 km | 1.1 km north to 06 | guided Straight on in 20 m · 1.2 km
+361 50.83199,7.20587 ±5 | LIVE | Next 06, Straight on in 10 m, 1.2 km | 1.1 km north to 06 | guided Straight on in 10 m · 1.2 km
+362 50.83208,7.20591 ±5 | LIVE | Next 06, Straight on in 410 m, 1.2 km | 1.1 km north to 06 | guided Straight on in 410 m · 1.2 km
+363 50.83216,7.20595 ±5 | LIVE | Next 06, Straight on in 400 m, 1.2 km | 958 m north to 06 | guided Straight on in 400 m · 1.2 km
+364 50.83225,7.20599 ±5 | LIVE | Next 06, Straight on in 390 m, 1.2 km | 958 m north to 06 | guided Straight on in 390 m · 1.2 km
+365 50.83234,7.20603 ±5 | LIVE | Next 06, Straight on in 380 m, 1.2 km | 958 m north to 06 | guided Straight on in 380 m · 1.2 km
+366 50.83242,7.20607 ±5 | LIVE | Next 06, Straight on in 370 m, 1.2 km | 958 m north to 06 | guided Straight on in 370 m · 1.2 km
+367 50.83251,7.20610 ±5 | LIVE | Next 06, Straight on in 360 m, 1.2 km | 958 m north to 06 | guided Straight on in 360 m · 1.2 km
+368 50.83260,7.20614 ±5 | LIVE | Next 06, Straight on in 350 m, 1.1 km | 958 m north to 06 | guided Straight on in 350 m · 1.1 km
+369 50.83268,7.20618 ±5 | LIVE | Next 06, Straight on in 340 m, 1.1 km | 958 m north to 06 | guided Straight on in 340 m · 1.1 km
+370 50.83277,7.20622 ±5 | LIVE | Next 06, Straight on in 330 m, 1.1 km | 958 m north to 06 | guided Straight on in 330 m · 1.1 km
+371 50.83286,7.20625 ±5 | LIVE | Next 06, Straight on in 320 m, 1.1 km | 958 m north to 06 | guided Straight on in 320 m · 1.1 km
+372 50.83294,7.20629 ±5 | LIVE | Next 06, Straight on in 310 m, 1.1 km | 958 m north to 06 | guided Straight on in 310 m · 1.1 km
+373 50.83303,7.20633 ±5 | LIVE | Next 06, Straight on in 300 m, 1.1 km | 958 m north to 06 | guided Straight on in 300 m · 1.1 km
+374 50.83312,7.20637 ±5 | LIVE | Next 06, Straight on in 290 m, 1.1 km | 958 m north to 06 | guided Straight on in 290 m · 1.1 km
+375 50.83320,7.20640 ±5 | LIVE | Next 06, Straight on in 280 m, 1.1 km | 857 m north to 06 | guided Straight on in 280 m · 1.1 km
+376 50.83329,7.20644 ±5 | LIVE | Next 06, Straight on in 270 m, 1.1 km | 857 m north to 06 | guided Straight on in 270 m · 1.1 km
+377 50.83338,7.20648 ±5 | LIVE | Next 06, Straight on in 260 m, 1.1 km | 857 m north to 06 | guided Straight on in 260 m · 1.1 km
+378 50.83346,7.20651 ±5 | LIVE | Next 06, Straight on in 250 m, 1.0 km | 857 m north to 06 | guided Straight on in 250 m · 1.0 km
+379 50.83355,7.20655 ±5 | LIVE | Next 06, Straight on in 240 m, 1.0 km | 857 m north to 06 | guided Straight on in 240 m · 1.0 km
+380 50.83364,7.20659 ±5 | LIVE | Next 06, Straight on in 230 m, 1.0 km | 857 m north to 06 | guided Straight on in 230 m · 1.0 km
+381 50.83373,7.20663 ±5 | LIVE | Next 06, Straight on in 220 m, 1.0 km | 857 m north to 06 | guided Straight on in 220 m · 1.0 km
+382 50.83381,7.20666 ±5 | LIVE | Next 06, Straight on in 210 m, 1.0 km | 857 m north to 06 | guided Straight on in 210 m · 1.0 km
+383 50.83390,7.20670 ±5 | LIVE | Next 06, Straight on in 200 m, 990 m | 857 m north to 06 | guided Straight on in 200 m · 990 m
+384 50.83399,7.20674 ±5 | LIVE | Next 06, Straight on in 190 m, 980 m | 857 m north to 06 | guided Straight on in 190 m · 980 m
+385 50.83407,7.20677 ±5 | LIVE | Next 06, Straight on in 180 m, 970 m | 857 m north to 06 | guided Straight on in 180 m · 970 m
+386 50.83416,7.20681 ±5 | LIVE | Next 06, Straight on in 170 m, 960 m | 857 m north to 06 | guided Straight on in 170 m · 960 m
+387 50.83425,7.20685 ±5 | LIVE | Next 06, Straight on in 160 m, 950 m | 857 m north to 06 | guided Straight on in 160 m · 950 m
+388 50.83433,7.20689 ±5 | LIVE | Next 06, Straight on in 150 m, 940 m | 755 m north-west to 06 | guided Straight on in 150 m · 940 m
+389 50.83442,7.20692 ±5 | LIVE | Next 06, Straight on in 140 m, 930 m | 755 m north-west to 06 | guided Straight on in 140 m · 930 m
+390 50.83451,7.20696 ±5 | LIVE | Next 06, Straight on in 130 m, 920 m | 755 m north-west to 06 | guided Straight on in 130 m · 920 m
+391 50.83459,7.20700 ±5 | LIVE | Next 06, Straight on in 120 m, 910 m | 755 m north-west to 06 | guided Straight on in 120 m · 910 m
+392 50.83468,7.20704 ±5 | LIVE | Next 06, Straight on in 110 m, 900 m | 755 m north-west to 06 | guided Straight on in 110 m · 900 m
+393 50.83477,7.20707 ±5 | LIVE | Next 06, Straight on in 100 m, 890 m | 755 m north-west to 06 | guided Straight on in 100 m · 890 m
+394 50.83485,7.20711 ±5 | TURN In 90 m, keep right at the fork | LIVE | Next 06, Straight on in 90 m, 880 m | 755 m north-west to 06 | guided Straight on in 90 m · 880 m
+395 50.83494,7.20715 ±5 | LIVE | Next 06, Straight on in 80 m, 870 m | 755 m north-west to 06 | guided Straight on in 80 m · 870 m
+396 50.83503,7.20719 ±5 | LIVE | Next 06, Straight on in 70 m, 860 m | 755 m north-west to 06 | guided Straight on in 70 m · 860 m
+397 50.83512,7.20722 ±5 | LIVE | Next 06, Straight on in 60 m, 850 m | 755 m north-west to 06 | guided Straight on in 60 m · 850 m
+398 50.83520,7.20726 ±5 | LIVE | Next 06, Straight on in 50 m, 840 m | 755 m north-west to 06 | guided Straight on in 50 m · 840 m
+399 50.83529,7.20729 ±5 | LIVE | Next 06, Straight on in 40 m, 830 m | 755 m north-west to 06 | guided Straight on in 40 m · 830 m
+400 50.83538,7.20733 ±5 | LIVE | Next 06, Straight on in 30 m, 820 m | 755 m north-west to 06 | guided Straight on in 30 m · 820 m
+401 50.83546,7.20736 ±5 | LIVE | Next 06, Straight on in 20 m, 810 m | 755 m north-west to 06 | guided Straight on in 20 m · 810 m
+402 50.83555,7.20740 ±5 | LIVE | Next 06, Straight on in 10 m, 800 m | 755 m north-west to 06 | guided Straight on in 10 m · 800 m
+403 50.83564,7.20744 ±5 | LIVE | Next 06, Straight on in 0 m, 790 m | 648 m north-west to 06 | guided Straight on in 0 m · 790 m
+404 50.83573,7.20747 ±5 | TURN Turn left now, onto the street | LIVE | Next 06, Left in 40 m, Auelsweg, 780 m | 648 m north-west to 06 | guided Left in 40 m · 780 m
+405 50.83581,7.20750 ±5 | LIVE | Next 06, Left in 30 m, Auelsweg, 770 m | 648 m north-west to 06 | guided Left in 30 m · 770 m
+406 50.83590,7.20754 ±5 | LIVE | Next 06, Left in 20 m, Auelsweg, 760 m | 648 m north-west to 06 | guided Left in 20 m · 760 m
+407 50.83599,7.20757 ±5 | LIVE | Next 06, Left in 10 m, Auelsweg, 750 m | 648 m north-west to 06 | guided Left in 10 m · 750 m
+408 50.83608,7.20760 ±5 | LIVE | Next 06, Left in 550 m, Brückenstraße, 740 m | 648 m north-west to 06 | guided Left in 550 m · 740 m
+409 50.83616,7.20763 ±5 | LIVE | Next 06, Left in 540 m, Brückenstraße, 730 m | 648 m north-west to 06 | guided Left in 540 m · 730 m
+410 50.83625,7.20766 ±5 | LIVE | Next 06, Left in 530 m, Brückenstraße, 720 m | 648 m north-west to 06 | guided Left in 530 m · 720 m
+411 50.83633,7.20758 ±5 | LIVE | Next 06, Left in 520 m, Brückenstraße, 710 m | 648 m north-west to 06 | guided Left in 520 m · 710 m
+412 50.83640,7.20750 ±5 | LIVE | Next 06, Left in 510 m, Brückenstraße, 700 m | 648 m north-west to 06 | guided Left in 510 m · 700 m
+413 50.83643,7.20737 ±5 | LIVE | Next 06, Left in 500 m, Brückenstraße, 690 m | 648 m north-west to 06 | guided Left in 500 m · 690 m
+414 50.83645,7.20723 ±5 | LIVE | Next 06, Left in 490 m, Brückenstraße, 680 m | 648 m north-west to 06 | guided Left in 490 m · 680 m
+415 50.83647,7.20709 ±5 | LIVE | Next 06, Left in 480 m, Brückenstraße, 670 m | 648 m north-west to 06 | guided Left in 480 m · 670 m
+416 50.83649,7.20695 ±5 | LIVE | Next 06, Left in 470 m, Brückenstraße, 660 m | 648 m north-west to 06 | guided Left in 470 m · 660 m
+417 50.83651,7.20682 ±5 | LIVE | Next 06, Left in 460 m, Brückenstraße, 650 m | 544 m north-west to 06 | guided Left in 460 m · 650 m
+418 50.83653,7.20668 ±5 | LIVE | Next 06, Left in 450 m, Brückenstraße, 640 m | 544 m north-west to 06 | guided Left in 450 m · 640 m
+419 50.83655,7.20654 ±5 | LIVE | Next 06, Left in 440 m, Brückenstraße, 630 m | 544 m north-west to 06 | guided Left in 440 m · 630 m
+420 50.83657,7.20640 ±5 | LIVE | Next 06, Left in 430 m, Brückenstraße, 620 m | 544 m north-west to 06 | guided Left in 430 m · 620 m
+421 50.83659,7.20626 ±5 | LIVE | Next 06, Left in 420 m, Brückenstraße, 610 m | 544 m north-west to 06 | guided Left in 420 m · 610 m
+422 50.83662,7.20613 ±5 | LIVE | Next 06, Left in 410 m, Brückenstraße, 600 m | 544 m north-west to 06 | guided Left in 410 m · 600 m
+423 50.83665,7.20599 ±5 | LIVE | Next 06, Left in 400 m, Brückenstraße, 590 m | 544 m north-west to 06 | guided Left in 400 m · 590 m
+424 50.83669,7.20587 ±5 | LIVE | Next 06, Left in 390 m, Brückenstraße, 580 m | 544 m north-west to 06 | guided Left in 390 m · 580 m
+425 50.83675,7.20575 ±5 | LIVE | Next 06, Left in 380 m, Brückenstraße, 570 m | 544 m north-west to 06 | guided Left in 380 m · 570 m
+426 50.83680,7.20564 ±5 | LIVE | Next 06, Left in 370 m, Brückenstraße, 560 m | 544 m north-west to 06 | guided Left in 370 m · 560 m
+427 50.83685,7.20552 ±5 | LIVE | Next 06, Left in 360 m, Brückenstraße, 550 m | 544 m north-west to 06 | guided Left in 360 m · 550 m
+428 50.83690,7.20541 ±5 | LIVE | Next 06, Left in 350 m, Brückenstraße, 540 m | 544 m north-west to 06 | guided Left in 350 m · 540 m
+429 50.83696,7.20529 ±5 | LIVE | Next 06, Left in 340 m, Brückenstraße, 530 m | 444 m north-west to 06 | guided Left in 340 m · 530 m
+430 50.83701,7.20518 ±5 | LIVE | Next 06, Left in 330 m, Brückenstraße, 520 m | 444 m north-west to 06 | guided Left in 330 m · 520 m
+431 50.83708,7.20508 ±5 | LIVE | Next 06, Left in 320 m, Brückenstraße, 510 m | 444 m north-west to 06 | guided Left in 320 m · 510 m
+432 50.83714,7.20497 ±5 | LIVE | Next 06, Left in 310 m, Brückenstraße, 500 m | 444 m north-west to 06 | guided Left in 310 m · 500 m
+433 50.83720,7.20487 ±5 | LIVE | Next 06, Left in 300 m, Brückenstraße, 490 m | 444 m north-west to 06 | guided Left in 300 m · 490 m
+434 50.83726,7.20477 ±5 | LIVE | Next 06, Left in 290 m, Brückenstraße, 480 m | 444 m north-west to 06 | guided Left in 290 m · 480 m
+435 50.83735,7.20472 ±5 | LIVE | Next 06, Left in 280 m, Brückenstraße, 470 m | 444 m north-west to 06 | guided Left in 280 m · 470 m
+436 50.83743,7.20467 ±5 | LIVE | Next 06, Left in 270 m, Brückenstraße, 460 m | 444 m north-west to 06 | guided Left in 270 m · 460 m
+437 50.83752,7.20462 ±5 | LIVE | Next 06, Left in 260 m, Brückenstraße, 450 m | 444 m north-west to 06 | guided Left in 260 m · 450 m
+438 50.83760,7.20460 ±5 | LIVE | Next 06, Left in 250 m, Brückenstraße, 440 m | 444 m north-west to 06 | guided Left in 250 m · 440 m
+439 50.83769,7.20461 ±5 | LIVE | Next 06, Left in 240 m, Brückenstraße, 430 m | 444 m north-west to 06 | guided Left in 240 m · 430 m
+440 50.83778,7.20461 ±5 | LIVE | Next 06, Left in 230 m, Brückenstraße, 420 m | 341 m north-west to 06 | guided Left in 230 m · 420 m
+441 50.83787,7.20462 ±5 | LIVE | Next 06, Left in 220 m, Brückenstraße, 410 m | 341 m north-west to 06 | guided Left in 220 m · 410 m
+442 50.83796,7.20462 ±5 | LIVE | Next 06, Left in 210 m, Brückenstraße, 400 m | 341 m north-west to 06 | guided Left in 210 m · 400 m
+443 50.83805,7.20463 ±5 | LIVE | Next 06, Left in 200 m, Brückenstraße, 390 m | 341 m north-west to 06 | guided Left in 200 m · 390 m
+444 50.83814,7.20463 ±5 | LIVE | Next 06, Left in 190 m, Brückenstraße, 380 m | 341 m north-west to 06 | guided Left in 190 m · 380 m
+445 50.83823,7.20464 ±5 | LIVE | Next 06, Left in 180 m, Brückenstraße, 370 m | 341 m north-west to 06 | guided Left in 180 m · 370 m
+446 50.83832,7.20465 ±5 | LIVE | Next 06, Left in 170 m, Brückenstraße, 360 m | 341 m north-west to 06 | guided Left in 170 m · 360 m
+447 50.83841,7.20465 ±5 | LIVE | Next 06, Left in 160 m, Brückenstraße, 350 m | 341 m north-west to 06 | guided Left in 160 m · 350 m
+448 50.83850,7.20466 ±5 | LIVE | Next 06, Left in 150 m, Brückenstraße, 340 m | 341 m north-west to 06 | guided Left in 150 m · 340 m
+449 50.83859,7.20467 ±5 | LIVE | Next 06, Left in 140 m, Brückenstraße, 330 m | 341 m north-west to 06 | guided Left in 140 m · 330 m
+450 50.83868,7.20467 ±5 | LIVE | Next 06, Left in 130 m, Brückenstraße, 320 m | 341 m north-west to 06 | guided Left in 130 m · 320 m
+451 50.83877,7.20468 ±5 | LIVE | Next 06, Left in 120 m, Brückenstraße, 310 m | 341 m north-west to 06 | guided Left in 120 m · 310 m
+452 50.83886,7.20469 ±5 | LIVE | Next 06, Left in 110 m, Brückenstraße, 300 m | 341 m north-west to 06 | guided Left in 110 m · 300 m
+453 50.83895,7.20469 ±5 | TURN In 100 m, turn left | LIVE | Next 06, Left in 100 m, Brückenstraße, 290 m | 341 m north-west to 06 | guided Left in 100 m · 290 m
+454 50.83904,7.20470 ±5 | LIVE | Next 06, Left in 90 m, Brückenstraße, 280 m | 234 m north-west to 06 | guided Left in 90 m · 280 m
+455 50.83913,7.20470 ±5 | LIVE | Next 06, Left in 80 m, Brückenstraße, 270 m | 234 m north-west to 06 | guided Left in 80 m · 270 m
+456 50.83922,7.20471 ±5 | LIVE | Next 06, Left in 70 m, Brückenstraße, 260 m | 234 m north-west to 06 | guided Left in 70 m · 260 m
+457 50.83931,7.20471 ±5 | LIVE | Next 06, Left in 60 m, Brückenstraße, 250 m | 234 m north-west to 06 | guided Left in 60 m · 250 m
+458 50.83940,7.20472 ±5 | LIVE | Next 06, Left in 50 m, Brückenstraße, 240 m | 234 m north-west to 06 | guided Left in 50 m · 240 m
+459 50.83949,7.20472 ±5 | LIVE | Next 06, Left in 40 m, Brückenstraße, 230 m | 234 m north-west to 06 | guided Left in 40 m · 230 m
+460 50.83958,7.20473 ±5 | LIVE | Next 06, Left in 30 m, Brückenstraße, 220 m | 234 m north-west to 06 | guided Left in 30 m · 220 m
+461 50.83967,7.20473 ±5 | REMINDER 06 ahead, then 02 | LIVE | Next 06, Left in 20 m, Brückenstraße, 210 m | 234 m north-west to 06 | guided Left in 20 m · 210 m
+462 50.83976,7.20474 ±5 | LIVE | Next 06, Left in 10 m, Brückenstraße, 200 m | 234 m north-west to 06 | guided Left in 10 m · 200 m
+463 50.83982,7.20469 ±5 | TURN Now keep right at the fork | LIVE | Next 06, Straight on in 30 m, 190 m | 234 m north-west to 06 | guided Straight on in 30 m · 190 m
+464 50.83983,7.20455 ±5 | LIVE | Next 06, Straight on in 20 m, 180 m | 234 m north-west to 06 | guided Straight on in 20 m · 180 m
+465 50.83984,7.20441 ±5 | LIVE | Next 06, Straight on in 10 m, 170 m | 234 m north-west to 06 | guided Straight on in 10 m · 170 m
+466 50.83985,7.20426 ±5 | LIVE | Next 06, Straight on in 0 m, 160 m | 234 m north-west to 06 | guided Straight on in 0 m · 160 m
+467 50.83987,7.20412 ±5 | LIVE | Next 06, Follow the way, 150 m | 234 m north-west to 06 | guided Follow the way · 150 m
+468 50.83989,7.20399 ±5 | LIVE | Next 06, Follow the way, 140 m | 234 m north-west to 06 | guided Follow the way · 140 m
+469 50.83991,7.20385 ±5 | LIVE | Next 06, Follow the way, 130 m | 129 m north-west to 06 | guided Follow the way · 130 m
+470 50.83995,7.20372 ±5 | LIVE | Next 06, Follow the way, 120 m | 129 m north-west to 06 | guided Follow the way · 120 m
+471 50.83998,7.20358 ±5 | LIVE | At 06 follow 02, 110 m | 110 m to 06
+472 50.84001,7.20345 ±5 | LIVE | At 06 follow 02, 100 m | 100 m to 06
+473 50.84004,7.20332 ±5 | LIVE | At 06 follow 02, 90 m | 90 m to 06
+474 50.84008,7.20319 ±5 | LIVE | At 06 follow 02, 80 m | 80 m to 06
+475 50.84012,7.20306 ±5 | LIVE | At 06 follow 02, 70 m | 70 m to 06
+476 50.84017,7.20294 ±5 | LIVE | At 06 follow 02, 60 m | 60 m to 06
+477 50.84022,7.20282 ±5 | LIVE | At 06 follow 02, 50 m | 50 m to 06
+478 50.84026,7.20270 ±5 | LIVE | At 06 follow 02, 40 m | 40 m to 06
+479 50.84031,7.20257 ±5 | NEXT Next 02, then 28 | LIVE | Next 02, 7.7 km, then 28 | 7.7 km to 02
+480 50.84035,7.20245 ±5 | LIVE | Next 02, 7.7 km, then 28 | 7.7 km to 02
+481 50.84040,7.20233 ±5 | LIVE | Next 02, 7.7 km, then 28 | 7.7 km to 02
+482 50.84045,7.20221 ±5 | LIVE | Next 02, 7.7 km, then 28 | 7.7 km to 02

@@ -97,6 +97,10 @@ class RealRideTest {
       }
   }
 
+  @Test fun `Lohmar-Siegburg to the start from Dreesch`() = assertRide("dreesch-to-06")
+
+  @Test fun `Lohmar-Siegburg on the route nearby from Dreesch`() = assertRide("dreesch-nearby")
+
   @Test fun `Titz 06 to 08 with a detour`() = assertRide("titz-06-08")
 
   @Test fun `Siegburg-Zange through 02`() = assertRide("siegburg-through-02")

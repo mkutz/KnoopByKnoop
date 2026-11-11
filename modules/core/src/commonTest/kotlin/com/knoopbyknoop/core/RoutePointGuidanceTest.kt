@@ -394,12 +394,13 @@ class RoutePointGuidanceTest {
     val first = assertNotNull(started.search)
     guide.found(wayOf(first.from, at(1700.0, 330.0), at(1700.0), at(1500.0)), started.navigation)
 
-    val precise = step(started, fix(1500.0, 300.0, accuracy = 8.0))
+    // 40 m north of the flag, still on the way to the start, which only the flag itself ends.
+    val precise = step(started, fix(1500.0, 340.0, accuracy = 8.0))
 
     val again = assertNotNull(precise.search, "searched again")
-    assertEquals(at(1500.0, 300.0), again.from)
-    guide.found(wayOf(at(1500.0, 300.0), at(1500.0)), started.navigation)
-    assertNull(step(started, fix(1500.0, 290.0, accuracy = 8.0)).search, "only once")
+    assertEquals(at(1500.0, 340.0), again.from)
+    guide.found(wayOf(at(1500.0, 340.0), at(1500.0, 300.0)), started.navigation)
+    assertNull(step(started, fix(1500.0, 330.0, accuracy = 8.0)).search, "only once")
   }
 
   @Test

@@ -116,19 +116,18 @@ class RoutePointNavigationTest {
 
     assertTrue(started.navigation.offRoute)
     assertEquals(home, started.navigation.nextKnot)
-    assertEquals(
-      listOf("Off route, on to the start, 400 m to the north"),
-      started.notices.map { it.text },
-    )
+    assertEquals(listOf("To the start, 400 m to the north"), started.notices.map { it.text })
     assertEquals("Off route, on to the start", started.navigation.display.offRouteText)
   }
 
   @Test
   fun `joining further along`() {
-    val started = start(point(1500.0), knot31, east = 1700.0)
+    // On the route between the start point and 12: the point stays next, as any start.
+    val home = point(1500.0)
+    val started = start(home, knot31, east = 1700.0)
 
-    assertFalse(started.navigation.offRoute)
-    assertEquals(knot12, started.navigation.nextKnot)
+    assertTrue(started.navigation.offRoute)
+    assertEquals(home, started.navigation.nextKnot)
   }
 
   @Test

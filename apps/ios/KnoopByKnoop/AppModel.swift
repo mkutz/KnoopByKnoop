@@ -209,7 +209,51 @@ final class AppModel: ObservableObject {
   var canNavigate: Bool { !navigating && routeDescription is RouteDescriptionComplete }
 
   /// Starts navigating the planned route, asking for location access first.
+  /// Navigate's question whether to ride to the start or start on the route nearby, see
+  /// `knot-navigation` "Start on the route nearby".
+  @Published var startChoice: StartChoice?
+
+  /// Starts navigating the planned route. Away from the start but close to the route, asks first,
+  /// with one position given up after 10 seconds, then navigation starts without asking, see
+  /// `knot-navigation` "Start on the route nearby".
   func startNavigation() {
+    guard let session, let loaded, session.route != nil else { return }
+    positionFinder.find(timeout: .seconds(10)) { [weak self] result in
+      guard let self else { return }
+      var choice: StartChoice?
+      if case .found(let fix) = result {
+        choice = StartChoice.companion.of(
+          session: session, geometry: loaded.hasGeometry ? loaded.geometry : nil,
+          position: GeoPoint(latitude: fix.latitude, longitude: fix.longitude))
+      }
+      if let choice { startChoice = choice } else { navigate() }
+    }
+  }
+
+  /// Rides to the plan's start, see `knot-navigation` "Riding to the start".
+  func rideToStart() {
+    startChoice = nil
+    navigate()
+  }
+
+  /// Starts the plan on the route nearby for good, then navigates, see "Starting nearby".
+  func startNearby(_ choice: StartChoice) {
+    startChoice = nil
+    let nearby = choice.nearby
+    change { $0.startOnRouteAt(nearby: nearby) }
+    let pending = changes
+    Task {
+      await pending?.value
+      navigate()
+    }
+  }
+
+  /// The question dismissed: nothing starts, see "Question dismissed".
+  func dismissStartChoice() {
+    startChoice = nil
+  }
+
+  private func navigate() {
     guard let session, let loaded,
       let knots = (session.route?.summary as? RouteSummaryComplete)?.knots,
       let description = routeDescription as? RouteDescriptionComplete

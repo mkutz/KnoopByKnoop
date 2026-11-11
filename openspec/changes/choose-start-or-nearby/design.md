@@ -65,7 +65,7 @@ The position only arrives with the service's first fix.
    - `start`: at the first waypoint, or among the consecutive knots within 30 m at the start, it begins after the last of them. Otherwise `nextIndex = 0` and the state is "to the start". The leg-on-course start and the nearest-knot start without courses go.
    - The `Joining` state and its constants are removed. While `nextIndex == 0`, the skip-ahead check is skipped.
    - The last 200 m keep counting the first leg's course as the way to the start, as "Distance to the first knot" does today.
-   - "To the start" is the off-route state with `nextIndex == 0`, so the guided way, its search and the guidance notices stay as they are. Only the words change: new `Texts.toStart` / `toStartPoint` replace `offRoute` / `offRoutePoint` there, in EN/DE/NL/FR, for both the notice and the header.
+   - "To the start" is the off-route state with `nextIndex == 0`, so the guided way, its search and the guidance notices stay as they are. Only the words change: new `Texts.toStart` / `toStartPoint` replace `offRoute` / `offRoutePoint` there, in EN/DE/NL/FR, for the notices. The header already shows the way without "Off route" until the rider is first on the route (`joinedRoute`, "Header on the way to the route" in `sign-like-header`), which now is when the start is reached.
    - Reaching the start gives the pass notice of the first knot instead of `backOnRoute`.
    - Wrong-way watching starts only once the first waypoint is passed.
 
@@ -76,7 +76,6 @@ The position only arrives with the service's first fix.
    - `RealRideTest` gets two rides on `real-areas/lohmar-siegburg`:
      - `dreesch-to-06`, already scripted: B, with 06 next all the way.
      - `dreesch-nearby`: the plan cut by `startOnRouteAt` and ridden from Dreesch to the point and on to 02.
-   - The area check reads each area's data date from `NOTICE` instead of one fixed date.
 
 ## Risks / Trade-offs
 

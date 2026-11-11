@@ -240,27 +240,14 @@ class NavigationReplayTest {
   }
 
   @Test
-  fun `starting away from the route and joining a leg`() {
-    // As on the ride of 2026-11-08: reaching the course between 45 and 12 and following it.
+  fun `starting away from the route and following a leg`() {
+    // As on the ride of 2026-11-08: reaching the course between 45 and 12 and following it, which
+    // does not join the route: the way leads to the start, see "Start navigation".
     assertRide(
-      "joining-a-leg",
+      "following-a-leg",
       start(east = 1500.0, north = -250.0)
         .along(1500.0 to -250.0, 1500.0 to 0.0)
         .east(1500.0, 2100.0),
-    )
-  }
-
-  @Test
-  fun `starting away from the route and leaving the course again`() {
-    // On a course for a moment, then away: not joined; then onto another leg.
-    assertRide(
-      "touching-a-leg",
-      start(east = 1500.0, north = -250.0)
-        .along(1500.0 to -250.0, 1500.0 to 0.0)
-        .along(1500.0 to 0.0, 1500.0 to -200.0)
-        .along(1500.0 to -200.0, 2600.0 to -200.0)
-        .along(2600.0 to -200.0, 2600.0 to 0.0)
-        .east(2600.0, 2800.0),
     )
   }
 
@@ -287,9 +274,12 @@ class NavigationReplayTest {
   }
 
   @Test
-  fun `starting at a knot in the middle and between knots`() {
-    assertRide("start-in-the-middle", start(east = 2000.0).east(2000.0, 2300.0))
-    assertRide("start-between", start(east = 1500.0, north = 20.0).east(1500.0, 2100.0))
+  fun `starting at a knot in the middle`() {
+    // Started on the route nearby at 12: the plan starts there, see `StartChoiceTest`.
+    assertRide(
+      "start-in-the-middle",
+      start(east = 2000.0, knots = route.drop(2)).east(2000.0, 2300.0),
+    )
   }
 
   @Test
@@ -399,19 +389,6 @@ class NavigationReplayTest {
         geometry = NetworkGeometry.straightLines(closeGraph),
       )
     assertRide("close-knots", ride.east(0.0, 1300.0))
-  }
-
-  @Test
-  fun `joining one leg and then the next`() {
-    // On 45-12 short of 12, then a minute later on 12-31: joining starts anew on the other leg.
-    assertRide(
-      "joining-another-leg",
-      start(east = 1960.0, north = -250.0)
-        .along(1960.0 to -250.0, 1960.0 to -20.0)
-        .at(2045.0, -20.0, seconds = 40)
-        .along(2045.0 to -20.0, 2300.0 to -20.0)
-        .east(2300.0, 2500.0),
-    )
   }
 
   @Test

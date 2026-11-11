@@ -120,4 +120,9 @@
   <string name="path_data_loading">Paden voor deze route worden geladen…</string>
   <string name="path_data_ready">Paden voor deze route zijn geladen</string>
   <string name="path_data_unavailable">Paden voor deze route konden niet worden geladen</string>
+  <string name="start_choice_title">Waar wil je beginnen?</string>
+  <string name="start_choice_text">Je bent dichter bij de route dan bij het begin ervan.</string>
+  <string name="start_nearby">Op de route in de buurt beginnen · %1$s</string>
+  <string name="ride_to_start">Naar %1$s rijden · %2$s</string>
+  <string name="ride_to_start_point">Naar de start rijden · %1$s</string>
 </resources>

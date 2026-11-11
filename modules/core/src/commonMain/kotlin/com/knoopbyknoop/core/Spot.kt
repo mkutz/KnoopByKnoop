@@ -46,6 +46,10 @@ internal fun Texts.ahead(next: Spot, after: Spot?): String =
 internal fun Texts.offRoute(next: Spot, way: String): String =
   next.role?.let { offRoutePoint(it, way) } ?: offRoute(next.ref, way)
 
+/** On the way to the start of the route, see `knot-navigation` "Start navigation". */
+internal fun Texts.toStart(start: Spot, way: String): String =
+  if (start.role != null) toStartPoint(way) else toStart(start.ref, way)
+
 internal fun Texts.guidance(next: Spot, way: String): String =
   next.role?.let { guidancePoint(it, way) } ?: guidance(next.ref, way)
 

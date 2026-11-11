@@ -23,7 +23,7 @@ Both wishes are valid: riding the route in full from its start, or getting onto 
   - **BREAKING** for the spec: "Joining the course on the way to the start" is removed.
   - Also removed: skipping ahead before the start, and the route point scenario "Joining further along".
 - **Starting on the course or at a knot of the route past the start is asked too.** It no longer silently starts there.
-- **The way to the start is told as "To the start", not "Off route".** For example: "To the start, 06, 4.4 km to the north".
+- **The way to the start is told as "To the start", not "Off route", in the notices.** The header keeps its neutral way-to-the-route look from `sign-like-header`. For example: "To the start, 06, 4.4 km to the north".
   - Reaching the start is told as passing a knot, not as "Back on route".
   - The last 200 m keep the first leg's course as the way to the start, as today.
 - **Without courses**, the question compares the start with the nearest knot of the route before the first stop, which then becomes the start.
@@ -44,7 +44,7 @@ None.
 ### Modified Capabilities
 
 - `knot-navigation`:
-  - Modified: "Start navigation", "Skipping ahead", "Number to follow" (wording on the way to the start) and "Navigating with route points".
+  - Modified: "Start navigation", "Skipping ahead", "Navigating with route points", "Guided way back to the route" (skipping ahead only on a way back mid-ride) and "Leg ahead on the map" (a stretch used twice, now through starting nearby).
   - New: "Start on the route nearby".
   - Removed: "Joining the course on the way to the start".
 
@@ -57,5 +57,5 @@ None.
   - Tests: `NavigationTest`, `RealRideTest` (new area and two rides) and a test for the start choice.
 - **`apps/android`:** `AppViewModel.startNavigation` gets one position first, asks with a dialog when the core says so, and saves the changed plan. New strings in four languages.
 - **`apps/ios`:** `AppModel.startNavigation` does the same, with a confirmation dialog.
-- **Test data:** `real-areas/lohmar-siegburg`, cut from the published data of 2026-11-11, so the area check in `RealRideTest` accepts each area's own date.
+- **Test data:** `real-areas/lohmar-siegburg`, cut from the published data (paths of 2026-11-08, like the other areas).
 - No pipeline or data format changes.

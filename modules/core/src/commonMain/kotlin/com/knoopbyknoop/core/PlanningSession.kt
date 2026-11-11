@@ -87,6 +87,17 @@ private constructor(
   fun startAt(point: Knot): PlanningSession = planned(listOf(point) + waypoints)
 
   /**
+   * Starts the plan at [nearby], a knot of the route or a route point on its course before the
+   * first stop, instead of at its start: the waypoints before the first stop go, the stops and the
+   * end stay, see `knot-navigation` "Start on the route nearby".
+   */
+  fun startOnRouteAt(nearby: Knot): PlanningSession {
+    require(waypoints.size >= 2) { "Starting nearby needs a route" }
+    val rest = waypoints.drop(1)
+    return planned(if (rest.first() == nearby) rest else listOf(nearby) + rest)
+  }
+
+  /**
    * Makes [point] the new end; an earlier end becomes a stop, also the start of a round trip.
    * Without any waypoint, the point waits as the end until a start is chosen.
    */

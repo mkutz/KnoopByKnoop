@@ -1,0 +1,245 @@
+0 50.80134,7.21105 ±5 | OFF_ROUTE To the start, 145 m to the south-west | LIVE | way 226 m, turns RIGHT at 65 m, LEFT at 153 m, SLIGHT_LEFT at 217 m | On to the start, Right in 60 m, Kronprinzenstraße, 230 m | 145 m south-west to the start | guided Right in 60 m · 230 m
+1 50.80125,7.21107 ±5 | TURN In 50 m, turn right | LIVE | On to the start, Right in 50 m, Kronprinzenstraße, 220 m | 145 m south-west to the start | guided Right in 50 m · 220 m
+2 50.80116,7.21111 ±5 | LIVE | On to the start, Right in 40 m, Kronprinzenstraße, 210 m | 145 m south-west to the start | guided Right in 40 m · 210 m
+3 50.80108,7.21114 ±5 | LIVE | On to the start, Right in 30 m, Kronprinzenstraße, 200 m | 145 m south-west to the start | guided Right in 30 m · 200 m
+4 50.80099,7.21118 ±5 | LIVE | On to the start, Right in 20 m, Kronprinzenstraße, 190 m | 145 m south-west to the start | guided Right in 20 m · 190 m
+5 50.80090,7.21121 ±5 | LIVE | On to the start, Right in 10 m, Kronprinzenstraße, 170 m | 145 m south-west to the start | guided Right in 10 m · 170 m
+6 50.80081,7.21125 ±5 | LIVE | On to the start, Right in 0 m, Kronprinzenstraße, 160 m | 145 m south-west to the start | guided Right in 0 m · 160 m
+7 50.80078,7.21116 ±5 | TURN In 80 m, turn left | LIVE | On to the start, Left in 80 m, Cecilienstraße, 150 m | 145 m south-west to the start | guided Left in 80 m · 150 m
+8 50.80077,7.21101 ±5 | LIVE | On to the start, Left in 70 m, Cecilienstraße, 140 m | 145 m south-west to the start | guided Left in 70 m · 140 m
+9 50.80077,7.21086 ±5 | LIVE | On to the start, Left in 60 m, Cecilienstraße, 130 m | 145 m south-west to the start | guided Left in 60 m · 130 m
+10 50.80076,7.21072 ±5 | LIVE | On to the start, Left in 50 m, Cecilienstraße, 120 m | 145 m south-west to the start | guided Left in 50 m · 120 m
+11 50.80076,7.21057 ±5 | LIVE | On to the start, Left in 40 m, Cecilienstraße, 110 m | 145 m south-west to the start | guided Left in 40 m · 110 m
+12 50.80075,7.21042 ±5 | LIVE | On to the start, Left in 30 m, Cecilienstraße, 100 m | 145 m south-west to the start | guided Left in 30 m · 100 m
+13 50.80075,7.21028 ±5 | LIVE | On to the start, Left in 20 m, Cecilienstraße, 90 m | 145 m south-west to the start | guided Left in 20 m · 90 m
+14 50.80074,7.21013 ±5 | LIVE | On to the start, Left in 10 m, Cecilienstraße, 80 m | 145 m south-west to the start | guided Left in 10 m · 80 m
+15 50.80072,7.21001 ±5 | TURN In 60 m, take the cycle path on the left | LIVE | On to the start, Slight left in 60 m, 70 m | 145 m south-west to the start | guided Slight left in 60 m · 70 m
+16 50.80063,7.21003 ±5 | LIVE | On to the start, Slight left in 50 m, 60 m | 145 m south-west to the start | guided Slight left in 50 m · 60 m
+17 50.80054,7.21005 ±5 | LIVE | On to the start, Slight left in 40 m, 50 m | 145 m south-west to the start | guided Slight left in 40 m · 50 m
+18 50.80045,7.21007 ±5 | LIVE | On to the start, Slight left in 30 m, 40 m | 37 m south to the start | guided Slight left in 30 m · 40 m
+19 50.80036,7.21009 ±5 | NEXT Next 02, then 28 | LIVE | Next 02, 2.2 km, then 28 | 2.2 km to 02
+20 50.80027,7.21011 ±5 | LIVE | Next 02, 2.2 km, then 28 | 2.2 km to 02
+21 50.80017,7.21013 ±5 | LIVE | Next 02, 2.2 km, then 28 | 2.2 km to 02
+22 50.80013,7.21025 ±5 | LIVE | Next 02, 2.2 km, then 28 | 2.2 km to 02
+23 50.80010,7.21039 ±5 | LIVE | Next 02, 2.2 km, then 28 | 2.2 km to 02
+24 50.80007,7.21052 ±5 | LIVE | Next 02, 2.2 km, then 28 | 2.2 km to 02
+25 50.80003,7.21065 ±5 | LIVE | Next 02, 2.2 km, then 28 | 2.2 km to 02
+26 50.80000,7.21078 ±5 | LIVE | Next 02, 2.2 km, then 28 | 2.2 km to 02
+27 50.79996,7.21091 ±5 | LIVE | Next 02, 2.2 km, then 28 | 2.2 km to 02
+28 50.79993,7.21104 ±5 | LIVE | Next 02, 2.2 km, then 28 | 2.2 km to 02
+29 50.79989,7.21118 ±5 | LIVE | Next 02, 2.2 km, then 28 | 2.2 km to 02
+30 50.79986,7.21131 ±5 | LIVE | Next 02, 2.1 km, then 28 | 2.2 km to 02
+31 50.79982,7.21144 ±5 | LIVE | Next 02, 2.1 km, then 28 | 2.2 km to 02
+32 50.79979,7.21157 ±5 | LIVE | Next 02, 2.1 km, then 28 | 2.2 km to 02
+33 50.79972,7.21167 ±5 | LIVE | Next 02, 2.1 km, then 28 | 2.2 km to 02
+34 50.79966,7.21177 ±5 | LIVE | Next 02, 2.1 km, then 28 | 2.1 km to 02
+35 50.79961,7.21187 ±5 | LIVE | Next 02, 2.1 km, then 28 | 2.1 km to 02
+36 50.79962,7.21201 ±5 | LIVE | Next 02, 2.1 km, then 28 | 2.1 km to 02
+37 50.79956,7.21211 ±5 | LIVE | Next 02, 2.1 km, then 28 | 2.1 km to 02
+38 50.79949,7.21221 ±5 | LIVE | Next 02, 2.1 km, then 28 | 2.1 km to 02
+39 50.79942,7.21230 ±5 | LIVE | Next 02, 2.1 km, then 28 | 2.1 km to 02
+40 50.79936,7.21240 ±5 | LIVE | Next 02, 2.1 km, then 28 | 2.1 km to 02
+41 50.79929,7.21250 ±5 | LIVE | Next 02, 2.0 km, then 28 | 2.1 km to 02
+42 50.79922,7.21259 ±5 | LIVE | Next 02, 2.0 km, then 28 | 2.1 km to 02
+43 50.79914,7.21265 ±5 | LIVE | Next 02, 2.0 km, then 28 | 2.1 km to 02
+44 50.79906,7.21271 ±5 | LIVE | Next 02, 2.0 km, then 28 | 2.1 km to 02
+45 50.79898,7.21277 ±5 | LIVE | Next 02, 2.0 km, then 28 | 2.1 km to 02
+46 50.79890,7.21282 ±5 | LIVE | Next 02, 2.0 km, then 28 | 2.0 km to 02
+47 50.79881,7.21288 ±5 | LIVE | Next 02, 2.0 km, then 28 | 2.0 km to 02
+48 50.79873,7.21294 ±5 | LIVE | Next 02, 2.0 km, then 28 | 2.0 km to 02
+49 50.79864,7.21298 ±5 | LIVE | Next 02, 2.0 km, then 28 | 2.0 km to 02
+50 50.79856,7.21301 ±5 | LIVE | Next 02, 2.0 km, then 28 | 2.0 km to 02
+51 50.79847,7.21304 ±5 | LIVE | Next 02, 2.0 km, then 28 | 2.0 km to 02
+52 50.79838,7.21307 ±5 | LIVE | Next 02, 1.9 km, then 28 | 2.0 km to 02
+53 50.79829,7.21310 ±5 | LIVE | Next 02, 1.9 km, then 28 | 2.0 km to 02
+54 50.79820,7.21313 ±5 | LIVE | Next 02, 1.9 km, then 28 | 2.0 km to 02
+55 50.79812,7.21316 ±5 | LIVE | Next 02, 1.9 km, then 28 | 2.0 km to 02
+56 50.79803,7.21319 ±5 | LIVE | Next 02, 1.9 km, then 28 | 2.0 km to 02
+57 50.79794,7.21322 ±5 | LIVE | Next 02, 1.9 km, then 28 | 2.0 km to 02
+58 50.79785,7.21325 ±5 | LIVE | Next 02, 1.9 km, then 28 | 1.9 km to 02
+59 50.79776,7.21328 ±5 | LIVE | Next 02, 1.9 km, then 28 | 1.9 km to 02
+60 50.79768,7.21331 ±5 | LIVE | Next 02, 1.9 km, then 28 | 1.9 km to 02
+61 50.79759,7.21334 ±5 | LIVE | Next 02, 1.9 km, then 28 | 1.9 km to 02
+62 50.79750,7.21337 ±5 | LIVE | Next 02, 1.9 km, then 28 | 1.9 km to 02
+63 50.79741,7.21334 ±5 | LIVE | Next 02, 1.8 km, then 28 | 1.9 km to 02
+64 50.79732,7.21331 ±5 | LIVE | Next 02, 1.8 km, then 28 | 1.9 km to 02
+65 50.79723,7.21328 ±5 | LIVE | Next 02, 1.8 km, then 28 | 1.9 km to 02
+66 50.79715,7.21326 ±5 | LIVE | Next 02, 1.8 km, then 28 | 1.9 km to 02
+67 50.79706,7.21328 ±5 | LIVE | Next 02, 1.8 km, then 28 | 1.9 km to 02
+68 50.79697,7.21330 ±5 | LIVE | Next 02, 1.8 km, then 28 | 1.9 km to 02
+69 50.79688,7.21332 ±5 | LIVE | Next 02, 1.8 km, then 28 | 1.9 km to 02
+70 50.79679,7.21334 ±5 | LIVE | Next 02, 1.8 km, then 28 | 1.8 km to 02
+71 50.79670,7.21336 ±5 | LIVE | Next 02, 1.8 km, then 28 | 1.8 km to 02
+72 50.79661,7.21338 ±5 | LIVE | Next 02, 1.8 km, then 28 | 1.8 km to 02
+73 50.79652,7.21340 ±5 | LIVE | Next 02, 1.8 km, then 28 | 1.8 km to 02
+74 50.79643,7.21342 ±5 | LIVE | Next 02, 1.7 km, then 28 | 1.8 km to 02
+75 50.79634,7.21344 ±5 | LIVE | Next 02, 1.7 km, then 28 | 1.8 km to 02
+76 50.79625,7.21346 ±5 | LIVE | Next 02, 1.7 km, then 28 | 1.8 km to 02
+77 50.79616,7.21348 ±5 | LIVE | Next 02, 1.7 km, then 28 | 1.8 km to 02
+78 50.79607,7.21350 ±5 | LIVE | Next 02, 1.7 km, then 28 | 1.8 km to 02
+79 50.79599,7.21349 ±5 | LIVE | Next 02, 1.7 km, then 28 | 1.8 km to 02
+80 50.79590,7.21347 ±5 | LIVE | Next 02, 1.7 km, then 28 | 1.8 km to 02
+81 50.79581,7.21345 ±5 | LIVE | Next 02, 1.7 km, then 28 | 1.8 km to 02
+82 50.79572,7.21344 ±5 | LIVE | Next 02, 1.7 km, then 28 | 1.7 km to 02
+83 50.79563,7.21340 ±5 | LIVE | Next 02, 1.7 km, then 28 | 1.7 km to 02
+84 50.79555,7.21334 ±5 | LIVE | Next 02, 1.7 km, then 28 | 1.7 km to 02
+85 50.79547,7.21328 ±5 | LIVE | Next 02, 1.6 km, then 28 | 1.7 km to 02
+86 50.79538,7.21322 ±5 | LIVE | Next 02, 1.6 km, then 28 | 1.7 km to 02
+87 50.79530,7.21317 ±5 | LIVE | Next 02, 1.6 km, then 28 | 1.7 km to 02
+88 50.79522,7.21311 ±5 | LIVE | Next 02, 1.6 km, then 28 | 1.7 km to 02
+89 50.79514,7.21305 ±5 | LIVE | Next 02, 1.6 km, then 28 | 1.7 km to 02
+90 50.79506,7.21299 ±5 | LIVE | Next 02, 1.6 km, then 28 | 1.7 km to 02
+91 50.79498,7.21292 ±5 | LIVE | Next 02, 1.6 km, then 28 | 1.7 km to 02
+92 50.79491,7.21283 ±5 | LIVE | Next 02, 1.6 km, then 28 | 1.7 km to 02
+93 50.79484,7.21273 ±5 | LIVE | Next 02, 1.6 km, then 28 | 1.7 km to 02
+94 50.79477,7.21264 ±5 | LIVE | Next 02, 1.6 km, then 28 | 1.6 km to 02
+95 50.79470,7.21255 ±5 | LIVE | Next 02, 1.6 km, then 28 | 1.6 km to 02
+96 50.79464,7.21245 ±5 | LIVE | Next 02, 1.5 km, then 28 | 1.6 km to 02
+97 50.79457,7.21236 ±5 | LIVE | Next 02, 1.5 km, then 28 | 1.6 km to 02
+98 50.79450,7.21227 ±5 | LIVE | Next 02, 1.5 km, then 28 | 1.6 km to 02
+99 50.79443,7.21218 ±5 | LIVE | Next 02, 1.5 km, then 28 | 1.6 km to 02
+100 50.79436,7.21208 ±5 | LIVE | Next 02, 1.5 km, then 28 | 1.6 km to 02
+101 50.79430,7.21199 ±5 | LIVE | Next 02, 1.5 km, then 28 | 1.6 km to 02
+102 50.79423,7.21190 ±5 | LIVE | Next 02, 1.5 km, then 28 | 1.6 km to 02
+103 50.79416,7.21180 ±5 | LIVE | Next 02, 1.5 km, then 28 | 1.6 km to 02
+104 50.79409,7.21171 ±5 | LIVE | Next 02, 1.5 km, then 28 | 1.6 km to 02
+105 50.79402,7.21162 ±5 | LIVE | Next 02, 1.5 km, then 28 | 1.6 km to 02
+106 50.79395,7.21152 ±5 | LIVE | Next 02, 1.5 km, then 28 | 1.5 km to 02
+107 50.79390,7.21142 ±5 | LIVE | Next 02, 1.4 km, then 28 | 1.5 km to 02
+108 50.79392,7.21129 ±5 | LIVE | Next 02, 1.4 km, then 28 | 1.5 km to 02
+109 50.79386,7.21117 ±5 | LIVE | Next 02, 1.4 km, then 28 | 1.5 km to 02
+110 50.79381,7.21106 ±5 | LIVE | Next 02, 1.4 km, then 28 | 1.5 km to 02
+111 50.79376,7.21094 ±5 | LIVE | Next 02, 1.4 km, then 28 | 1.5 km to 02
+112 50.79374,7.21080 ±5 | LIVE | Next 02, 1.4 km, then 28 | 1.5 km to 02
+113 50.79371,7.21066 ±5 | LIVE | Next 02, 1.4 km, then 28 | 1.5 km to 02
+114 50.79369,7.21053 ±5 | LIVE | Next 02, 1.4 km, then 28 | 1.5 km to 02
+115 50.79367,7.21039 ±5 | LIVE | Next 02, 1.4 km, then 28 | 1.5 km to 02
+116 50.79365,7.21025 ±5 | LIVE | Next 02, 1.4 km, then 28 | 1.5 km to 02
+117 50.79363,7.21011 ±5 | LIVE | Next 02, 1.4 km, then 28 | 1.5 km to 02
+118 50.79363,7.20997 ±5 | LIVE | Next 02, 1.3 km, then 28 | 1.3 km to 02
+119 50.79363,7.20983 ±5 | LIVE | Next 02, 1.3 km, then 28 | 1.3 km to 02
+120 50.79363,7.20968 ±5 | LIVE | Next 02, 1.3 km, then 28 | 1.3 km to 02
+121 50.79364,7.20954 ±5 | LIVE | Next 02, 1.3 km, then 28 | 1.3 km to 02
+122 50.79367,7.20941 ±5 | LIVE | Next 02, 1.3 km, then 28 | 1.3 km to 02
+123 50.79369,7.20927 ±5 | LIVE | Next 02, 1.3 km, then 28 | 1.3 km to 02
+124 50.79371,7.20913 ±5 | LIVE | Next 02, 1.3 km, then 28 | 1.3 km to 02
+125 50.79374,7.20899 ±5 | LIVE | Next 02, 1.3 km, then 28 | 1.3 km to 02
+126 50.79376,7.20886 ±5 | LIVE | Next 02, 1.3 km, then 28 | 1.3 km to 02
+127 50.79377,7.20873 ±5 | LIVE | Next 02, 1.3 km, then 28 | 1.3 km to 02
+128 50.79369,7.20868 ±5 | LIVE | Next 02, 1.3 km, then 28 | 1.3 km to 02
+129 50.79361,7.20863 ±5 | LIVE | Next 02, 1.2 km, then 28 | 1.3 km to 02
+130 50.79363,7.20852 ±5 | LIVE | Next 02, 1.2 km, then 28 | 1.2 km to 02
+131 50.79367,7.20839 ±5 | LIVE | Next 02, 1.2 km, then 28 | 1.2 km to 02
+132 50.79371,7.20827 ±5 | LIVE | Next 02, 1.2 km, then 28 | 1.2 km to 02
+133 50.79375,7.20814 ±5 | LIVE | Next 02, 1.2 km, then 28 | 1.2 km to 02
+134 50.79380,7.20802 ±5 | LIVE | Next 02, 1.2 km, then 28 | 1.2 km to 02
+135 50.79384,7.20789 ±5 | LIVE | Next 02, 1.2 km, then 28 | 1.2 km to 02
+136 50.79388,7.20777 ±5 | LIVE | Next 02, 1.2 km, then 28 | 1.2 km to 02
+137 50.79393,7.20764 ±5 | LIVE | Next 02, 1.2 km, then 28 | 1.2 km to 02
+138 50.79397,7.20752 ±5 | LIVE | Next 02, 1.2 km, then 28 | 1.2 km to 02
+139 50.79401,7.20739 ±5 | LIVE | Next 02, 1.2 km, then 28 | 1.2 km to 02
+140 50.79406,7.20726 ±5 | LIVE | Next 02, 1.1 km, then 28 | 1.2 km to 02
+141 50.79409,7.20714 ±5 | LIVE | Next 02, 1.1 km, then 28 | 1.2 km to 02
+142 50.79405,7.20701 ±5 | LIVE | Next 02, 1.1 km, then 28 | 1.1 km to 02
+143 50.79401,7.20688 ±5 | LIVE | Next 02, 1.1 km, then 28 | 1.1 km to 02
+144 50.79399,7.20675 ±5 | LIVE | Next 02, 1.1 km, then 28 | 1.1 km to 02
+145 50.79398,7.20660 ±5 | LIVE | Next 02, 1.1 km, then 28 | 1.1 km to 02
+146 50.79398,7.20646 ±5 | LIVE | Next 02, 1.1 km, then 28 | 1.1 km to 02
+147 50.79397,7.20632 ±5 | LIVE | Next 02, 1.1 km, then 28 | 1.1 km to 02
+148 50.79392,7.20625 ±5 | LIVE | Next 02, 1.1 km, then 28 | 1.1 km to 02
+149 50.79383,7.20626 ±5 | LIVE | Next 02, 1.1 km, then 28 | 1.1 km to 02
+150 50.79374,7.20626 ±5 | LIVE | Next 02, 1.1 km, then 28 | 1.1 km to 02
+151 50.79365,7.20627 ±5 | LIVE | Next 02, 1.0 km, then 28 | 1.1 km to 02
+152 50.79356,7.20628 ±5 | LIVE | Next 02, 1.0 km, then 28 | 1.1 km to 02
+153 50.79347,7.20628 ±5 | LIVE | Next 02, 1.0 km, then 28 | 1.1 km to 02
+154 50.79338,7.20629 ±5 | LIVE | Next 02, 1.0 km, then 28 | 1.0 km to 02
+155 50.79329,7.20629 ±5 | LIVE | Next 02, 1.0 km, then 28 | 1.0 km to 02
+156 50.79323,7.20619 ±5 | LIVE | Next 02, 999 m, then 28 | 1.0 km to 02
+157 50.79316,7.20609 ±5 | LIVE | Next 02, 989 m, then 28 | 1.0 km to 02
+158 50.79310,7.20600 ±5 | LIVE | Next 02, 980 m, then 28 | 1.0 km to 02
+159 50.79303,7.20590 ±5 | LIVE | Next 02, 971 m, then 28 | 1.0 km to 02
+160 50.79297,7.20596 ±5 | LIVE | Next 02, 962 m, then 28 | 1.0 km to 02
+161 50.79291,7.20606 ±5 | LIVE | Next 02, 953 m, then 28 | 1.0 km to 02
+162 50.79285,7.20616 ±5 | LIVE | Next 02, 944 m, then 28 | 1.0 km to 02
+163 50.79277,7.20623 ±5 | LIVE | Next 02, 935 m, then 28 | 1.0 km to 02
+164 50.79269,7.20630 ±5 | LIVE | Next 02, 926 m, then 28 | 1.0 km to 02
+165 50.79261,7.20636 ±5 | LIVE | Next 02, 917 m, then 28 | 1.0 km to 02
+166 50.79253,7.20643 ±5 | LIVE | Next 02, 908 m, then 28 | 908 m to 02
+167 50.79244,7.20645 ±5 | LIVE | Next 02, 899 m, then 28 | 908 m to 02
+168 50.79236,7.20642 ±5 | LIVE | Next 02, 890 m, then 28 | 908 m to 02
+169 50.79227,7.20640 ±5 | LIVE | Next 02, 881 m, then 28 | 908 m to 02
+170 50.79218,7.20637 ±5 | LIVE | Next 02, 872 m, then 28 | 908 m to 02
+171 50.79209,7.20635 ±5 | LIVE | Next 02, 862 m, then 28 | 908 m to 02
+172 50.79201,7.20631 ±5 | LIVE | Next 02, 853 m, then 28 | 908 m to 02
+173 50.79195,7.20620 ±5 | LIVE | Next 02, 844 m, then 28 | 908 m to 02
+174 50.79189,7.20609 ±5 | LIVE | Next 02, 835 m, then 28 | 908 m to 02
+175 50.79184,7.20597 ±5 | LIVE | Next 02, 826 m, then 28 | 908 m to 02
+176 50.79178,7.20586 ±5 | LIVE | Next 02, 817 m, then 28 | 908 m to 02
+177 50.79172,7.20575 ±5 | LIVE | Next 02, 808 m, then 28 | 908 m to 02
+178 50.79167,7.20564 ±5 | LIVE | Next 02, 799 m, then 28 | 799 m to 02
+179 50.79161,7.20553 ±5 | LIVE | Next 02, 790 m, then 28 | 799 m to 02
+180 50.79156,7.20542 ±5 | LIVE | Next 02, 781 m, then 28 | 799 m to 02
+181 50.79150,7.20530 ±5 | LIVE | Next 02, 772 m, then 28 | 799 m to 02
+182 50.79144,7.20519 ±5 | LIVE | Next 02, 763 m, then 28 | 799 m to 02
+183 50.79136,7.20514 ±5 | LIVE | Next 02, 754 m, then 28 | 799 m to 02
+184 50.79128,7.20511 ±5 | LIVE | Next 02, 745 m, then 28 | 799 m to 02
+185 50.79129,7.20497 ±5 | LIVE | Next 02, 735 m, then 28 | 799 m to 02
+186 50.79128,7.20484 ±5 | LIVE | Next 02, 726 m, then 28 | 799 m to 02
+187 50.79124,7.20472 ±5 | LIVE | Next 02, 717 m, then 28 | 799 m to 02
+188 50.79119,7.20460 ±5 | LIVE | Next 02, 708 m, then 28 | 799 m to 02
+189 50.79114,7.20448 ±5 | LIVE | Next 02, 699 m, then 28 | 799 m to 02
+190 50.79109,7.20436 ±5 | LIVE | Next 02, 690 m, then 28 | 690 m to 02
+191 50.79105,7.20423 ±5 | LIVE | Next 02, 681 m, then 28 | 690 m to 02
+192 50.79102,7.20410 ±5 | LIVE | Next 02, 672 m, then 28 | 690 m to 02
+193 50.79098,7.20397 ±5 | LIVE | Next 02, 663 m, then 28 | 690 m to 02
+194 50.79095,7.20383 ±5 | LIVE | Next 02, 654 m, then 28 | 690 m to 02
+195 50.79092,7.20370 ±5 | LIVE | Next 02, 645 m, then 28 | 690 m to 02
+196 50.79089,7.20357 ±5 | LIVE | Next 02, 636 m, then 28 | 690 m to 02
+197 50.79086,7.20343 ±5 | LIVE | Next 02, 627 m, then 28 | 690 m to 02
+198 50.79082,7.20330 ±5 | LIVE | Next 02, 618 m, then 28 | 690 m to 02
+199 50.79079,7.20317 ±5 | LIVE | Next 02, 608 m, then 28 | 690 m to 02
+200 50.79076,7.20304 ±5 | LIVE | Next 02, 599 m, then 28 | 690 m to 02
+201 50.79073,7.20290 ±5 | LIVE | Next 02, 590 m, then 28 | 690 m to 02
+202 50.79069,7.20277 ±5 | LIVE | Next 02, 581 m, then 28 | 581 m to 02
+203 50.79066,7.20264 ±5 | LIVE | Next 02, 572 m, then 28 | 581 m to 02
+204 50.79063,7.20250 ±5 | LIVE | Next 02, 563 m, then 28 | 581 m to 02
+205 50.79060,7.20237 ±5 | LIVE | Next 02, 554 m, then 28 | 581 m to 02
+206 50.79056,7.20224 ±5 | LIVE | Next 02, 545 m, then 28 | 581 m to 02
+207 50.79053,7.20210 ±5 | LIVE | Next 02, 536 m, then 28 | 581 m to 02
+208 50.79050,7.20197 ±5 | LIVE | Next 02, 527 m, then 28 | 581 m to 02
+209 50.79045,7.20185 ±5 | LIVE | Next 02, 518 m, then 28 | 581 m to 02
+210 50.79039,7.20174 ±5 | LIVE | Next 02, 509 m, then 28 | 581 m to 02
+211 50.79033,7.20164 ±5 | LIVE | Next 02, 500 m, then 28 | 581 m to 02
+212 50.79027,7.20153 ±5 | LIVE | Next 02, 491 m, then 28 | 581 m to 02
+213 50.79022,7.20142 ±5 | REMINDER 02 ahead, then 28 | LIVE | At 02 follow 28 slightly to the left, 482 m | 581 m to 02
+214 50.79016,7.20131 ±5 | LIVE | At 02 follow 28 slightly to the left, 472 m | 472 m to 02
+215 50.79010,7.20120 ±5 | LIVE | At 02 follow 28 slightly to the left, 463 m | 472 m to 02
+216 50.79003,7.20111 ±5 | LIVE | At 02 follow 28 slightly to the left, 454 m | 472 m to 02
+217 50.78996,7.20103 ±5 | LIVE | At 02 follow 28 slightly to the left, 445 m | 472 m to 02
+218 50.78988,7.20096 ±5 | LIVE | At 02 follow 28 slightly to the left, 436 m | 472 m to 02
+219 50.78980,7.20089 ±5 | LIVE | At 02 follow 28 slightly to the left, 427 m | 472 m to 02
+220 50.78972,7.20081 ±5 | LIVE | At 02 follow 28 slightly to the left, 418 m | 472 m to 02
+221 50.78965,7.20074 ±5 | LIVE | At 02 follow 28 slightly to the left, 409 m | 472 m to 02
+222 50.78957,7.20067 ±5 | LIVE | At 02 follow 28 slightly to the left, 400 m | 472 m to 02
+223 50.78949,7.20059 ±5 | LIVE | At 02 follow 28 slightly to the left, 391 m | 472 m to 02
+224 50.78942,7.20052 ±5 | LIVE | At 02 follow 28 slightly to the left, 382 m | 472 m to 02
+225 50.78934,7.20045 ±5 | LIVE | At 02 follow 28 slightly to the left, 373 m | 472 m to 02
+226 50.78926,7.20037 ±5 | LIVE | At 02 follow 28 slightly to the left, 364 m | 364 m to 02
+227 50.78918,7.20030 ±5 | LIVE | At 02 follow 28 slightly to the left, 355 m | 364 m to 02
+228 50.78911,7.20023 ±5 | LIVE | At 02 follow 28 slightly to the left, 345 m | 364 m to 02
+229 50.78903,7.20015 ±5 | LIVE | At 02 follow 28 slightly to the left, 336 m | 364 m to 02
+230 50.78895,7.20007 ±5 | LIVE | At 02 follow 28 slightly to the left, 327 m | 364 m to 02
+231 50.78888,7.19999 ±5 | LIVE | At 02 follow 28 slightly to the left, 318 m | 364 m to 02
+232 50.78894,7.19991 ±5 | LIVE | At 02 follow 28 slightly to the left, 309 m | 364 m to 02
+233 50.78901,7.19983 ±5 | LIVE | At 02 follow 28 slightly to the left, 300 m | 364 m to 02
+234 50.78909,7.19974 ±5 | LIVE | At 02 follow 28 slightly to the left, 291 m | 364 m to 02
+235 50.78916,7.19966 ±5 | LIVE | At 02 follow 28 slightly to the left, 282 m | 364 m to 02
+236 50.78923,7.19957 ±5 | LIVE | At 02 follow 28 slightly to the left, 273 m | 364 m to 02
+237 50.78928,7.19946 ±5 | LIVE | At 02 follow 28 slightly to the left, 264 m | 364 m to 02
+238 50.78933,7.19933 ±5 | LIVE | At 02 follow 28 slightly to the left, 255 m | 255 m to 02
+239 50.78937,7.19921 ±5 | LIVE | At 02 follow 28 slightly to the left, 246 m | 255 m to 02
+240 50.78942,7.19909 ±5 | LIVE | At 02 follow 28 slightly to the left, 237 m | 255 m to 02
+241 50.78946,7.19896 ±5 | NEXT Next 28 | LIVE | 28 is the end, 2.6 km | 2.8 km to the end
+242 50.78951,7.19884 ±5 | LIVE | 28 is the end, 2.6 km | 2.6 km to the end
+243 50.78958,7.19879 ±5 | LIVE | 28 is the end, 2.6 km | 2.6 km to the end
+244 50.78967,7.19877 ±5 | LIVE | 28 is the end, 2.6 km | 2.6 km to the end

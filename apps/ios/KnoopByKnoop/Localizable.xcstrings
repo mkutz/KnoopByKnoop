@@ -2557,6 +2557,116 @@
           }
         }
       }
+    },
+    "Where do you want to start?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wo möchtest du starten?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waar wil je beginnen?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Où voulez-vous partir ?"
+          }
+        }
+      }
+    },
+    "You are closer to the route than to its start.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du bist näher an der Route als an ihrem Start."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je bent dichter bij de route dan bij het begin ervan."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous êtes plus près de l'itinéraire que de son départ."
+          }
+        }
+      }
+    },
+    "Start on the route nearby · %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf der Route in der Nähe starten · %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Op de route in de buurt beginnen · %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partir de l'itinéraire à proximité · %@"
+          }
+        }
+      }
+    },
+    "Ride to the start · %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zum Start fahren · %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naar de start rijden · %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aller au départ · %@"
+          }
+        }
+      }
+    },
+    "Ride to %@ · %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu %1$@ fahren · %2$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naar %1$@ rijden · %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aller à %1$@ · %2$@"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

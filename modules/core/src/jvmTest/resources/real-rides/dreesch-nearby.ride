@@ -1,0 +1,9 @@
+# Lohmar–Siegburg, 06 → 02 → 28, started in Dreesch 250 m from the course of 06 → 02 and started
+# on the route nearby: the plan begins at a start point on the course, the way leads there, and
+# the route goes on to 02 (choose-start-or-nearby, 2026-11-11).
+area lohmar-siegburg
+route 57905417 59469043 1336813155
+nearby 50.80134 7.21105
+start 50.80134 7.21105
+path start
+along 0 1

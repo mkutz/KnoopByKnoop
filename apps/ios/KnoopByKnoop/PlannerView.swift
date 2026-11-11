@@ -205,6 +205,26 @@ struct PlannerView: View {
       }
     }
     .confirmationDialog(
+      "Where do you want to start?",
+      isPresented: Binding(
+        get: { model.startChoice != nil }, set: { if !$0 { model.dismissStartChoice() } }),
+      titleVisibility: .visible, presenting: model.startChoice
+    ) { choice in
+      // See `knot-navigation` "Start on the route nearby".
+      let language = AppLanguage.current
+      let nearby = MapFeatures.shared.formatDistance(meters: choice.nearbyMeters, language: language)
+      let start = MapFeatures.shared.formatDistance(meters: choice.startMeters, language: language)
+      Button("Start on the route nearby · \(nearby)") { model.startNearby(choice) }
+      if choice.start.isRoutePoint {
+        Button("Ride to the start · \(start)") { model.rideToStart() }
+      } else {
+        Button("Ride to \(choice.start.ref) · \(start)") { model.rideToStart() }
+      }
+      Button("Cancel", role: .cancel) { model.dismissStartChoice() }
+    } message: { _ in
+      Text("You are closer to the route than to its start.")
+    }
+    .confirmationDialog(
       pendingNetwork == .hiking ? LocalizedStringKey("Switch to hiking?") : "Switch to cycling?", isPresented: Binding(
         get: { pendingNetwork != nil }, set: { if !$0 { pendingNetwork = nil } }), titleVisibility: .visible
     ) {

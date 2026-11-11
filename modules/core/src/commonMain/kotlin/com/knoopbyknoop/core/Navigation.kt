@@ -187,12 +187,6 @@ class Navigation private constructor(private val setup: RideSetup, private val s
      * "Header on the way to the route"; kept by [with].
      */
     val joinedRoute: Boolean,
-    /**
-     * On the way to the first knot, the leg whose course the rider follows and where along the
-     * route they first were on it, see `knot-navigation` "Joining the course on the way to the
-     * start".
-     */
-    val joining: Joining?,
     /** When the last knot was passed, for "Zoom out after passing a knot". */
     val passedAtMillis: Long?,
     val language: Language,
@@ -327,9 +321,6 @@ class Navigation private constructor(private val setup: RideSetup, private val s
   private val joinedRoute
     get() = state.joinedRoute
 
-  private val joining
-    get() = state.joining
-
   private val passedAtMillis
     get() = state.passedAtMillis
 
@@ -338,9 +329,6 @@ class Navigation private constructor(private val setup: RideSetup, private val s
 
   private val texts = language.texts
   private val speech = speechLanguage.texts
-
-  /** A leg the rider follows on the way to the first knot, from [place] along the route on. */
-  private data class Joining(val leg: Int, val place: Double)
 
   /**
    * What the rider was last told off route: the distance and bearing of the last notice, and the
@@ -696,7 +684,8 @@ class Navigation private constructor(private val setup: RideSetup, private val s
     val courses = newSetup.courses ?: return this
     val fix = lastFix
     val leg = legOnCourse(fix, courses, OFF_COURSE_METERS)
-    val next = if (leg != null && leg + 1 > nextIndex) leg + 1 else nextIndex
+    // On the way to the start nothing moves up, see `knot-navigation` "Start navigation".
+    val next = if (leg != null && leg + 1 > nextIndex && !onTheWayToStart) leg + 1 else nextIndex
     val newRoute = newSetup.route
     val newPlace = newRoute.placeOf(fix, next)
     val newPace = pace.copy(lastOffset = newPlace, lastMillis = fix.timeMillis)
@@ -704,7 +693,7 @@ class Navigation private constructor(private val setup: RideSetup, private val s
       newSetup,
       state.copy(
         nextIndex = next,
-        offRoute = false,
+        offRoute = onTheWayToStart,
         offRouteKnot = null,
         place = newPlace,
         pace = newPace,
@@ -729,7 +718,6 @@ class Navigation private constructor(private val setup: RideSetup, private val s
         linePlace = newPlace,
         guided = null,
         directionWatch = null,
-        joining = null,
         rejoin = null,
       ),
     )
@@ -900,7 +888,7 @@ class Navigation private constructor(private val setup: RideSetup, private val s
       Step(start)
         .then {
           if (passedIndex != null) it.passKnot(passedIndex, fix)
-          else it.joinFirstLeg(fix) ?: it.followCourse(fix)
+          else it.towardsStart(fix) ?: it.followCourse(fix)
         }
         .then { it.remind(fix) }
         .then {
@@ -958,7 +946,9 @@ class Navigation private constructor(private val setup: RideSetup, private val s
       )
     }
     val newNext = index + 1
-    val notice = if (offRoute) backOnRouteNotice(newNext) else nextNotice(newNext)
+    // Reaching the start is told as passing a knot, see `knot-navigation` "Reaching the start".
+    val notice =
+      if (offRoute && !onTheWayToStart) backOnRouteNotice(newNext) else nextNotice(newNext)
     val place = route.offsets[index]
     val pace = paceAt(place, fix)
     val ferries = ferryWatch?.atKnot(index, fix.timeMillis, pace.metersPerSecond)
@@ -978,36 +968,16 @@ class Navigation private constructor(private val setup: RideSetup, private val s
   }
 
   /**
-   * On the way to the first knot, only following a leg's course joins the route; `null` elsewhere,
-   * and close to the first knot, where its course counts as the way there, see "Distance to the
-   * first knot".
+   * On the way to the start, nothing but reaching it joins the route, see `knot-navigation` "Start
+   * navigation": the rider stays on the way there, without notices. `null` elsewhere, and within
+   * [REMINDER_METERS] of the start, where the first leg's course counts as the way there.
    */
-  private fun joinFirstLeg(fix: Fix): Step? {
-    val courses = setup.courses
-    if (
-      nextIndex != 0 ||
-        !offRoute ||
-        courses == null ||
-        distanceTo(fix, headedFor(0)) <= REMINDER_METERS
-    )
-      return null
-    val leg = legOnCourse(fix, courses, ON_COURSE_METERS)
-    val joining = this.joining
-    return when {
-      leg == null -> Step(with { it.copy(joining = null) })
-      joining == null || joining.leg != leg ->
-        Step(with { it.copy(joining = Joining(leg, route.placeOf(fix, leg + 1))) })
-      abs(route.placeOf(fix, leg + 1) - joining.place) < JOIN_ALONG_METERS -> Step(this)
-      else -> {
-        val newNext = leg + 1
-        val place = route.placeOf(fix, newNext)
-        Step(
-          with { it.headingFor(newNext, place, pace, fix).copy(joining = null) },
-          listOf(backOnRouteNotice(newNext)),
-        )
-      }
-    }
-  }
+  private fun towardsStart(fix: Fix): Step? =
+    if (onTheWayToStart && distanceTo(fix, headedFor(0)) > REMINDER_METERS) Step(this) else null
+
+  /** Whether the rider is still on the way to the start of the route, not yet having reached it. */
+  private val onTheWayToStart: Boolean
+    get() = nextIndex == 0 && !joinedRoute
 
   /**
    * Between knots: off route and back by the distance to the course or through a knot not on the
@@ -1021,7 +991,7 @@ class Navigation private constructor(private val setup: RideSetup, private val s
         // A straight line cannot be followed, see `knot-navigation` "A straight line".
         Step(
           with { it.backOnRoute() },
-          if (offRoute) listOf(backOnRouteNotice(nextIndex)) else listOf(),
+          if (offRoute && !onTheWayToStart) listOf(backOnRouteNotice(nextIndex)) else listOf(),
         )
       offRouteKnot != null ->
         Step(
@@ -1043,7 +1013,11 @@ class Navigation private constructor(private val setup: RideSetup, private val s
         offRoute &&
         (state.offRouteKnot == null ||
           distanceToNearestNode(fix, state.offRouteKnot) > OFF_COURSE_METERS) ->
-        Step(with { it.backOnRoute() }, listOf(backOnRouteNotice(nextIndex)))
+        // On the first leg's course close to the start, the reminder of the start follows.
+        Step(
+          with { it.backOnRoute() },
+          if (onTheWayToStart) listOf() else listOf(backOnRouteNotice(nextIndex)),
+        )
       else -> Step(this)
     }
   }
@@ -1177,7 +1151,8 @@ class Navigation private constructor(private val setup: RideSetup, private val s
   private fun passedRouteIndex(fix: Fix): Int? {
     val roundTrip = knots.size > 2 && knots.first().id == knots.last().id
     val entered =
-      (nextIndex..knots.lastIndex).firstOrNull { index ->
+      // On the way to the start, only the start counts, see `knot-navigation` "Skipping ahead".
+      (nextIndex..(if (onTheWayToStart) 0 else knots.lastIndex)).firstOrNull { index ->
         !(roundTrip && index == knots.lastIndex && index != nextIndex) &&
           knots[index].id != passedKnot?.id &&
           entered(fix, knots[index])
@@ -1299,10 +1274,19 @@ class Navigation private constructor(private val setup: RideSetup, private val s
 
   /** E.g. `Off route, next 45, 1.7 km to the north-east`, see `knot-navigation` "Off route". */
   private fun offRouteNotice(index: Int, fix: Fix): Notice {
+    val way = wayTo(fix, headedFor(index), language).text
+    val spokenWay = spokenWay(fix, headedFor(index))
+    // On the way to the start, "To the start", see `knot-navigation` "Start navigation".
+    if (index == 0 && onTheWayToStart)
+      return notice(
+        NoticeKind.OFF_ROUTE,
+        texts.toStart(spotAt(0), way),
+        speech.toStart(spotAt(0).spoken(), spokenWay),
+      )
     return notice(
       NoticeKind.OFF_ROUTE,
-      texts.offRoute(spotAt(index), wayTo(fix, headedFor(index), language).text),
-      speech.offRoute(spotAt(index).spoken(), spokenWay(fix, headedFor(index))),
+      texts.offRoute(spotAt(index), way),
+      speech.offRoute(spotAt(index).spoken(), spokenWay),
     )
   }
 
@@ -1499,9 +1483,6 @@ class Navigation private constructor(private val setup: RideSetup, private val s
     /** At the start, legs this much further than the nearest count as just as near. */
     private const val SAME_LEG_METERS = 10.0
 
-    /** How far a rider follows a leg's course before joining it on the way to the start. */
-    private const val JOIN_ALONG_METERS = 50.0
-
     /**
      * The leg whose course is nearest to [fix] within [maxMeters], or `null`: the earliest of the
      * legs about as near, as on a stretch used both ways a rounding difference must not put the
@@ -1605,23 +1586,14 @@ class Navigation private constructor(private val setup: RideSetup, private val s
     ): NavigationUpdate? {
       if (knots.size < 2) return null
       val setup = setupOf(knots, graph, geometry, stops, localTime)
-      val courses = setup.courses
       val route = setup.route
+      // Only at the start: elsewhere navigation leads there, see `knot-navigation` "Start
+      // navigation"; the app asks first where starting on the route nearby makes sense.
       val startIndex =
-        knots
-          .dropLast(1)
-          .indexOfFirst { distanceToNearestNode(fix, it) <= PASS_RADIUS_METERS }
-          .let { if (it >= 0) lastWithin(knots, it, knots.lastIndex - 1, fix) else it }
-      val legIndex = courses?.let { legOnCourse(fix, it, OFF_COURSE_METERS) }
-      val (nextIndex, offRoute) =
-        when {
-          startIndex >= 0 -> startIndex + 1 to false
-          legIndex != null -> legIndex + 1 to false
-          // Away from the route: to its start, see `knot-navigation` "Start navigation"; without
-          // courses, the app cannot tell the rider is away, so the nearest knot.
-          courses != null -> 0 to true
-          else -> knots.indices.minBy { distanceTo(fix, pointOf(knots[it])) } to false
-        }
+        if (distanceToNearestNode(fix, knots.first()) <= PASS_RADIUS_METERS)
+          lastWithin(knots, 0, knots.lastIndex - 1, fix)
+        else -1
+      val (nextIndex, offRoute) = if (startIndex >= 0) startIndex + 1 to false else 0 to true
       val place = if (startIndex >= 0) route.offsets[startIndex] else route.placeOf(fix, nextIndex)
       val pace = Pace(place, fix.timeMillis, route.assumedMetersPerSecond)
       val ferries = localTime?.let {
@@ -1667,7 +1639,6 @@ class Navigation private constructor(private val setup: RideSetup, private val s
               guided = null,
               directionWatch = null,
               joinedRoute = !offRoute,
-              joining = null,
               passedAtMillis = null,
               language = language,
               speechLanguage = speechLanguage,
@@ -1732,7 +1703,7 @@ private fun wayTo(fix: Fix, point: GeoPoint, language: Language): Guidance {
  * Where the rider reaches [Knot]: its nodes, and for a route point also the end of its way, see
  * `knot-navigation` "A point the way does not reach".
  */
-private val Knot.reachPositions: List<GeoPoint>
+internal val Knot.reachPositions: List<GeoPoint>
   get() = positions + listOfNotNull(routePoint?.wayEnd)
 
 private fun meters(from: GeoPoint, to: GeoPoint): Double =

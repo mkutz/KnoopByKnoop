@@ -120,4 +120,9 @@
   <string name="path_data_loading">Wege für diese Route werden geladen…</string>
   <string name="path_data_ready">Wege für diese Route sind geladen</string>
   <string name="path_data_unavailable">Wege für diese Route konnten nicht geladen werden</string>
+  <string name="start_choice_title">Wo möchtest du starten?</string>
+  <string name="start_choice_text">Du bist näher an der Route als an ihrem Start.</string>
+  <string name="start_nearby">Auf der Route in der Nähe starten · %1$s</string>
+  <string name="ride_to_start">Zu %1$s fahren · %2$s</string>
+  <string name="ride_to_start_point">Zum Start fahren · %1$s</string>
 </resources>

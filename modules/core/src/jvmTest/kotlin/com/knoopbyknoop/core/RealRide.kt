@@ -59,7 +59,8 @@ internal class RideFix(val fix: Fix, val visible: Boolean)
  *   one at `to`
  * - `leg <leg> <from meters> <to meters>`: along the drawn course of leg `leg`, backwards if `from`
  *   is beyond `to`
- * - `path <latitude> <longitude>`: along the way the path router finds to there
+ * - `path <latitude> <longitude>`: along the way the path router finds to there; `path start` to
+ *   the start of the route
  * - `line <latitude> <longitude>`: straight to there
  * - `still <seconds>`: standing still
  * - `coarse <latitude> <longitude> [<accuracy>]`: one fix of [COARSE_ACCURACY] or the accuracy
@@ -67,6 +68,8 @@ internal class RideFix(val fix: Fix, val visible: Boolean)
  * - `noise <meters>`: from here on, fixes scattered by up to that much, from a fixed seed
  * - `screen on|off`: whether the app is on screen, on at the start
  * - `fixes <file>`: the fixes in a file of `<longitude> <latitude>` lines, one second apart
+ * - `nearby <latitude> <longitude>`: the plan started on the route nearby from there, as the apps
+ *   cut it when the rider chooses to, see `knot-navigation` "Start on the route nearby"
  * - `clock <yyyy-mm-dd> <hh:mm>`: the local time at the first fix, for the ferries' operating times
  *   and the arrivals; without it, there are none
  */
@@ -102,7 +105,12 @@ internal class RideScript(
           .filter { it.isNotEmpty() }
           .map { it.split(Regex("\\s+")) }
       val area = RealArea.load(commands.first { it[0] == "area" }[1])
-      val (knots, graph, geometry) = route(area, commands.first { it[0] == "route" }.drop(1))
+      val nearby =
+        commands
+          .firstOrNull { it[0] == "nearby" }
+          ?.let { GeoPoint(it[1].toDouble(), it[2].toDouble()) }
+      val (knots, graph, geometry) =
+        route(area, commands.first { it[0] == "route" }.drop(1), nearby)
       val clock =
         commands
           .firstOrNull { it[0] == "clock" }
@@ -128,8 +136,9 @@ internal class RideScript(
     private fun route(
       area: RealArea,
       entries: List<String>,
+      nearby: GeoPoint? = null,
     ): Triple<List<Knot>, NetworkGraph, NetworkGeometry> {
-      if (entries.none { ',' in it }) {
+      if (entries.none { ',' in it } && nearby == null) {
         return Triple(entries.map { area.knot(it.toLong()) }, area.graph, area.geometry)
       }
       val empty = PlanningSession.start(area.graph)
@@ -142,9 +151,15 @@ internal class RideScript(
           empty.routePointFor(offer, area.geometry) ?: error("No route point at $entry")
         }
       }
-      val planned =
-        PlanningSession.start(area.graph, waypoints)
-          .withWaysFrom(RoutePointWays(area.router, area.geometry), navigating = false)
+      val session = PlanningSession.start(area.graph, waypoints)
+      val cut =
+        if (nearby == null) session
+        else {
+          val choice =
+            StartChoice.of(session, area.geometry, nearby) ?: error("Not asked at $nearby")
+          session.startOnRouteAt(choice.nearby)
+        }
+      val planned = cut.withWaysFrom(RoutePointWays(area.router, area.geometry), navigating = false)
       val knots = (planned.route!!.summary as RouteSummary.Complete).knots
       return Triple(knots, planned.routeGraph, area.geometry.withRoutePoints(planned.routeGraph))
     }
@@ -171,6 +186,7 @@ internal class RideScript(
         when (command[0]) {
           "area",
           "route",
+          "nearby",
           "clock" -> {}
           "start" -> {
             position = point()
@@ -185,9 +201,12 @@ internal class RideScript(
             follow(course.stretch(double(2), double(3)))
           }
           "path" -> {
+            // `path start`: to the start of the route, e.g. a start point on the course.
+            val to =
+              if (command[1] == "start") GeoPoint(knots.first().latitude, knots.first().longitude)
+              else point()
             val way =
-              area.router.way(position, point())
-                ?: error("No way from $position to ${point()} in the area")
+              area.router.way(position, to) ?: error("No way from $position to $to in the area")
             follow(way.points)
           }
           "line" -> follow(listOf(position, point()))

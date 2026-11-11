@@ -21,6 +21,13 @@ A scenario gets a test as soon as one can check it; its line goes then.
 ## knot-navigation
 
 - Courses on a slow phone — on the emulator, where the courses take about 20 s: Navigate pressed before they have loaded, a recorded ride replayed
+- Question dismissed — on the devices: Navigate away from the start, the question closed without choosing
+- Position unknown — on the devices: Navigate without a position within 10 s, e.g. indoors
+- The plan after the ride — on the devices: started nearby, then Stop, the planner shows the new start
+- Reaching the course and following it — removed by `choose-start-or-nearby`, whose tests show the rider is not joined any more ("Joining the route on the way to the start"); this line goes when it is archived
+- Crossing the course — removed by `choose-start-or-nearby` like the one above; this line goes when it is archived
+- Reaching the course of the first leg near the start — removed by `choose-start-or-nearby` like the ones above; this line goes when it is archived
+- Following the course against the route — removed by `choose-start-or-nearby` like the ones above; this line goes when it is archived
 - Header of steady height on a guided way — on the devices, finding and losing a way with a long street name ahead
 - Location access denied — on the devices
 - Screen off — on the devices
