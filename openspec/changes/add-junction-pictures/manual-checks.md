@@ -31,3 +31,12 @@ The style B drawing was first seen with a hand-made test picture behind a tempor
 3. **Once with TalkBack or VoiceOver:** the picture is read as its sentence.
 4. **Wet or in bright sun:** whether the picture can be read.
 5. **iPhone locked at such a junction:** the lock screen shows the picture with its sentence in place of the header row, the Dynamic Island text only, and after the junction the row again. Whether 96 pt is big enough when compared with the real junction.
+
+## Android in dark mode (task 4.1), 2026-11-11
+
+A mocked ride on the emulator in dark mode: route 06 → 02 → 28 started in Siegburg-Dreesch, "Ride to 06", with the fixes of the recorded ride `dreesch-to-06` along the guided way.
+
+- "In 120 m, keep left at the fork" at fix 83: the picture on a dark tile, the way in green, the other branch in grey ([screenshot](screenshots/android-dark-keep-left.png)).
+- "In 120 m, take the cycle path ahead" at fix 112 ([screenshot](screenshots/android-dark-cycle-path.png)).
+- Picture with a screen reader: the accessibility tree gives TalkBack the sentence, e.g. "In 90 m, take the cycle path ahead".
+

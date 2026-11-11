@@ -19,7 +19,7 @@
 
 ## 4. Android
 
-- [ ] 4.1 The picture in Compose in the planner's header. A mocked ride on the emulator with screenshots, in light and dark, and TalkBack's label for "Picture with a screen reader".
+- [x] 4.1 The picture in Compose in the planner's header. A mocked ride on the emulator with screenshots, in light and dark, and TalkBack's label for "Picture with a screen reader".
 - [x] 4.2 `NavigationService` shows the sentence. On the emulator, "Text on the Android lock screen", also in German and French to check the length.
 
 ## 5. Wrap-up
