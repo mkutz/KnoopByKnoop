@@ -1,0 +1,32 @@
+# Tasks
+
+## 1. Core
+
+- [ ] 1.1 `ShortestPathRouter` with avoided connections, `PlanningSession.avoidedFerries` and `avoidingFerries`, and `RouteSnapshot.avoidedFerries` (absent in older snapshots). Tests:
+  - "Editing the plan afterwards" (a knot added still avoids the ferry; a snapshot round trip keeps it)
+  - an older snapshot without the field reads as before
+- [ ] 1.2 `FerryDetour.of`: arrivals from the rider's position with `FerryWatch`, the detour with repeated leaving out, the extra length and time, the line and bounds. Tests on a synthetic network with a ferry and a bridge:
+  - "Ferry closed on the way"
+  - "Ferry open when the rider gets there"
+  - "Another ferry on the detour"
+  - "No way around"
+  - "Ferry without operating times"
+- [ ] 1.3 A test on the real cut-out `rhine-luelsdorf` with the ferry Lülsdorf–Wesseling: a start in the evening gives the question with a detour over a bridge, and its length is plausible.
+
+## 2. Android
+
+- [ ] 2.1 `AppViewModel`: the check after the start choice, and the state for the question and the map. "Ride around it" sets the plan with `avoidingFerries`, saves it and navigates; "Keep the ferry" navigates. Strings in four languages.
+- [ ] 2.2 The dialog, and the map's detour line and fit to the bounds.
+- [ ] 2.3 Check on the emulator with the ferry Lülsdorf–Wesseling at a time when it's closed (the emulator's time zone and clock set accordingly), with screenshots:
+  - "Ferry closed on the way", "Map while asking"
+  - "Riding around it", "Map after the answer"
+  - "Keeping the ferry"
+  - "Question in all languages" (German)
+
+## 3. iOS
+
+- [ ] 3.1 The same in `AppModel`, `PlannerView` (a `confirmationDialog`) and `NetworkMapView` (the line and the bounds). Strings in the String Catalog. The project builds; a simulator check of the question and the map.
+
+## 4. Wrap-up
+
+- [ ] 4.1 `manual-checks.md` with the device scenarios and the maintainer's steps (a ride planned over a ferry in the evening). A CHANGELOG line under Unreleased. List the scenarios a unit test can't check in `openspec/checked-by-hand.md`. `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; then run `./gradlew checkScenarios -Pchange=avoid-closed-ferries`.
