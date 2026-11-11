@@ -219,7 +219,7 @@ The route line SHALL show the riding direction.
 - **THEN** arrows along its line point from the start towards the end
 
 ### Requirement: Waypoint list with badges
-The waypoint list SHALL show each waypoint in one line as a badge with its number and its role, each line no higher than a touch target (48 dp on Android, 44 pt on iOS). While navigating, the waypoint list SHALL NOT be shown, as the route is fixed then and the knot sequence shows it.
+The waypoint list SHALL show each waypoint in one line as a badge with its number and its role, followed by the place the knot lies in where it has one (see `network-data` "Place of each knot"), each line no higher than a touch target (48 dp on Android, 44 pt on iOS). The place SHALL be named as on its signpost, followed by its name in the app's language in brackets where that differs; a name too long for the line SHALL be cut short. While navigating, the waypoint list SHALL NOT be shown, as the route is fixed then and the knot sequence shows it.
 
 #### Scenario: Listing waypoints
 - **WHEN** the waypoints are 12, 30 and 45
@@ -232,6 +232,18 @@ The waypoint list SHALL show each waypoint in one line as a badge with its numbe
 #### Scenario: Waypoint list while navigating
 - **WHEN** the rider navigates a route with waypoints 12, 30 and 45
 - **THEN** the panel shows the knot sequence and any ferries, but no waypoint list
+
+#### Scenario: Place in the waypoint list
+- **WHEN** the start 06 lies in Lohmar and the end 28 in Sankt Augustin
+- **THEN** the list shows "Start · Lohmar" beside 06 and "End · Sankt Augustin" beside 28
+
+#### Scenario: Waypoint in the open
+- **WHEN** the stop 02 carries no place
+- **THEN** its line shows its role only
+
+#### Scenario: Place name in the app's language
+- **WHEN** the app's language is German and the end lies in Liège
+- **THEN** its line shows "End · Liège (Lüttich)", in German "Ende · Liège (Lüttich)"
 
 ### Requirement: Landscape layout
 In landscape, the app SHALL show the map and the waypoint list side by side, so both can be seen and used at the same time. While searching, the search field and its hits SHALL be at the top of the side panel, on both apps, see `place-search`, and the map SHALL keep its width. In portrait, the waypoint list SHALL stay a sheet over the map.

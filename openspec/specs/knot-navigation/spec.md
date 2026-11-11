@@ -888,7 +888,7 @@ In every app language and at large system text sizes, the header SHALL show its 
 - **THEN** the header shows the to-the-route symbol, the arrow, "1.7 km" and Stop completely, at the same height as in English
 
 ### Requirement: Coming knots
-While navigating, the panel SHALL list the coming knots of the route below the progress strip, in riding order from the next knot to the end: each with its badge as on the map, the distance to it along the route and the arrival, at the pace of "Ferry arrival estimate", following each position while shown. Ferries SHALL be listed between the knots they connect, with their arrival state as on the strip. Passed knots SHALL NOT be listed.
+While navigating, the panel SHALL list the coming knots of the route below the progress strip, in riding order from the next knot to the end: each with its badge as on the map, the place it lies in, named as in the waypoint list, the distance to it along the route and the arrival, at the pace of "Ferry arrival estimate", following each position while shown. Ferries SHALL be listed between the knots they connect, with their arrival state as on the strip, and so SHALL the borders the route crosses, each naming the country and the province or state beyond it, in the app's language. Passed knots SHALL NOT be listed.
 
 #### Scenario: Coming knots at the start
 - **WHEN** the rider starts navigating the route 24, 45, 30 (stop), 12, 31 at 18:20 at 24, with 45 at 1.1 km, 30 at 5.2 km, 12 at 8.0 km and 31 at 12.4 km
@@ -913,6 +913,22 @@ While navigating, the panel SHALL list the coming knots of the route below the p
 #### Scenario: Coming knots with a screen reader
 - **WHEN** a screen reader (TalkBack, VoiceOver) reaches 30 in the list
 - **THEN** it announces "Knot 30, stop, 5.2 km, 18:40"
+
+#### Scenario: Places in the list
+- **WHEN** the rider navigates 06 → 02 → 28, with 06 in Lohmar, 02 in the open and 28 in Sankt Augustin
+- **THEN** the list shows Lohmar beside 06, nothing beside 02, and Sankt Augustin beside 28
+
+#### Scenario: Crossing into another country
+- **WHEN** the route crosses from Dutch Limburg into Belgian Limburg between 95 and 66
+- **THEN** a line between 95 and 66 says "Belgium, Limburg", in German "Belgien, Limburg"
+
+#### Scenario: Crossing a province border
+- **WHEN** the route crosses from Gelderland into Overijssel between 12 and 31
+- **THEN** a line between 12 and 31 says "Overijssel"
+
+#### Scenario: Place and border with a screen reader
+- **WHEN** a screen reader reaches 28 in Sankt Augustin, 5.2 km ahead at 18:40, and then the border line
+- **THEN** it announces "Knot 28, Sankt Augustin, end, 5.2 km, 18:40", and for the border "Border, Belgium, Limburg"
 
 ### Requirement: Showing a coming knot on the map
 Tapping a knot in the list of coming knots SHALL show that knot on the map, with the panel back at the height of the number to follow and the strip in portrait, so the knot is not hidden by it. The map SHALL then stop following the rider, as when the rider moves the map, and the recenter button SHALL bring it back to the rider.
