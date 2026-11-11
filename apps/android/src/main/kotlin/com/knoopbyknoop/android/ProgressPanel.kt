@@ -42,6 +42,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -293,21 +294,35 @@ fun ComingKnots(
             .clearAndSetSemantics { contentDescription = item.description },
       ) {
         Box(modifier = Modifier.width(BADGE_SPACE + 10.dp), contentAlignment = Alignment.Center) {
-          if (knot == null) FerryBadge(warning = item.state == FerryArrivalState.WARNING)
-          else
-            KnotBadge(
-              item.label,
-              roleOf(item.kind),
-              plate = KnotPlate.of(knot.signRegion),
-              place = knot.routePoint?.placeKind,
-            )
+          when {
+            item.kind == ProgressMarkKind.BORDER -> BorderMark()
+            knot == null -> FerryBadge(warning = item.state == FerryArrivalState.WARNING)
+            else ->
+              KnotBadge(
+                item.label,
+                roleOf(item.kind),
+                plate = KnotPlate.of(knot.signRegion),
+                place = knot.routePoint?.placeKind,
+              )
+          }
         }
-        Text(
-          item.distance,
-          style = MaterialTheme.typography.bodyLarge,
-          fontWeight = FontWeight.Bold,
-          modifier = Modifier.weight(1f),
-        )
+        Column(modifier = Modifier.weight(1f)) {
+          Text(
+            item.distance,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+          )
+          // The place a knot lies in, or what lies beyond a border, see "Coming knots".
+          (item.placeName ?: item.border)?.let {
+            Text(
+              it,
+              style = MaterialTheme.typography.bodyMedium,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis,
+            )
+          }
+        }
         item.arrival?.let {
           Text(
             it,
@@ -382,4 +397,19 @@ private fun shown(
     }
   }
   return shown.sortedBy { it.fraction }
+}
+
+/** A border in the coming knots: a dashed line across, as on a map. */
+@Composable
+private fun BorderMark() {
+  val color = MaterialTheme.colorScheme.onSurfaceVariant
+  Canvas(modifier = Modifier.width(32.dp).height(24.dp)) {
+    drawLine(
+      color,
+      start = androidx.compose.ui.geometry.Offset(0f, size.height / 2),
+      end = androidx.compose.ui.geometry.Offset(size.width, size.height / 2),
+      strokeWidth = 3.dp.toPx(),
+      pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(8f, 6f)),
+    )
+  }
 }

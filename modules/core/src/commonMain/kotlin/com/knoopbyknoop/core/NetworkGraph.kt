@@ -47,6 +47,11 @@ private constructor(
   val connections: List<Connection>,
   /** The connections that include a ferry, with its details. */
   val ferries: Map<Connection, Ferry>,
+  /**
+   * Where connections cross a border, from their `from` knot, see `network-data` "Borders between
+   * knots".
+   */
+  val crossings: Map<Connection, List<Crossing>>,
   /** The type shared by all knots of this network, or `null` for an empty network. */
   val network: NetworkType?,
   private val connectionsByKnotId: Map<Long, List<Connection>>,
@@ -59,10 +64,12 @@ private constructor(
     knots: Collection<Knot>,
     connections: Collection<Connection>,
     ferries: Map<Connection, Ferry> = mapOf(),
+    crossings: Map<Connection, List<Crossing>> = mapOf(),
   ) : this(
     knots = knots.associateBy { it.id },
     connections = connections.toList(),
     ferries = ferries.toMap(),
+    crossings = crossings.toMap(),
     network = knots.firstOrNull()?.network,
     connectionsByKnotId =
       connections
@@ -96,6 +103,37 @@ private constructor(
   fun ferryBetween(from: Knot, to: Knot): Ferry? =
     ferriesByKnotIds[knotIdsOf(Connection(from.id, to.id, 0))]
 
+  /**
+   * The borders the leg from [from] to [to] crosses, in riding direction, see `network-data`
+   * "Borders between knots": crossings less than [MERGE_METERS] apart merge into one, and a border
+   * crossed back to where it was gives none.
+   */
+  fun crossingsBetween(from: Knot, to: Knot): List<Crossing> {
+    val connection = connectionBetween(from.id, to.id) ?: return listOf()
+    val found = crossings[connection] ?: return listOf()
+    val riding =
+      if (connection.fromId == from.id) found
+      else
+        found.asReversed().map {
+          Crossing(connection.lengthMeters - it.atMeters, from = it.to, to = it.from)
+        }
+    // A chain of crossings each less than MERGE_METERS after the one before is one.
+    val merged = mutableListOf<Crossing>()
+    var previous: Crossing? = null
+    for (crossing in riding) {
+      val last = merged.lastOrNull()
+      if (
+        last != null && previous != null && crossing.atMeters - previous.atMeters < MERGE_METERS
+      ) {
+        merged[merged.lastIndex] = Crossing(last.atMeters, last.from, crossing.to)
+      } else {
+        merged += crossing
+      }
+      previous = crossing
+    }
+    return merged.filter { it.from != it.to }
+  }
+
   /** The connection between the knots with IDs [fromId] and [toId], in either direction. */
   fun connectionBetween(fromId: Long, toId: Long): Connection? =
     connectionsOf(fromId).firstOrNull {
@@ -127,6 +165,7 @@ private constructor(
       knots = OverlayMap(installed.knots, distinct.associateBy { it.id }),
       connections = installed.connections + added,
       ferries = installed.ferries,
+      crossings = installed.crossings,
       network = installed.network,
       connectionsByKnotId =
         added
@@ -138,6 +177,9 @@ private constructor(
   }
 
   private companion object {
+    /** Crossings closer than this on one connection are one, e.g. a path along a border. */
+    const val MERGE_METERS = 500
+
     fun knotIdsOf(connection: Connection) =
       minOf(connection.fromId, connection.toId) to maxOf(connection.fromId, connection.toId)
   }

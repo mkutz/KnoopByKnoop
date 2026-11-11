@@ -227,6 +227,12 @@ internal interface Texts {
   /** E.g. `Ferry 12 → 31`. */
   fun ferryBetween(legs: String): String
 
+  /** The country's name, see `knot-navigation` "Coming knots". */
+  fun country(country: Country): String
+
+  /** For screen readers, a border line, e.g. `Border, Belgium, Limburg`. */
+  fun border(line: String): String
+
   // Route points, see `knot-navigation` "Navigating with route points": where a sentence names a
   // knot by its number, a route point is named by its role.
 
@@ -503,6 +509,15 @@ internal object EnglishTexts : Texts {
   override fun knot(ref: String) = "Knot $ref"
 
   override fun ferryBetween(legs: String) = "Ferry $legs"
+
+  override fun country(country: Country) =
+    when (country) {
+      Country.NETHERLANDS -> "Netherlands"
+      Country.BELGIUM -> "Belgium"
+      Country.GERMANY -> "Germany"
+    }
+
+  override fun border(line: String) = "Border, $line"
 
   override fun point(role: WaypointRole) =
     when (role) {
@@ -781,6 +796,15 @@ internal object GermanTexts : Texts {
   override fun knot(ref: String) = "Knotenpunkt $ref"
 
   override fun ferryBetween(legs: String) = "Fähre $legs"
+
+  override fun country(country: Country) =
+    when (country) {
+      Country.NETHERLANDS -> "Niederlande"
+      Country.BELGIUM -> "Belgien"
+      Country.GERMANY -> "Deutschland"
+    }
+
+  override fun border(line: String) = "Grenze, $line"
 
   override fun point(role: WaypointRole) =
     when (role) {
@@ -1084,6 +1108,15 @@ internal object DutchTexts : Texts {
 
   override fun ferryBetween(legs: String) = "Pont $legs"
 
+  override fun country(country: Country) =
+    when (country) {
+      Country.NETHERLANDS -> "Nederland"
+      Country.BELGIUM -> "België"
+      Country.GERMANY -> "Duitsland"
+    }
+
+  override fun border(line: String) = "Grens, $line"
+
   override fun point(role: WaypointRole) =
     when (role) {
       WaypointRole.START -> "de start"
@@ -1367,6 +1400,15 @@ internal object FrenchTexts : Texts {
   override fun knot(ref: String) = "Point-nœud $ref"
 
   override fun ferryBetween(legs: String) = "Bac $legs"
+
+  override fun country(country: Country) =
+    when (country) {
+      Country.NETHERLANDS -> "Pays-Bas"
+      Country.BELGIUM -> "Belgique"
+      Country.GERMANY -> "Allemagne"
+    }
+
+  override fun border(line: String) = "Frontière, $line"
 
   override fun point(role: WaypointRole) =
     when (role) {

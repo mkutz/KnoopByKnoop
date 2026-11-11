@@ -29,3 +29,14 @@ data class Region(
  * @property to the region beyond
  */
 data class Crossing(val atMeters: Int, val from: Region, val to: Region)
+
+/** The region's name in [language] where mapped, otherwise as in OpenStreetMap. */
+fun Region.nameIn(language: Language): String = names[language] ?: name
+
+/**
+ * The border line in the coming knots, see `knot-navigation` "Coming knots": the country and the
+ * region beyond when the country changes, e.g. `Belgium, Limburg`, otherwise the region.
+ */
+fun Crossing.line(language: Language): String =
+  if (from.country != to.country) "${language.texts.country(to.country)}, ${to.nameIn(language)}"
+  else to.nameIn(language)

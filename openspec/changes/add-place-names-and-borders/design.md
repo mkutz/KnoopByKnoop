@@ -46,6 +46,7 @@
 3. **Crossings per connection, both ways.**
    - Along each connection's course (from its `from` knot), the region of points every 50 m. Where it changes, the crossing is placed at the edge between the two points (bisected to 5 m).
    - A crossing stores its offset in metres from `from`, the region before and the region after. Riding the other way swaps them, and the offset becomes length − offset.
+   - On real data a connection crosses 1.5 times on average, as paths run along borders. For the list, crossings on one connection less than 500 m apart merge into one, from the first region to the last. When that brings the route back where it was, there's no line.
 
 4. **File format: two new sections at the end of version 2.**
    - **Places:** a table of places (name, then up to four language names), then one varint per knot in file order, 0 for none and n for the n-th place.

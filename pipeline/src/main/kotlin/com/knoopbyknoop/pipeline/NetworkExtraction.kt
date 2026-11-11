@@ -158,6 +158,20 @@ class NetworkExtraction {
     }
     val networks = NetworkType.entries.filter { knots.getValue(it).isNotEmpty() }
     val borders = borders()
+    val regionBorders = regionBorders()
+    val crossings = networks.associateWith {
+      connections
+        .getValue(it)
+        .values
+        .mapNotNull { kept ->
+          crossingsAlong(kept.course, regionBorders)
+            .takeIf { found -> found.isNotEmpty() }
+            ?.let { found ->
+              kept.connection to found
+            }
+        }
+        .toMap()
+    }
     val places = PlaceFinder(placePoints + placeAreas())
     val graphs = networks.associateWith {
       val networkKnots =
@@ -175,6 +189,7 @@ class NetworkExtraction {
             connected.ferry?.let { ferry -> connected.connection to ferry }
           }
           .toMap(),
+        crossings.getValue(it),
       )
     }
     val courses = networks.associateWith {
@@ -202,20 +217,6 @@ class NetworkExtraction {
         .values
         .filter { kept -> kept.signpostCourses.isNotEmpty() }
         .associate { kept -> kept.connection to kept.signpostCourses }
-    }
-    val regionBorders = regionBorders()
-    val crossings = networks.associateWith {
-      connections
-        .getValue(it)
-        .values
-        .mapNotNull { kept ->
-          crossingsAlong(kept.course, regionBorders)
-            .takeIf { found -> found.isNotEmpty() }
-            ?.let { found ->
-              kept.connection to found
-            }
-        }
-        .toMap()
     }
     return ExtractionResult(
       graphs,

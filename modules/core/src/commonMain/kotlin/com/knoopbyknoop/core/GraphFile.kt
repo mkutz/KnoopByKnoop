@@ -95,6 +95,40 @@ class GraphFile(
       writer.varint(index.toLong())
       writer.byte(knot.signRegion!!.code)
     }
+
+    // Then the places, see `network-data` "Place of each knot": the table, then per knot 0 for none
+    // or the place's number. Readers from before stop after the sign regions.
+    val places = knots.mapNotNull { it.place }.distinct()
+    val placeNumber = places.withIndex().associate { (index, place) -> place to index + 1 }
+    writer.varint(places.size.toLong())
+    for (place in places) {
+      writer.string(place.name)
+      Language.entries.forEach { writer.string(place.names[it].orEmpty()) }
+    }
+    for (knot in knots) writer.varint((knot.place?.let { placeNumber.getValue(it) } ?: 0).toLong())
+
+    // Then the regions and the crossings, see `network-data` "Borders between knots".
+    val crossings = graph.crossings.entries.sortedBy { connectionIndex.getValue(it.key) }
+    val borderRegions =
+      crossings.flatMap { (_, found) -> found.flatMap { listOf(it.from, it.to) } }.distinct()
+    val regionIndex = borderRegions.withIndex().associate { (index, region) -> region to index }
+    writer.varint(borderRegions.size.toLong())
+    for (region in borderRegions) {
+      writer.string(region.key)
+      writer.string(region.country.key)
+      writer.string(region.name)
+      Language.entries.forEach { writer.string(region.names[it].orEmpty()) }
+    }
+    writer.varint(crossings.size.toLong())
+    for ((connection, found) in crossings) {
+      writer.varint(connectionIndex.getValue(connection).toLong())
+      writer.varint(found.size.toLong())
+      for (crossing in found) {
+        writer.varint(crossing.atMeters.toLong())
+        writer.varint(regionIndex.getValue(crossing.from).toLong())
+        writer.varint(regionIndex.getValue(crossing.to).toLong())
+      }
+    }
     return writer.toByteArray()
   }
 
@@ -216,6 +250,57 @@ class GraphFile(
             }
             .toMap()
         }
+      val places =
+        if (formatVersion < 2 || !reader.hasMore()) {
+          List(knots.size) { null }
+        } else {
+          val table =
+            List(reader.count()) {
+              val name = reader.string()
+              val names =
+                Language.entries
+                  .mapNotNull { language ->
+                    reader.string().ifEmpty { null }?.let { language to it }
+                  }
+                  .toMap()
+              Place(name, names)
+            }
+          List(knots.size) {
+            val number = reader.count()
+            if (number > table.size) throw GraphFormatException("Bad place number")
+            if (number == 0) null else table[number - 1]
+          }
+        }
+      val crossings =
+        if (formatVersion < 2 || !reader.hasMore()) {
+          mapOf()
+        } else {
+          val regions =
+            List(reader.count()) {
+              val key = reader.string()
+              val countryKey = reader.string()
+              val country =
+                Country.entries.firstOrNull { it.key == countryKey }
+                  ?: throw GraphFormatException("Unknown country $countryKey")
+              val name = reader.string()
+              val names =
+                Language.entries
+                  .mapNotNull { language ->
+                    reader.string().ifEmpty { null }?.let { language to it }
+                  }
+                  .toMap()
+              Region(key, country, name, names)
+            }
+          fun region() =
+            regions.getOrNull(reader.count()) ?: throw GraphFormatException("Bad region")
+          List(reader.count()) {
+              val connection =
+                connections.getOrNull(reader.count())
+                  ?: throw GraphFormatException("Bad connection index")
+              connection to List(reader.count()) { Crossing(reader.count(), region(), region()) }
+            }
+            .toMap()
+        }
       return GraphFile(
         network,
         area,
@@ -226,10 +311,12 @@ class GraphFile(
             knot.copy(
               otherNodes = otherNodes[index] ?: knot.otherNodes,
               signRegion = signRegions[index],
+              place = places[index],
             )
           },
           connections,
           ferries,
+          crossings,
         ),
       )
     }

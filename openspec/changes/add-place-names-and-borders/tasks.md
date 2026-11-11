@@ -7,8 +7,8 @@
   - "Knot in the open"
   - "Only a hamlet nearby"
   - "Names in other languages"
-- [ ] 1.2 Measure on the real extracts: the share of cycling and hiking knots with a place, and the places' count. Give the maintainer a sample of 20 random knots with their place to judge against the map. **The maintainer decides the reaches before the format is fixed.**
-  - 2026-11-11, published data of 2026-11-08's extracts: cycling 10,732 of 20,584 knots in a place (52 %), 4,877 places; hiking 23,185 of 50,460 (46 %), 2,984 places. The sample went to the maintainer.
+- [x] 1.2 Measure on the real extracts: the share of cycling and hiking knots with a place, and the places' count. Give the maintainer a sample of 20 random knots with their place to judge against the map. **The maintainer decides the reaches before the format is fixed.**
+  - 2026-11-11, published data of 2026-11-08's extracts: cycling 10,732 of 20,584 knots in a place (52 %), 4,877 places; hiking 23,185 of 50,460 (46 %), 2,984 places. The maintainer judged the sample and kept the reaches (1, 2 and 4 km). The second build with borders: cycling 1,772 crossings on 1,155 connections, hiking 1,750 on 1,210; all regions complete.
 
 ## 2. Pipeline: borders
 
@@ -23,14 +23,15 @@
 
 ## 3. Core: file and model
 
-- [ ] 3.1 `Place`, `Knot.place`, `Crossing`, `Connection.crossings`. Write and read the two new sections in `GraphFile`. Tests in `GraphFileTest`:
+- [x] 3.1 `Place`, `Knot.place`, `Crossing`, `Connection.crossings`. Write and read the two new sections in `GraphFile`. Tests in `GraphFileTest`:
   - a round trip with places and crossings
   - "Graph files without places" and "Graph files without borders" (an old file)
   - a reader that stops before the sections, as apps released before do
-- [ ] 3.2 `Texts.placeName` and the border line's text in four languages. The crossings along a route in riding order, also on a connection ridden backwards. Tests:
+- [x] 3.2 `Texts.placeName` and the border line's text in four languages. The crossings along a route in riding order, also on a connection ridden backwards. Tests:
   - "Place name in the app's language"
   - "Crossing into another country" and "Crossing a province border" (texts in English and German)
   - a connection ridden backwards
+  - back and forth along a border: crossings less than 500 m apart on one connection merge into one, and none shows when the route ends up where it was
 - [ ] 3.3 The size of the cycling graph stays below 5 MB, with the real data (the "Size budget" check).
 
 ## 4. Android

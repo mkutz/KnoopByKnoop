@@ -15,6 +15,9 @@ enum class ProgressMarkKind {
 
   /** A knot the route only passes, drawn as a small mark. */
   KNOT,
+
+  /** A border the route crosses, only in the coming knots, see `knot-navigation` "Coming knots". */
+  BORDER,
 }
 
 /**
@@ -97,6 +100,9 @@ data class ProgressStrip(
  *   [RouteFerry.fromPosition]
  * @property state for a ferry, whether it runs when the rider gets there
  * @property description what screen readers say, e.g. `Knot 30, stop, 5.2 km, 18:40`
+ * @property placeName for a knot, the place it lies in, e.g. `Liège (Lüttich)`, see `network-data`
+ *   "Place of each knot"
+ * @property border for a border, what lies beyond, e.g. `Belgium, Limburg`
  */
 data class ComingKnot(
   val kind: ProgressMarkKind,
@@ -107,6 +113,8 @@ data class ComingKnot(
   val position: Int? = null,
   val state: FerryArrivalState? = null,
   val description: String,
+  val placeName: String? = null,
+  val border: String? = null,
 )
 
 /**
@@ -141,6 +149,8 @@ private constructor(
   private val ferryPositions: List<Int>,
   val assumedMetersPerSecond: Double,
   val headedFor: List<GeoPoint>,
+  /** The borders crossed, each with its place on the route, in riding order. */
+  private val crossings: List<Pair<Double, Crossing>> = listOf(),
 ) {
 
   val length: Double
@@ -290,7 +300,25 @@ private constructor(
         offset to
           comingFerry(position, distanceTo(offset), ::arrival, ferryState(position), language)
     }
-    val coming = (comingKnots + comingFerries).sortedBy { it.first }.map { it.second }
+    val comingBorders = crossings.mapNotNull { (offset, crossing) ->
+      if (offset <= from + 0.5) null
+      else {
+        val meters = distanceTo(offset)
+        val line = crossing.line(language)
+        offset to
+          ComingKnot(
+            ProgressMarkKind.BORDER,
+            null,
+            "",
+            MapFeatures.formatDistance(meters.roundToInt(), language),
+            arrival(meters),
+            description = language.texts.border(line),
+            border = line,
+          )
+      }
+    }
+    val coming =
+      (comingKnots + comingFerries + comingBorders).sortedBy { it.first }.map { it.second }
     val toNext = straightDistance ?: max(0.0, offsets[nextIndex] - place)
     val rider = if (length > 0) (place / length).coerceIn(0.0, 1.0) else 0.0
     return ProgressView(
@@ -324,6 +352,7 @@ private constructor(
       }
     // A route point is named by its role alone, see `knot-navigation` "On the strip".
     val name = texts.knot(Spot(knot.ref, roleOf(kind).takeIf { knot.isRoutePoint }))
+    val placeName = knot.place?.nameIn(language)
     return ComingKnot(
       kind,
       knot,
@@ -331,7 +360,9 @@ private constructor(
       distance,
       at,
       description =
-        listOfNotNull(name, role.takeUnless { knot.isRoutePoint }, distance, at).joinToString(", "),
+        listOfNotNull(name, placeName, role.takeUnless { knot.isRoutePoint }, distance, at)
+          .joinToString(", "),
+      placeName = placeName,
     )
   }
 
@@ -482,14 +513,28 @@ private constructor(
         knots.zipWithNext().mapIndexedNotNull { position, (from, to) ->
           position.takeIf { graph.ferryBetween(from, to) != null }
         }
+      val offsets = legLengths.runningFold(0.0) { sum, length -> sum + length }
+      // Placed on the route in proportion to the leg, as its length may differ from the course's.
+      val crossings =
+        knots.zipWithNext().withIndex().flatMap { (leg, pair) ->
+          val (from, to) = pair
+          val legLength = legLengths[leg]
+          val connectionLength =
+            graph.connectionBetween(from.id, to.id)?.lengthMeters?.toDouble() ?: legLength
+          graph.crossingsBetween(from, to).map {
+            val share = if (connectionLength > 0) it.atMeters / connectionLength else 0.0
+            offsets[leg] + share.coerceIn(0.0, 1.0) * legLength to it
+          }
+        }
       return RouteProgress(
         knots,
-        legLengths.runningFold(0.0) { sum, length -> sum + length },
+        offsets,
         courses,
         stops.filter { it in 1 until knots.lastIndex }.toSet(),
         ferries,
         assumedMetersPerSecond(graph.network),
         headedFor,
+        crossings,
       )
     }
 

@@ -647,7 +647,13 @@ private struct WaypointSheet: View {
     let description: String = coming.description_
     return HStack(spacing: 12) {
       comingBadge(coming).frame(width: 40)
-      Text(coming.distance).bold()
+      VStack(alignment: .leading, spacing: 2) {
+        Text(coming.distance).bold()
+        // The place a knot lies in, or what lies beyond a border, see `knot-navigation` "Coming knots".
+        if let line = coming.placeName ?? coming.border {
+          Text(verbatim: line).font(.callout).foregroundStyle(.secondary).lineLimit(1)
+        }
+      }
       Spacer()
       comingArrival(coming)
     }
@@ -666,7 +672,15 @@ private struct WaypointSheet: View {
   }
 
   @ViewBuilder private func comingBadge(_ coming: ComingKnot) -> some View {
-    if coming.knot == nil {
+    if coming.kind == .border {
+      // A border: a dashed line across, as on a map.
+      Path { path in
+        path.move(to: CGPoint(x: 4, y: 12))
+        path.addLine(to: CGPoint(x: 36, y: 12))
+      }
+      .stroke(.secondary, style: StrokeStyle(lineWidth: 3, dash: [6, 4]))
+      .frame(width: 40, height: 24)
+    } else if coming.knot == nil {
       FerryBadge(warning: coming.state == FerryArrivalState.warning)
     } else {
       KnotBadge(
@@ -708,9 +722,12 @@ private struct WaypointSheet: View {
     }
   }
 
-  /// The name of the place a route point was made from, or its kind's name, `nil` for others.
+  /// The name of the place a route point was made from, or its kind's name; for a knot the village,
+  /// town or city it lies in, see `map-planning` "Waypoint list with badges"; `nil` for others.
   private static func placeName(of knot: Knot) -> String? {
-    guard let kind = knot.routePoint?.placeKind else { return nil }
+    guard let kind = knot.routePoint?.placeKind else {
+      return knot.place?.nameIn(language: AppLanguage.current)
+    }
     return knot.routePoint?.placeName ?? PlaceIcons.kindName(kind)
   }
 

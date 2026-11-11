@@ -117,6 +117,18 @@ fun build(area: String, outputDirectory: Path, extracts: List<Path>) {
       "${network.name.lowercase()}: ${placed.size} of ${graph.knots.size} knots in a place, " +
         "${placed.mapTo(HashSet()) { it.place }.size} places"
     )
+    // See `network-data` "Borders between knots".
+    val crossings = result.crossings[network].orEmpty()
+    println(
+      "${network.name.lowercase()}: ${crossings.values.sumOf { it.size }} border crossings on " +
+        "${crossings.size} connections"
+    )
+    crossings.entries.take(5).forEach { (connection, found) ->
+      println(
+        "  ${connection.fromId}-${connection.toId}: " +
+          found.joinToString { "${it.atMeters} m ${it.from.key}→${it.to.key}" }
+      )
+    }
     graph.knots.values
       .sortedBy { it.id }
       .shuffled(kotlin.random.Random(11))

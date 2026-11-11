@@ -119,6 +119,7 @@ import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteSummary
 import com.knoopbyknoop.core.StartChoice
 import com.knoopbyknoop.core.hasStraightLines
+import com.knoopbyknoop.core.nameIn
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
@@ -1056,12 +1057,17 @@ private fun WaypointList(
         // A route point is named by its role, as it has no number, and by its place if it was made
         // from one, see `map-planning` "Route points from a place".
         val placeKind = knot.routePoint?.placeKind
+        // A knot by the village, town or city it lies in, see "Waypoint list with badges".
+        val locality = knot.place?.nameIn(viewModel.textLanguage)
         val placeName =
-          knot.routePoint?.placeName ?: placeKind?.let { stringResource(placeKindLabel(it)) }
+          knot.routePoint?.placeName
+            ?: placeKind?.let { stringResource(placeKindLabel(it)) }
+            ?: locality
         val name =
           when {
-            placeName != null -> "$roleName, $placeName"
+            knot.isRoutePoint && placeName != null -> "$roleName, $placeName"
             knot.isRoutePoint -> roleName
+            locality != null -> "${knot.ref}, $locality"
             else -> knot.ref
           }
         val removeKnot = stringResource(R.string.remove_knot, name)

@@ -16,6 +16,12 @@ class GraphFileTest {
       graph = TestNetwork.graph,
     )
 
+  /**
+   * The bytes of the sections after the sign regions when empty: the place table's count, a 0 per
+   * knot, and the counts of regions and crossings.
+   */
+  private fun emptyNewSections(graph: NetworkGraph) = 1 + graph.knots.size + 2
+
   @Test
   fun `a written graph file reads back the same`() {
     val read = GraphFile.read(graphFile.toBytes())
@@ -147,7 +153,7 @@ class GraphFileTest {
   fun `graph files without sign regions`() {
     // Written before the section: a version 2 file ending after the merged knots.
     val written = graphFile.toBytes()
-    val beforeRegions = written.copyOf(written.size - 1)
+    val beforeRegions = written.copyOf(written.size - 1 - emptyNewSections(graphFile.graph))
 
     val read = GraphFile.read(beforeRegions)
 
@@ -169,7 +175,10 @@ class GraphFileTest {
           TestNetwork.graph.connections,
         ),
       )
-    val before = withoutRegions.toBytes().let { it.copyOf(it.size - 1) }
+    val before =
+      withoutRegions.toBytes().let {
+        it.copyOf(it.size - 1 - emptyNewSections(withoutRegions.graph))
+      }
 
     val written = withRegions.toBytes()
 
@@ -197,7 +206,8 @@ class GraphFileTest {
       )
     val unmerged = GraphFile(NetworkType.CYCLING, "utrecht", "2026-10-25", "", TestNetwork.graph)
     // Without merged knots and sign regions, the file ends with two empty sections.
-    val before = unmerged.toBytes().let { it.copyOf(it.size - 2) }
+    val before =
+      unmerged.toBytes().let { it.copyOf(it.size - 2 - emptyNewSections(unmerged.graph)) }
 
     val written = merged.toBytes()
 
@@ -230,5 +240,77 @@ class GraphFileTest {
     assertFailsWith<IllegalArgumentException> {
       GraphFile(NetworkType.HIKING, "utrecht", "2026-10-25", "", TestNetwork.graph)
     }
+  }
+
+  // See `network-data` "Place of each knot" and "Borders between knots".
+
+  private val limburg = Region("NL-LI", Country.NETHERLANDS, "Limburg")
+  private val belgianLimburg =
+    Region("BE-VLI", Country.BELGIUM, "Limburg", mapOf(Language.FR to "Limbourg"))
+
+  private val withPlaces =
+    GraphFile(
+      NetworkType.CYCLING,
+      "utrecht",
+      "2026-10-25",
+      "© OpenStreetMap contributors, ODbL",
+      NetworkGraph(
+        TestNetwork.graph.knots.values.mapIndexed { index, knot ->
+          knot.copy(
+            place =
+              when (index % 3) {
+                0 -> Place("Liège", mapOf(Language.DE to "Lüttich", Language.NL to "Luik"))
+                1 -> Place("Lohmar")
+                else -> null
+              }
+          )
+        },
+        TestNetwork.graph.connections,
+        crossings =
+          mapOf(
+            TestNetwork.graph.connections.first() to
+              listOf(
+                Crossing(1_200, limburg, belgianLimburg),
+                Crossing(1_900, belgianLimburg, limburg),
+              )
+          ),
+      ),
+    )
+
+  @Test
+  fun `places and crossings read back the same`() {
+    val read = GraphFile.read(withPlaces.toBytes())
+
+    assertEquals(withPlaces.graph.knots, read.graph.knots)
+    assertEquals(withPlaces.graph.crossings, read.graph.crossings)
+  }
+
+  @Test
+  fun `Graph files without places`() {
+    // Written before the sections: a version 2 file ending after the sign regions.
+    val written = graphFile.toBytes()
+
+    val read = GraphFile.read(written.copyOf(written.size - emptyNewSections(graphFile.graph)))
+
+    assertEquals(setOf(null), read.graph.knots.values.map { it.place }.toSet())
+  }
+
+  @Test
+  fun `Graph files without borders`() {
+    val written = graphFile.toBytes()
+
+    val read = GraphFile.read(written.copyOf(written.size - emptyNewSections(graphFile.graph)))
+
+    assertEquals(mapOf(), read.graph.crossings)
+  }
+
+  @Test
+  fun `apps without places and borders read new files as before`() {
+    // Older readers stop after the sign regions, so everything up to there must stay the same.
+    val before = graphFile.toBytes().let { it.copyOf(it.size - emptyNewSections(graphFile.graph)) }
+
+    val written = withPlaces.toBytes()
+
+    assertEquals(before.toList(), written.copyOf(before.size).toList())
   }
 }
