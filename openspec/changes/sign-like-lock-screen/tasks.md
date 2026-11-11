@@ -21,7 +21,7 @@
   - ProgressStyle points in plate colours, with a dark ferry warning and the rider arrow as tracker
 
   Check on the emulator (Android 16 QPR2) with screenshots of the shade, the lock screen and the chip for: "Lock screen", "Far from the next knot outside the app", "Off route outside the app", "On the way to the route outside the app", "Live Update", "Chip off route", "Lock screen off route", "Back on route outside the app", "Wrong direction outside the app" and the guided "On the lock screen".
-- [ ] 2.2 Fallbacks. Check: "Live Update turned off" (Live Updates off in the settings), "Older Android" (an API 34 emulator), "Far from the next knot in German" at a larger font, and "Stop from the lock screen".
+- [x] 2.2 Fallbacks. Check: "Live Update turned off" (Live Updates off in the settings), "Older Android" (an API 34 emulator), "Far from the next knot in German" at a larger font, and "Stop from the lock screen".
 - [ ] 2.3 TalkBack on the notification. Note in `manual-checks.md` how the title is read. If it's unusable, record it as a follow-up idea.
 
 ## 3. iOS
