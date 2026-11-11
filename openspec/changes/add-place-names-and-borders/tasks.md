@@ -1,0 +1,46 @@
+# Tasks
+
+## 1. Pipeline: places
+
+- [ ] 1.1 Read `place=village|town|city` nodes and areas with their names (`name`, `name:en/de/nl/fr`), and assign each knot its place: inside an area, or within 1 km of a village, 2 km of a town or 4 km of a city, the nearest relative to its reach. Tests in the pipeline:
+  - "Knot in a town"
+  - "Knot in the open"
+  - "Only a hamlet nearby"
+  - "Names in other languages"
+- [ ] 1.2 Measure on the real extracts: the share of cycling and hiking knots with a place, and the places' count. Give the maintainer a sample of 20 random knots with their place to judge against the map. **The maintainer decides the reaches before the format is fixed.**
+
+## 2. Pipeline: borders
+
+- [ ] 2.1 Generalise `Border` to regions: the Dutch provinces, the Belgian provinces and Brussels, North Rhine-Westphalia, each with its country and names; fail on an incomplete one. Keep the sign regions working from the same borders. Tests:
+  - "Incomplete border"
+  - the sign region tests unchanged
+- [ ] 2.2 The crossings of each connection's course, bisected to 5 m. Tests:
+  - "Crossing into Belgium"
+  - "Crossing a province border"
+  - "Within one province"
+  - "Beyond the covered area"
+
+## 3. Core: file and model
+
+- [ ] 3.1 `Place`, `Knot.place`, `Crossing`, `Connection.crossings`. Write and read the two new sections in `GraphFile`. Tests in `GraphFileTest`:
+  - a round trip with places and crossings
+  - "Graph files without places" and "Graph files without borders" (an old file)
+  - a reader that stops before the sections, as apps released before do
+- [ ] 3.2 `Texts.placeName` and the border line's text in four languages. The crossings along a route in riding order, also on a connection ridden backwards. Tests:
+  - "Place name in the app's language"
+  - "Crossing into another country" and "Crossing a province border" (texts in English and German)
+  - a connection ridden backwards
+- [ ] 3.3 The size of the cycling graph stays below 5 MB, with the real data (the "Size budget" check).
+
+## 4. Android
+
+- [ ] 4.1 The waypoint list with " · place", and the coming knots list with places, border lines and their TalkBack texts. Strings for "Border" in four languages. Check on the emulator with the new data: "Place in the waypoint list", "Waypoint in the open", "Places in the list", a border crossing on a route from Limburg (NL) into Limburg (BE), and TalkBack's texts. Screenshots in the change folder.
+
+## 5. iOS
+
+- [ ] 5.1 The same in `PlannerView.swift` and `ProgressPanel.swift`, with the strings in the String Catalog. The project builds; simulator screenshots of the same routes and VoiceOver's labels.
+
+## 6. Wrap-up
+
+- [ ] 6.1 Publish the new data with the pipeline workflow, and check that the published apps (0.14.0) still read it.
+- [ ] 6.2 `manual-checks.md` with the device scenarios and the maintainer's steps (does the place name match the town sign, on a ride). Put a CHANGELOG line under Unreleased. `./gradlew check` and `npx @fission-ai/openspec validate --all` pass. Finally run `./gradlew checkScenarios -Pchange=add-place-names-and-borders`.
