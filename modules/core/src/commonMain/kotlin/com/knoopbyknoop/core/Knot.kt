@@ -14,6 +14,8 @@ package com.knoopbyknoop.core
  *   network.
  * @property signRegion the region whose signposts the knot follows, `null` where unknown, see
  *   `network-data` "Sign region of each knot"
+ * @property place the village, town or city the knot lies in, `null` out in the open or where
+ *   unknown, see `network-data` "Place of each knot"
  */
 data class Knot(
   val id: Long,
@@ -24,6 +26,7 @@ data class Knot(
   val otherNodes: List<GeoPoint> = listOf(),
   val routePoint: RoutePoint? = null,
   val signRegion: SignRegion? = null,
+  val place: Place? = null,
 ) {
 
   /** Whether this is a route point rather than a numbered knot. */

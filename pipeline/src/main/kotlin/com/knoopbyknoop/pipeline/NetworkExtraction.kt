@@ -2,12 +2,14 @@ package com.knoopbyknoop.pipeline
 
 import com.knoopbyknoop.core.Connection
 import com.knoopbyknoop.core.CourseBack
+import com.knoopbyknoop.core.Crossing
 import com.knoopbyknoop.core.Ferry
 import com.knoopbyknoop.core.GeoPoint
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.NetworkGraph
 import com.knoopbyknoop.core.NetworkType
 import com.knoopbyknoop.core.OneWay
+import com.knoopbyknoop.core.Region
 import com.knoopbyknoop.core.SignRegion
 import com.knoopbyknoop.core.SignpostCourse
 import com.knoopbyknoop.core.Stretch
@@ -40,13 +42,20 @@ class NetworkExtraction {
   /** The boundary relations of the sign regions, by relation ID. */
   private val borderRelations = LinkedHashMap<Long, BorderRelation>()
   private val borderWayNodeIds = HashMap<Long, LongArray>()
+  /** The boundary relations of the regions, see `network-data` "Borders between knots". */
+  private val regionRelations = LinkedHashMap<Long, Pair<Region, OsmRelation>>()
+  /** Villages, towns and cities mapped as points, see `network-data` "Place of each knot". */
+  private val placePoints = ArrayList<LocatedPlace>()
+  /** Those mapped as closed ways, with their nodes, placed once the nodes are read. */
+  private val placeWays = ArrayList<Pair<Pair<com.knoopbyknoop.core.Place, PlaceSize>, LongArray>>()
 
   private val wantedWayIds by lazy { routes.values.flatMapTo(HashSet()) { it.wayIds } }
   private val wantedBorderWayIds by lazy {
-    borderRelations.values.flatMapTo(HashSet()) { it.wayIds }
+    borderRelations.values.flatMapTo(HashSet()) { it.wayIds } +
+      regionRelations.values.flatMap { it.second.memberWayIds }
   }
   private val coordinates by lazy {
-    NodeCoordinates(wayNodeIds.values + borderWayNodeIds.values)
+    NodeCoordinates(wayNodeIds.values + borderWayNodeIds.values + placeWays.map { it.second })
   }
   /** The nodes next to each other on the ways of each network's routes, without ferries. */
   private val networkNeighbors by lazy {
@@ -62,6 +71,8 @@ class NetworkExtraction {
   }
 
   fun acceptRelation(relation: OsmRelation) {
+    // A Dutch province or North Rhine-Westphalia is a region and part of a sign region too.
+    regionOfBorder(relation.tags)?.let { regionRelations[relation.id] = it to relation }
     signRegionOfBorder(relation.tags)?.let { region ->
       borderRelations[relation.id] =
         BorderRelation(
@@ -98,6 +109,9 @@ class NetworkExtraction {
 
   fun acceptWay(way: OsmWay) {
     if (way.id in wantedBorderWayIds) borderWayNodeIds[way.id] = way.nodeIds.toLongArray()
+    if (way.nodeIds.size >= 4 && way.nodeIds.first() == way.nodeIds.last()) {
+      placeOfTags(way.tags)?.let { placeWays += it to way.nodeIds.toLongArray() }
+    }
     if (way.id !in wantedWayIds) return
     wayNodeIds[way.id] = way.nodeIds.toLongArray()
     if (way.tags["route"] == "ferry") ferryWayTags[way.id] = ferryTagsOf(way.tags)
@@ -108,6 +122,9 @@ class NetworkExtraction {
 
   fun acceptNode(node: OsmNode) {
     coordinates.set(node.id, node.latitude, node.longitude)
+    placeOfTags(node.tags)?.let { (place, size) ->
+      placePoints += LocatedPlace(place, size, node.latitude, node.longitude)
+    }
     if (node.tags["network:type"] != "node_network") return
     for (network in NetworkType.entries) {
       val ref = node.tags[network.osmRefTag] ?: continue
@@ -141,11 +158,13 @@ class NetworkExtraction {
     }
     val networks = NetworkType.entries.filter { knots.getValue(it).isNotEmpty() }
     val borders = borders()
+    val places = PlaceFinder(placePoints + placeAreas())
     val graphs = networks.associateWith {
       val networkKnots =
         knotsByNodeId.getValue(it).values.distinct().map { knot ->
-          if (it == NetworkType.CYCLING) knot.copy(signRegion = signRegionAt(borders, knot))
-          else knot
+          val placed = knot.copy(place = places.placeAt(knot.latitude, knot.longitude))
+          if (it == NetworkType.CYCLING) placed.copy(signRegion = signRegionAt(borders, knot))
+          else placed
         }
       val kept = connections.getValue(it).values
       NetworkGraph(
@@ -184,7 +203,61 @@ class NetworkExtraction {
         .filter { kept -> kept.signpostCourses.isNotEmpty() }
         .associate { kept -> kept.connection to kept.signpostCourses }
     }
-    return ExtractionResult(graphs, courses, skippedRoutes, signpostCourses, bridges, coursesBack)
+    val regionBorders = regionBorders()
+    val crossings = networks.associateWith {
+      connections
+        .getValue(it)
+        .values
+        .mapNotNull { kept ->
+          crossingsAlong(kept.course, regionBorders)
+            .takeIf { found -> found.isNotEmpty() }
+            ?.let { found ->
+              kept.connection to found
+            }
+        }
+        .toMap()
+    }
+    return ExtractionResult(
+      graphs,
+      courses,
+      skippedRoutes,
+      signpostCourses,
+      bridges,
+      coursesBack,
+      crossings,
+    )
+  }
+
+  /**
+   * The borders of the regions found in the extracts.
+   *
+   * @throws IncompleteBorderException if one cannot be closed from the ways in the extracts
+   */
+  private fun regionBorders(): List<Border<Region>> =
+    regionRelations.values.map { (region, relation) ->
+      Border.of(
+        region,
+        relation.id,
+        relation.tags["name"] ?: region.key,
+        relation.memberWayIds,
+        { borderWayNodeIds[it] },
+      ) { id ->
+        coordinates.pointOf(id)?.let { it.latitude to it.longitude }
+      }
+    }
+
+  /** The places mapped as closed ways, each at the middle of its outline. */
+  private fun placeAreas(): List<LocatedPlace> = placeWays.mapNotNull { (placed, nodeIds) ->
+    val ring = nodeIds.map { id ->
+      coordinates.pointOf(id)?.let { it.latitude to it.longitude } ?: return@mapNotNull null
+    }
+    LocatedPlace(
+      placed.first,
+      placed.second,
+      ring.sumOf { it.first } / ring.size,
+      ring.sumOf { it.second } / ring.size,
+      ring,
+    )
   }
 
   /**
@@ -192,7 +265,7 @@ class NetworkExtraction {
    *
    * @throws IncompleteBorderException if one cannot be closed from the ways in the extracts
    */
-  private fun borders(): List<Border> =
+  private fun borders(): List<Border<SignRegion>> =
     borderRelations.values.map { relation ->
       Border.of(relation, { borderWayNodeIds[it] }) { id ->
         coordinates.pointOf(id)?.let { it.latitude to it.longitude }
@@ -200,7 +273,7 @@ class NetworkExtraction {
     }
 
   /** The first region in [borders] whose border contains [knot]'s own position. */
-  private fun signRegionAt(borders: List<Border>, knot: Knot): SignRegion? =
+  private fun signRegionAt(borders: List<Border<SignRegion>>, knot: Knot): SignRegion? =
     SignRegion.entries.firstOrNull { region ->
       borders.any { it.region == region && it.contains(knot.latitude, knot.longitude) }
     }
@@ -598,6 +671,8 @@ data class ExtractionResult(
    * connection where it is not the course reversed, unsimplified.
    */
   val coursesBack: Map<NetworkType, Map<Connection, Pair<List<GeoPoint>, List<Stretch>>>> = mapOf(),
+  /** Per network type, where each connection's course crosses a border, if it does. */
+  val crossings: Map<NetworkType, Map<Connection, List<Crossing>>> = mapOf(),
 )
 
 /** Why a node network route could not become a connection. */

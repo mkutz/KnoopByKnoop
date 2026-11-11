@@ -1,6 +1,12 @@
 package com.knoopbyknoop.pipeline
 
+import com.knoopbyknoop.core.Country
+import com.knoopbyknoop.core.Crossing
+import com.knoopbyknoop.core.GeoPoint
+import com.knoopbyknoop.core.Language
+import com.knoopbyknoop.core.Region
 import com.knoopbyknoop.core.SignRegion
+import com.knoopbyknoop.core.distanceMeters
 import kotlin.math.floor
 
 /** Thrown when a border cannot be closed from the ways in the extracts. */
@@ -41,7 +47,7 @@ private val DUTCH_PROVINCES =
  * lies inside an odd number of rings, so inner rings, e.g. the Belgian enclaves in Baarle-Nassau,
  * are holes without looking at member roles.
  */
-internal class Border(val region: SignRegion, rings: List<List<Pair<Double, Double>>>) {
+internal class Border<T>(val region: T, rings: List<List<Pair<Double, Double>>>) {
 
   private val edges: Map<Int, List<DoubleArray>>
   private val minLatitude = rings.minOf { ring -> ring.minOf { it.first } }
@@ -93,13 +99,26 @@ internal class Border(val region: SignRegion, rings: List<List<Pair<Double, Doub
       relation: BorderRelation,
       wayNodeIds: (Long) -> LongArray?,
       pointOf: (Long) -> Pair<Double, Double>?,
-    ): Border {
+    ): Border<SignRegion> =
+      of(relation.region, relation.id, relation.name, relation.wayIds, wayNodeIds, pointOf)
+
+    /**
+     * Joins the ways [wayIds] of the relation [id] named [name] into the closed rings of [region].
+     *
+     * @throws IncompleteBorderException if a way is missing or a ring does not close
+     */
+    fun <T> of(
+      region: T,
+      id: Long,
+      name: String,
+      wayIds: List<Long>,
+      wayNodeIds: (Long) -> LongArray?,
+      pointOf: (Long) -> Pair<Double, Double>?,
+    ): Border<T> {
       fun incomplete(reason: String) =
-        IncompleteBorderException(
-          "The border of ${relation.name} (relation ${relation.id}) is incomplete: $reason"
-        )
+        IncompleteBorderException("The border of $name (relation $id) is incomplete: $reason")
       val ways =
-        relation.wayIds
+        wayIds
           .distinct()
           .map { id -> wayNodeIds(id)?.toList() ?: throw incomplete("way $id is missing") }
           .toMutableList()
@@ -117,11 +136,108 @@ internal class Border(val region: SignRegion, rings: List<List<Pair<Double, Doub
         rings.add(ring)
       }
       return Border(
-        relation.region,
+        region,
         rings.map { ring ->
           ring.map { id -> pointOf(id) ?: throw incomplete("node $id is missing") }
         },
       )
     }
   }
+}
+
+/**
+ * The region whose border the relation with [tags] is: a Dutch province, a Belgian province,
+ * Brussels or North Rhine-Westphalia, the regions the extracts hold whole, see `network-data`
+ * "Borders between knots"; `null` for any other.
+ */
+internal fun regionOfBorder(tags: Map<String, String>): Region? {
+  if (tags["boundary"] != "administrative") return null
+  if (tags["type"] != "boundary" && tags["type"] != "multipolygon") return null
+  val key = tags["ISO3166-2"] ?: return null
+  val level = tags["admin_level"]
+  val country =
+    when {
+      level == "4" && key in DUTCH_PROVINCES -> Country.NETHERLANDS
+      level == "6" && key in BELGIAN_PROVINCES -> Country.BELGIUM
+      level == "4" && key == "BE-BRU" -> Country.BELGIUM
+      level == "4" && key == "DE-NW" -> Country.GERMANY
+      else -> return null
+    }
+  val name = tags["name"] ?: key
+  val names =
+    Language.entries
+      .mapNotNull { language -> tags["name:${language.name.lowercase()}"]?.let { language to it } }
+      .toMap()
+  return Region(key, country, name, names)
+}
+
+/** The ISO 3166-2 codes of the ten Belgian provinces. */
+private val BELGIAN_PROVINCES =
+  setOf("VAN", "VBR", "VLI", "VOV", "VWV", "WBR", "WHT", "WLG", "WLX", "WNA").map { "BE-$it" }
+
+/** How far apart the course is sampled for borders, and how closely a crossing is placed. */
+private const val SAMPLE_METERS = 50.0
+private const val CROSSING_PRECISION_METERS = 5.0
+
+/**
+ * Where [course] crosses the borders of [regions], from its start, see `network-data` "Borders
+ * between knots". Only crossings from one region into another count, also with a gap outside all
+ * regions between them; a course leaving the regions gives none.
+ */
+internal fun crossingsAlong(course: List<GeoPoint>, regions: List<Border<Region>>): List<Crossing> {
+  if (course.size < 2 || regions.isEmpty()) return listOf()
+  val lengths = DoubleArray(course.size)
+  for (index in 1 until course.size) {
+    lengths[index] =
+      lengths[index - 1] +
+        distanceMeters(
+          course[index - 1].latitude,
+          course[index - 1].longitude,
+          course[index].latitude,
+          course[index].longitude,
+        )
+  }
+  val total = lengths.last()
+
+  fun pointAt(meters: Double): GeoPoint {
+    val index = lengths.indexOfFirst { it >= meters }.coerceAtLeast(1)
+    val step = lengths[index] - lengths[index - 1]
+    val share = if (step == 0.0) 0.0 else (meters - lengths[index - 1]) / step
+    val from = course[index - 1]
+    val to = course[index]
+    return GeoPoint(
+      from.latitude + (to.latitude - from.latitude) * share,
+      from.longitude + (to.longitude - from.longitude) * share,
+    )
+  }
+
+  fun regionAt(meters: Double): Region? {
+    val point = pointAt(meters)
+    return regions.firstOrNull { it.contains(point.latitude, point.longitude) }?.region
+  }
+
+  val crossings = mutableListOf<Crossing>()
+  val steps = maxOf(1, (total / SAMPLE_METERS).toInt())
+  var before = regionAt(0.0)
+  var beforeMeters = 0.0
+  // Outside the regions only crossings between two of them count, see "Beyond the covered area".
+  var known = before
+  for (step in 1..steps) {
+    val meters = total * step / steps
+    val here = regionAt(meters)
+    val from = known
+    if (here != before && here != null && from != null && here != from) {
+      var low = beforeMeters
+      var high = meters
+      while (high - low > CROSSING_PRECISION_METERS) {
+        val middle = (low + high) / 2
+        if (regionAt(middle) == before) low = middle else high = middle
+      }
+      crossings += Crossing(((low + high) / 2).toInt(), from, here)
+    }
+    if (here != null) known = here
+    before = here
+    beforeMeters = meters
+  }
+  return crossings
 }

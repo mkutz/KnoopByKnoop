@@ -2,19 +2,20 @@
 
 ## 1. Pipeline: places
 
-- [ ] 1.1 Read `place=village|town|city` nodes and areas with their names (`name`, `name:en/de/nl/fr`), and assign each knot its place: inside an area, or within 1 km of a village, 2 km of a town or 4 km of a city, the nearest relative to its reach. Tests in the pipeline:
+- [x] 1.1 Read `place=village|town|city` nodes and areas with their names (`name`, `name:en/de/nl/fr`), and assign each knot its place: inside an area, or within 1 km of a village, 2 km of a town or 4 km of a city, the nearest relative to its reach. Tests in the pipeline:
   - "Knot in a town"
   - "Knot in the open"
   - "Only a hamlet nearby"
   - "Names in other languages"
 - [ ] 1.2 Measure on the real extracts: the share of cycling and hiking knots with a place, and the places' count. Give the maintainer a sample of 20 random knots with their place to judge against the map. **The maintainer decides the reaches before the format is fixed.**
+  - 2026-11-11, published data of 2026-11-08's extracts: cycling 10,732 of 20,584 knots in a place (52 %), 4,877 places; hiking 23,185 of 50,460 (46 %), 2,984 places. The sample went to the maintainer.
 
 ## 2. Pipeline: borders
 
-- [ ] 2.1 Generalise `Border` to regions: the Dutch provinces, the Belgian provinces and Brussels, North Rhine-Westphalia, each with its country and names; fail on an incomplete one. Keep the sign regions working from the same borders. Tests:
+- [x] 2.1 Generalise `Border` to regions: the Dutch provinces, the Belgian provinces and Brussels, North Rhine-Westphalia, each with its country and names; fail on an incomplete one. Keep the sign regions working from the same borders. Tests:
   - "Incomplete border"
   - the sign region tests unchanged
-- [ ] 2.2 The crossings of each connection's course, bisected to 5 m. Tests:
+- [x] 2.2 The crossings of each connection's course, bisected to 5 m. Tests:
   - "Crossing into Belgium"
   - "Crossing a province border"
   - "Within one province"

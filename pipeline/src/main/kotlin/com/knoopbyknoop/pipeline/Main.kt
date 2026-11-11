@@ -111,6 +111,21 @@ fun build(area: String, outputDirectory: Path, extracts: List<Path>) {
   val result = extraction.result()
   outputDirectory.createDirectories()
   for ((network, graph) in result.graphs) {
+    // See `network-data` "Place of each knot"; a fixed sample to judge against the map.
+    val placed = graph.knots.values.filter { it.place != null }
+    println(
+      "${network.name.lowercase()}: ${placed.size} of ${graph.knots.size} knots in a place, " +
+        "${placed.mapTo(HashSet()) { it.place }.size} places"
+    )
+    graph.knots.values
+      .sortedBy { it.id }
+      .shuffled(kotlin.random.Random(11))
+      .take(20)
+      .forEach {
+        println(
+          "  ${it.ref} ${"%.5f".format(it.latitude)},${"%.5f".format(it.longitude)} ${it.place?.name ?: "-"}"
+        )
+      }
     val file = outputDirectory.resolve(graphFileName(IndexedNetworkType.of(network)))
     val graphBytes = GraphFile(network, area, dataDate.toString(), ATTRIBUTION, graph).toBytes()
     file.writeBytes(graphBytes)
