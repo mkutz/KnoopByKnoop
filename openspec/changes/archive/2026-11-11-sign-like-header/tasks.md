@@ -26,7 +26,7 @@
 ## 3. iOS
 
 - [x] 3.1 The same row in `PlannerView.swift`, with Stop as an icon button with an accessibility label. The project builds, and simulator screenshots cover the scenarios of 2.1.
-- [ ] 3.2 Large text sizes and VoiceOver, as 2.2 and 2.3, in the simulator.
+- [x] 3.2 Large text sizes and VoiceOver, as 2.2 and 2.3, in the simulator.
 
 ## 4. Wrap-up
 

@@ -32,7 +32,7 @@
   - the compact and minimal island per state
 
   The project builds. Simulator screenshots of the lock screen and the island cover: "Lock screen", "Far from the next knot outside the app", "Dynamic Island", "Dynamic Island with room for one number", "Off route outside the app", "Off route in the Dynamic Island", "On the way to the route outside the app", "Progress bar in the Live Activity", "Wrong direction outside the app" and the guided "On the lock screen".
-- [ ] 3.2 Light and dark. Simulator screenshots of "Live Activity in light and dark mode", including the inverted card in both modes, and "Stop from the lock screen".
+- [x] 3.2 Light and dark. Simulator screenshots of "Live Activity in light and dark mode", including the inverted card in both modes, and "Stop from the lock screen".
 
 ## 4. Wrap-up
 

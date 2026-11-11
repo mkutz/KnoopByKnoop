@@ -20,13 +20,13 @@ Checked on 2026-11-07 with the locally built cycling data with sign regions, on 
 | Off route outside the app | ✅ | ✅ views | Android: guided title "↗ 80 m · 600 m", the symbol on a dark disc ([off route](screenshots/android-off-route.png)); iOS card C inverted, light on the dark system |
 | Off route in the Dynamic Island | — | ✅ views | The arrow on a light tile, › 02 and "1.7 km" |
 | On the way to the route outside the app | ✅ | ✅ views | "↰ 340 m · 2.0 km" with the symbol on a light disc ([on the way](screenshots/android-on-the-way.png)); iOS card D in its usual appearance |
-| Stop from the lock screen | ✅ | open | Emulator: "Beenden" in the expanded notification over the lock screen ends navigation, the notification and the service are gone. iOS on the iPhone; the iOS Stop is an icon now |
+| Stop from the lock screen | ✅ | ✅ simulator | Emulator: "Beenden" in the expanded notification over the lock screen ends navigation, the notification and the service are gone. iOS simulator (iPhone 18 Pro, 2026-11-11): a UI test tapped Stop on the locked screen's Live Activity, and it was gone ([after Stop](screenshots/ios-sim-lock-after-stop.png)) |
 | Progress outside the app | ✅ | ✅ views | |
 | Distance on the way | ✅ | — | The title follows the rounded distance |
 | Live Update | ✅ | — | Chip "32" far from 32; stops as points in their plate colour |
 | Chip off route | ✅ | — | The to-the-route symbol and "↩500 m" on the guided way ([chip](screenshots/android-chip-off-route.png)); `NavigationTest` for "←300 m" |
 | Progress bar in the Live Activity | — | ✅ views | The end arrival beside the bar, the ✕ dot off route, a ferry at risk dark |
-| Live Activity in light and dark mode | — | ✅ views | Light and dark cards, inverted off route and riding the wrong way |
+| Live Activity in light and dark mode | — | ✅ simulator | On the locked simulator: the light card on route, inverted dark off route on a guided way ([light](screenshots/ios-sim-lock-light.png), [light off route](screenshots/ios-sim-lock-light-off-route.png)); the dark card, inverted light off route ([dark](screenshots/ios-sim-lock-dark.png), [dark off route](screenshots/ios-sim-lock-dark-off-route.png)) |
 | Live Update turned off | ✅ | — | Live Updates off in the app's notification settings: an ordinary notification with the same title, large icon, progress bar and "Beenden", no chip ([shade](screenshots/android-live-updates-off.png)) |
 | Older Android | ✅ | — | API 31 emulator: an ordinary notification with the title "02 · 1.6 km › 28", the plate as large icon and Stop, no progress bar ([shade](screenshots/android-older-android.png)). Found: its texts in the phone's language, not the app's (below) |
 | Lock screen off route | ✅ | ✅ views | No compass word |
@@ -35,7 +35,7 @@ Checked on 2026-11-07 with the locally built cycling data with sign regions, on 
 | On the lock screen (guided way) | ✅ | — | `NavigationTest` "guided way on the lock screen" for "↰ 120 m · 1.9 km" |
 | Wrong direction outside the app | unit test | ✅ views | `NavigationTest`: "↩ 45 · 700 m", chip "↩45"; iOS card inverted with the U-turn |
 
-TalkBack on the notification: not checked yet. The title is made of arrow characters, so how TalkBack reads it is open.
+TalkBack on the notification: the accessibility tree on the emulator (2026-11-11) gives TalkBack the title "02 · 7.7 km › 28" and the line "■ 18:10" ([shade](screenshots/android-shade-talkback.png)). How TalkBack speaks "·", "›", "■" and the arrows of the off-route titles can only be heard; that is step 4 of the maintainer's steps. If it is unusable, a follow-up can give the notification's texts a spoken form with `TtsSpan`, e.g. "Next 02, 7.7 km, then 28".
 
 Checked on 2026-11-11 on the emulator (Android 16 QPR2, and `KbK_API_31`) with the debug build and the published data of 2026-11-08, riding the fixes of the recorded real ride `siegburg-going-on` (01 → 02 → 28, off route south-west of 02 and back) with `adb emu geo fix`.
 

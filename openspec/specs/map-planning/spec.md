@@ -407,7 +407,7 @@ The map SHALL extend behind the system's status bar and navigation bar, while th
 - **THEN** the compass is below the search field, and the clock and the status icons, the battery among them, are not covered
 
 ### Requirement: Clear actions in the planner panel
-The planner panel SHALL show Navigate, and Stop while navigating, as the most prominent actions, each with an icon and its label. Clear SHALL be shown as an icon button, and Back to start and Export GPX as entries with icon and label in a menu opened by a "More actions" icon button, shown when one of its entries is available; the header SHALL stay one row on phones 360 dp wide. Icon buttons SHALL be announced by name to screen readers. In light and in dark appearance, the labels of all these actions SHALL have a contrast of at least 4.5:1, and their icons at least 3:1, against what they are shown on.
+The planner panel SHALL show Navigate as the most prominent action, with an icon and its label. While navigating, it SHALL show Stop as a filled icon button of the same size in every app language, announced as "Stop" to screen readers and showing its name on a long press on Android. Clear SHALL be shown as an icon button, and Back to start and Export GPX as entries with icon and label in a menu opened by a "More actions" icon button, shown when one of its entries is available; the header SHALL stay one row on phones 360 dp wide. Icon buttons SHALL be announced by name to screen readers. In light and in dark appearance, the labels of all these actions SHALL have a contrast of at least 4.5:1, and their icons at least 3:1, against what they are shown on.
 
 #### Scenario: Navigate stands out
 - **WHEN** a complete route is planned
@@ -415,7 +415,15 @@ The planner panel SHALL show Navigate, and Stop while navigating, as the most pr
 
 #### Scenario: Stop stands out
 - **WHEN** the rider is navigating
-- **THEN** the header shows Stop as a filled red button with an icon and the label "Stop"
+- **THEN** the header shows Stop as a filled red icon button with the stop icon, without a label
+
+#### Scenario: Stop in every language
+- **WHEN** the rider navigates with the app in English and then in German
+- **THEN** Stop has the same size and place in the header
+
+#### Scenario: Stop with a screen reader
+- **WHEN** a screen reader reaches Stop while navigating
+- **THEN** it announces "Stop" as a button
 
 #### Scenario: Icon buttons with a screen reader
 - **WHEN** a screen reader (TalkBack, VoiceOver) moves through the header of a planned round trip
@@ -427,11 +435,11 @@ The planner panel SHALL show Navigate, and Stop while navigating, as the most pr
 
 #### Scenario: Readable actions
 - **WHEN** the actions are measured against the panel's background
-- **THEN** the labels of Navigate and Stop have a contrast of at least 4.5:1 to their fill, and the icons of the icon buttons and of the menu entries at least 3:1 to their background
+- **THEN** the label of Navigate has a contrast of at least 4.5:1 to its fill, the icon of Stop at least 3:1 to its fill, and the icons of the icon buttons and of the menu entries at least 3:1 to their background
 
 #### Scenario: Readable actions in dark mode
 - **WHEN** the actions are measured against the dark panel's background
-- **THEN** the labels of Navigate and Stop have a contrast of at least 4.5:1 to their fill, and the icons of the icon buttons and of the menu entries at least 3:1 to their background
+- **THEN** the label of Navigate has a contrast of at least 4.5:1 to its fill, the icon of Stop at least 3:1 to its fill, and the icons of the icon buttons and of the menu entries at least 3:1 to their background
 
 ### Requirement: Light and dark appearance
 The app SHALL follow the appearance chosen in the info sheet, by default the system's light or dark appearance: the base map, the planner panel and the controls over the map SHALL all be light or all be dark. The dark base map SHALL show the same details as the light one, with water in blue and paths and roads visible against the land. Switching the appearance while the app is open SHALL switch the app without moving the map or changing the route, and without interrupting navigation. On Android, an appearance chosen in the info sheet SHALL reach the base map when the sheet closes, so the sheet's own switch stays smooth. The knots, the route and the highlighted knots SHALL stay distinguishable on the dark map.

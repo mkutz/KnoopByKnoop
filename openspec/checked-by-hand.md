@@ -20,6 +20,7 @@ A scenario gets a test as soon as one can check it; its line goes then.
 
 ## knot-navigation
 
+- Same layout in every language — on the emulator and in the simulator: the header in English and German side by side, the same apart from the decimal comma
 - Recentering near a knot — on the emulator and in the simulator: dragged away before a knot, then Recenter zooms in on it and the route after it
 - No automatic zoom after looking around — on the emulator and in the simulator: dragged before a knot, no zoom at it, the recenter button stays
 - Smooth zoom changes / Zooming in at a knot — screen recordings of a mocked ride on the emulator: one even move per change
@@ -108,6 +109,8 @@ A scenario gets a test as soon as one can check it; its line goes then.
 
 ## map-planning
 
+- Stop in every language — on the emulator and in the simulator: the same size in German, named "Beenden"
+- Stop with a screen reader — TalkBack on the emulator, VoiceOver's label in the simulator's accessibility tree: "Stop", in German "Beenden"
 - Riding without a connection — on the devices: airplane mode, the app restarted, the route's map shown along it, light and dark
 - Cycling network of the Netherlands — on the devices
 - Opening the map without a route — on the devices

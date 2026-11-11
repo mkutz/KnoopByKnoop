@@ -67,3 +67,18 @@ The maintainer's walk home → gym in Siegburg on 2026-11-09 (iPhone, dark mode,
 3. **Ride back along the route for 150 m:** the dark header with the U-turn.
 4. **If path data is installed, leave the route:** the turn arrow with its distance, the street and the distance left.
 5. **TalkBack or VoiceOver once:** the header reads e.g. "Next 32, 4.4 km, then 25", and Stop is read as "Stop".
+
+## iOS simulator, large text and VoiceOver (task 3.2)
+
+iPhone 18 Pro simulator, 2026-11-11, driven by a throwaway UI test, labels read from the accessibility tree:
+
+| Scenario | iOS | Notes |
+|---|---|---|
+| Next knot at the largest text size | ✅ | One row: 02, 7.7 km, › 28 and Stop ([screenshot](screenshots/ios-sim-far-largest.png)); VoiceOver label "Next 02, 7.7 km, then 28" |
+| Number to follow at the largest text size | ✅ | Route 06 → 32 → 31 from 06: 32 → the sign of 31 with ↑, the distance "156 m" on its own line ([screenshot](screenshots/ios-sim-close-largest.png)); label "At 32 follow 31 straight on, 156 m" |
+| Number to follow at the default text size | ✅ | The same in one row ([screenshot](screenshots/ios-sim-close-default.png)) |
+| Off route in German | ✅ | At the largest size, the dark header with the turn, "60 m" and the street cut short ("Kronprin…"), and Stop ([screenshot](screenshots/ios-sim-off-route-de-largest.png)); label "Abseits der Route, nächster 02, Rechts in 60 m, Kronprinzenstraße, 230 m" |
+| Stop with a screen reader | ✅ | Label "Stop", in German "Beenden" |
+
+Hearing VoiceOver on the iPhone stays on the maintainer's ride steps.
+

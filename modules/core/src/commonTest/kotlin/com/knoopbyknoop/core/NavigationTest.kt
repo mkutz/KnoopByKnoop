@@ -1676,6 +1676,7 @@ class NavigationTest {
     )
   }
 
+  // Scenario: Back to the route, not to the knot
   @Test
   fun `back to the route and not to the knot`() {
     val (navigation, fix) = offRouteSouth()
