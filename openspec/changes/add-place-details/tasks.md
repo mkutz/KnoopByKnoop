@@ -31,7 +31,7 @@
 
 ## 5. iOS
 
-- [ ] 5.1 The same as 4.1 to 4.4 in `PlaceIcons.swift` (`tent.fill`, `bed.double.fill`), `NetworkMapView.swift` (`MLNFeature.identifier`), `AppModel.swift`, `PlaceOfferMenu` (`openURL` with the website and `tel:`, the opening row refreshed every minute), the ferry list on the core's status wording, the info sheet and `Localizable.xcstrings`. The project builds; simulator screenshots of the card with contacts and the info sheet entry, through a throwaway UI test, or by the maintainer on the iPhone.
+- [x] 5.1 The same as 4.1 to 4.4 in `PlaceIcons.swift` (`tent.fill`, `bed.double.fill`), `NetworkMapView.swift` (`MLNFeature.identifier`), `AppModel.swift`, `PlaceOfferMenu` (`openURL` with the website and `tel:`, the opening row refreshed every minute), the ferry list on the core's status wording, the info sheet and `Localizable.xcstrings`. The project builds; simulator screenshots of the card with contacts and the info sheet entry, through a throwaway UI test, or by the maintainer on the iPhone.
 
 ## 6. Wrap-up
 
