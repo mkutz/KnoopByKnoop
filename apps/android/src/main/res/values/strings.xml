@@ -131,4 +131,11 @@
   <string name="start_nearby">Start on the route nearby · %1$s</string>
   <string name="ride_to_start">Ride to %1$s · %2$s</string>
   <string name="ride_to_start_point">Ride to the start · %1$s</string>
+  <string name="base_map_loading">Loading the map for this route…</string>
+  <string name="base_map_ready">Map for this route is loaded</string>
+  <string name="base_map_unavailable">Map for this route couldn\'t be loaded</string>
+  <string name="base_map">Map</string>
+  <string name="base_map_none">None stored</string>
+  <string name="base_map_delete_description">Delete the stored map</string>
+  <string name="base_map_explanation">The map around a planned route, stored so it shows without a connection too. The app downloads it from OpenFreeMap, which can see the rough area of a route, but never where you are.</string>
 </resources>

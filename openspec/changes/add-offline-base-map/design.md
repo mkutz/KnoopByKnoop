@@ -55,7 +55,7 @@
 4. **Light and dark.** The regions are made with the light style's URL. The dark style, loaded from the app's assets, uses the same tile, font and icon URLs, so it finds them in the offline database. The check on the emulator covers dark offline explicitly.
 
 5. **The panel and the info sheet.**
-   - `BaseMapStatus` (`LOADING`, `READY`, `UNAVAILABLE`) sits next to `PathDataStatus`. The panel line uses the core's `Texts`, in four languages.
+   - The state reuses `PathDataStatus` (`LOADING`, `READY`, `UNAVAILABLE`). The panel line comes from the apps' strings in four languages, as the ways' line does.
    - The info sheet entry reads the regions' completed sizes. Delete removes the regions and sets the "deleted for" course, as the place details do.
 
 ## Risks / Trade-offs

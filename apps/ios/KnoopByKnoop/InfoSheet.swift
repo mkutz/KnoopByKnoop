@@ -99,6 +99,24 @@ struct InfoSheet: View {
             "Websites, phone numbers and opening hours of the places on the map. The app downloads them from GitHub around planned routes and for places you tap while planning, so GitHub can see the rough area of a route or a place, but never where you are."
           )
         }
+        // The stored base map, see `network-sync` "Base map in the info sheet".
+        Section {
+          HStack {
+            VStack(alignment: .leading) {
+              Text("Map").font(.headline)
+              Text(baseMapDescription).font(.subheadline).foregroundStyle(.secondary)
+            }
+            Spacer()
+            if model.baseMapBytes > 0 {
+              Button("Delete") { model.deleteBaseMap() }
+                .accessibilityLabel(Text("Delete the stored map"))
+            }
+          }
+        } footer: {
+          Text(
+            "The map around a planned route, stored so it shows without a connection too. The app downloads it from OpenFreeMap, which can see the rough area of a route, but never where you are."
+          )
+        }
         Section {
           Text(
             "Knot network data © OpenStreetMap contributors, available under the Open Database License (ODbL 1.0), openstreetmap.org/copyright"
@@ -126,6 +144,14 @@ struct InfoSheet: View {
     let megabytes = (Double(model.pathDataBytes) / 1_000_000).formatted(
       .number.precision(.fractionLength(1)).locale(AppLanguage.locale))
     return String(localized: "Data of \(date)", bundle: AppLanguage.bundle) + " · \(megabytes) MB"
+  }
+
+  /// The stored base map's size in MB with one decimal, or that none is stored.
+  private var baseMapDescription: String {
+    guard model.baseMapBytes > 0 else { return String(localized: "None stored", bundle: AppLanguage.bundle) }
+    let megabytes = (Double(model.baseMapBytes) / 1_000_000).formatted(
+      .number.precision(.fractionLength(1)).locale(AppLanguage.locale))
+    return "\(megabytes) MB"
   }
 
   /// The place details' data date and size in MB with one decimal, or that none are downloaded.

@@ -2667,6 +2667,160 @@
           }
         }
       }
+    },
+    "Loading the map for this route…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Karte für diese Route wird geladen…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaart voor deze route wordt geladen…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chargement de la carte de cet itinéraire…"
+          }
+        }
+      }
+    },
+    "Map for this route is loaded": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Karte für diese Route ist geladen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaart voor deze route is geladen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La carte de cet itinéraire est chargée"
+          }
+        }
+      }
+    },
+    "Map for this route couldn't be loaded": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Karte für diese Route konnte nicht geladen werden"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaart voor deze route kon niet worden geladen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La carte de cet itinéraire n'a pas pu être chargée"
+          }
+        }
+      }
+    },
+    "Map": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Karte"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaart"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carte"
+          }
+        }
+      }
+    },
+    "None stored": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine gespeichert"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niets opgeslagen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune enregistrée"
+          }
+        }
+      }
+    },
+    "Delete the stored map": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gespeicherte Karte löschen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opgeslagen kaart verwijderen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer la carte enregistrée"
+          }
+        }
+      }
+    },
+    "The map around a planned route, stored so it shows without a connection too. The app downloads it from OpenFreeMap, which can see the rough area of a route, but never where you are.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Karte rund um eine geplante Route, gespeichert, damit sie auch ohne Verbindung angezeigt wird. Die App lädt sie von OpenFreeMap, das den ungefähren Bereich einer Route sehen kann, aber nie, wo du bist."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De kaart rond een geplande route, opgeslagen zodat hij ook zonder verbinding te zien is. De app downloadt hem van OpenFreeMap, dat het ruwe gebied van een route kan zien, maar nooit waar je bent."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La carte autour d'un itinéraire planifié, enregistrée pour s'afficher aussi sans connexion. L'app la télécharge depuis OpenFreeMap, qui peut voir la zone approximative d'un itinéraire, mais jamais où vous êtes."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

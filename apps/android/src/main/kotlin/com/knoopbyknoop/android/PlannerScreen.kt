@@ -661,6 +661,7 @@ private fun WaypointSheet(
         )
         complete?.let { RouteKnots(it) }
         state.pathData?.let { PathDataNote(it) }
+        state.baseMap?.let { BaseMapNote(it) }
         // See `map-planning` "No path data".
         if (session.hasStraightLines) {
           Text(
@@ -914,6 +915,23 @@ private fun PathDataNote(status: PathDataStatus) {
         PathDataStatus.LOADING -> R.string.path_data_loading
         PathDataStatus.READY -> R.string.path_data_ready
         PathDataStatus.UNAVAILABLE -> R.string.path_data_unavailable
+      }
+    ),
+    style = MaterialTheme.typography.bodySmall,
+    color = MaterialTheme.colorScheme.onSurfaceVariant,
+    modifier = Modifier.padding(bottom = 4.dp),
+  )
+}
+
+/** Whether the route's base map is stored, see `network-sync` "Base map ready for the ride". */
+@Composable
+private fun BaseMapNote(status: PathDataStatus) {
+  Text(
+    stringResource(
+      when (status) {
+        PathDataStatus.LOADING -> R.string.base_map_loading
+        PathDataStatus.READY -> R.string.base_map_ready
+        PathDataStatus.UNAVAILABLE -> R.string.base_map_unavailable
       }
     ),
     style = MaterialTheme.typography.bodySmall,

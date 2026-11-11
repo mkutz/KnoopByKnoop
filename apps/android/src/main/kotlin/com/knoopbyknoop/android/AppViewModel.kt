@@ -21,6 +21,8 @@ import androidx.work.WorkManager
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
+import com.knoopbyknoop.core.BaseMapArea
+import com.knoopbyknoop.core.BaseMapSquares
 import com.knoopbyknoop.core.Fix
 import com.knoopbyknoop.core.GeoBounds
 import com.knoopbyknoop.core.GeoPoint
@@ -189,6 +191,12 @@ data class AppState(
    * navigation starts, see `network-sync` "Deleting place details with a route planned".
    */
   val placeDetailsDeletedFor: List<GeoPoint>? = null,
+  /** Whether the route's base map is stored, see `network-sync` "Base map ready for the ride". */
+  val baseMap: PathDataStatus? = null,
+  /** The space the stored base map takes, see "Base map in the info sheet". */
+  val baseMapBytes: Long = 0,
+  /** The course the user deleted the base map for: not stored again until the route changes. */
+  val baseMapDeletedFor: List<GeoPoint>? = null,
   /** The navigation, or `null` when not navigating, see `knot-navigation`. */
   val navigation: NavigationState? = null,
   /**
@@ -251,6 +259,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   private val settings = application.getSharedPreferences("settings", Context.MODE_PRIVATE)
   private val paths = PathData.store(application)
   private val places = PlaceDetailsData.store(application)
+  private val baseMaps = BaseMapStore(application)
 
   /** The language of the core's texts, see `app-languages` "Language of the texts". */
   private var language = Language.of(AppLocale.of(application).language)
@@ -311,6 +320,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     viewModelScope.launch { Navigating.state.collect { state = state.copy(navigation = it) } }
     viewModelScope.launch { loadPathData() }
     viewModelScope.launch { loadPlaceDetails() }
+    viewModelScope.launch { loadBaseMap() }
   }
 
   /**
@@ -338,6 +348,45 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         updatePlaceDetailsInfo()
         refreshOfferDetails()
       }
+  }
+
+  /**
+   * Stores the base map around the planned route, for cycling and hiking, see `network-sync` "Base
+   * map around the route": like the path data, 2 seconds after the route last changed, again with
+   * network access coming back, and at navigation start.
+   */
+  private suspend fun loadBaseMap() {
+    state = state.copy(baseMapBytes = baseMaps.installedBytes())
+    snapshotFlow { listOf(state.online, state.session, state.layers, state.baseMapDeletedFor) }
+      .distinctUntilChanged()
+      .collectLatest {
+        val area =
+          BaseMapSquares.courseToLoad(plannedCourse(), state.baseMapDeletedFor)?.let {
+            BaseMapArea.of(it)
+          }
+        if (area == null) {
+          state = state.copy(baseMap = null)
+          return@collectLatest
+        }
+        delay(PATH_DATA_DELAY_MILLIS)
+        val status =
+          baseMaps.store(area, state.online, onStatus = { state = state.copy(baseMap = it) })
+        state = state.copy(baseMap = status, baseMapBytes = baseMaps.installedBytes())
+      }
+  }
+
+  /**
+   * Deletes the stored base map; the planned route's comes again once it changes or navigation
+   * starts, see `network-sync` "Base map in the info sheet".
+   */
+  fun deleteBaseMap() {
+    // Changing the deleted-for course restarts the flow in loadBaseMap, cancelling a download.
+    state =
+      state.copy(baseMap = null, baseMapBytes = 0, baseMapDeletedFor = plannedCourse() ?: listOf())
+    viewModelScope.launch {
+      baseMaps.clear()
+      state = state.copy(baseMapBytes = baseMaps.installedBytes())
+    }
   }
 
   private suspend fun updatePlaceDetailsInfo() {
@@ -514,7 +563,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val knots = (session.route?.summary as? RouteSummary.Complete)?.knots ?: return
     val network = loaded ?: return
     // The route's squares are wanted again, see `network-sync` "Deleting with a route planned".
-    state = state.copy(pathDataDeletedFor = null, placeDetailsDeletedFor = null)
+    state =
+      state.copy(pathDataDeletedFor = null, placeDetailsDeletedFor = null, baseMapDeletedFor = null)
     Navigating.lateCourses.value = null
     NavigationService.start(
       getApplication(),

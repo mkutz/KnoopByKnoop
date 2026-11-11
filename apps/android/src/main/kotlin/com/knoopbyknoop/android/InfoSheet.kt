@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -45,7 +47,13 @@ import com.knoopbyknoop.core.NetworkStatus
 @Composable
 fun InfoSheet(state: AppState, viewModel: AppViewModel, onDismiss: () -> Unit) {
   ModalBottomSheet(onDismissRequest = onDismiss) {
-    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp)) {
+    // Scrolls when its entries don't fit, e.g. with the base map's on a smaller screen.
+    Column(
+      modifier =
+        Modifier.fillMaxWidth()
+          .verticalScroll(rememberScrollState())
+          .padding(horizontal = 24.dp, vertical = 8.dp)
+    ) {
       // The appearance of the whole app, see `map-planning` "Light and dark appearance".
       Text(stringResource(R.string.appearance), style = MaterialTheme.typography.titleLarge)
       SingleChoiceSegmentedButtonRow(
@@ -98,6 +106,7 @@ fun InfoSheet(state: AppState, viewModel: AppViewModel, onDismiss: () -> Unit) {
       }
       WaysEntry(state, viewModel)
       PlaceDetailsEntry(state, viewModel)
+      BaseMapEntry(state, viewModel)
       if (state.needsAppUpdate) {
         Text(
           stringResource(R.string.needs_app_update),
@@ -196,6 +205,42 @@ private fun PlaceDetailsEntry(state: AppState, viewModel: AppViewModel) {
   }
   Text(
     stringResource(R.string.place_details_explanation),
+    style = MaterialTheme.typography.bodyMedium,
+    modifier = Modifier.padding(top = 8.dp),
+  )
+}
+
+/**
+ * The stored base map, after the place details, with its size and a button to delete it, see
+ * `network-sync` "Base map in the info sheet".
+ */
+@Composable
+private fun BaseMapEntry(state: AppState, viewModel: AppViewModel) {
+  val installed = state.baseMapBytes > 0
+  Row(
+    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Column(modifier = Modifier.weight(1f)) {
+      Text(stringResource(R.string.base_map), style = MaterialTheme.typography.titleMedium)
+      Text(
+        if (installed) megabytes(state.baseMapBytes) else stringResource(R.string.base_map_none),
+        style = MaterialTheme.typography.bodyMedium,
+      )
+    }
+    if (installed) {
+      val description = stringResource(R.string.base_map_delete_description)
+      TextButton(onClick = viewModel::deleteBaseMap) {
+        // See "Base map delete button with a screen reader".
+        Text(
+          stringResource(R.string.ways_delete),
+          modifier = Modifier.clearAndSetSemantics { contentDescription = description },
+        )
+      }
+    }
+  }
+  Text(
+    stringResource(R.string.base_map_explanation),
     style = MaterialTheme.typography.bodyMedium,
     modifier = Modifier.padding(top = 8.dp),
   )

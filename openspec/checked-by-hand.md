@@ -104,6 +104,7 @@ A scenario gets a test as soon as one can check it; its line goes then.
 
 ## map-planning
 
+- Riding without a connection — on the devices: airplane mode, the app restarted, the route's map shown along it, light and dark
 - Cycling network of the Netherlands — on the devices
 - Opening the map without a route — on the devices
 - No network access — on the devices in airplane mode
@@ -243,6 +244,19 @@ A scenario gets a test as soon as one can check it; its line goes then.
 
 ## network-sync
 
+- Base map around the route / Starting before the download is done — on the devices: Navigate while the panel says the map is loading
+- Requests name the app — on the emulator: an OkHttp interceptor logging each request's User-Agent in a debug run
+- Requests at a time — on the emulator: the same log with the dispatcher's running calls, at most 4
+- Map still loading — on the devices: the panel while a route's map downloads
+- Map loaded — on the devices: the panel once it is in
+- Map not available — on the devices: a route planned in airplane mode
+- Map status in all languages — on the devices, in German, Dutch and French
+- A new route — on the devices: a new route in another area, then the info sheet's size, and the old area offline
+- Restarting the app — on the emulator: the app restarted in airplane mode shows the route's map
+- Opening the info sheet with a base map — on the devices
+- No base map stored — on the devices
+- Explaining the base map — on the devices, in all four languages
+- Base map delete button with a screen reader — TalkBack and VoiceOver, or the accessibility tree
 - Leaving the app during the download — on the devices
 - Interrupted download — on the devices
 - No network access on first start — on the devices

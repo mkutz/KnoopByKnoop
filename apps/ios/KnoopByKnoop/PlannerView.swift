@@ -465,6 +465,19 @@ private struct WaypointSheet: View {
   /// Shows a coming knot on the map.
   let onShowKnot: (Knot) -> Void
 
+  /// Whether the route's base map is stored, see `network-sync` "Base map ready for the ride".
+  private func baseMapNote(_ status: PathDataStatus) -> some View {
+    Group {
+      switch status {
+      case .loading: Text("Loading the map for this route…")
+      case .ready: Text("Map for this route is loaded")
+      default: Text("Map for this route couldn't be loaded")
+      }
+    }
+    .font(.caption)
+    .foregroundStyle(.secondary)
+  }
+
   /// Whether the ways for the route are in, see `network-sync` "Path data ready for the ride".
   private func pathDataNote(_ status: PathDataStatus) -> some View {
     Group {
@@ -533,6 +546,9 @@ private struct WaypointSheet: View {
           RouteKnots(description: complete)
           if let status = model.pathData {
             pathDataNote(status)
+          }
+          if let status = model.baseMap {
+            baseMapNote(status)
           }
           // See `map-planning` "No path data".
           if session.hasStraightLines {

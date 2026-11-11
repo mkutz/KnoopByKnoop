@@ -45,7 +45,7 @@ None.
 
 ## Impact
 
-- **`modules/core`:** the route's corridor (a polygon around the course) for the download, and the texts of the panel line in four languages.
+- **`modules/core`:** the route's corridor (the tiles along the course) for the download.
 - **`apps/android`:**
   - MapLibre's `OfflineManager`, with an offline region per zoom band for the route.
   - Its HTTP client limited to 4 requests per host and sending the app's User-Agent.

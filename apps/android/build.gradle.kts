@@ -112,6 +112,7 @@ dependencies {
   implementation(libs.androidx.lifecycle.viewmodel.compose)
   implementation(libs.androidx.work.runtime)
   implementation(libs.maplibre.android)
+  implementation(libs.okhttp)
   testImplementation(libs.kotlin.test.junit)
   implementation(libs.play.services.location)
 }

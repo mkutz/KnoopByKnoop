@@ -126,6 +126,13 @@ final class AppModel: ObservableObject {
   /// or navigation starts, see `network-sync` "Deleting place details with a route planned".
   private var placeDetailsDeletedFor: [GeoPoint]?
   private var placeDetailsLoad: (task: Task<Void, Never>, cancellation: PathDataCancellation, course: [GeoPoint], online: Bool)?
+  /// Whether the route's base map is stored, see `network-sync` "Base map ready for the ride".
+  @Published private(set) var baseMap: PathDataStatus?
+  /// The space the stored base map takes, see "Base map in the info sheet".
+  @Published private(set) var baseMapBytes: Int64 = 0
+  /// The course the user deleted the base map for: not stored again until the route changes.
+  private var baseMapDeletedFor: [GeoPoint]?
+  private var baseMapLoad: (task: Task<Void, Never>, course: [GeoPoint], online: Bool)?
   @Published var message: String?
   /// Whether the `message` offers to open the app's settings, e.g. to allow location access.
   @Published var messageOpensSettings = false
@@ -168,6 +175,10 @@ final class AppModel: ObservableObject {
 
   init() {
     defer {
+      Task { [weak self] in
+        let bytes = await BaseMapStore.shared.readInstalledBytes()
+        self?.baseMapBytes = bytes
+      }
       placeSearch.context = { [weak self] in
         guard let self, let locator = self.loaded?.locator, let graph = self.session?.graph,
           let area = GeoBounds.companion.of(graph: graph)
@@ -266,6 +277,10 @@ final class AppModel: ObservableObject {
     if placeDetailsDeletedFor != nil {
       placeDetailsDeletedFor = nil
       loadPlaceDetails()
+    }
+    if baseMapDeletedFor != nil {
+      baseMapDeletedFor = nil
+      loadBaseMap()
     }
     Navigator.shared.onDenied = { [weak self] in
       self?.message = String(localized: "Knoop by Knoop needs location access to navigate. You can allow it in Settings.", bundle: AppLanguage.bundle)
@@ -497,6 +512,7 @@ final class AppModel: ObservableObject {
     }
     loadPathData()
     loadPlaceDetails()
+    loadBaseMap()
   }
 
   /// Keeps the squares around the planned route on the device, see `network-sync` "Path data around
@@ -593,6 +609,45 @@ final class AppModel: ObservableObject {
       self?.placeDetailsChanged()
     }
     placeDetailsLoad = (task, cancellation, wanted, online)
+  }
+
+  /// Stores the base map around the planned route, for cycling and hiking, see `network-sync` "Base
+  /// map around the route": like the path data, 2 seconds after the route last changed, again with
+  /// network access coming back, and at navigation start.
+  private func loadBaseMap() {
+    guard
+      let course = BaseMapSquares.shared.courseToLoad(course: plannedCourse(), deletedFor: baseMapDeletedFor),
+      let area = BaseMapArea.companion.of(course: course)
+    else {
+      baseMapLoad?.task.cancel()
+      baseMapLoad = nil
+      baseMap = nil
+      return
+    }
+    if let running = baseMapLoad, running.course == course, running.online == online { return }
+    baseMapLoad?.task.cancel()
+    let isOnline = online
+    let task = Task { [weak self] in
+      try? await Task.sleep(for: .seconds(2))
+      guard !Task.isCancelled else { return }
+      let status = await BaseMapStore.shared.store(area: area, online: isOnline) { self?.baseMap = $0 }
+      guard !Task.isCancelled, let self else { return }
+      baseMap = status
+      baseMapBytes = BaseMapStore.shared.installedBytes
+    }
+    baseMapLoad = (task, course, online)
+  }
+
+  /// Deletes the stored base map; the planned route's comes again once it changes or navigation
+  /// starts, see `network-sync` "Base map in the info sheet".
+  func deleteBaseMap() {
+    baseMapDeletedFor = plannedCourse() ?? []
+    loadBaseMap()
+    baseMapBytes = 0
+    Task {
+      await BaseMapStore.shared.clear()
+      baseMapBytes = BaseMapStore.shared.installedBytes
+    }
   }
 
   /// Shows what is installed now: the info sheet's entry and the open card's details.
@@ -920,6 +975,7 @@ final class AppModel: ObservableObject {
     online = isOnline
     loadPathData()
     loadPlaceDetails()
+    loadBaseMap()
     if isOnline && syncPending { Task { await sync() } }
   }
 

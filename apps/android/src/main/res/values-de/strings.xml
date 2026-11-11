@@ -125,4 +125,11 @@
   <string name="start_nearby">Auf der Route in der Nähe starten · %1$s</string>
   <string name="ride_to_start">Zu %1$s fahren · %2$s</string>
   <string name="ride_to_start_point">Zum Start fahren · %1$s</string>
+  <string name="base_map_loading">Karte für diese Route wird geladen…</string>
+  <string name="base_map_ready">Karte für diese Route ist geladen</string>
+  <string name="base_map_unavailable">Karte für diese Route konnte nicht geladen werden</string>
+  <string name="base_map">Karte</string>
+  <string name="base_map_none">Keine gespeichert</string>
+  <string name="base_map_delete_description">Gespeicherte Karte löschen</string>
+  <string name="base_map_explanation">Die Karte rund um eine geplante Route, gespeichert, damit sie auch ohne Verbindung angezeigt wird. Die App lädt sie von OpenFreeMap, das den ungefähren Bereich einer Route sehen kann, aber nie, wo du bist.</string>
 </resources>

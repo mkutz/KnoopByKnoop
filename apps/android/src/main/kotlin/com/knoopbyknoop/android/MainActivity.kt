@@ -41,6 +41,7 @@ class MainActivity : AppCompatActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    BaseMapRequests.install(this)
     // No callback tells an app without a system role of an unlock for sure, see the design of
     // `navigate-over-lock-screen`.
     val keyguard = getSystemService(KeyguardManager::class.java)

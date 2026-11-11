@@ -11,6 +11,7 @@ struct KnoopByKnoopApp: App {
 
   init() {
     Navigator.shared.endLeftoverSession()
+    BaseMapRequests.install()
   }
 
   var body: some Scene {
