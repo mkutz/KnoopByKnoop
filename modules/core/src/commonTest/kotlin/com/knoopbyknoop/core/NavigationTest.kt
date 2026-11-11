@@ -112,6 +112,17 @@ class NavigationTest {
   }
 
   @Test
+  fun `start with an imprecise position`() {
+    val started =
+      assertNotNull(
+        Navigation.start(route, graph, geometry, fix(0.0, north = 50.0, accuracy = 30.0))
+      )
+
+    assertEquals(knot45, started.navigation.nextKnot)
+    assertTrue(started.notices.none { it.kind == NoticeKind.OFF_ROUTE })
+  }
+
+  @Test
   fun `start away from the route`() {
     val started = start(east = 1000.0, north = -2000.0)
 

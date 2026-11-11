@@ -1589,8 +1589,10 @@ class Navigation private constructor(private val setup: RideSetup, private val s
       val route = setup.route
       // Only at the start: elsewhere navigation leads there, see `knot-navigation` "Start
       // navigation"; the app asks first where starting on the route nearby makes sense.
+      // A position that may be off counts as at the start as far as it may be off, see "Start with
+      // an imprecise position".
       val startIndex =
-        if (distanceToNearestNode(fix, knots.first()) <= PASS_RADIUS_METERS)
+        if (distanceToNearestNode(fix, knots.first()) <= PASS_RADIUS_METERS + fix.accuracyMeters)
           lastWithin(knots, 0, knots.lastIndex - 1, fix)
         else -1
       val (nextIndex, offRoute) = if (startIndex >= 0) startIndex + 1 to false else 0 to true

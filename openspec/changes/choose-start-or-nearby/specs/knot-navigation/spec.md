@@ -58,7 +58,7 @@ When navigation is started more than 30 m from the start and a place on the cour
 ## MODIFIED Requirements
 
 ### Requirement: Start navigation
-A complete route SHALL be navigable. Navigation SHALL be started by the user while the app is open, and SHALL begin at the first waypoint of the route: within 30 m of any of the nodes it is tagged on, it SHALL begin after it; elsewhere it SHALL lead there, see "Start on the route nearby" for when the app asks first. Standing within 30 m of several consecutive knots at the start of the route, it SHALL begin after the last of them. On the way to the start, the notices SHALL say "To the start" instead of "Off route", the header SHALL show the way as in "Header on the way to the route", and reaching the start SHALL be told as passing a knot. Within 200 m of the start, the first leg's course SHALL count as the way there. It SHALL need location access only while the app is in use, not always.
+A complete route SHALL be navigable. Navigation SHALL be started by the user while the app is open, and SHALL begin at the first waypoint of the route: within 30 m of any of the nodes it is tagged on, plus as far as the position may be off, it SHALL begin after it; elsewhere it SHALL lead there, see "Start on the route nearby" for when the app asks first. Standing within 30 m of several consecutive knots at the start of the route, it SHALL begin after the last of them. On the way to the start, the notices SHALL say "To the start" instead of "Off route", the header SHALL show the way as in "Header on the way to the route", and reaching the start SHALL be told as passing a knot. Within 200 m of the start, the first leg's course SHALL count as the way there. It SHALL need location access only while the app is in use, not always.
 
 #### Scenario: Start at the first knot
 - **WHEN** the route runs 24, 45, 12, 31 and the rider starts navigation standing at knot 24
@@ -75,6 +75,10 @@ A complete route SHALL be navigable. Navigation SHALL be started by the user whi
 #### Scenario: Start at a double knot
 - **WHEN** the route runs 45, 46, 12, 46 is 10 m after 45, and the rider starts navigation standing between 45 and 46
 - **THEN** navigation begins with 12 as the next knot
+
+#### Scenario: Start with an imprecise position
+- **WHEN** the rider starts navigation 50 m from knot 24 of the route 24, 45, 12, 31, with a first position accurate to 30 m
+- **THEN** navigation begins with 45 as the next knot, without "To the start"
 
 #### Scenario: Start at another node of a merged knot
 - **WHEN** knot 24 of the route 24, 45, 12, 31 is tagged on two nodes 195 m apart, and the rider starts navigation standing at the node that is not the knot's position on the map
