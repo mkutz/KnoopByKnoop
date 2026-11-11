@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.14.0
 
 - The map around a planned route is stored on the phone, so streets, villages and rivers are shown along it without a connection too, in the light and the dark map. The panel says when it is loaded, and the info sheet shows its size and can delete it. The info sheet scrolls now
 - Started away from the route's start but close to the route, Navigate asks whether to ride to the start or to start on the route nearby. Starting nearby begins the plan where the route is closest, before its first stop. On the way to the start, navigation says "To the start" and no longer joins the route by itself, which could lead along a course against the route and then call it the wrong way
