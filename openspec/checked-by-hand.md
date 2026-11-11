@@ -20,6 +20,10 @@ A scenario gets a test as soon as one can check it; its line goes then.
 
 ## knot-navigation
 
+- Recentering near a knot — on the emulator and in the simulator: dragged away before a knot, then Recenter zooms in on it and the route after it
+- No automatic zoom after looking around — on the emulator and in the simulator: dragged before a knot, no zoom at it, the recenter button stays
+- Smooth zoom changes / Zooming in at a knot — screen recordings of a mocked ride on the emulator: one even move per change
+- Labels while zoomed in — the same recordings: labels steady while following
 - Courses on a slow phone — on the emulator, where the courses take about 20 s: Navigate pressed before they have loaded, a recorded ride replayed
 - Question dismissed — on the devices: Navigate away from the start, the question closed without choosing
 - Position unknown — on the devices: Navigate without a position within 10 s, e.g. indoors

@@ -31,7 +31,7 @@
 ## 6. Wrap-up
 
 - [x] 6.1 `manual-checks.md` with the scenarios and the maintainer's steps, including a real ride on each phone that notes whether the zoom helped at knots and tricky spots, whether 10 s after a knot is right, and whether the map moved too much.
-- [ ] 6.2 Battery: check with the maintainer whether "Battery use while navigating" needs a new ride. The screen-off path doesn't change, so it shouldn't.
+- [x] 6.2 Battery: check with the maintainer whether "Battery use while navigating" needs a new ride. The screen-off path doesn't change, so it shouldn't. The maintainer agreed on 2026-11-11: no new ride.
 - [x] 6.3 `./gradlew check` and `npx @fission-ai/openspec validate --all` pass; a CHANGELOG entry under Unreleased.
 
 ## Workflow follow-up

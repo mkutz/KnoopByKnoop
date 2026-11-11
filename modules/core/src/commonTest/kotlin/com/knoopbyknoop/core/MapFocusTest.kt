@@ -196,6 +196,7 @@ class MapFocusTest {
     assertEquals(MapFocus.BASE, focus)
   }
 
+  // Scenario: Next knot far ahead
   @Test
   fun `the view spans twice the farthest point within the limits`() {
     val rider = Fix(latitude(0.0), longitude(0.0), 5.0, 0)
