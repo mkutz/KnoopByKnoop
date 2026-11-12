@@ -37,15 +37,35 @@ The map SHALL show the knots of the selected, installed network type with their 
 - **THEN** the attribution required by OpenStreetMap and the base map provider is visible, except on iOS in landscape while the user types in the search with the on-screen keyboard, when the hits and the keyboard cover the map
 
 ### Requirement: Plan by tapping knots
-Tapping a knot SHALL make it the start if there is no start yet, the end if there is no end yet, and otherwise what the switch in "What new knots become" says: a stop in the leg where it adds the least distance, or the new end. Tapping a knot that already is a waypoint SHALL change nothing, so an accidental double tap does not create a round trip and the start does not turn into a stop; round trips are made with the action to return to the start. A tap SHALL select the knot nearest to the tapped position, within a tolerance that keeps knots easy to hit.
+Tapping a knot SHALL make it the start if there is no start yet, the end if there is no end yet, and otherwise add it where it adds the least distance: as a stop in one of the legs, before the start, making it the new start and the old start a stop, or after the end, making it the new end and the old end a stop. A round trip SHALL stay one, so its knots are only added as stops. A knot that cannot be reached from the route SHALL be added before the end, so the route reports the leg as unreachable. Tapping a knot that already is a waypoint SHALL change nothing, so an accidental double tap does not create a round trip and the start does not turn into a stop; round trips are made with the action to return to the start. A tap SHALL select the knot nearest to the tapped position, within a tolerance that keeps knots easy to hit.
 
 #### Scenario: Start and end
 - **WHEN** the user taps knot 12 and then knot 45
 - **THEN** 12 is the start, 45 the end, and the route between them is shown on the map
 
 #### Scenario: Adding a stop
-- **WHEN** a route from 12 to 45 exists, the switch is on Between and the user taps knot 30
+- **WHEN** a route from 12 to 45 exists and the user taps knot 30, which lies beside it
 - **THEN** 30 is added as a stop where it adds the least distance, and the route passes through it
+
+#### Scenario: Beyond the end
+- **WHEN** a route from 12 to 45 exists and the user taps knot 28, which lies beyond 45 seen from 12
+- **THEN** the waypoints are 12, 45 and 28, with 28 as the end and 45 as a stop
+
+#### Scenario: Before the start
+- **WHEN** a route from 05 in Amsterdam to 76 in Zandvoort exists and the user taps 60, which lies on the far side of 05 seen from 76
+- **THEN** the waypoints are 60, 05 and 76, with 60 as the start and 05 as a stop
+
+#### Scenario: Extending step by step
+- **WHEN** the user taps 12, 45, 28 and 7, each further along in the same direction
+- **THEN** the waypoints are 12, 45, 28 and 7 in that order
+
+#### Scenario: Knot beyond the end of a round trip
+- **WHEN** the waypoints are 12, 45 and 12 and the user taps knot 28
+- **THEN** 28 becomes a stop where it adds the least distance, neither the new start nor the new end, and the route stays a round trip from 12
+
+#### Scenario: Tapping a knot that cannot be reached
+- **WHEN** a route from 12 to 45 exists and the user taps a knot that cannot be reached from it
+- **THEN** it is added before 45, and the route reports the leg as unreachable
 
 #### Scenario: Tapping the last waypoint again
 - **WHEN** only the start 12 is set and the user taps 12 again
@@ -663,73 +683,6 @@ While planning, when the map shows no knots of the selected network, because the
 - **WHEN** a screen reader reaches the button
 - **THEN** it announces "Show the nearest knots" as a button
 
-### Requirement: What new knots become
-Once a route exists, the top of the planner panel SHALL show a switch "Add knots: Between | At end", also at the panel's smallest height. Each choice SHALL show its word and an icon in the color of that word, with an arrow pointing to where the knot goes. On Between, a tapped knot SHALL become a stop. On At end, it SHALL become the new end and the old end a stop; a round trip SHALL stay one. Between SHALL be the default, and the app SHALL remember the choice. The switch SHALL only affect later taps.
-
-#### Scenario: Extending the route
-- **WHEN** a route from 12 to 45 exists, the switch is on At end and the user taps knot 28
-- **THEN** the waypoints are 12, 45 and 28, with 28 as the end and 45 as a stop
-
-#### Scenario: Looking around
-- **WHEN** the switch is on At end and the user taps 12, 45, 28 and 7 one after the other
-- **THEN** the waypoints are 12, 45, 28 and 7 in that order
-
-#### Scenario: A knot beside the route
-- **WHEN** a route from 12 to 45 passes close to knot 30, the switch is on At end and the user taps 30
-- **THEN** the waypoints are 12, 45 and 30, as the switch says, also though the route rides on to 45 first
-
-#### Scenario: Round trip at the end
-- **WHEN** the waypoints are 12, 45 and 12, the switch is on At end and the user taps knot 28
-- **THEN** the waypoints are 12, 45, 28 and 12
-
-#### Scenario: A knot that cannot be reached
-- **WHEN** a route from 12 to 45 exists, the switch is on At end and the user taps a knot that cannot be reached from 45
-- **THEN** it becomes the end, and the route reports the leg as unreachable, as for any waypoint
-
-#### Scenario: First two taps
-- **WHEN** no route exists yet and the user taps knots 12 and 45, whatever the remembered choice
-- **THEN** 12 is the start and 45 the end, and the switch appears only then
-
-#### Scenario: Default
-- **WHEN** the app was never told otherwise
-- **THEN** the switch is on Between
-
-#### Scenario: Remembered
-- **WHEN** the user chose At end, clears the route or restarts the app, and plans a new route
-- **THEN** the switch shows At end
-
-#### Scenario: Switching changes nothing yet
-- **WHEN** a route with the stops 30 and 7 exists and the user changes the switch
-- **THEN** the waypoints and the route stay as they are
-
-#### Scenario: The icons
-- **WHEN** the switch is shown
-- **THEN** the arrow of Between points at the line between two knots, the arrow of At end points past the last knot, and neither uses the colors of the knots' roles
-
-#### Scenario: In the smallest panel
-- **WHEN** a route is planned and the panel is at its smallest height, on a phone 360 dp wide
-- **THEN** the switch can be seen and used, and the header stays one row
-
-#### Scenario: In landscape
-- **WHEN** a route is planned in landscape
-- **THEN** the switch is at the top of the side panel
-
-#### Scenario: While navigating
-- **WHEN** the rider is navigating
-- **THEN** the switch is not shown
-
-#### Scenario: Larger text
-- **WHEN** the text is at 130% on a phone 360 dp wide
-- **THEN** the label and both choices can be read in full, the label above the choices if needed
-
-#### Scenario: Screen reader
-- **WHEN** a screen reader reaches the switch
-- **THEN** it announces "Add knots", the words of the two choices and which one is selected, and not the icons
-
-#### Scenario: Readable in both appearances
-- **WHEN** the switch is measured in light and in dark appearance
-- **THEN** its labels and icons have a contrast of at least 4.5:1 to what they are shown on
-
 ### Requirement: Icons on the network switch
 Each choice of the network switch SHALL show an icon next to its word: a bike for cycling and a hiker for hiking. The icon SHALL have the color of the word. The switch SHALL behave as without the icons.
 
@@ -874,7 +827,7 @@ Where knots are shown, a tap with no knot or route point within the tolerance SH
 - **THEN** nothing is offered, the route does not change, and the user is told there are no hiking knots within 5 km
 
 ### Requirement: What a chosen route point does
-"Start here" SHALL make the place the new start, "End here" the new end, and "Add stop here" a stop in the leg where it adds the least distance, whatever the switch in "What new knots become" says. A waypoint that was the start or end before SHALL become a stop, whether it is a knot or a route point.
+"Start here" SHALL make the place the new start, "End here" the new end, and "Add stop here" a stop in the leg where it adds the least distance. A waypoint that was the start or end before SHALL become a stop, whether it is a knot or a route point.
 
 #### Scenario: First waypoint
 - **WHEN** there are no waypoints and the user chooses "Start here", then taps 28
@@ -1336,3 +1289,46 @@ The card of a tapped highlighted place with opening hours in its place details S
 #### Scenario: Opening hours with a screen reader
 - **WHEN** a screen reader reaches the opening status on the card
 - **THEN** it reads the status followed by the tagged hours
+
+### Requirement: Changing what a tapped knot became
+After a tapped knot was added to an existing route, the app SHALL show a short note: one line saying what it became, three buttons in the fixed order start, stop and end, each previewing that role with badges, and Undo. The button of the role it got SHALL show as selected and inactive. The buttons SHALL act as "Start here", "Add stop here" and "End here" do. The note SHALL go away after 6 seconds, on a choice or with the next tap, but not by itself while a screen reader is on.
+
+#### Scenario: Note after a tap
+- **WHEN** a route 12 → 14 → 15 exists and the user taps 27, which becomes a stop between 14 and 15
+- **THEN** the note says "27 added as a stop" and shows the buttons 27 before 12 for the start, 14, 27 and 15 for the stop, selected, and 15 before 27 for the end, then Undo
+
+#### Scenario: Note for a new start
+- **WHEN** a tapped knot 60 became the new start before 05
+- **THEN** the note says "60 added as the start", and the start button shows 60 before 05 and is selected
+
+#### Scenario: Note for a new end
+- **WHEN** a tapped knot 22 became the new end after 15
+- **THEN** the note says "22 added as the end", the end button shows 15 before 22 and is selected, and the stop button shows 22 with the knots around it where it would be a stop
+
+#### Scenario: Make it the start
+- **WHEN** 30 was added as a stop to 12 → 45 and the user chooses the start button
+- **THEN** the waypoints are 30, 12 as a stop, and 45
+
+#### Scenario: Make it the end
+- **WHEN** 30 was added as a stop to 12 → 45 and the user chooses the end button
+- **THEN** the waypoints are 12, 45 as a stop, and 30
+
+#### Scenario: Make it a stop
+- **WHEN** 28 was added as the new end of 12 → 45 and the user chooses the stop button
+- **THEN** 28 is a stop where it adds the least distance, and 45 is the end again
+
+#### Scenario: Undo the tap
+- **WHEN** 30 was added as a stop to 12 → 45 and the user chooses Undo
+- **THEN** the waypoints are 12 and 45 again
+
+#### Scenario: Note goes away
+- **WHEN** the note is shown and the user does nothing for 6 seconds, or taps another knot
+- **THEN** the note is gone, and for the other knot a new note is shown
+
+#### Scenario: Note with a screen reader
+- **WHEN** a screen reader is on and 27 was added as a stop between 14 and 15
+- **THEN** it reads the line "27 added as a stop", the buttons as "As the start", "As a stop, selected" and "As the end", and the note stays until a choice is used or the next tap
+
+#### Scenario: No note for the first two taps
+- **WHEN** the user taps the start and then the end of a new route
+- **THEN** no note is shown

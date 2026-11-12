@@ -57,6 +57,10 @@ On the phones, the maintainer saw a knot beyond the start (60 before 05 on Amste
 |---|---|
 | Before the start (emulator) | ✅ Tapping 95 beyond the start 33: "95 added as the start", with the start button selected (`screenshots/android-new-start.png`) |
 
+## The maintainer's verdict (2026-11-12)
+
+After the fourth trial on the phones: "Works now, archive it." Places and route points ("flags") still work differently, and the maintainer wants them reworked to match.
+
 ## Not yet checked
 
 - Note with a screen reader (TalkBack, VoiceOver)
