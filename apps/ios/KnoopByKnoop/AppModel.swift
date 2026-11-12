@@ -240,6 +240,9 @@ final class AppModel: ObservableObject {
     // Shown on Navigate until the question or navigation takes over, see "Waiting for the
     // position"; a recent rough fix is enough to decide, see "Recent position".
     findingStart = true
+    // The note over the map goes at once, see "Navigate closes the note".
+    tapNotes += 1
+    tapNote = nil
     positionFinder.find(timeout: .seconds(10), accuracy: kCLLocationAccuracyHundredMeters, maxAge: 60) {
       [weak self] result in
       guard let self else { return }

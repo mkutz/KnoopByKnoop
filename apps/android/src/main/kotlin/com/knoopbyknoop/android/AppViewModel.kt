@@ -545,7 +545,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     if (session.route == null || state.findingStart) return
     // Shown on Navigate until the question or navigation takes over, see "Waiting for the
     // position"; a recent rough fix is enough to decide, see "Recent position".
-    state = state.copy(findingStart = true)
+    // The note over the map goes at once, see "Navigate closes the note".
+    tapNotes++
+    state = state.copy(findingStart = true, tapNote = null)
     viewModelScope.launch {
       val location =
         withTimeoutOrNull(START_POSITION_TIMEOUT_MILLIS) {
