@@ -74,11 +74,9 @@ struct PlaceOffer: Identifiable {
   /// The place's details once found, see `map-planning` "Contacts on the place card"; `nil` before
   /// or without them.
   var details: PlaceDetails?
-}
-
-/// What to make of an offered place, see `map-planning` "What a chosen route point does".
-enum PlaceChoice {
-  case start, stop, end
+  /// The buttons for the place once worked out, see `map-planning` "Choose a route point on the
+  /// map"; `nil` before, and without a route, where "Add to route" is offered.
+  var options: TapOptions?
 }
 
 /// A `knot` to show on the map; `request` counts the taps, so the same knot can be shown again.
@@ -498,8 +496,10 @@ final class AppModel: ObservableObject {
         tapNote = TapNote(options: options, before: before, id: id)
       }
     case let place as MapTapOffer:
-      offer = PlaceOffer(offer: place, point: point)
+      let opened = PlaceOffer(offer: place, point: point)
+      offer = opened
       if let tappedPlace = place.place { lookUpDetails(tappedPlace) }
+      findOfferOptions(session, place, offer: opened.id)
     // See `map-planning` "Too far from the network".
     case let tooFar as MapTapTooFar:
       let kilometers = Int(tooFar.limitMeters / 1000)
@@ -527,8 +527,30 @@ final class AppModel: ObservableObject {
     offer?.point = point
   }
 
-  /// Makes the offered place a route point, see `map-planning` "What a chosen route point does".
-  func choose(_ choice: PlaceChoice) {
+  /// Works out the buttons for an offered place off the main thread: the start, the stop and the
+  /// end with their previews and the suggestion, see `map-planning` "Choose a route point on the map".
+  private func findOfferOptions(_ session: PlanningSession, _ tapped: MapTapOffer, offer id: UUID) {
+    guard session.route != nil, let geometry = loaded?.geometry else { return }
+    Task {
+      let options = await Task.detached { () -> TapOptions? in
+        guard let point = session.routePointFor(offer: tapped, geometry: geometry) else { return nil }
+        return TapOptions.companion.forPoint(session: session, point: point)
+      }.value
+      guard let options, offer?.id == id, self.session === session else { return }
+      offer?.options = options
+    }
+  }
+
+  /// One of the place's buttons, see `map-planning` "What a chosen route point does".
+  func chooseOffer(_ choice: TapChoice) {
+    offer = nil
+    let session = choice.session
+    change { _ in session }
+    findWays()
+  }
+
+  /// "Add to route" without a route: the start, or the end if a start is set, as a tapped knot.
+  func addOfferToRoute() {
     guard let offered = offer?.offer, let session, let loaded,
       let point = session.routePointFor(offer: offered, geometry: loaded.geometry)
     else {
@@ -536,13 +558,7 @@ final class AppModel: ObservableObject {
       return
     }
     offer = nil
-    change { session in
-      switch choice {
-      case .start: return session.startAt(point: point)
-      case .stop: return session.route != nil ? session.addStopAt(point: point) : nil
-      case .end: return session.endAt(point: point)
-      }
-    }
+    change { $0.tap(knot: point) }
     findWays()
   }
 

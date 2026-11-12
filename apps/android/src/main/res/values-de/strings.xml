@@ -17,6 +17,8 @@
   <string name="start_here">Hier starten</string>
   <string name="add_stop_here">Hier Zwischenstopp</string>
   <string name="end_here">Hier enden</string>
+  <string name="add_to_route">Zur Route hinzufügen</string>
+  <string name="place_choice_suggested">%1$s, vorgeschlagen</string>
   <string name="tap_note_undo">Rückgängig</string>
   <string name="tap_note_added_start">%1$s als Start hinzugefügt</string>
   <string name="tap_note_added_stop">%1$s als Zwischenstopp hinzugefügt</string>

@@ -84,9 +84,25 @@ private constructor(
       knot in waypoints -> this
       endFirst -> planned(listOf(knot) + waypoints)
       waypoints.isEmpty() -> copy(listOf(knot), route = null)
+      // A route point needs a graph that knows it.
+      route == null && knot.isRoutePoint -> planned(waypoints + knot)
       route == null -> withRoute(Route.plan(waypoints + knot, router))
+      knot.isRoutePoint -> placed(knot)
       else -> withRoute(route.insertWhereItFits(knot))
     }
+
+  /**
+   * [point], a route point not yet in the route, placed where it adds the least distance, as a
+   * tapped knot would be, see `map-planning` "Choose a route point on the map"; without a route as
+   * [tap] does.
+   */
+  fun placed(point: Knot): PlanningSession {
+    val route = route ?: return tap(point)
+    if (!point.isRoutePoint) return withRoute(route.insertWhereItFits(point))
+    val newGraph = graph.withRoutePoints(routePoints + point)
+    val newRouter = ShortestPathRouter(newGraph, avoiding)
+    return withRoute(route.using(newRouter).insertWhereItFits(point), newGraph, newRouter)
+  }
 
   /**
    * Makes [point] the new start; an earlier start becomes a stop, see `map-planning` "What a chosen

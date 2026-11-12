@@ -51,6 +51,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -134,6 +135,7 @@ import com.knoopbyknoop.core.PathDataStatus
 import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteSummary
 import com.knoopbyknoop.core.StartChoice
+import com.knoopbyknoop.core.TapOptions
 import com.knoopbyknoop.core.WaypointRole
 import com.knoopbyknoop.core.hasStraightLines
 import com.knoopbyknoop.core.nameIn
@@ -1333,6 +1335,53 @@ private fun placeKindLabel(kindKey: String) =
   }
 
 /**
+ * The start, stop and end buttons for an offered place, each previewing that role with badges, the
+ * suggestion ringed, see `map-planning` "Choose a route point on the map".
+ */
+@Composable
+private fun PlaceChoiceButtons(options: TapOptions, viewModel: AppViewModel) {
+  Row(
+    horizontalArrangement = Arrangement.spacedBy(4.dp),
+    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+  ) {
+    for (choice in options.choices) {
+      val name =
+        stringResource(
+          when (choice.role) {
+            WaypointRole.START -> R.string.start_here
+            WaypointRole.END -> R.string.end_here
+            WaypointRole.STOP -> R.string.add_stop_here
+          }
+        )
+      val suggested = choice.role == options.suggested
+      val label = if (suggested) stringResource(R.string.place_choice_suggested, name) else name
+      OutlinedButton(
+        onClick = { viewModel.chooseOffer(choice) },
+        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+        border =
+          BorderStroke(
+            if (suggested) 2.dp else 1.dp,
+            if (suggested) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.outlineVariant,
+          ),
+        colors =
+          ButtonDefaults.outlinedButtonColors(
+            containerColor =
+              if (suggested) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+          ),
+        modifier =
+          Modifier.heightIn(min = 40.dp).semantics {
+            contentDescription = label
+          },
+      ) {
+        KnotPreviewRow(choice.preview)
+      }
+    }
+  }
+}
+
+/**
  * The choices for a tapped place, at the place, see `map-planning` "Choose a route point on the
  * map". Dismissing changes nothing.
  */
@@ -1366,20 +1415,26 @@ private fun PlaceOfferMenu(offer: PlaceOffer, viewModel: AppViewModel) {
         if (!offer.nameOnly) HorizontalDivider()
       }
       if (offer.nameOnly) return@DropdownMenu
-      DropdownMenuItem(
-        text = { Text(stringResource(R.string.start_here)) },
-        onClick = { viewModel.choose(PlaceChoice.START) },
-      )
-      if (offer.offer.canAddStop) {
+      // Without a route, the place is added as a tapped knot would be; once there is one, the same
+      // buttons as after a tapped knot, see "Choose a route point on the map".
+      if (!offer.offer.canAddStop) {
         DropdownMenuItem(
-          text = { Text(stringResource(R.string.add_stop_here)) },
-          onClick = { viewModel.choose(PlaceChoice.STOP) },
+          text = { Text(stringResource(R.string.add_to_route)) },
+          onClick = viewModel::addOfferToRoute,
         )
+        return@DropdownMenu
       }
-      DropdownMenuItem(
-        text = { Text(stringResource(R.string.end_here)) },
-        onClick = { viewModel.choose(PlaceChoice.END) },
-      )
+      val options = offer.options
+      if (options == null) {
+        Box(
+          contentAlignment = Alignment.Center,
+          modifier = Modifier.fillMaxWidth().height(48.dp),
+        ) {
+          CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+        }
+      } else {
+        PlaceChoiceButtons(options, viewModel)
+      }
     }
   }
 }

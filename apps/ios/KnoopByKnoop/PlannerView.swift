@@ -349,7 +349,8 @@ struct PlannerView: View {
         ) {
           PlaceOfferMenu(
             canAddStop: offer.offer.canAddStop, place: offer.offer.place, nameOnly: offer.nameOnly,
-            details: offer.details, choose: model.choose)
+            details: offer.details, options: offer.options, choose: model.chooseOffer,
+            addToRoute: model.addOfferToRoute)
         }
         .ignoresSafeArea()
       }
@@ -998,10 +999,15 @@ private struct PlaceOfferMenu: View {
   let nameOnly: Bool
   /// What OpenStreetMap tells about the place, see `map-planning` "Contacts on the place card".
   let details: PlaceDetails?
-  let choose: (PlaceChoice) -> Void
+  /// The start, stop and end buttons once worked out; `nil` before, and without a route.
+  let options: TapOptions?
+  let choose: (TapChoice) -> Void
+  let addToRoute: () -> Void
   @Environment(\.openURL) private var openURL
-  /// 240 points in the default text size, wider for larger text, up to the map's width.
+  /// 240 points in the default text size, 330 with the buttons for a route, wider for larger text,
+  /// up to the map's width.
   @ScaledMetric(relativeTo: .body) private var width: CGFloat = 240
+  @ScaledMetric(relativeTo: .body) private var widthWithButtons: CGFloat = 330
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -1020,7 +1026,7 @@ private struct PlaceOfferMenu: View {
       }
       if !nameOnly { choices }
     }
-    .frame(maxWidth: width)
+    .frame(maxWidth: canAddStop && !nameOnly ? widthWithButtons : width)
     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
     .shadow(radius: 8)
   }
@@ -1086,21 +1092,43 @@ private struct PlaceOfferMenu: View {
     }
   }
 
+  /// Without a route, "Add to route", which adds the place as a tapped knot would be; once there
+  /// is one, the same buttons as after a tapped knot, the suggestion ringed, see "Choose a route
+  /// point on the map".
   @ViewBuilder private var choices: some View {
-    VStack(alignment: .leading, spacing: 0) {
-      item("Start here", .start)
-      if canAddStop {
-        Divider()
-        item("Add stop here", .stop)
+    if !canAddStop {
+      Button(action: addToRoute) {
+        Text("Add to route").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+          .padding(.horizontal, 16)
       }
-      Divider()
-      item("End here", .end)
+    } else if let options {
+      HStack(spacing: 4) {
+        ForEach(Array(options.choices.enumerated()), id: \.offset) { _, choice in
+          let suggested = choice.role == options.suggested
+          Button { choose(choice) } label: {
+            KnotPreviewRow(preview: choice.preview).frame(maxWidth: .infinity)
+          }
+          .buttonStyle(.bordered)
+          .buttonBorderShape(.capsule)
+          .tint(suggested ? .accentColor : .secondary)
+          .overlay {
+            if suggested { Capsule().strokeBorder(Color.accentColor, lineWidth: 2) }
+          }
+          .accessibilityLabel(name(choice.role))
+          .accessibilityValue(suggested ? Text("Suggested") : Text(verbatim: ""))
+        }
+      }
+      .padding(8)
+    } else {
+      ProgressView().frame(maxWidth: .infinity, minHeight: 44)
     }
   }
 
-  private func item(_ title: LocalizedStringKey, _ choice: PlaceChoice) -> some View {
-    Button { choose(choice) } label: {
-      Text(title).frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).padding(.horizontal, 16)
+  private func name(_ role: WaypointRole) -> Text {
+    switch role {
+    case .start: Text("Start here")
+    case .end: Text("End here")
+    default: Text("Add stop here")
     }
   }
 }
