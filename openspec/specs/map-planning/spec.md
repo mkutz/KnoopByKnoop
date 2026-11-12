@@ -641,11 +641,11 @@ At large system text sizes, the planner panel SHALL show the route's distance an
 - **THEN** the distance and time are next to the actions, as before
 
 ### Requirement: Nearest knots
-While planning, when the map shows no knots of the selected network, because there are none in its area or it is zoomed out too far for knots to show, the map SHALL offer a button below the position button, in the same group, that shows the nearest knots. With no waypoints set, the panel SHALL say that no knots are in view and offer the same action, instead of asking to tap a knot.
+While planning, when the map shows no knots of the selected network, because there are none in its area or it is zoomed out too far for knots to show, the map SHALL offer a button below the position button, in the same group, that shows the nearest knots. With no waypoints set, the panel's hint SHALL say that no knots are in view and its "Nearest knots" button SHALL be the prominent action, see "Panel before a route".
 
 #### Scenario: No knots in the area
 - **WHEN** the map shows an area without knots and no waypoints are set
-- **THEN** the map shows the button, and the panel says "No knots in view" with a "Show the nearest knots" button
+- **THEN** the map shows the button, and the panel's hint says "No knots in view" with "Nearest knots" as the prominent button
 
 #### Scenario: Zoomed out too far
 - **WHEN** the map is zoomed out so far that knots are not shown
@@ -653,7 +653,7 @@ While planning, when the map shows no knots of the selected network, because the
 
 #### Scenario: Knots in view
 - **WHEN** the map shows at least one knot
-- **THEN** it does not show the button, and with no waypoints set, the panel says "Tap a knot to set the start"
+- **THEN** it does not show the button, and with no waypoints set, the panel's hint says "Tap a numbered knot on the map for the start."
 
 #### Scenario: With waypoints set
 - **WHEN** a start is set and the user moves the map to an area without knots
@@ -1414,3 +1414,46 @@ Everything that floats over the map SHALL share one glass look: the network swit
 #### Scenario: Readable on glass
 - **WHEN** the texts and icons over the map are measured against their glass background, over a light and a dark map
 - **THEN** texts have a contrast of at least 4.5:1 and icons of at least 3:1
+
+### Requirement: Panel before a route
+With fewer than two waypoints, the panel SHALL show "Plan a ride", a start and an end slot with their labels, one hint line, and buttons "Search a place" and "Nearest knots". An empty slot SHALL look empty; the slot the next tap fills SHALL stand out. A set waypoint SHALL fill its slot with its badge and its label SHALL name its place. With a waypoint set, Clear SHALL replace "Nearest knots".
+
+#### Scenario: Nothing planned
+- **WHEN** no waypoint is set and knots are in view
+- **THEN** the panel shows "Plan a ride", two empty slots labelled "Start" and "End", the start slot standing out, "Tap a numbered knot on the map for the start.", and the buttons "Search a place" and "Nearest knots"
+
+#### Scenario: Start set
+- **WHEN** the user taps 48 in De Rips with nothing planned
+- **THEN** the start slot shows the badge 48, labelled "Start · De Rips", the end slot stands out, the hint says "Now tap a knot for the end.", and the buttons are "Search a place" and Clear
+
+#### Scenario: End chosen first
+- **WHEN** an end was chosen before any start
+- **THEN** the end slot shows its badge, the start slot stands out, and the hint says "Now tap a knot for the start."
+
+#### Scenario: Route point in a slot
+- **WHEN** the start is a route point from a tapped spot
+- **THEN** the start slot shows the flag badge of route points
+
+#### Scenario: Next slot without motion
+- **WHEN** the phone is set to reduce motion or to remove animations
+- **THEN** the slot that stands out does so without pulsing
+
+#### Scenario: Search from the panel
+- **WHEN** the user chooses "Search a place" in the panel
+- **THEN** the place search opens as from the map's search button
+
+#### Scenario: Nearest knots from the panel
+- **WHEN** the user chooses "Nearest knots" in the panel
+- **THEN** the map shows the nearest knots as the map's nearest knots button does
+
+#### Scenario: Into the route
+- **WHEN** the start is set and the user taps a knot for the end
+- **THEN** the slots give way to the route's distance, time, knots and actions
+
+#### Scenario: Slots with a screen reader
+- **WHEN** a screen reader reaches the slots with only the start 48 set
+- **THEN** it reads "Start, 48, De Rips" and "End, not set yet"
+
+#### Scenario: Empty panel at large text sizes
+- **WHEN** the largest text size is set and nothing is planned
+- **THEN** the title, labels, hint and buttons are fully readable, and the buttons wrap to a second line rather than being cut

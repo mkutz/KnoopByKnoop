@@ -17,4 +17,4 @@
 ## 4. Checks
 
 - [x] 4.1 List in `openspec/checked-by-hand.md`, with how they're checked: `Recent position` and `Position too old or too rough` (on the devices: Navigate right after "Show my position", and indoors after a while), and `Waiting for the position` (on the devices indoors, with TalkBack/VoiceOver). Add a CHANGELOG Unreleased line.
-- [ ] 4.2 Run `./gradlew check`, `npx @fission-ai/openspec validate --all` and `./gradlew checkScenarios -Pchange=quicker-navigation-start`. Install on both phones; the maintainer tries Navigate indoors and outdoors.
+- [x] 4.2 Run `./gradlew check`, `npx @fission-ai/openspec validate --all` and `./gradlew checkScenarios -Pchange=quicker-navigation-start`. Install on both phones; the maintainer tries Navigate indoors and outdoors.
