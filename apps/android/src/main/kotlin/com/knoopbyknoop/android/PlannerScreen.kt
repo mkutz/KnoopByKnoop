@@ -45,7 +45,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
@@ -866,7 +865,8 @@ private fun KnotPreviewRow(
   highlightScale: Float = 1f,
 ) {
   Row(
-    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+    // Room for the corner symbols, which reach beyond the badges.
+    horizontalArrangement = Arrangement.spacedBy(7.dp, Alignment.CenterHorizontally),
     verticalAlignment = Alignment.CenterVertically,
     modifier = modifier,
   ) {
@@ -881,20 +881,19 @@ private fun KnotPreviewRow(
       Box(
         contentAlignment = Alignment.Center,
         modifier =
+          // The knot the preview is about stands out by its size; the ones around it are dimmed.
           if (highlighted)
             Modifier.clearAndSetSemantics {}
               .graphicsLayer {
                 scaleX = highlightScale
                 scaleY = highlightScale
               }
-              .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-              .padding(2.dp)
-          else Modifier.clearAndSetSemantics {},
+          else Modifier.clearAndSetSemantics {}.graphicsLayer { alpha = 0.55f },
       ) {
         KnotBadge(
           knot.ref,
           role,
-          scale = if (highlighted) 0.8f else 0.7f,
+          scale = if (highlighted) 0.85f else 0.66f,
           plate = KnotPlate.of(knot.signRegion),
           place = knot.routePoint?.placeKind,
         )
@@ -1426,9 +1425,11 @@ private fun PlaceOfferMenu(offer: PlaceOffer, viewModel: AppViewModel) {
       }
       val options = offer.options
       if (options == null) {
+        // The size of the buttons while they are worked out, so the card does not jump.
         Box(
           contentAlignment = Alignment.Center,
-          modifier = Modifier.fillMaxWidth().height(48.dp),
+          modifier =
+            Modifier.padding(horizontal = 8.dp, vertical = 4.dp).width(300.dp).height(48.dp),
         ) {
           CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
         }

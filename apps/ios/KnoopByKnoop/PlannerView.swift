@@ -1348,18 +1348,17 @@ private struct KnotPreviewRow: View {
   var highlightScale: CGFloat = 1
 
   var body: some View {
-    HStack(spacing: 3) {
+    // Room for the corner symbols, which reach beyond the badges.
+    HStack(spacing: 7) {
       if preview.moreBefore { Text("…").font(.headline).foregroundStyle(.secondary) }
       ForEach(Array(preview.knots.enumerated()), id: \.offset) { index, routeKnot in
         let highlighted = index == Int(preview.highlighted)
         KnotBadge(
           ref: routeKnot.knot.ref, role: routeKnot.role, plate: .of(routeKnot.knot.signRegion),
-          scale: highlighted ? 0.8 : 0.68, place: routeKnot.knot.routePoint?.placeKind
+          scale: highlighted ? 0.85 : 0.66, place: routeKnot.knot.routePoint?.placeKind
         )
-        .padding(highlighted ? 2 : 0)
-        .overlay {
-          if highlighted { Circle().strokeBorder(Color.accentColor.opacity(0.6), lineWidth: 2) }
-        }
+        // The knot the preview is about stands out by its size; the ones around it are dimmed.
+        .opacity(highlighted ? 1 : 0.55)
         .scaleEffect(highlighted ? highlightScale : 1)
       }
       if preview.moreAfter { Text("…").font(.headline).foregroundStyle(.secondary) }

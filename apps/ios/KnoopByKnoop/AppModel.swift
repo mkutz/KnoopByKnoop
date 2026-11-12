@@ -536,8 +536,13 @@ final class AppModel: ObservableObject {
         guard let point = session.routePointFor(offer: tapped, geometry: geometry) else { return nil }
         return TapOptions.companion.forPoint(session: session, point: point)
       }.value
-      guard let options, offer?.id == id, self.session === session else { return }
-      offer?.options = options
+      guard let options, offer?.id == id else { return }
+      // The route may have changed meanwhile, e.g. when the courses came in: work it out again.
+      if self.session === session {
+        offer?.options = options
+      } else if let current = self.session {
+        findOfferOptions(current, tapped, offer: id)
+      }
     }
   }
 

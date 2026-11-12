@@ -1030,9 +1030,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
           session.routePointFor(tapped, geometry)?.let { TapOptions.forPoint(session, it) }
         } ?: return@launch
       val offer = state.offer
-      if (offer != null && offer.offer === tapped && state.session === session) {
-        state = state.copy(offer = offer.copy(options = options))
-      }
+      if (offer == null || offer.offer !== tapped) return@launch
+      // The route may have changed meanwhile, e.g. when the courses came in: work it out again.
+      val current = state.session
+      if (current === session) state = state.copy(offer = offer.copy(options = options))
+      else if (current != null) findOfferOptions(current, tapped)
     }
   }
 
