@@ -153,11 +153,15 @@ The route being planned SHALL be restored after the app is closed and opened aga
 - **THEN** the route is restored without that waypoint and the user is told which one was removed
 
 ### Requirement: Zoom controls
-The map SHALL offer buttons to zoom in and out, in addition to the gestures of the platform.
+The map SHALL offer buttons to zoom in and out, in addition to the gestures of the platform, together as one control: zoom in above zoom out, on one background, as in "Map buttons in groups".
 
 #### Scenario: Zooming out
 - **WHEN** the user taps the zoom-out button
 - **THEN** the map zooms out by one level around its center
+
+#### Scenario: Zoom buttons as one control
+- **WHEN** the map is shown
+- **THEN** zoom in and zoom out sit on one shared background, separated by a thin line, and a screen reader announces them as "Zoom in" and "Zoom out"
 
 ### Requirement: Route knots stand out
 On the map, knots the route passes SHALL be highlighted, so the route can be followed in dense areas. Start, end and stops SHALL be distinguishable from each other and from passed knots.
@@ -439,11 +443,11 @@ The map SHALL extend behind the system's status bar and navigation bar, while th
 - **THEN** the compass is below the search field, and the clock and the status icons, the battery among them, are not covered
 
 ### Requirement: Clear actions in the planner panel
-The planner panel SHALL show Navigate as the most prominent action, with an icon and its label. While navigating, it SHALL show Stop as a filled icon button of the same size in every app language, announced as "Stop" to screen readers and showing its name on a long press on Android. Clear SHALL be shown as an icon button, and Back to start and Export GPX as entries with icon and label in a menu opened by a "More actions" icon button, shown when one of its entries is available; the header SHALL stay one row on phones 360 dp wide. Icon buttons SHALL be announced by name to screen readers. In light and in dark appearance, the labels of all these actions SHALL have a contrast of at least 4.5:1, and their icons at least 3:1, against what they are shown on.
+Navigate SHALL be the most prominent action, a filled round icon button with the navigation arrow and without a label: in the planner panel's header on iOS, and as a floating action button at the panel's top right edge on Android, moving with the panel. In landscape it SHALL be at the end of the side panel's header on both. While navigating, the header SHALL show Stop as a filled round icon button of the same size in every app language, announced as "Stop" to screen readers and showing its name on a long press on Android. Back to start, with an icon and its label, Export GPX and Clear, as icon buttons, SHALL be shown in one row in the panel below the route's knots, each only when available; there SHALL be no "More actions" menu. The header SHALL stay one row on phones 360 dp wide. Icon buttons SHALL be announced by name to screen readers. In light and in dark appearance, the labels of all these actions SHALL have a contrast of at least 4.5:1, and their icons at least 3:1, against what they are shown on.
 
 #### Scenario: Navigate stands out
 - **WHEN** a complete route is planned
-- **THEN** the header shows the distance, More actions and Clear as icon buttons, and Navigate as a filled button with an icon and the label "Navigate", in one row, also 360 dp wide; More actions opens a menu with Back to start, if the route is not a round trip yet, and Export GPX
+- **THEN** Navigate shows as a filled round button with the navigation arrow, without a label, next to the distance on iOS and as a floating action button at the panel's top right on Android; below the knots, the panel shows Back to start with its label, if the route is not a round trip yet, then Export GPX and Clear as icon buttons, in one row, also 360 dp wide
 
 #### Scenario: Stop stands out
 - **WHEN** the rider is navigating
@@ -458,8 +462,8 @@ The planner panel SHALL show Navigate as the most prominent action, with an icon
 - **THEN** it announces "Stop" as a button
 
 #### Scenario: Icon buttons with a screen reader
-- **WHEN** a screen reader (TalkBack, VoiceOver) moves through the header of a planned round trip
-- **THEN** it announces "More actions", "Clear" and "Navigate" as buttons, and in the opened menu "Back to start" and "Export GPX"
+- **WHEN** a screen reader (TalkBack, VoiceOver) moves through the panel of a planned route
+- **THEN** it announces "Navigate", "Back to start", "Export GPX" and "Clear" as buttons
 
 #### Scenario: Name of an icon button on Android
 - **WHEN** the user long-presses Clear on Android
@@ -467,11 +471,15 @@ The planner panel SHALL show Navigate as the most prominent action, with an icon
 
 #### Scenario: Readable actions
 - **WHEN** the actions are measured against the panel's background
-- **THEN** the label of Navigate has a contrast of at least 4.5:1 to its fill, the icon of Stop at least 3:1 to its fill, and the icons of the icon buttons and of the menu entries at least 3:1 to their background
+- **THEN** the icons of Navigate and Stop have a contrast of at least 3:1 to their fill, the label of Back to start at least 4.5:1, and the icons of the icon buttons at least 3:1 to their background
 
 #### Scenario: Readable actions in dark mode
 - **WHEN** the actions are measured against the dark panel's background
-- **THEN** the label of Navigate has a contrast of at least 4.5:1 to its fill, the icon of Stop at least 3:1 to its fill, and the icons of the icon buttons and of the menu entries at least 3:1 to their background
+- **THEN** the icons of Navigate and Stop have a contrast of at least 3:1 to their fill, the label of Back to start at least 4.5:1, and the icons of the icon buttons at least 3:1 to their background
+
+#### Scenario: Navigate in landscape
+- **WHEN** a complete route is planned in landscape
+- **THEN** Navigate is the round icon button at the end of the side panel's header, on Android and iOS
 
 ### Requirement: Light and dark appearance
 The app SHALL follow the appearance chosen in the info sheet, by default the system's light or dark appearance: the base map, the planner panel and the controls over the map SHALL all be light or all be dark. The dark base map SHALL show the same details as the light one, with water in blue and paths and roads visible against the land. Switching the appearance while the app is open SHALL switch the app without moving the map or changing the route, and without interrupting navigation. On Android, an appearance chosen in the info sheet SHALL reach the base map when the sheet closes, so the sheet's own switch stays smooth. The knots, the route and the highlighted knots SHALL stay distinguishable on the dark map.
@@ -549,7 +557,7 @@ The app SHALL follow the appearance chosen in the info sheet, by default the sys
 - **THEN** the sheet turns light or dark at once without stalling, and the base map follows the last choice when the sheet closes, showing the same area and route
 
 ### Requirement: Show my position
-While planning, the map SHALL offer a round button below the zoom buttons that centers the map on the rider's current position, at least at the zoom where knots are shown, and marks it with a dot that does not follow the rider. Location access SHALL be asked for on the first tap, and on the very first start of the app, when there is neither a saved map position nor a route. The position SHALL be found once per request, without updates afterwards.
+While planning, the map SHALL offer a button, in one group with the nearest knots button above the zoom buttons, see "Map buttons in groups", that centers the map on the rider's current position, at least at the zoom where knots are shown, and marks it with a dot that does not follow the rider. Location access SHALL be asked for on the first tap, and on the very first start of the app, when there is neither a saved map position nor a route. The position SHALL be found once per request, without updates afterwards.
 
 #### Scenario: Centering on my position
 - **WHEN** location access is allowed and the user taps the position button
@@ -633,7 +641,7 @@ At large system text sizes, the planner panel SHALL show the route's distance an
 - **THEN** the distance and time are next to the actions, as before
 
 ### Requirement: Nearest knots
-While planning, when the map shows no knots of the selected network, because there are none in its area or it is zoomed out too far for knots to show, the map SHALL offer a round button below the position button that shows the nearest knots. With no waypoints set, the panel SHALL say that no knots are in view and offer the same action, instead of asking to tap a knot.
+While planning, when the map shows no knots of the selected network, because there are none in its area or it is zoomed out too far for knots to show, the map SHALL offer a button below the position button, in the same group, that shows the nearest knots. With no waypoints set, the panel SHALL say that no knots are in view and offer the same action, instead of asking to tap a knot.
 
 #### Scenario: No knots in the area
 - **WHEN** the map shows an area without knots and no waypoints are set
@@ -1299,7 +1307,7 @@ The card of a tapped highlighted place with opening hours in its place details S
 - **THEN** it reads the status followed by the tagged hours
 
 ### Requirement: Changing what a tapped knot became
-After a tapped knot, a tapped spot or a place was added to an existing route, the app SHALL show a short note: one line saying what it became, three buttons in the fixed order start, stop and end, each previewing that role with badges, and Undo. The button of the role it got SHALL show as selected and inactive. The buttons SHALL act as "Start here", "Add stop here" and "End here" do. The note SHALL go away after 6 seconds, on a choice or with the next tap, but not by itself while a screen reader is on.
+After a tapped knot, a tapped spot or a place was added to an existing route, the app SHALL show a short note: one line saying what it became, three buttons in the fixed order start, stop and end, each previewing that role with badges, and Undo. The button of the role it got SHALL show as selected and inactive. The buttons SHALL act as "Start here", "Add stop here" and "End here" do. A choice SHALL keep the note open with the chosen role selected, so a mistap can be put right, and start its 6 seconds again; Undo SHALL close it. The note SHALL go away after 6 seconds or with the next tap, but not by itself while a screen reader is on.
 
 #### Scenario: Note after a tap
 - **WHEN** a route 12 → 14 → 15 exists and the user taps 27, which becomes a stop between 14 and 15
@@ -1333,6 +1341,10 @@ After a tapped knot, a tapped spot or a place was added to an existing route, th
 - **WHEN** 28 was added as the new end of 12 → 45 and the user chooses the stop button
 - **THEN** 28 is a stop where it adds the least distance, and 45 is the end again
 
+#### Scenario: Note stays after a choice
+- **WHEN** 30 was added as a stop to 12 → 45 and the user chooses the start button
+- **THEN** the note stays, says "30 added as the start" with the start button selected, and goes away 6 seconds later unless the user chooses again, chooses Undo or taps the map
+
 #### Scenario: Undo the tap
 - **WHEN** 30 was added as a stop to 12 → 45 and the user chooses Undo
 - **THEN** the waypoints are 12 and 45 again
@@ -1343,8 +1355,62 @@ After a tapped knot, a tapped spot or a place was added to an existing route, th
 
 #### Scenario: Note with a screen reader
 - **WHEN** a screen reader is on and 27 was added as a stop between 14 and 15
-- **THEN** it reads the line "27 added as a stop", the buttons as "As the start", "As a stop, selected" and "As the end", and the note stays until a choice is used or the next tap
+- **THEN** it reads the line "27 added as a stop", the buttons as "As the start", "As a stop, selected" and "As the end", and the note stays until Undo or the next tap
 
 #### Scenario: No note for the first two taps
 - **WHEN** the user taps the start and then the end of a new route
 - **THEN** no note is shown
+
+### Requirement: Map buttons in groups
+The buttons over the map SHALL stand in one column at the right edge, in groups that belong together: search, then position with nearest knots, then zoom in with zoom out. Each group SHALL share one background, Liquid Glass on iOS and a card on Android. In portrait the column SHALL stand on the planner panel's top edge and move with it. Where it does not fit, the zoom group SHALL be left out first, then the position group.
+
+#### Scenario: Groups on the map
+- **WHEN** a route is planned and the map shows no knots
+- **THEN** the column shows search, then the position and nearest knots buttons on one background, then zoom in and zoom out on one background
+
+#### Scenario: Moving with the panel
+- **WHEN** the user pulls the panel up
+- **THEN** the column moves up with it, staying on its top edge
+
+#### Scenario: Above Navigate on Android
+- **WHEN** a complete route is planned on Android in portrait
+- **THEN** the column stands directly above the Navigate button and none of its buttons is covered by it
+
+#### Scenario: Panel pulled far up
+- **WHEN** the panel is pulled up so far that the column does not fit below the network switch
+- **THEN** the zoom group is left out first, then the position group, and search stays
+
+#### Scenario: Glass on iOS
+- **WHEN** the map is shown on iOS 26
+- **THEN** each group of buttons has the Liquid Glass background of the map's other floating controls
+
+#### Scenario: Note on the panel's edge
+- **WHEN** the note after a tap shows
+- **THEN** it stands on the panel's top edge, the column stands on top of the note, on Android Navigate between the note and the column, and both drop back when the note goes
+
+#### Scenario: Note on a small phone
+- **WHEN** the note shows and the column no longer fits above it
+- **THEN** the zoom group is left out while the note shows, and comes back when it goes
+
+#### Scenario: Buttons with a screen reader
+- **WHEN** a screen reader moves through the column
+- **THEN** it announces each button by its name, as before, in the column's order
+
+#### Scenario: Landscape
+- **WHEN** the phone is in landscape
+- **THEN** the column stands at the bottom right of the map, clear of the cutout and the navigation bar
+
+### Requirement: Glass on the map
+Everything that floats over the map SHALL share one glass look: the network switch, the info button, the button groups, the note after a tap, the card of a tapped spot or place, Navigate on Android and the notes over the map. On iOS it SHALL be Liquid Glass; on Android one slightly translucent surface with a soft border and shadow. Text and icons SHALL keep a contrast of at least 4.5:1 and 3:1.
+
+#### Scenario: Note and card in glass
+- **WHEN** the note after a tap or the card of a tapped place shows over the map
+- **THEN** it has the same glass look as the map's buttons, on iOS Liquid Glass
+
+#### Scenario: One look on Android
+- **WHEN** the map shows the network switch, the info button, the button groups and a note
+- **THEN** all of them have the same translucent surface, border and shadow
+
+#### Scenario: Readable on glass
+- **WHEN** the texts and icons over the map are measured against their glass background, over a light and a dark map
+- **THEN** texts have a contrast of at least 4.5:1 and icons of at least 3:1
