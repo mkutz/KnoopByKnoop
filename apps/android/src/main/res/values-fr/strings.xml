@@ -12,8 +12,6 @@
   <string name="loading_cycling">Chargement du réseau vélo…</string>
   <string name="loading_hiking">Chargement du réseau randonnée…</string>
   <string name="osm_contributors">© contributeurs OpenStreetMap</string>
-  <string name="tap_to_set_start">Touchez un point-nœud pour choisir le départ</string>
-  <string name="start_at_set_end">Départ au %1$s, touchez un point-nœud pour l\'arrivée</string>
   <string name="start_here">Partir d\'ici</string>
   <string name="add_stop_here">Ajouter une étape ici</string>
   <string name="end_here">Arriver ici</string>
@@ -28,8 +26,6 @@
   <string name="tap_choice_as_start">Comme départ</string>
   <string name="tap_choice_as_stop">Comme étape</string>
   <string name="tap_choice_as_end">Comme arrivée</string>
-  <string name="start_point_set_end">Départ choisi, touchez un point-nœud pour l\'arrivée</string>
-  <string name="end_point_set_start">Arrivée choisie, touchez un point-nœud pour le départ</string>
   <string name="straight_ways">Le chemin vers un lieu choisi n\'est encore qu\'une ligne droite, sa longueur aussi</string>
   <string name="no_route_for">Pas d\'itinéraire pour %1$s</string>
   <string name="back_to_start">Retour au départ</string>
@@ -146,4 +142,11 @@
   <string name="base_map_explanation">La carte autour d\'un itinéraire planifié, enregistrée pour s\'afficher aussi sans connexion. L\'app la télécharge depuis OpenFreeMap, qui peut voir la zone approximative d\'un itinéraire, mais jamais où vous êtes.</string>
   <string name="channel_alerts">Alertes de navigation</string>
   <string name="channel_alerts_description">Allume l\'écran à chaque annonce vocale pendant la navigation, sans son</string>
+  <string name="plan_a_ride">Planifier une sortie</string>
+  <string name="tap_for_start">Touchez un point-nœud numéroté sur la carte pour le départ.</string>
+  <string name="now_tap_for_end">Touchez maintenant un point-nœud pour l\'arrivée.</string>
+  <string name="now_tap_for_start">Touchez maintenant un point-nœud pour le départ.</string>
+  <string name="search_a_place">Chercher un lieu</string>
+  <string name="nearest_knots">Points-nœuds proches</string>
+  <string name="not_set_yet">pas encore choisi</string>
 </resources>

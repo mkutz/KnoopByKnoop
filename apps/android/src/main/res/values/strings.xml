@@ -13,8 +13,6 @@
   <string name="loading_cycling">Loading the cycling knot network…</string>
   <string name="loading_hiking">Loading the hiking knot network…</string>
   <string name="osm_contributors">© OpenStreetMap contributors</string>
-  <string name="tap_to_set_start">Tap a knot to set the start</string>
-  <string name="start_at_set_end">Start at %1$s, tap a knot to set the end</string>
   <string name="start_here">Start here</string>
   <string name="add_stop_here">Add stop here</string>
   <string name="end_here">End here</string>
@@ -29,8 +27,6 @@
   <string name="tap_choice_as_start">As the start</string>
   <string name="tap_choice_as_stop">As a stop</string>
   <string name="tap_choice_as_end">As the end</string>
-  <string name="start_point_set_end">Start set, tap a knot to set the end</string>
-  <string name="end_point_set_start">End set, tap a knot to set the start</string>
   <string name="straight_ways">The way to a chosen place is only a straight line so far, and so is its length</string>
   <string name="no_route_for">No route for %1$s</string>
   <string name="back_to_start">Back to start</string>
@@ -152,4 +148,11 @@
   <string name="base_map_explanation">The map around a planned route, stored so it shows without a connection too. The app downloads it from OpenFreeMap, which can see the rough area of a route, but never where you are.</string>
   <string name="channel_alerts">Navigation alerts</string>
   <string name="channel_alerts_description">Lights up the screen with each spoken notice while navigating, without a sound</string>
+  <string name="plan_a_ride">Plan a ride</string>
+  <string name="tap_for_start">Tap a numbered knot on the map for the start.</string>
+  <string name="now_tap_for_end">Now tap a knot for the end.</string>
+  <string name="now_tap_for_start">Now tap a knot for the start.</string>
+  <string name="search_a_place">Search a place</string>
+  <string name="nearest_knots">Nearest knots</string>
+  <string name="not_set_yet">not set yet</string>
 </resources>

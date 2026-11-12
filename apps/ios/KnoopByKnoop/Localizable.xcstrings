@@ -378,28 +378,6 @@
         }
       }
     },
-    "End set, tap a knot to set the start": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ende gesetzt, tippe auf einen Knotenpunkt für den Start"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Einde gezet, tik op een knooppunt voor de start"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Arrivée choisie, touchez un point-nœud pour le départ"
-          }
-        }
-      }
-    },
     "Expanded": {
       "localizations": {
         "de": {
@@ -884,6 +862,160 @@
         }
       }
     },
+    "Plan a ride": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tour planen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rit plannen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Planifier une sortie"
+          }
+        }
+      }
+    },
+    "Tap a numbered knot on the map for the start.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tippe auf der Karte auf einen nummerierten Knotenpunkt für den Start."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tik op de kaart op een genummerd knooppunt voor de start."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Touchez un point-nœud numéroté sur la carte pour le départ."
+          }
+        }
+      }
+    },
+    "Now tap a knot for the end.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tippe jetzt auf einen Knotenpunkt für das Ende."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tik nu op een knooppunt voor het einde."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Touchez maintenant un point-nœud pour l’arrivée."
+          }
+        }
+      }
+    },
+    "Now tap a knot for the start.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tippe jetzt auf einen Knotenpunkt für den Start."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tik nu op een knooppunt voor de start."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Touchez maintenant un point-nœud pour le départ."
+          }
+        }
+      }
+    },
+    "Search a place": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ort suchen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plaats zoeken"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chercher un lieu"
+          }
+        }
+      }
+    },
+    "Nearest knots": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächste Knotenpunkte"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dichtstbijzijnde knooppunten"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Points-nœuds proches"
+          }
+        }
+      }
+    },
+    "not set yet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "noch nicht gesetzt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nog niet gekozen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pas encore choisi"
+          }
+        }
+      }
+    },
     "No knots in view": {
       "localizations": {
         "de": {
@@ -1346,28 +1478,6 @@
         }
       }
     },
-    "Start at %@, tap a knot to set the end": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Start bei %@, tippe auf einen Knotenpunkt für das Ende"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Start bij %@, tik op een knooppunt voor het einde"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Départ au %@, touchez un point-nœud pour l'arrivée"
-          }
-        }
-      }
-    },
     "Start here": {
       "localizations": {
         "de": {
@@ -1386,28 +1496,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Partir d'ici"
-          }
-        }
-      }
-    },
-    "Start set, tap a knot to set the end": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Start gesetzt, tippe auf einen Knotenpunkt für das Ende"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Start gezet, tik op een knooppunt voor het einde"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Départ choisi, touchez un point-nœud pour l'arrivée"
           }
         }
       }
@@ -1584,28 +1672,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Système"
-          }
-        }
-      }
-    },
-    "Tap a knot to set the start": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tippe auf einen Knotenpunkt, um den Start zu setzen"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tik op een knooppunt om de start te kiezen"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Touchez un point-nœud pour choisir le départ"
           }
         }
       }

@@ -399,11 +399,37 @@ class PlanningTest {
     assertEquals("ongeveer 13 min", description.duration)
   }
 
+  // Scenario: Start set
+  @Test
+  fun `the start alone is described with its knot`() {
+    val description = MapFeatures.describe(session.tap(knot45))
+
+    assertEquals(RouteDescription.StartOnly("45", waypoint = knot45), description)
+  }
+
+  @Test
+  fun `End chosen first describes the end with its knot`() {
+    val description = MapFeatures.describe(session.endAt(knot45))
+
+    assertEquals(RouteDescription.StartOnly("45", endFirst = true, waypoint = knot45), description)
+  }
+
+  @Test
+  fun `Route point in a slot is described as a route point`() {
+    val point = TestNetwork.pointOn(knot7, knot45, 0.5)
+    val description = MapFeatures.describe(session.placed(point))
+
+    assertEquals(
+      RouteDescription.StartOnly(point.ref, routePoint = true, waypoint = point),
+      description,
+    )
+  }
+
   @Test
   fun `descriptions before there is a route`() {
     assertEquals(RouteDescription.Empty, MapFeatures.describe(session))
     assertEquals(
-      RouteDescription.StartOnly("12"),
+      RouteDescription.StartOnly("12", waypoint = knot12),
       MapFeatures.describe(session.tap(knot12)),
     )
   }
@@ -458,7 +484,7 @@ class PlanningTest {
     assertTrue(planned.canRemoveWaypoints)
     assertEquals(listOf(knot12), removed.waypoints)
     assertNull(removed.route)
-    assertEquals(RouteDescription.StartOnly("12"), MapFeatures.describe(removed))
+    assertEquals(RouteDescription.StartOnly("12", waypoint = knot12), MapFeatures.describe(removed))
     assertEquals(
       listOf(knot12, knot30),
       removed.tap(knot30).waypoints,

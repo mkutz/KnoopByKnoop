@@ -210,7 +210,8 @@ struct PlannerView: View {
           onShowKnot: { knot in
             model.showOnMap(knot)
             if let navigationDetent { detent = navigationDetent }
-          })
+          },
+          onSearch: navigator.state == nil && !searching ? openSearch : nil)
       } else {
         ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
       }
@@ -497,6 +498,8 @@ private struct WaypointSheet: View {
   let onSummaryHeight: (CGFloat) -> Void
   /// Shows a coming knot on the map.
   let onShowKnot: (Knot) -> Void
+  /// Opens the place search, `nil` while it is open.
+  var onSearch: (() -> Void)? = nil
 
   /// Whether the route's base map is stored, see `network-sync` "Base map ready for the ride".
   private func baseMapNote(_ status: PathDataStatus) -> some View {
@@ -540,7 +543,13 @@ private struct WaypointSheet: View {
           // The distance and time stay in one line each, with the actions below them where they do
           // not fit next to them, see `map-planning` "Route summary at large text sizes".
           Group {
-            if complete != nil {
+            // Fewer than two waypoints, see `map-planning` "Panel before a route".
+            if model.routeDescription is RouteDescriptionEmpty || model.routeDescription is RouteDescriptionStartOnly {
+              EmptyRoute(
+                description: model.routeDescription as? RouteDescriptionStartOnly,
+                noKnotsInView: model.noKnotsInView, onSearch: onSearch,
+                onNearest: { model.showNearestKnots() }, onClear: { model.clear() })
+            } else if complete != nil {
               ViewThatFits(in: .horizontal) {
                 HStack(alignment: .center) {
                   summary
@@ -797,12 +806,6 @@ private struct WaypointSheet: View {
     if model.canNavigate {
       NavigateIconAction { model.startNavigation() }
     }
-    // In place of asking to tap a knot, see `map-planning` "Nearest knots".
-    if model.noKnotsInView && session.waypoints.isEmpty {
-      ProminentAction(title: "Show the nearest knots", systemImage: "signpost.right") {
-        model.showNearestKnots()
-      }
-    }
   }
 
   @ViewBuilder private var summary: some View {
@@ -813,22 +816,11 @@ private struct WaypointSheet: View {
         // The time at the assumed pace, see `map-planning` "Show the route".
         Text(complete.duration).font(.caption).foregroundStyle(.secondary).lineLimit(1)
       }
-    case let startOnly as RouteDescriptionStartOnly:
-      if startOnly.endFirst {
-        Text("End set, tap a knot to set the start").font(.headline)
-      } else if startOnly.routePoint {
-        Text("Start set, tap a knot to set the end").font(.headline)
-      } else {
-        Text("Start at \(startOnly.start), tap a knot to set the end").font(.headline)
-      }
     case let unreachable as RouteDescriptionUnreachable:
       Text("No route for \(unreachable.legs.joined(separator: ", "))").font(.headline).foregroundStyle(.red)
+    // Fewer than two waypoints are in `EmptyRoute`.
     default:
-      if model.noKnotsInView {
-        Text("No knots in view").font(.headline)
-      } else {
-        Text("Tap a knot to set the start").font(.headline)
-      }
+      EmptyView()
     }
   }
 

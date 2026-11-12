@@ -161,6 +161,13 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Tapping the top of the search field — on the devices
 - Landscape with a display cutout — on the devices in landscape
 - Compass below the status bar — on the devices
+- Nothing planned — on the emulator and in the simulator: "Plan a ride", two empty slots, the hint, Search a place and Nearest knots
+- Next slot without motion — on the devices with Remove animations (Android) and Reduce Motion (iOS): the next slot stands out without pulsing
+- Search from the panel — on the devices: the place search opens
+- Nearest knots from the panel — on the devices: the map shows the nearest knots
+- Into the route — on the devices: after the end is tapped the slots give way to the route summary
+- Slots with a screen reader — on the devices with TalkBack and VoiceOver: "Start, 48, De Rips", "End, not set yet"
+- Empty panel at large text sizes — on the devices at the largest text size: nothing cut, buttons and labels wrap
 - Groups on the map — on the emulator and in the simulator: search alone, position and nearest knots, zoom in and out
 - Moving with the panel — on the emulator and in the simulator: the column follows the panel pulled up and down
 - Above Navigate on Android — on the emulator: the column stands above the Navigate button, nothing covered

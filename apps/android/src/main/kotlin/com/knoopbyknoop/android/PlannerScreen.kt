@@ -242,6 +242,7 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
                 viewModel,
                 navigateInHeader = true,
                 onShowKnot = viewModel::showOnMap,
+                onSearch = { searching = true },
               )
           }
         }
@@ -333,12 +334,12 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
               },
               onSummaryHeight = { summaryHeight = it },
               // The sheet comes down, so the knot is not hidden by it, see `knot-navigation`
-              // "Showing
-              // a coming knot on the map".
+              // "Showing a coming knot on the map".
               onShowKnot = { knot ->
                 viewModel.showOnMap(knot)
                 scope.launch { scaffoldState.bottomSheetState.partialExpand() }
               },
+              onSearch = { searching = true },
             )
         },
       ) { padding ->
@@ -653,6 +654,8 @@ private fun WaypointSheet(
   onNavigationHeight: (height: Int, picture: Boolean) -> Unit = { _, _ -> },
   onSummaryHeight: (Int) -> Unit = {},
   onShowKnot: (Knot) -> Unit = {},
+  /** Opens the place search, `null` while it is open. */
+  onSearch: (() -> Unit)? = null,
 ) {
   val session = state.session ?: return
   Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
@@ -680,72 +683,64 @@ private fun WaypointSheet(
     else {
       // Measured for the sheet's smallest height while planning, see `PlannerScreen`.
       Column(modifier = Modifier.onSizeChanged { onSummaryHeight(it.height) }) {
-        SummaryWithActions(
-          whole = state.description is RouteDescription.Complete,
-          // The distance and time stay in one line each, with the actions below them where they do
-          // not fit next to them, see `map-planning` "Route summary at large text sizes".
-          summary = {
-            when (val description = state.description) {
-              RouteDescription.Empty ->
-                Text(
-                  stringResource(
-                    if (state.noKnotsInView) R.string.no_knots_in_view
-                    else R.string.tap_to_set_start
-                  ),
-                  style = MaterialTheme.typography.titleMedium,
-                )
-              is RouteDescription.StartOnly ->
-                Text(
-                  when {
-                    description.endFirst -> stringResource(R.string.end_point_set_start)
-                    description.routePoint -> stringResource(R.string.start_point_set_end)
-                    else -> stringResource(R.string.start_at_set_end, description.start)
-                  },
-                  style = MaterialTheme.typography.titleMedium,
-                )
-              is RouteDescription.Complete ->
-                Column {
+        val description = state.description
+        // Fewer than two waypoints, see `map-planning` "Panel before a route".
+        if (description == RouteDescription.Empty || description is RouteDescription.StartOnly)
+          EmptyRoute(
+            description as? RouteDescription.StartOnly,
+            noKnotsInView = state.noKnotsInView,
+            language = viewModel.textLanguage,
+            onSearch = onSearch,
+            onNearest = viewModel::showNearestKnots,
+            onClear = viewModel::clear,
+          )
+        else
+          SummaryWithActions(
+            whole = state.description is RouteDescription.Complete,
+            // The distance and time stay in one line each, with the actions below them where they
+            // do
+            // not fit next to them, see `map-planning` "Route summary at large text sizes".
+            summary = {
+              when (description) {
+                is RouteDescription.Complete ->
+                  Column {
+                    Text(
+                      description.distance,
+                      style = MaterialTheme.typography.titleLarge,
+                      softWrap = false,
+                    )
+                    // The time at the assumed pace, below, so it never wraps next to the actions,
+                    // see
+                    // `map-planning` "Show the route".
+                    Text(
+                      description.duration,
+                      style = MaterialTheme.typography.bodySmall,
+                      color = MaterialTheme.colorScheme.onSurfaceVariant,
+                      softWrap = false,
+                    )
+                  }
+                is RouteDescription.Unreachable ->
                   Text(
-                    description.distance,
-                    style = MaterialTheme.typography.titleLarge,
-                    softWrap = false,
+                    stringResource(R.string.no_route_for, description.legs.joinToString()),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.error,
                   )
-                  // The time at the assumed pace, below, so it never wraps next to the actions, see
-                  // `map-planning` "Show the route".
-                  Text(
-                    description.duration,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    softWrap = false,
-                  )
-                }
-              is RouteDescription.Unreachable ->
-                Text(
-                  stringResource(R.string.no_route_for, description.legs.joinToString()),
-                  style = MaterialTheme.typography.titleMedium,
-                  color = MaterialTheme.colorScheme.error,
-                )
-            }
-          },
-          // Side by side, so the header stays one row and the badges fit into the smallest sheet.
-          actions = {
-            Row(
-              horizontalArrangement = Arrangement.spacedBy(4.dp),
-              verticalAlignment = Alignment.CenterVertically,
-            ) {
-              if (state.canNavigate && navigateInHeader) NavigateButton(viewModel)
-              // In place of asking to tap a knot, see `map-planning` "Nearest knots".
-              if (state.noKnotsInView && session.waypoints.isEmpty())
-                ProminentAction(
-                  stringResource(R.string.show_nearest_knots),
-                  R.drawable.ic_nearest_knots,
-                  viewModel::showNearestKnots,
-                )
-            }
-          },
-        )
+              }
+            },
+            // Side by side, so the header stays one row and the badges fit into the smallest sheet.
+            actions = {
+              Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+              ) {
+                if (state.canNavigate && navigateInHeader) NavigateButton(viewModel)
+              }
+            },
+          )
         complete?.let { RouteKnots(it) }
-        RouteActions(state, viewModel)
+        // Clear is in the empty panel itself before there is a route.
+        if (description != RouteDescription.Empty && description !is RouteDescription.StartOnly)
+          RouteActions(state, viewModel)
         state.pathData?.let { PathDataNote(it) }
         state.baseMap?.let { BaseMapNote(it) }
         // See `map-planning` "No path data".

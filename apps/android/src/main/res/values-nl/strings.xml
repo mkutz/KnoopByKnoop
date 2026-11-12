@@ -12,8 +12,6 @@
   <string name="loading_cycling">Het fietsknooppuntnetwerk wordt geladen…</string>
   <string name="loading_hiking">Het wandelknooppuntnetwerk wordt geladen…</string>
   <string name="osm_contributors">© OpenStreetMap-bijdragers</string>
-  <string name="tap_to_set_start">Tik op een knooppunt om de start te kiezen</string>
-  <string name="start_at_set_end">Start bij %1$s, tik op een knooppunt voor het einde</string>
   <string name="start_here">Hier starten</string>
   <string name="add_stop_here">Hier tussenstop</string>
   <string name="end_here">Hier eindigen</string>
@@ -28,8 +26,6 @@
   <string name="tap_choice_as_start">Als start</string>
   <string name="tap_choice_as_stop">Als tussenstop</string>
   <string name="tap_choice_as_end">Als einde</string>
-  <string name="start_point_set_end">Start gezet, tik op een knooppunt voor het einde</string>
-  <string name="end_point_set_start">Einde gezet, tik op een knooppunt voor de start</string>
   <string name="straight_ways">De weg naar een gekozen plek is nog maar een rechte lijn, en de lengte ook</string>
   <string name="no_route_for">Geen route voor %1$s</string>
   <string name="back_to_start">Terug naar de start</string>
@@ -146,4 +142,11 @@
   <string name="base_map_explanation">De kaart rond een geplande route, opgeslagen zodat hij ook zonder verbinding te zien is. De app downloadt hem van OpenFreeMap, dat het ruwe gebied van een route kan zien, maar nooit waar je bent.</string>
   <string name="channel_alerts">Navigatiemeldingen</string>
   <string name="channel_alerts_description">Zet het scherm aan bij elke gesproken melding tijdens het navigeren, zonder geluid</string>
+  <string name="plan_a_ride">Rit plannen</string>
+  <string name="tap_for_start">Tik op de kaart op een genummerd knooppunt voor de start.</string>
+  <string name="now_tap_for_end">Tik nu op een knooppunt voor het einde.</string>
+  <string name="now_tap_for_start">Tik nu op een knooppunt voor de start.</string>
+  <string name="search_a_place">Plaats zoeken</string>
+  <string name="nearest_knots">Dichtstbijzijnde knooppunten</string>
+  <string name="not_set_yet">nog niet gekozen</string>
 </resources>

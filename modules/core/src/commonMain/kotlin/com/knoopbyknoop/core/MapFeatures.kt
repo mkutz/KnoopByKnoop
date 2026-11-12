@@ -15,11 +15,14 @@ sealed interface RouteDescription {
    * @property routePoint whether the waypoint is a route point, which has no number
    * @property endFirst whether it is an end chosen before any start, so the next tap sets the
    *   start, see `map-planning` "End before the start"
+   * @property waypoint the waypoint itself, for its badge and place in the panel, see
+   *   `map-planning` "Panel before a route"
    */
   data class StartOnly(
     val start: String,
     val routePoint: Boolean = false,
     val endFirst: Boolean = false,
+    val waypoint: Knot,
   ) : RouteDescription
 
   /**
@@ -385,7 +388,7 @@ object MapFeatures {
     val route =
       session.route
         ?: return session.waypoints.firstOrNull()?.let {
-          RouteDescription.StartOnly(it.ref, it.isRoutePoint, session.endFirst)
+          RouteDescription.StartOnly(it.ref, it.isRoutePoint, session.endFirst, it)
         } ?: RouteDescription.Empty
     return when (val summary = route.summary) {
       is RouteSummary.Complete -> {
