@@ -5,4 +5,4 @@
 
 ## 2. Checks
 
-- [ ] 2.1 Entry in `openspec/checked-by-hand.md`, CHANGELOG line; `./gradlew check`, validate, `checkScenarios -Pchange=close-tap-note-on-navigate`; check on the emulator and install on both phones.
+- [x] 2.1 Entry in `openspec/checked-by-hand.md`, CHANGELOG line; `./gradlew check`, validate, `checkScenarios -Pchange=close-tap-note-on-navigate`; check on the emulator and install on both phones.

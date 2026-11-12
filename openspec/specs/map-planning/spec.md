@@ -1307,7 +1307,7 @@ The card of a tapped highlighted place with opening hours in its place details S
 - **THEN** it reads the status followed by the tagged hours
 
 ### Requirement: Changing what a tapped knot became
-After a tapped knot, a tapped spot or a place was added to an existing route, the app SHALL show a short note: one line saying what it became, three buttons in the fixed order start, stop and end, each previewing that role with badges, and Undo. The button of the role it got SHALL show as selected and inactive. The buttons SHALL act as "Start here", "Add stop here" and "End here" do. A choice SHALL keep the note open with the chosen role selected, so a mistap can be put right, and start its 6 seconds again; Undo SHALL close it. The note SHALL go away after 6 seconds or with the next tap, but not by itself while a screen reader is on.
+After a tapped knot, a tapped spot or a place was added to an existing route, the app SHALL show a short note: one line saying what it became, three buttons in the fixed order start, stop and end, each previewing that role with badges, and Undo. The button of the role it got SHALL show as selected and inactive. The buttons SHALL act as "Start here", "Add stop here" and "End here" do. A choice SHALL keep the note open with the chosen role selected, so a mistap can be put right, and start its 6 seconds again; Undo SHALL close it. The note SHALL go away after 6 seconds, with the next tap, or at once when the user chooses Navigate, since planning tools are not needed while the route is ridden, but not by itself while a screen reader is on.
 
 #### Scenario: Note after a tap
 - **WHEN** a route 12 → 14 → 15 exists and the user taps 27, which becomes a stop between 14 and 15
@@ -1360,6 +1360,10 @@ After a tapped knot, a tapped spot or a place was added to an existing route, th
 #### Scenario: No note for the first two taps
 - **WHEN** the user taps the start and then the end of a new route
 - **THEN** no note is shown
+
+#### Scenario: Navigate closes the note
+- **WHEN** the note says "30 added as a stop" and the user chooses Navigate
+- **THEN** the note goes away at once, before the position is found
 
 ### Requirement: Map buttons in groups
 The buttons over the map SHALL stand in one column at the right edge, in groups that belong together: search, then position with nearest knots, then zoom in with zoom out. Each group SHALL share one background, Liquid Glass on iOS and a card on Android. In portrait the column SHALL stand on the planner panel's top edge and move with it. Where it does not fit, the zoom group SHALL be left out first, then the position group.
