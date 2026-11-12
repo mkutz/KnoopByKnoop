@@ -15,6 +15,10 @@
 
 - [x] 4.1 Update `openspec/checked-by-hand.md` (card and note scenarios) and the CHANGELOG line. Run `./gradlew check`, `npx @fission-ai/openspec validate --all` and `./gradlew checkScenarios -Pchange=places-like-tapped-knots`. Install on both phones.
 
+## 5. "Add to route" for spots too (after the maintainer's check)
+
+- [x] 5.1 Android and iOS: a tap on an empty spot shows the card at the spot with only "Add to route", which adds it as before; update the manual checks. Run the checks and install on both phones.
+
 ## Workflow follow-up
 
 - The maintainer tries it on the phones, then archive.

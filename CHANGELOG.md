@@ -3,7 +3,7 @@
 ## Unreleased
 
 - A tapped knot is added where it fits best: as a stop beside the route, or as the new end beyond it. A short note then offers to make it the start or the end instead, or to undo it. The "Add knots: Between | At end" switch is gone
-- A tapped spot on the map is added like a tapped knot, where it fits, with the same note to change it. A restaurant, campsite or other highlighted place shows its card with "Add to route", which adds it the same way
+- A tapped spot or a highlighted place (restaurant, campsite, …) offers "Add to route", which adds it where it fits, like a tapped knot, with the same note to change it
 
 ## 0.15.0
 

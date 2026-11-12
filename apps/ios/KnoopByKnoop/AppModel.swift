@@ -492,15 +492,11 @@ final class AppModel: ObservableObject {
         guard let options, self.session === after, tapNotes == id else { return }
         tapNote = TapNote(options: options, before: before, id: id)
       }
-    // An empty spot is added at once; a place shows its card first, see "Choose a route point on
-    // the map" and "Tapping a place on the map".
+    // A spot or a place offers "Add to route" first, see "Choose a route point on the map" and
+    // "Tapping a place on the map".
     case let place as MapTapOffer:
-      if let tappedPlace = place.place {
-        offer = PlaceOffer(offer: place, point: point)
-        lookUpDetails(tappedPlace)
-      } else {
-        addPoint(session, place, at: point)
-      }
+      offer = PlaceOffer(offer: place, point: point)
+      if let tappedPlace = place.place { lookUpDetails(tappedPlace) }
     // See `map-planning` "Too far from the network".
     case let tooFar as MapTapTooFar:
       let kilometers = Int(tooFar.limitMeters / 1000)
@@ -562,7 +558,7 @@ final class AppModel: ObservableObject {
     }
   }
 
-  /// "Add to route" on a place's card: added as a tapped spot, see "Tapping a place on the map".
+  /// "Add to route" for a spot or a place, see "Choose a route point on the map".
   func addOfferToRoute() {
     guard let opened = offer, let session else {
       offer = nil

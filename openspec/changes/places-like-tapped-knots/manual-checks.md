@@ -1,19 +1,15 @@
 # Manual checks
 
-## Done on the emulator (2026-11-12)
-
-| Scenario | Seen |
-|---|---|
-| Spot added at once | ✅ A tap on an empty spot shows a spinner there (`screenshots/android-spot-adding.png`), then the spot is added: here as the new start before 14, as it lies far before it (`screenshots/android-spot-added.png`) |
-| Offer without a route | ✅ Earlier round: "Add to route" twice made a start and an end; now a spot is added at once the same way |
-
-The emulator takes about a minute to add a spot on this long route. The Pixel took about a second for the same work.
-
 ## Done in the simulator (2026-11-12)
 
 | Scenario | Seen |
 |---|---|
-| Spot beyond the end, Note for a spot | ✅ On 33 → 41, a spot far beyond the end: added at once as the end, the note "Added as the end" with the flag in the previews (`screenshots/ios-spot-note.png`) |
+| Spot beyond the end | ✅ On 33 → 41, a tap on an empty spot shows only "Add to route" at the spot (`screenshots/ios-spot-offer.png`); choosing it adds the spot as the end |
+| Note for a spot | ✅ "Added as the end", with the flag in the previews (`screenshots/ios-spot-note.png`) |
+
+## Earlier rounds
+
+- Knot-like buttons in the card, then adding spots at once, were each tried on the phones and dropped by the maintainer: the buttons made two different ways of adding, and adding at once made a stray flag too easy.
 
 ## Not yet checked
 

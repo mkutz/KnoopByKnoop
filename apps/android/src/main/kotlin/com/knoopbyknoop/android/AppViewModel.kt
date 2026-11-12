@@ -971,10 +971,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
       is MapTap.OnRoutePoint -> {}
       // While navigating, a place shows its name only, see `map-planning` "Place while navigating".
       is MapTap.Offer -> {
-        // An empty spot is added at once; a place shows its card first, see "Choose a route point
-        // on the map" and "Tapping a place on the map".
-        if (!state.navigating && tapped.place == null) addPoint(session, tapped, x, y)
-        else if (!state.navigating) state = state.copy(offer = PlaceOffer(tapped, x, y))
+        // A spot or a place offers "Add to route" first, see "Choose a route point on the map" and
+        // "Tapping a place on the map".
+        if (!state.navigating) state = state.copy(offer = PlaceOffer(tapped, x, y))
         else if (tapped.place != null) {
           state = state.copy(offer = PlaceOffer(tapped, x, y, nameOnly = true))
         }
@@ -1050,7 +1049,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
   }
 
-  /** "Add to route" on a place's card: added as a tapped spot, see "Tapping a place on the map". */
+  /** "Add to route" for a spot or a place, see "Choose a route point on the map". */
   fun addOfferToRoute() {
     val offer = state.offer ?: return
     state = state.copy(offer = null)

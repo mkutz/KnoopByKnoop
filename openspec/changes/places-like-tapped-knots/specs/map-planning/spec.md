@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Choose a route point on the map
-Where knots are shown, a tap with no knot, route point or highlighted place within the tolerance SHALL add a route point at the tapped spot at once, as a tapped knot is added: the start if there is none, the end if there is no end, and otherwise where it adds the least distance, see "Plan by tapping knots". Once a route exists, the note of "Changing what a tapped knot became" SHALL follow. A spot farther than 20 km on a cycling route, or 5 km on a hiking route, from every course of the network SHALL NOT be added; the user SHALL be told that the network has no knots within that distance.
+Where knots are shown, a tap with no knot, route point or highlighted place within the tolerance SHALL offer "Add to route" at the tapped spot, and SHALL NOT change the route until it is chosen. "Add to route" SHALL add a route point at the spot as a tapped knot is added: the start if there is none, the end if there is no end, and otherwise where it adds the least distance, see "Plan by tapping knots". Once a route exists, the note of "Changing what a tapped knot became" SHALL follow. The offer SHALL be dismissible. A spot farther than 20 km on a cycling route, or 5 km on a hiking route, from every course of the network SHALL NOT be added; the user SHALL be told that the network has no knots within that distance.
 
 #### Scenario: Knots go first
 - **WHEN** the user taps a place with a knot within the tolerance
@@ -9,37 +9,37 @@ Where knots are shown, a tap with no knot, route point or highlighted place with
 
 #### Scenario: A route point goes first
 - **WHEN** the user taps a place with a route point within the tolerance
-- **THEN** nothing is added and the route does not change
+- **THEN** nothing is offered and the route does not change
 
 #### Scenario: Spot beside the route
-- **WHEN** a route 25 → 32 exists and the user taps an empty spot beside its course
+- **WHEN** a route 25 → 32 exists and the user taps an empty spot beside its course and chooses "Add to route"
 - **THEN** a route point at the spot is added as a stop, and the note offers to make it the start or the end, or to undo it
 
 #### Scenario: Spot beyond the end
-- **WHEN** a route 25 → 32 exists and the user taps an empty spot beyond 32 seen from 25
+- **WHEN** a route 25 → 32 exists and the user taps an empty spot beyond 32 seen from 25 and chooses "Add to route"
 - **THEN** the route point is the new end, and 32 a stop
 
 #### Scenario: Offer and dismiss
-- **WHEN** the user taps a highlighted place and closes its card without choosing "Add to route"
+- **WHEN** the user taps an empty spot or a highlighted place and closes the offer without choosing "Add to route"
 - **THEN** the route is unchanged
 
 #### Scenario: Offer without a route
-- **WHEN** there is no waypoint yet and the user taps an empty spot, and then knot 28
+- **WHEN** there is no waypoint yet and the user adds an empty spot with "Add to route", and then taps knot 28
 - **THEN** the route goes from the spot to 28, and no note is shown
 
 #### Scenario: Zoomed out
 - **WHEN** knots are not shown and the user taps the map
-- **THEN** nothing is added
+- **THEN** nothing is offered
 
 #### Scenario: Too far from the network
 - **WHEN** hiking is chosen and the user taps a place 70 km from the nearest hiking course
-- **THEN** nothing is added, the route does not change, and the user is told there are no hiking knots within 5 km
+- **THEN** nothing is offered, the route does not change, and the user is told there are no hiking knots within 5 km
 
 ### Requirement: What a chosen route point does
 "Start here", "Add stop here" and "End here" are the start, stop and end buttons of the note for a route point. "Start here" SHALL make the route point the new start, "End here" the new end, and "Add stop here" a stop in the leg where it adds the least distance. A waypoint that was the start or end before SHALL become a stop, whether it is a knot or a route point.
 
 #### Scenario: First waypoint
-- **WHEN** there are no waypoints and the user taps an empty spot, then taps 28
+- **WHEN** there are no waypoints and the user adds an empty spot with "Add to route", then taps 28
 - **THEN** the route goes from the point to 28
 
 #### Scenario: End before the start
@@ -63,7 +63,7 @@ Where knots are shown, a tap with no knot, route point or highlighted place with
 - **THEN** the waypoints keep 12 as start and as a stop, and the point is the end
 
 ### Requirement: Tapping a place on the map
-A tap on a highlighted place SHALL show a card at the place with its kind's icon and its name, or the kind's name when the place has none, and its details. While planning, the card SHALL offer "Add to route" below the name, which SHALL add a route point at the place's position, not at the nearest course, as a tapped spot is added, see "Choose a route point on the map". Showing the card SHALL NOT change the route. A knot or a route point within the touch tolerance SHALL go first. A place beyond the distance limit of "Choose a route point on the map" (20 km cycling, 5 km hiking from every course) SHALL show its name without "Add to route". While navigating, the card SHALL show the name only and SHALL NOT change the route or the navigation. A tap beside the card or Back SHALL close it.
+A tap on a highlighted place SHALL show a card at the place with its kind's icon and its name, or the kind's name when the place has none, and its details. While planning, the card SHALL offer "Add to route" below the name, which SHALL add a route point at the place's position, not at the nearest course, as an empty spot is added, see "Choose a route point on the map". Showing the card SHALL NOT change the route. A knot or a route point within the touch tolerance SHALL go first. A place beyond the distance limit of "Choose a route point on the map" (20 km cycling, 5 km hiking from every course) SHALL show its name without "Add to route". While navigating, the card SHALL show the name only and SHALL NOT change the route or the navigation. A tap beside the card or Back SHALL close it.
 
 #### Scenario: Name of a café
 - **WHEN** the user taps the icon of "Eiscafé Riviera" in Troisdorf at zoom 15
@@ -99,7 +99,7 @@ A tap on a highlighted place SHALL show a card at the place with its kind's icon
 
 #### Scenario: Grey places unchanged
 - **WHEN** the user taps a pharmacy drawn in the base map's own style
-- **THEN** the tap works as on an empty spot: a route point is added at once
+- **THEN** the tap works as on an empty spot: "Add to route" is offered without a name
 
 ### Requirement: Changing what a tapped knot became
 After a tapped knot, a tapped spot or a place was added to an existing route, the app SHALL show a short note: one line saying what it became, three buttons in the fixed order start, stop and end, each previewing that role with badges, and Undo. The button of the role it got SHALL show as selected and inactive. The buttons SHALL act as "Start here", "Add stop here" and "End here" do. The note SHALL go away after 6 seconds, on a choice or with the next tap, but not by itself while a screen reader is on.
@@ -121,7 +121,7 @@ After a tapped knot, a tapped spot or a place was added to an existing route, th
 - **THEN** the note says "Eiscafé Riviera added as a stop", and the buttons preview the café with its icon
 
 #### Scenario: Note for a spot
-- **WHEN** a route 25 → 32 exists and the user taps an empty spot beyond 32
+- **WHEN** a route 25 → 32 exists and the user adds an empty spot beyond 32 with "Add to route"
 - **THEN** the note says "Added as the end", and the buttons preview the spot with the flag
 
 #### Scenario: Make it the start
