@@ -1,6 +1,6 @@
 ## Why
 
-Since a choice keeps the start/stop/end note open, it can still stand over the map when the rider starts navigating, where it no longer helps and covers the map.
+The note is one of the planning tools, and planning tools are no longer needed once the planned route is being ridden. Since a choice keeps the note open, it can still stand over the map when the rider starts navigating, where it only covers the map.
 
 ## What Changes
 
