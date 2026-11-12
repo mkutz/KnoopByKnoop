@@ -11,7 +11,10 @@
 
 - Knot-like buttons in the card, then adding spots at once, were each tried on the phones and dropped by the maintainer: the buttons made two different ways of adding, and adding at once made a stray flag too easy.
 
+## The maintainer's verdict (2026-11-12)
+
+Tried on the phones: "Works now, archive it."
+
 ## Not yet checked
 
 - A highlighted place (restaurant, campsite) with "Add to route" on the phones
-- The maintainer's check on both phones
