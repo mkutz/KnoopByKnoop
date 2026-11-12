@@ -17,6 +17,11 @@
   <string name="start_here">Partir d\'ici</string>
   <string name="add_stop_here">Ajouter une étape ici</string>
   <string name="end_here">Arriver ici</string>
+  <string name="tap_note_stop">%1$s ajouté comme étape</string>
+  <string name="tap_note_end">%1$s ajouté comme arrivée</string>
+  <string name="tap_note_make_start">En faire le départ</string>
+  <string name="tap_note_make_end">En faire l\'arrivée</string>
+  <string name="tap_note_undo">Annuler</string>
   <string name="start_point_set_end">Départ choisi, touchez un point-nœud pour l\'arrivée</string>
   <string name="end_point_set_start">Arrivée choisie, touchez un point-nœud pour le départ</string>
   <string name="straight_ways">Le chemin vers un lieu choisi n\'est encore qu\'une ligne droite, sa longueur aussi</string>
@@ -40,9 +45,6 @@
   <string name="remove">Supprimer</string>
   <string name="remove_knot">Supprimer %1$s</string>
   <string name="move_knot">Déplacer %1$s</string>
-  <string name="new_knots">Ajouter des points-nœuds</string>
-  <string name="new_knots_between">Entre deux</string>
-  <string name="new_knots_end">À la fin</string>
   <string name="role_start">Départ</string>
   <string name="role_stop">Étape</string>
   <string name="role_end">Arrivée</string>

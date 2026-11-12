@@ -292,34 +292,3 @@ struct KnotBadge: View {
   }
 }
 
-/// The icons of the switch for new knots: an arrow pointing to where the knot goes, in the color of
-/// the word next to it, see `map-planning` "What new knots become".
-enum NewKnotsIcon {
-  static let between = draw(knots: [6, 26], arrowAt: 16, arrowTip: 9)
-  static let end = draw(knots: [5, 17], arrowAt: 27, arrowTip: 11)
-
-  private static func draw(knots: [CGFloat], arrowAt: CGFloat, arrowTip: CGFloat) -> UIImage {
-    UIGraphicsImageRenderer(size: CGSize(width: 32, height: 16)).image { _ in
-      UIColor.black.set()
-      let line = UIBezierPath()
-      line.move(to: CGPoint(x: knots[0], y: 12))
-      line.addLine(to: CGPoint(x: knots[1], y: 12))
-      line.lineWidth = 1.5
-      line.stroke()
-      for knot in knots {
-        UIBezierPath(ovalIn: CGRect(x: knot - 3, y: 9, width: 6, height: 6)).fill()
-      }
-      let arrow = UIBezierPath()
-      arrow.move(to: CGPoint(x: arrowAt, y: 1))
-      arrow.addLine(to: CGPoint(x: arrowAt, y: arrowTip))
-      arrow.move(to: CGPoint(x: arrowAt - 3.5, y: arrowTip - 3.5))
-      arrow.addLine(to: CGPoint(x: arrowAt, y: arrowTip))
-      arrow.addLine(to: CGPoint(x: arrowAt + 3.5, y: arrowTip - 3.5))
-      arrow.lineWidth = 1.75
-      arrow.lineCapStyle = .round
-      arrow.lineJoinStyle = .round
-      arrow.stroke()
-    }
-    .withRenderingMode(.alwaysTemplate)
-  }
-}

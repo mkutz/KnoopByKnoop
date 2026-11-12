@@ -4,28 +4,6 @@
     " · %@": {
       "shouldTranslate": false
     },
-    "Add knots": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Knotenpunkte hinzufügen"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Knooppunten toevoegen"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ajouter des points-nœuds"
-          }
-        }
-      }
-    },
     "Add stop here": {
       "localizations": {
         "de": {
@@ -92,28 +70,6 @@
         }
       }
     },
-    "At end": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ans Ende"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aan het eind"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "À la fin"
-          }
-        }
-      }
-    },
     "Back to start": {
       "localizations": {
         "de": {
@@ -132,28 +88,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Retour au départ"
-          }
-        }
-      }
-    },
-    "Between": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dazwischen"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ertussen"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Entre deux"
           }
         }
       }
@@ -2862,6 +2796,116 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bac %1$lld sur %2$lld fermé"
+          }
+        }
+      }
+    },
+    "%@ added as a stop": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ als Zwischenstopp hinzugefügt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ toegevoegd als tussenstop"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ajouté comme étape"
+          }
+        }
+      }
+    },
+    "%@ added as the end": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ als Ende hinzugefügt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ toegevoegd als einde"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ajouté comme arrivée"
+          }
+        }
+      }
+    },
+    "Make it the start": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zum Start machen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maak er de start van"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En faire le départ"
+          }
+        }
+      }
+    },
+    "Make it the end": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zum Ende machen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maak er het einde van"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En faire l’arrivée"
+          }
+        }
+      }
+    },
+    "Undo": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rückgängig"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ongedaan maken"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler"
           }
         }
       }

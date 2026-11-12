@@ -211,11 +211,7 @@ class NetworkGeometryTest {
 
   @Test
   fun `a stop at the knot`() {
-    val session =
-      PlanningSession.start(branches)
-        .tap(knot06, NewKnots.STOP)
-        .tap(knot28, NewKnots.STOP)
-        .tap(knot02, NewKnots.STOP)
+    val session = PlanningSession.start(branches).tap(knot06).tap(knot28).tap(knot02)
     assertEquals(listOf(knot06, knot02, knot28), session.waypoints)
 
     val legs =
@@ -299,8 +295,7 @@ class NetworkGeometryTest {
 
   @Test
   fun `the route on the map starts at the signpost it uses`() {
-    val session =
-      PlanningSession.start(signposts).tap(knot02, NewKnots.STOP).tap(knot28, NewKnots.STOP)
+    val session = PlanningSession.start(signposts).tap(knot02).tap(knot28)
 
     val coordinates =
       Json.parseToJsonElement(MapFeatures.route(session, signpostGeometry))
@@ -354,7 +349,7 @@ class NetworkGeometryTest {
     val offer =
       assertIs<MapTap.Offer>(branchSession.tapAt(besideTheCourse, 30.0, null, branchGeometry))
     assertFalse(offer.canAddStop)
-    val withRoute = branchSession.tap(knot06, NewKnots.STOP).tap(knot28, NewKnots.STOP)
+    val withRoute = branchSession.tap(knot06).tap(knot28)
     assertTrue(
       assertIs<MapTap.Offer>(withRoute.tapAt(besideTheCourse, 30.0, null, branchGeometry))
         .canAddStop
@@ -412,7 +407,7 @@ class NetworkGeometryTest {
 
   @Test
   fun `stop at a place`() {
-    val withRoute = branchSession.tap(knot06, NewKnots.STOP).tap(knot28, NewKnots.STOP)
+    val withRoute = branchSession.tap(knot06).tap(knot28)
     val supermarket =
       assertNotNull(
         MapPlace.of(
@@ -534,7 +529,7 @@ class NetworkGeometryTest {
     assertEquals(6L to 2L, routePoint.fromId to routePoint.toId)
     assertTrue(routePoint.way.isEmpty(), "no way to the course")
     assertEquals(routePoint.place, GeoPoint(point.latitude, point.longitude))
-    val planned = branchSession.startAt(point).tap(knot02, NewKnots.STOP)
+    val planned = branchSession.startAt(point).tap(knot02)
     val course =
       branchGeometry.withRoutePoints(planned.routeGraph).courseOf(assertNotNull(planned.route))
     assertEquals(routePoint.place, course?.first(), "the line begins there")
@@ -544,11 +539,11 @@ class NetworkGeometryTest {
   fun `through the fitting signpost`() {
     val point = pointBesideTheCourse()
     val place = point.routePoint!!.place
-    val planned = branchSession.startAt(point).tap(knot02, NewKnots.STOP).tap(knot28, NewKnots.END)
+    val planned = branchSession.startAt(point).tap(knot02).tap(knot28)
     val routeGeometry = branchGeometry.withRoutePoints(planned.routeGraph)
 
     assertEquals(listOf(place, fork, signpost, west), routeGeometry.courseOf(planned.route!!))
-    val east = branchSession.startAt(point).tap(knot02, NewKnots.STOP).tap(knot01, NewKnots.END)
+    val east = branchSession.startAt(point).tap(knot02).tap(knot01)
     assertEquals(
       listOf(place, fork, river, this.east),
       branchGeometry.withRoutePoints(east.routeGraph).courseOf(east.route!!),
@@ -582,7 +577,7 @@ class NetworkGeometryTest {
     val farAway = GeoPoint(52.1060, 5.1150)
     val offer = assertIs<MapTap.Offer>(branchSession.tapAt(farAway, 30.0, null, branchGeometry))
     val point = assertNotNull(branchSession.routePointFor(offer, branchGeometry))
-    val planned = branchSession.startAt(point).tap(knot02, NewKnots.STOP)
+    val planned = branchSession.startAt(point).tap(knot02)
 
     val course =
       branchGeometry.withRoutePoints(planned.routeGraph).courseOf(assertNotNull(planned.route))

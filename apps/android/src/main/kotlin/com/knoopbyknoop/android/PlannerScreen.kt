@@ -53,10 +53,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -99,10 +96,12 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -120,11 +119,11 @@ import com.knoopbyknoop.core.KnotPlate
 import com.knoopbyknoop.core.KnotRole
 import com.knoopbyknoop.core.MapFeatures
 import com.knoopbyknoop.core.NavigationState
-import com.knoopbyknoop.core.NewKnots
 import com.knoopbyknoop.core.PathDataStatus
 import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteSummary
 import com.knoopbyknoop.core.StartChoice
+import com.knoopbyknoop.core.WaypointRole
 import com.knoopbyknoop.core.hasStraightLines
 import com.knoopbyknoop.core.nameIn
 import kotlin.math.ceil
@@ -218,7 +217,10 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
           }
         }
       }
-      SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+      Column(modifier = Modifier.align(Alignment.BottomCenter)) {
+        state.tapNote?.let { TapNoteCard(it, viewModel) }
+        SnackbarHost(snackbarHostState)
+      }
     }
   } else {
     // While navigating, the sheet is at least as high as the number to follow and the whole strip,
@@ -266,46 +268,68 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
         sheet.partialExpand()
       }
     }
-    BottomSheetScaffold(
-      scaffoldState = scaffoldState,
-      sheetPeekHeight = peekHeight,
-      sheetDragHandle = {
-        BottomSheetDefaults.DragHandle(
-          modifier = Modifier.onSizeChanged { dragHandleHeight = it.height }
+    // A layer above everything, so the note gets its taps, see "Changing what a tapped knot
+    // became".
+    Box(modifier = Modifier.fillMaxSize()) {
+      BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        sheetPeekHeight = peekHeight,
+        sheetDragHandle = {
+          BottomSheetDefaults.DragHandle(
+            modifier = Modifier.onSizeChanged { dragHandleHeight = it.height }
+          )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        sheetContent = {
+          if (searching)
+            PlaceSearchField(
+              state,
+              viewModel,
+              onClose = closeSearch,
+              modifier = Modifier.fillMaxHeight().windowInsetsPadding(WindowInsets.navigationBars),
+            )
+          else
+            WaypointSheet(
+              state,
+              viewModel,
+              // The highest the navigation part was, so the sheet does not jump when the header
+              // switches to the number to follow near a knot, see `knot-navigation` "Number to
+              // follow".
+              onNavigationHeight = { height, picture ->
+                navigationHeight =
+                  if (picture == navigationHeightPicture) maxOf(navigationHeight, height)
+                  else height
+                navigationHeightPicture = picture
+              },
+              onSummaryHeight = { summaryHeight = it },
+              // The sheet comes down, so the knot is not hidden by it, see `knot-navigation`
+              // "Showing
+              // a coming knot on the map".
+              onShowKnot = { knot ->
+                viewModel.showOnMap(knot)
+                scope.launch { scaffoldState.bottomSheetState.partialExpand() }
+              },
+            )
+        },
+      ) { padding ->
+        mapArea(state, Modifier.fillMaxSize().padding(padding))
+      }
+      var noteHeight by remember { mutableIntStateOf(0) }
+      state.tapNote?.let { note ->
+        // Right above the panel, wherever it is.
+        TapNoteCard(
+          note,
+          viewModel,
+          Modifier.offset {
+              val sheetTop = runCatching {
+                scaffoldState.bottomSheetState.requireOffset()
+              }
+                .getOrDefault(0f)
+              IntOffset(0, sheetTop.roundToInt() - noteHeight)
+            }
+            .onSizeChanged { noteHeight = it.height },
         )
-      },
-      snackbarHost = { SnackbarHost(snackbarHostState) },
-      sheetContent = {
-        if (searching)
-          PlaceSearchField(
-            state,
-            viewModel,
-            onClose = closeSearch,
-            modifier = Modifier.fillMaxHeight().windowInsetsPadding(WindowInsets.navigationBars),
-          )
-        else
-          WaypointSheet(
-            state,
-            viewModel,
-            // The highest the navigation part was, so the sheet does not jump when the header
-            // switches to the number to follow near a knot, see `knot-navigation` "Number to
-            // follow".
-            onNavigationHeight = { height, picture ->
-              navigationHeight =
-                if (picture == navigationHeightPicture) maxOf(navigationHeight, height) else height
-              navigationHeightPicture = picture
-            },
-            onSummaryHeight = { summaryHeight = it },
-            // The sheet comes down, so the knot is not hidden by it, see `knot-navigation` "Showing
-            // a coming knot on the map".
-            onShowKnot = { knot ->
-              viewModel.showOnMap(knot)
-              scope.launch { scaffoldState.bottomSheetState.partialExpand() }
-            },
-          )
-      },
-    ) { padding ->
-      mapArea(state, Modifier.fillMaxSize().padding(padding))
+      }
     }
   }
 
@@ -688,7 +712,6 @@ private fun WaypointSheet(
             modifier = Modifier.padding(bottom = 4.dp),
           )
         }
-        if (session.route != null) NewKnotsSwitch(state.newKnots, viewModel::chooseNewKnots)
       }
     }
     // While navigating, the coming knots below the strip in place of the waypoints, as the route is
@@ -721,63 +744,58 @@ private fun WaypointSheet(
 }
 
 /**
- * What tapped knots become, with the label above the choices where they do not fit next to it, see
- * `map-planning` "What new knots become".
+ * What a tapped knot became, with the choices to change it, see `map-planning` "Changing what a
+ * tapped knot became". Goes away after 6 seconds, but not while TalkBack is on.
  */
 @Composable
-private fun NewKnotsSwitch(selected: NewKnots, onChoose: (NewKnots) -> Unit) {
-  FlowRow(
-    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-    horizontalArrangement = Arrangement.SpaceBetween,
-    verticalArrangement = Arrangement.spacedBy(4.dp),
-    itemVerticalAlignment = Alignment.CenterVertically,
+private fun TapNoteCard(note: TapNote, viewModel: AppViewModel, modifier: Modifier = Modifier) {
+  val context = LocalContext.current
+  LaunchedEffect(note.id) {
+    val accessibility =
+      context.getSystemService(android.content.Context.ACCESSIBILITY_SERVICE)
+        as android.view.accessibility.AccessibilityManager
+    if (!accessibility.isTouchExplorationEnabled) {
+      kotlinx.coroutines.delay(TAP_NOTE_MILLIS)
+      viewModel.dismissTapNote(note.id)
+    }
+  }
+  Surface(
+    shape = MaterialTheme.shapes.small,
+    color = MaterialTheme.colorScheme.inverseSurface,
+    contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+    shadowElevation = 6.dp,
+    modifier = modifier.padding(horizontal = 12.dp, vertical = 8.dp).fillMaxWidth(),
   ) {
-    Text(stringResource(R.string.new_knots), style = MaterialTheme.typography.bodyMedium)
-    // Sideways where it does not fit, as both parts are as wide as the longer one, and a part with
-    // less room would cut its word off.
-    SingleChoiceSegmentedButtonRow(Modifier.horizontalScroll(rememberScrollState())) {
-      NewKnots.entries.forEachIndexed { index, newKnots ->
-        SegmentedButton(
-          selected = selected == newKnots,
-          onClick = { onChoose(newKnots) },
-          shape = SegmentedButtonDefaults.itemShape(index, NewKnots.entries.size),
-          // The slot is too small for this icon, which is wider than it is high, so the icon is
-          // part
-          // of the label. The word is what screen readers announce.
-          icon = {},
-        ) {
-          Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-          ) {
-            Icon(
-              painterResource(
-                when (newKnots) {
-                  NewKnots.STOP -> R.drawable.ic_new_knots_between
-                  NewKnots.END -> R.drawable.ic_new_knots_end
-                }
-              ),
-              contentDescription = null,
-              modifier = Modifier.size(width = 32.dp, height = 16.dp),
-            )
-            // Without spaces to break at, as the row takes its width from the longest word, which
-            // would cut off a label of several words.
-            Text(
-              stringResource(
-                  when (newKnots) {
-                    NewKnots.STOP -> R.string.new_knots_between
-                    NewKnots.END -> R.string.new_knots_end
-                  }
-                )
-                .replace(' ', '\u00A0'),
-              softWrap = false,
-            )
+    Column(modifier = Modifier.padding(start = 16.dp, top = 12.dp, end = 8.dp, bottom = 4.dp)) {
+      Text(
+        stringResource(
+          if (note.role == WaypointRole.END) R.string.tap_note_end else R.string.tap_note_stop,
+          note.knot.ref,
+        ),
+        style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+      )
+      FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End,
+      ) {
+        val action = MaterialTheme.colorScheme.inversePrimary
+        TextButton(onClick = viewModel::makeTappedStart) {
+          Text(stringResource(R.string.tap_note_make_start), color = action)
+        }
+        if (note.role != WaypointRole.END)
+          TextButton(onClick = viewModel::makeTappedEnd) {
+            Text(stringResource(R.string.tap_note_make_end), color = action)
           }
+        TextButton(onClick = viewModel::undoTap) {
+          Text(stringResource(R.string.tap_note_undo), color = action)
         }
       }
     }
   }
 }
+
+private const val TAP_NOTE_MILLIS = 6_000L
 
 /**
  * The [summary] with the [actions] at its end, or the actions below it where the summary does not

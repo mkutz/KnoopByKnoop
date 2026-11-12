@@ -119,7 +119,7 @@ class RoutePointWaysTest {
     val session = PlanningSession.start(geometry.graph)
     val offer = assertIs<MapTap.Offer>(session.tapAt(chosen, 30.0, null, geometry))
     val point = assertNotNull(session.routePointFor(offer, geometry))
-    return session.startAt(point).tap(geometry.graph.knots.getValue(4), NewKnots.STOP)
+    return session.startAt(point).tap(geometry.graph.knots.getValue(4))
   }
 
   private fun PlanningSession.point() = routePoints.single()

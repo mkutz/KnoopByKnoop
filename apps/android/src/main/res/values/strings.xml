@@ -18,6 +18,11 @@
   <string name="start_here">Start here</string>
   <string name="add_stop_here">Add stop here</string>
   <string name="end_here">End here</string>
+  <string name="tap_note_stop">%1$s added as a stop</string>
+  <string name="tap_note_end">%1$s added as the end</string>
+  <string name="tap_note_make_start">Make it the start</string>
+  <string name="tap_note_make_end">Make it the end</string>
+  <string name="tap_note_undo">Undo</string>
   <string name="start_point_set_end">Start set, tap a knot to set the end</string>
   <string name="end_point_set_start">End set, tap a knot to set the start</string>
   <string name="straight_ways">The way to a chosen place is only a straight line so far, and so is its length</string>
@@ -41,9 +46,6 @@
   <string name="remove">Remove</string>
   <string name="remove_knot">Remove %1$s</string>
   <string name="move_knot">Move %1$s</string>
-  <string name="new_knots">Add knots</string>
-  <string name="new_knots_between">Between</string>
-  <string name="new_knots_end">At end</string>
   <string name="role_start">Start</string>
   <string name="role_stop">Stop</string>
   <string name="role_end">End</string>

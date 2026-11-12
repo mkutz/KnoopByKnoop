@@ -5,7 +5,6 @@ import com.knoopbyknoop.core.IndexedFileKind
 import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkIndex
 import com.knoopbyknoop.core.NetworkType
-import com.knoopbyknoop.core.NewKnots
 import com.knoopbyknoop.core.PathFile
 import com.knoopbyknoop.core.PathSquare
 import com.knoopbyknoop.core.PlaceDetails
@@ -180,8 +179,7 @@ class MainTest {
     val inTheNorth = graph.knots.values.single { it.ref == "12" }
     val inTheSouth = graph.knots.values.single { it.ref == "7" }
 
-    val session =
-      PlanningSession.start(graph).tap(inTheNorth, NewKnots.STOP).tap(inTheSouth, NewKnots.STOP)
+    val session = PlanningSession.start(graph).tap(inTheNorth).tap(inTheSouth)
 
     val summary = assertIs<RouteSummary.Complete>(session.route?.summary)
     assertEquals(listOf("12", "45", "7"), summary.knots.map { it.ref })

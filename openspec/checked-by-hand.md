@@ -202,10 +202,20 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Without location access — on the devices
 - Far from the network — on the devices
 - Nearest knots with a screen reader — on the devices with a screen reader
-- Default — on the devices
-- Remembered — on the devices
-- Switching changes nothing yet — on the devices
 - The icons — on the devices
+- Extending the route — "What new knots become", replaced by `tap-adds-where-it-fits`: goes when that change is archived
+- Looking around — "What new knots become", replaced by `tap-adds-where-it-fits`: goes when that change is archived
+- Round trip at the end — "What new knots become", replaced by `tap-adds-where-it-fits`: goes when that change is archived
+- A knot that cannot be reached — "What new knots become", replaced by `tap-adds-where-it-fits`: goes when that change is archived
+- First two taps — "What new knots become", replaced by `tap-adds-where-it-fits`: goes when that change is archived
+- Default — "What new knots become", replaced by `tap-adds-where-it-fits`: goes when that change is archived
+- Remembered — "What new knots become", replaced by `tap-adds-where-it-fits`: goes when that change is archived
+- Switching changes nothing yet — "What new knots become", replaced by `tap-adds-where-it-fits`: goes when that change is archived
+- Note after a tap — on the emulator and in the simulator: a knot tapped beside a route, "29 added as a stop" with "Make it the start", "Make it the end" and "Undo" (`tap-adds-where-it-fits` manual checks)
+- Note for a new end — the same: a knot beyond the end, "06 added as the end" with "Make it the start" and "Undo"
+- Note goes away — on the emulator: after 6 seconds, or with the next tap
+- Note with a screen reader — on the devices with TalkBack and VoiceOver: announced, and stays until a choice is used
+- No note for the first two taps — on the emulator: clearing the route and tapping start and end shows no note
 - In the smallest panel — on the devices
 - In landscape — on the devices in landscape
 - While navigating — on the devices

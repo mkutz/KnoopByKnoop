@@ -330,6 +330,14 @@ struct PlannerView: View {
       }
       // The choices for a tapped place, at its flag and above the controls, see `map-planning`
       // "Choose a route point on the map". In the map's coordinates, which ignore the safe area.
+      // Right above the sheet, see `map-planning` "Changing what a tapped knot became".
+      if let note = model.tapNote {
+        TapNoteCard(note: note, model: model)
+          .padding(.horizontal, 12)
+          .padding(.bottom, (landscape ? screen.safeAreaInsets.bottom + 8 : restingSheetHeight) + attributionHeight + 8)
+          .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+          .ignoresSafeArea()
+      }
       if let offer = model.offer {
         // Below the place, kept between the controls at the top and the sheet, and scrolled when
         // taller than that, e.g. with opening hours and contacts in a large text size. Above the
@@ -570,9 +578,6 @@ private struct WaypointSheet: View {
               .foregroundStyle(.secondary)
           }
         }
-        if navigator.state == nil, session.route != nil {
-          newKnotsSwitch
-        }
       }
       .padding([.horizontal, .top])
       .padding(.bottom, 8)
@@ -703,38 +708,6 @@ private struct WaypointSheet: View {
   }
 
   /// The waypoint's role in the list, e.g. `Start`; keys of their own, as Stop also ends navigation.
-  /// What tapped knots become, with the label above the choices where they do not fit next to it,
-  /// see `map-planning` "What new knots become".
-  private var newKnotsSwitch: some View {
-    let label = String(localized: "Add knots", bundle: AppLanguage.bundle)
-    let choices = IconChoices(
-      selection: $model.newKnots,
-      choices: [
-        IconChoice(
-          value: NewKnots.stop, word: String(localized: "Between", bundle: AppLanguage.bundle),
-          icon: Image(uiImage: NewKnotsIcon.between)),
-        IconChoice(
-          value: NewKnots.end, word: String(localized: "At end", bundle: AppLanguage.bundle),
-          icon: Image(uiImage: NewKnotsIcon.end)),
-      ]
-    )
-    .accessibilityLabel(label)
-    return ViewThatFits(in: .horizontal) {
-      HStack {
-        Text(label).font(.callout).fixedSize()
-        Spacer()
-        choices.fixedSize()
-      }
-      VStack(alignment: .leading, spacing: 4) {
-        Text(label).font(.callout).fixedSize(horizontal: false, vertical: true)
-        // Sideways where even alone it is wider than the panel, like the route's knots, rather than
-        // widening the panel beyond the screen.
-        ScrollView(.horizontal, showsIndicators: false) { choices }
-          .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
-      }
-    }
-  }
-
   /// The name of the place a route point was made from, or its kind's name; for a knot the village,
   /// town or city it lies in, see `map-planning` "Waypoint list with badges"; `nil` for others.
   private static func placeName(of knot: Knot) -> String? {
@@ -1268,5 +1241,50 @@ private struct FerryDetourQuestion: View {
       .padding(.top, 24)
       .padding(.bottom, 16)
     }
+  }
+}
+
+/// What a tapped knot became, with the choices to change it, see `map-planning` "Changing what a
+/// tapped knot became". Goes away after 6 seconds, but not while VoiceOver is on.
+private struct TapNoteCard: View {
+  let note: TapNote
+  @ObservedObject var model: AppModel
+
+  private var message: String {
+    note.role == .end
+      ? String(localized: "\(note.knot.ref) added as the end", bundle: AppLanguage.bundle)
+      : String(localized: "\(note.knot.ref) added as a stop", bundle: AppLanguage.bundle)
+  }
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 10) {
+      Text(message).font(.headline)
+      ViewThatFits(in: .horizontal) {
+        HStack(spacing: 8) { choices }
+        VStack(alignment: .leading, spacing: 8) { choices }
+      }
+    }
+    .padding(14)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24))
+    .shadow(color: .black.opacity(0.16), radius: 10, y: 4)
+    .task(id: note.id) {
+      UIAccessibility.post(notification: .announcement, argument: message)
+      guard !UIAccessibility.isVoiceOverRunning else { return }
+      try? await Task.sleep(for: .seconds(6))
+      if !Task.isCancelled { model.dismissTapNote(id: note.id) }
+    }
+  }
+
+  @ViewBuilder private var choices: some View {
+    Button("Make it the start") { model.makeTappedStart() }
+      .buttonStyle(.bordered)
+    if note.role != .end {
+      Button("Make it the end") { model.makeTappedEnd() }
+        .buttonStyle(.bordered)
+    }
+    Button("Undo") { model.undoTap() }
+      .buttonStyle(.bordered)
+      .tint(.primary)
   }
 }

@@ -69,12 +69,28 @@ private constructor(val waypoints: List<Knot>, val legs: List<Leg>, private val 
   }
 
   /**
-   * Makes [knot] the new end and the old end a stop. A round trip stays one, with [knot] before its
-   * return to the start, see `map-planning` "What new knots become".
+   * Adds [knot] where it adds the least distance: as a stop in one of the legs, or after the end,
+   * making it the new end and the old end a stop, see `map-planning` "Plan by tapping knots". A
+   * round trip has no place after its end. On a tie the stop wins. If [knot] cannot be reached at
+   * all, it is inserted right before the end, so the route reports it as unreachable.
    */
-  fun withNewEnd(knot: Knot): Route =
-    if (waypoints.first() == waypoints.last()) insertStop(knot, waypoints.lastIndex)
-    else withWaypoints(waypoints + knot)
+  fun insertWhereItFits(knot: Knot): Route {
+    val asStop =
+      legs
+        .mapIndexedNotNull { index, leg ->
+          val legLength = leg.path?.lengthMeters ?: return@mapIndexedNotNull null
+          val toKnot = router.shortestPath(leg.from, knot) ?: return@mapIndexedNotNull null
+          val fromKnot = router.shortestPath(knot, leg.to) ?: return@mapIndexedNotNull null
+          index + 1 to toKnot.lengthMeters + fromKnot.lengthMeters - legLength
+        }
+        .minByOrNull { (_, addedLength) -> addedLength }
+    val roundTrip = waypoints.first() == waypoints.last()
+    val asEnd = if (roundTrip) null else router.shortestPath(waypoints.last(), knot)?.lengthMeters
+    return when {
+      asEnd != null && (asStop == null || asEnd < asStop.second) -> withWaypoints(waypoints + knot)
+      else -> insertStop(knot, asStop?.first ?: waypoints.lastIndex)
+    }
+  }
 
   /** Moves the waypoint at [from] to [to]. Start and end can be moved as well. */
   fun moveWaypoint(from: Int, to: Int): Route {

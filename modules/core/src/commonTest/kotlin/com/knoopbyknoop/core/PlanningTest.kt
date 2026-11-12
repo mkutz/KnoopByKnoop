@@ -27,80 +27,89 @@ class PlanningTest {
   private val session = PlanningSession.start(graph)
 
   private fun PlanningSession.tapAll(vararg knots: Knot) =
-    knots.fold(this) { session, knot -> session.tap(knot, NewKnots.STOP) }
+    knots.fold(this) { session, knot -> session.tap(knot) }
 
-  // Requirement: What new knots become
+  // Requirement: Plan by tapping knots, where a tapped knot goes
 
-  private fun PlanningSession.tapAllOnEnd(vararg knots: Knot) =
-    knots.fold(this) { session, knot -> session.tap(knot, NewKnots.END) }
-
-  // Scenario: Extending the route
   @Test
-  fun `a new knot on End extends the route`() {
-    val extended = session.tapAll(knot12, knot45).tap(knot30, NewKnots.END)
+  fun `Beyond the end a tapped knot becomes the new end`() {
+    // From 30, 45 is 3000 m on; as a stop between 12 and 30 it would add 4500 m.
+    val extended = session.tapAll(knot12, knot30, knot45)
 
-    assertEquals(listOf(knot12, knot45, knot30), extended.waypoints)
-    assertEquals(knot30, extended.route?.waypoints?.last())
-  }
-
-  // Scenario: What new knots become / Looking around
-  @Test
-  fun `looking around adds the knots in the order they are tapped`() {
-    assertEquals(
-      listOf(knot12, knot45, knot30, knot7),
-      session.tapAllOnEnd(knot12, knot45, knot30, knot7).waypoints,
-    )
+    assertEquals(listOf(knot12, knot30, knot45), extended.waypoints)
+    assertEquals(WaypointRole.END, extended.roleOf(2))
+    assertEquals(WaypointRole.STOP, extended.roleOf(1))
   }
 
   @Test
-  fun `a knot beside the route on End also becomes the end`() {
-    // On Stop, 30 goes between 12 and 45.
+  fun `Extending step by step adds the knots in the order they are tapped`() {
+    assertEquals(listOf(knot12, knot30, knot45), session.tapAll(knot12, knot30, knot45).waypoints)
+  }
+
+  @Test
+  fun `a knot beside the route becomes a stop rather than the end`() {
+    // Between 12 and 45, 30 adds 1500 m; after 45 it would add 3000 m.
     assertEquals(listOf(knot12, knot30, knot45), session.tapAll(knot12, knot45, knot30).waypoints)
-    assertEquals(
-      listOf(knot12, knot45, knot30),
-      session.tapAllOnEnd(knot12, knot45, knot30).waypoints,
-    )
   }
 
-  // Scenario: Round trip at the end
   @Test
-  fun `a round trip on End stays one`() {
+  fun `Knot beyond the end of a round trip becomes a stop and the round trip stays one`() {
     val roundTrip = session.tapAll(knot12, knot45).returnToStart()
 
-    val extended = roundTrip.tap(knot30, NewKnots.END)
+    val extended = roundTrip.tap(knot30)
 
-    assertEquals(listOf(knot12, knot45, knot30, knot12), extended.waypoints)
+    assertEquals(knot12, extended.waypoints.first())
+    assertEquals(knot12, extended.waypoints.last())
+    assertEquals(4, extended.waypoints.size)
+    assertTrue(knot30 in extended.waypoints)
   }
 
   @Test
-  fun `a knot that cannot be reached on End is reported like any waypoint`() {
-    val extended = session.tapAll(knot12, knot45).tap(knot99, NewKnots.END)
+  fun `Tapping a knot that cannot be reached adds it before the end`() {
+    val extended = session.tapAll(knot12, knot45).tap(knot99)
 
-    assertEquals(listOf(knot12, knot45, knot99), extended.waypoints)
+    assertEquals(listOf(knot12, knot99, knot45), extended.waypoints)
     val summary = assertNotNull(extended.route).summary
     assertTrue(summary is RouteSummary.Incomplete)
-    assertEquals(listOf(knot45), summary.unreachableLegs.map { it.from })
-  }
-
-  // Scenario: First two taps
-  @Test
-  fun `the first two taps are start and end on both choices`() {
-    for (newKnots in NewKnots.entries) {
-      val session = PlanningSession.start(graph)
-      assertEquals(listOf(knot12), session.tap(knot12, newKnots).waypoints)
-      assertEquals(
-        listOf(knot12, knot45),
-        session.tap(knot12, newKnots).tap(knot45, newKnots).waypoints,
-      )
-    }
   }
 
   @Test
-  fun `tapping a waypoint on End changes nothing`() {
+  fun `the first two taps are start and end`() {
+    assertEquals(listOf(knot12), session.tap(knot12).waypoints)
+    assertEquals(listOf(knot12, knot45), session.tapAll(knot12, knot45).waypoints)
+  }
+
+  @Test
+  fun `tapping a waypoint of a route changes nothing`() {
     val route = session.tapAll(knot12, knot45)
 
-    assertEquals(listOf(knot12, knot45), route.tap(knot12, NewKnots.END).waypoints)
-    assertEquals(listOf(knot12, knot45), route.tap(knot45, NewKnots.END).waypoints)
+    assertEquals(listOf(knot12, knot45), route.tap(knot12).waypoints)
+    assertEquals(listOf(knot12, knot45), route.tap(knot45).waypoints)
+  }
+
+  // Requirement: Changing what a tapped knot became, on the session before the tap
+
+  @Test
+  fun `Make it the start moves the tapped knot to the start`() {
+    val before = session.tapAll(knot12, knot45)
+
+    assertEquals(listOf(knot30, knot12, knot45), before.startAt(knot30).waypoints)
+  }
+
+  @Test
+  fun `Make it the end moves the tapped knot to the end`() {
+    val before = session.tapAll(knot12, knot45)
+
+    assertEquals(listOf(knot12, knot45, knot30), before.endAt(knot30).waypoints)
+  }
+
+  @Test
+  fun `Undo the tap gives the route before it`() {
+    val before = session.tapAll(knot12, knot45)
+    val after = before.tap(knot30)
+
+    assertEquals(listOf(knot12, knot30, knot45), after.waypoints)
+    assertEquals(listOf(knot12, knot45), before.waypoints)
   }
 
   private fun features(geoJson: String) =
@@ -252,7 +261,7 @@ class PlanningTest {
     assertEquals(RouteDescription.Empty, MapFeatures.describe(session))
     assertEquals(
       RouteDescription.StartOnly("12"),
-      MapFeatures.describe(session.tap(knot12, NewKnots.STOP)),
+      MapFeatures.describe(session.tap(knot12)),
     )
   }
 
@@ -309,7 +318,7 @@ class PlanningTest {
     assertEquals(RouteDescription.StartOnly("12"), MapFeatures.describe(removed))
     assertEquals(
       listOf(knot12, knot30),
-      removed.tap(knot30, NewKnots.STOP).waypoints,
+      removed.tap(knot30).waypoints,
       "the next tap sets the end",
     )
   }
@@ -331,7 +340,7 @@ class PlanningTest {
     assertEquals(listOf(), cleared.waypoints)
     assertEquals(
       listOf(knot7),
-      cleared.tap(knot7, NewKnots.STOP).waypoints,
+      cleared.tap(knot7).waypoints,
       "the next tap sets a new start",
     )
   }
@@ -410,7 +419,7 @@ class PlanningTest {
     assertEquals(listOf(knot12), started.waypoints)
     assertEquals(
       listOf(knot12, knot45),
-      started.tap(knot45, NewKnots.STOP).waypoints,
+      started.tap(knot45).waypoints,
       "the next knot is the end",
     )
     assertEquals(listOf(knot12, knot45), session.tapAll(knot12, knot45, knot45).waypoints)
@@ -434,7 +443,7 @@ class PlanningTest {
 
     assertEquals(listOf(knot12, knot30, knot45, knot12), roundTrip.waypoints)
     assertFalse(roundTrip.canReturnToStart, "it already ends at its start")
-    assertFalse(session.tap(knot12, NewKnots.STOP).canReturnToStart, "a start alone is no route")
+    assertFalse(session.tap(knot12).canReturnToStart, "a start alone is no route")
   }
 
   // improve-planner-map: Route knots stand out
@@ -665,7 +674,7 @@ class PlanningTest {
     val locator = KnotLocator(signpostGraph.knots.values)
 
     val tapped = assertNotNull(locator.nearestAtAnyNode(52.1012, 5.0985, 20.0))
-    val started = PlanningSession.start(signpostGraph).tap(tapped, NewKnots.STOP)
+    val started = PlanningSession.start(signpostGraph).tap(tapped)
 
     assertSame(knot02, tapped)
     assertEquals(listOf(knot02), started.waypoints)
@@ -757,7 +766,7 @@ class PlanningTest {
 
   @Test
   fun `first waypoint`() {
-    val planned = session.startAt(home).tap(knot45, NewKnots.STOP)
+    val planned = session.startAt(home).tap(knot45)
 
     assertEquals(listOf(home, knot45), planned.waypoints)
     assertTrue(planned.route?.summary is RouteSummary.Complete)
@@ -769,7 +778,7 @@ class PlanningTest {
 
     assertEquals(WaypointRole.END, endOnly.roleOf(0))
     assertNull(endOnly.route)
-    val planned = endOnly.tap(knot45, NewKnots.STOP)
+    val planned = endOnly.tap(knot45)
     assertEquals(listOf(knot45, home), planned.waypoints)
     assertEquals(WaypointRole.START, planned.roleOf(0))
   }
@@ -794,7 +803,7 @@ class PlanningTest {
   @Test
   fun `an earlier route point`() {
     val other = TestNetwork.pointOn(knot30, knot45, 0.5)
-    val planned = session.startAt(home).tap(knot45, NewKnots.STOP).startAt(other)
+    val planned = session.startAt(home).tap(knot45).startAt(other)
 
     assertEquals(listOf(other, home, knot45), planned.waypoints)
     assertEquals(listOf(other, knot45), planned.removeWaypoint(1).waypoints)
@@ -811,7 +820,7 @@ class PlanningTest {
 
   @Test
   fun `removing the route point`() {
-    val planned = session.startAt(home).tap(knot12, NewKnots.STOP).tap(knot45, NewKnots.END)
+    val planned = session.startAt(home).tap(knot12).tap(knot45)
 
     val removed = planned.removeWaypoint(0)
 
@@ -821,7 +830,7 @@ class PlanningTest {
 
   @Test
   fun `out and back from home`() {
-    val planned = session.startAt(home).tap(knot45, NewKnots.STOP).returnToStart()
+    val planned = session.startAt(home).tap(knot45).returnToStart()
 
     assertEquals(listOf(home, knot45, home), planned.waypoints)
     val summary = assertIs<RouteSummary.Complete>(planned.route?.summary)
@@ -840,7 +849,7 @@ class PlanningTest {
 
   @Test
   fun `route points are only in the route graph`() {
-    val planned = session.startAt(home).tap(knot45, NewKnots.STOP)
+    val planned = session.startAt(home).tap(knot45)
 
     assertNull(planned.graph.knots[home.id])
     assertEquals(home, planned.routeGraph.knots[home.id])
@@ -849,7 +858,7 @@ class PlanningTest {
   @Test
   fun `a found way replaces the straight line`() {
     val straight = TestNetwork.pointOn(knot12, knot30, 0.25, wayMeters = 320)
-    val planned = session.startAt(straight).tap(knot45, NewKnots.STOP)
+    val planned = session.startAt(straight).tap(knot45)
     val way = straight.routePoint!!.way
     val found =
       straight.copy(
@@ -884,7 +893,7 @@ class PlanningTest {
   @Test
   fun `start that becomes a stop`() {
     val other = TestNetwork.pointOn(knot30, knot45, 0.5)
-    val planned = session.startAt(cafe).tap(knot45, NewKnots.STOP).startAt(other)
+    val planned = session.startAt(cafe).tap(knot45).startAt(other)
 
     val stop = planned.waypoints[1].routePoint!!
     assertEquals("food", stop.placeKind)
@@ -893,7 +902,7 @@ class PlanningTest {
 
   @Test
   fun `kept after a restart`() {
-    val planned = session.startAt(cafe).tap(knot45, NewKnots.STOP)
+    val planned = session.startAt(cafe).tap(knot45)
 
     val restored = RouteSnapshot.parse(RouteSnapshot.of(planned).toJson()).restore(graph)
 
@@ -905,7 +914,7 @@ class PlanningTest {
   @Test
   fun `route saved before`() {
     val json =
-      RouteSnapshot.of(session.startAt(home).tap(knot45, NewKnots.STOP))
+      RouteSnapshot.of(session.startAt(home).tap(knot45))
         .toJson()
         .replace(Regex(""",\s*"place(Kind|Name)":\s*(null|"[^"]*")"""), "")
     assertFalse(json.contains("placeKind"))
@@ -917,8 +926,7 @@ class PlanningTest {
 
   @Test
   fun `the place on the map`() {
-    val features =
-      features(MapFeatures.routeKnotsLayer(session.startAt(cafe).tap(knot45, NewKnots.STOP)))
+    val features = features(MapFeatures.routeKnotsLayer(session.startAt(cafe).tap(knot45)))
     val places = features.map {
       it.jsonObject["properties"]!!.jsonObject["place"]!!.jsonPrimitive.content
     }
@@ -933,7 +941,7 @@ class PlanningTest {
   fun `after a restart`() {
     val away = TestNetwork.pointOn(knot12, knot30, 0.25, wayMeters = 320)
     val found = away.copy(routePoint = away.routePoint!!.copy(straight = false))
-    val planned = session.startAt(found).tap(knot45, NewKnots.STOP)
+    val planned = session.startAt(found).tap(knot45)
 
     // Restored from the graph alone: no geometry, no path data, no internet access.
     val restored = RouteSnapshot.parse(RouteSnapshot.of(planned).toJson()).restore(graph)
@@ -949,7 +957,7 @@ class PlanningTest {
   @Test
   fun `connection gone`() {
     val point = TestNetwork.pointOn(knot12, knot30, 0.25, wayMeters = 320)
-    val snapshot = RouteSnapshot.of(session.startAt(point).tap(knot45, NewKnots.STOP))
+    val snapshot = RouteSnapshot.of(session.startAt(point).tap(knot45))
     // An update removed 12-30.
     val updated =
       NetworkGraph(

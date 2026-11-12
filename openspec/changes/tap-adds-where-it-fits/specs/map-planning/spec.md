@@ -1,0 +1,114 @@
+## ADDED Requirements
+
+### Requirement: Changing what a tapped knot became
+After a tapped knot was added to an existing route, the app SHALL show a short note saying what it became, with "Make it the start", "Make it the end" and "Undo". These SHALL act as "Start here" and "End here" do for a place, and undo the tap. The note SHALL go away after 6 seconds, on a choice or with the next tap, but not by itself while a screen reader is on.
+
+#### Scenario: Note after a tap
+- **WHEN** a route from 12 to 45 exists and the user taps 30, which becomes a stop
+- **THEN** a note says "30 added as a stop" and offers "Make it the start", "Make it the end" and "Undo"
+
+#### Scenario: Note for a new end
+- **WHEN** a tapped knot 28 became the new end
+- **THEN** the note says "28 added as the end" and offers "Make it the start" and "Undo"
+
+#### Scenario: Make it the start
+- **WHEN** 30 was added as a stop to 12 → 45 and the user chooses "Make it the start"
+- **THEN** the waypoints are 30, 12 as a stop, and 45
+
+#### Scenario: Make it the end
+- **WHEN** 30 was added as a stop to 12 → 45 and the user chooses "Make it the end"
+- **THEN** the waypoints are 12, 45 as a stop, and 30
+
+#### Scenario: Undo the tap
+- **WHEN** 30 was added as a stop to 12 → 45 and the user chooses "Undo"
+- **THEN** the waypoints are 12 and 45 again
+
+#### Scenario: Note goes away
+- **WHEN** the note is shown and the user does nothing for 6 seconds, or taps another knot
+- **THEN** the note is gone, and for the other knot a new note is shown
+
+#### Scenario: Note with a screen reader
+- **WHEN** a screen reader is on and a tapped knot was added
+- **THEN** the note is announced, its choices can be reached, and it stays until a choice is used or the next tap
+
+#### Scenario: No note for the first two taps
+- **WHEN** the user taps the start and then the end of a new route
+- **THEN** no note is shown
+
+## MODIFIED Requirements
+
+### Requirement: Plan by tapping knots
+Tapping a knot SHALL make it the start if there is no start yet, the end if there is no end yet, and otherwise add it where it adds the least distance: as a stop in one of the legs, or after the end, making it the new end and the old end a stop. A round trip SHALL stay one, so its knots are only added as stops. A knot that cannot be reached from the route SHALL be added before the end, so the route reports the leg as unreachable. Tapping a knot that already is a waypoint SHALL change nothing, so an accidental double tap does not create a round trip and the start does not turn into a stop; round trips are made with the action to return to the start. A tap SHALL select the knot nearest to the tapped position, within a tolerance that keeps knots easy to hit.
+
+#### Scenario: Start and end
+- **WHEN** the user taps knot 12 and then knot 45
+- **THEN** 12 is the start, 45 the end, and the route between them is shown on the map
+
+#### Scenario: Adding a stop
+- **WHEN** a route from 12 to 45 exists and the user taps knot 30, which lies beside it
+- **THEN** 30 is added as a stop where it adds the least distance, and the route passes through it
+
+#### Scenario: Beyond the end
+- **WHEN** a route from 12 to 45 exists and the user taps knot 28, which lies beyond 45 seen from 12
+- **THEN** the waypoints are 12, 45 and 28, with 28 as the end and 45 as a stop
+
+#### Scenario: Extending step by step
+- **WHEN** the user taps 12, 45, 28 and 7, each further along in the same direction
+- **THEN** the waypoints are 12, 45, 28 and 7 in that order
+
+#### Scenario: Knot beyond the end of a round trip
+- **WHEN** the waypoints are 12, 45 and 12 and the user taps knot 28
+- **THEN** 28 becomes a stop where it adds the least distance, and the route stays a round trip from 12
+
+#### Scenario: Tapping a knot that cannot be reached
+- **WHEN** a route from 12 to 45 exists and the user taps a knot that cannot be reached from it
+- **THEN** it is added before 45, and the route reports the leg as unreachable
+
+#### Scenario: Tapping the last waypoint again
+- **WHEN** only the start 12 is set and the user taps 12 again
+- **THEN** 12 stays the only waypoint, and the next tapped knot becomes the end
+
+#### Scenario: Tapping the start of a route again
+- **WHEN** a route from 12 to 45 exists and the user taps 12 again
+- **THEN** the waypoints stay 12 and 45
+
+#### Scenario: Tapping next to the network
+- **WHEN** the user taps where no knot is within the tolerance
+- **THEN** the route does not change
+
+#### Scenario: Knots with equal numbers
+- **WHEN** two knots 30 are close to each other, e.g. on both banks of a river, and the user taps one of them
+- **THEN** exactly the tapped knot becomes part of the route
+
+### Requirement: What a chosen route point does
+"Start here" SHALL make the place the new start, "End here" the new end, and "Add stop here" a stop in the leg where it adds the least distance. A waypoint that was the start or end before SHALL become a stop, whether it is a knot or a route point.
+
+#### Scenario: First waypoint
+- **WHEN** there are no waypoints and the user chooses "Start here", then taps 28
+- **THEN** the route goes from the point to 28
+
+#### Scenario: End before the start
+- **WHEN** there are no waypoints and the user chooses "End here", then taps 28
+- **THEN** 28 is the start and the point the end
+
+#### Scenario: Before an existing start
+- **WHEN** the route is 02 → 28 and the user chooses "Start here"
+- **THEN** the waypoints are the point, 02 as a stop, and 28
+
+#### Scenario: After an existing end
+- **WHEN** the route is 28 → 02 and the user chooses "End here"
+- **THEN** the waypoints are 28, 02 as a stop, and the point
+
+#### Scenario: An earlier route point
+- **WHEN** the start is a route point and the user chooses "Start here" somewhere else
+- **THEN** the new place is the start and the earlier point a stop, which the user can remove
+
+#### Scenario: A round trip stops being one
+- **WHEN** the route is a round trip from 12 and the user chooses "End here"
+- **THEN** the waypoints keep 12 as start and as a stop, and the point is the end
+
+## REMOVED Requirements
+
+### Requirement: What new knots become
+**Reason**: A tapped knot now goes where it adds the least distance, the place after the end included, and a note right after the tap changes it, see "Changing what a tapped knot became". The maintainer wants one way to add to the route instead of a switch next to the place choices.
+**Migration**: A remembered "At end" choice is ignored. A knot beyond the end becomes the new end by itself; for others, use "Make it the end" in the note.

@@ -43,7 +43,6 @@ import com.knoopbyknoop.core.NetworkCatalog
 import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkStatus
 import com.knoopbyknoop.core.NetworkType
-import com.knoopbyknoop.core.NewKnots
 import com.knoopbyknoop.core.PathDataStatus
 import com.knoopbyknoop.core.PathDownloader
 import com.knoopbyknoop.core.PathSquares
@@ -59,6 +58,7 @@ import com.knoopbyknoop.core.RouteSnapshot
 import com.knoopbyknoop.core.RouteSummary
 import com.knoopbyknoop.core.StartChoice
 import com.knoopbyknoop.core.WayFinder
+import com.knoopbyknoop.core.WaypointRole
 import com.knoopbyknoop.core.hasStraightLines
 import com.knoopbyknoop.core.reattached
 import com.knoopbyknoop.core.routePointFor
@@ -166,7 +166,8 @@ data class AppState(
   /** Whether to ask for location access on start: the first start, with nothing else to show. */
   val askLocationOnStart: Boolean = false,
   /** What tapped knots become, see `map-planning` "What new knots become". */
-  val newKnots: NewKnots = NewKnots.STOP,
+  /** What the last tapped knot became, while the note about it shows. */
+  val tapNote: TapNote? = null,
   /** The appearance chosen in the info sheet, see `map-planning` "Light and dark appearance". */
   val appearance: Appearance = Appearance.SYSTEM,
   /**
@@ -291,10 +292,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val camera = storage.camera()
     state =
       state.copy(
-        newKnots =
-          settings.getString(KEY_NEW_KNOTS, null)?.let { saved ->
-            NewKnots.entries.firstOrNull { it.name == saved }
-          } ?: NewKnots.STOP,
         appearance =
           settings.getString(KEY_APPEARANCE, null)?.let { saved ->
             Appearance.entries.firstOrNull { it.name == saved }
@@ -710,11 +707,33 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     state = state.copy(myPosition = null)
   }
 
-  /** Chooses and keeps what tapped knots become, see `map-planning` "What new knots become". */
-  fun chooseNewKnots(newKnots: NewKnots) {
-    settings.edit().putString(KEY_NEW_KNOTS, newKnots.name).apply()
-    state = state.copy(newKnots = newKnots)
+  /** "Make it the start" in the note, see `map-planning` "Changing what a tapped knot became". */
+  fun makeTappedStart() {
+    val note = state.tapNote ?: return
+    state = state.copy(tapNote = null)
+    update(note.before.startAt(note.knot))
   }
+
+  /** "Make it the end" in the note. */
+  fun makeTappedEnd() {
+    val note = state.tapNote ?: return
+    state = state.copy(tapNote = null)
+    update(note.before.endAt(note.knot))
+  }
+
+  /** "Undo" in the note: the route as it was before the tap. */
+  fun undoTap() {
+    val note = state.tapNote ?: return
+    state = state.copy(tapNote = null)
+    update(note.before)
+  }
+
+  /** The note's time is up, unless a newer note took its place. */
+  fun dismissTapNote(id: Long) {
+    if (state.tapNote?.id == id) state = state.copy(tapNote = null)
+  }
+
+  private var tapNotes = 0L
 
   /** Chooses and keeps the [appearance], see `map-planning` "Light and dark appearance". */
   fun chooseAppearance(appearance: Appearance) {
@@ -938,7 +957,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val knot = network.locator.nearestAtAnyNode(latitude, longitude, radiusMeters)
     val position = GeoPoint(latitude, longitude)
     when (val tapped = session.tapAt(position, radiusMeters, knot, network.geometry, place)) {
-      is MapTap.OnKnot -> update(session.tap(tapped.knot, state.newKnots))
+      is MapTap.OnKnot -> {
+        val after = session.tap(tapped.knot)
+        update(after)
+        // A note only for a knot added to a route, see "Changing what a tapped knot became".
+        val position = after.waypoints.indexOf(tapped.knot)
+        state =
+          state.copy(
+            tapNote =
+              if (session.route != null && after !== session && position >= 0)
+                TapNote(tapped.knot, after.roleOf(position), session, ++tapNotes)
+              else null
+          )
+      }
       is MapTap.OnRoutePoint -> {}
       // While navigating, a place shows its name only, see `map-planning` "Place while navigating".
       is MapTap.Offer -> {
@@ -1307,4 +1338,13 @@ private const val KEY_APPEARANCE = "appearance"
 private const val KEY_PLACES = "places"
 private const val PATH_DATA_DELAY_MILLIS = 2000L
 
-private const val KEY_NEW_KNOTS = "new_knots"
+/**
+ * What a tapped [knot] became in a route, with the session [before] the tap to go back to, see
+ * `map-planning` "Changing what a tapped knot became".
+ */
+data class TapNote(
+  val knot: Knot,
+  val role: WaypointRole,
+  val before: PlanningSession,
+  val id: Long,
+)

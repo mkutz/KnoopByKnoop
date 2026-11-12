@@ -103,12 +103,10 @@ final class AppModel: ObservableObject {
   @Published private(set) var layers: MapLayers?
   @Published private(set) var routeDescription: RouteDescription = RouteDescriptionEmpty.shared
   @Published private(set) var loading = false
-  /// What tapped knots become, kept across starts of the app, see `map-planning` "What new knots become".
-  @Published var newKnots: NewKnots =
-    UserDefaults.standard.string(forKey: "newKnots") == "end" ? .end : .stop
-  {
-    didSet { UserDefaults.standard.set(newKnots == .end ? "end" : "stop", forKey: "newKnots") }
-  }
+  /// What the last tapped knot became, while the note about it shows, see `map-planning` "Changing
+  /// what a tapped knot became".
+  @Published private(set) var tapNote: TapNote?
+  private var tapNotes = 0
   /// How far the path data for the planned route is ready, `nil` if none is wanted.
   @Published private(set) var pathData: PathDataStatus?
   /// The data date of the installed path data.
@@ -417,6 +415,32 @@ final class AppModel: ObservableObject {
     routeDescription = MapFeatures.shared.describe(session: session, language: AppLanguage.current)
   }
 
+  /// "Make it the start" in the note, see `map-planning` "Changing what a tapped knot became".
+  func makeTappedStart() {
+    guard let note = tapNote else { return }
+    tapNote = nil
+    change { _ in note.before.startAt(point: note.knot) }
+  }
+
+  /// "Make it the end" in the note.
+  func makeTappedEnd() {
+    guard let note = tapNote else { return }
+    tapNote = nil
+    change { _ in note.before.endAt(point: note.knot) }
+  }
+
+  /// "Undo" in the note: the route as it was before the tap.
+  func undoTap() {
+    guard let note = tapNote else { return }
+    tapNote = nil
+    change { _ in note.before }
+  }
+
+  /// The note's time is up, unless a newer note took its place.
+  func dismissTapNote(id: Int) {
+    if tapNote?.id == id { tapNote = nil }
+  }
+
   func stopNavigation() {
     Navigator.shared.stop()
   }
@@ -452,7 +476,6 @@ final class AppModel: ObservableObject {
       }
       return
     }
-    let newKnots = newKnots
     // Any badge of a knot, see `map-planning` "Knots signposted at several places".
     let knot = loaded.locator.nearestAtAnyNode(latitude: latitude, longitude: longitude, radiusMeters: radiusMeters)
     let tapped = session.tapAt(
@@ -462,7 +485,24 @@ final class AppModel: ObservableObject {
     case let placeOnly as MapTapPlaceOnly:
       offer = nameOnly(placeOnly.place, at: point)
       lookUpDetails(placeOnly.place)
-    case let onKnot as MapTapOnKnot: change { $0.tap(knot: onKnot.knot, newKnots: newKnots) }
+    case let onKnot as MapTapOnKnot:
+      let knot = onKnot.knot
+      let before = session
+      change { $0.tap(knot: knot) }
+      let pending = changes
+      Task {
+        await pending?.value
+        // A note only for a knot added to a route, see "Changing what a tapped knot became".
+        guard before.route != nil, let after = self.session, after !== before,
+          let position = after.waypoints.firstIndex(where: { $0.id == knot.id })
+        else {
+          tapNote = nil
+          return
+        }
+        tapNotes += 1
+        tapNote = TapNote(
+          knot: knot, role: after.roleOf(position: Int32(position)), before: before, id: tapNotes)
+      }
     case let place as MapTapOffer:
       offer = PlaceOffer(offer: place, point: point)
       if let tappedPlace = place.place { lookUpDetails(tappedPlace) }
@@ -1143,4 +1183,13 @@ final class AppModel: ObservableObject {
       await self?.sync()
     }
   }
+}
+
+/// What a tapped `knot` became in a route, with the session `before` the tap to go back to, see
+/// `map-planning` "Changing what a tapped knot became".
+struct TapNote: @unchecked Sendable {
+  let knot: Knot
+  let role: WaypointRole
+  let before: PlanningSession
+  let id: Int
 }

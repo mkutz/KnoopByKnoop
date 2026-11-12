@@ -362,7 +362,7 @@ class FerryDetourTest {
         graph.ferries,
       )
 
-    val edited = PlanningSession.start(longer, session.waypoints).tap(further, NewKnots.END)
+    val edited = PlanningSession.start(longer, session.waypoints).tap(further)
 
     assertEquals(listOf(1L, 2, 3, 4, 7), routeIds(edited))
     val restored = RouteSnapshot.parse(RouteSnapshot.of(edited).toJson()).restore(longer).session

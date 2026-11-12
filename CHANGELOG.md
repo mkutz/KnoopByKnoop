@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- A tapped knot is added where it fits best: as a stop beside the route, or as the new end beyond it. A short note then offers to make it the start or the end instead, or to undo it. The "Add knots: Between | At end" switch is gone
+
 ## 0.15.0
 
 - Navigate asks first when a ferry on the route will be closed by the time you get there, or closes shortly after: ride around it, with how much longer the way around is, or keep the ferry. With several closed ferries it asks about one at a time, and the map shows each ferry's way around while asking. Riding around counts only for that ride: after stopping or arriving, the plan is back as you made it
