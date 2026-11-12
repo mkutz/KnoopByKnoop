@@ -17,4 +17,4 @@
 ## 4. Checks
 
 - [x] 4.1 Add the scenarios no unit test checks to `openspec/checked-by-hand.md`: `Nothing planned`, `Next slot without motion`, `Search from the panel`, `Nearest knots from the panel`, `Into the route`, `Slots with a screen reader`, `Empty panel at large text sizes`. Update the entries for `No knots in the area` and `Knots in view` if listed. Add a CHANGELOG Unreleased line.
-- [ ] 4.2 Run `./gradlew check`, `npx @fission-ai/openspec validate --all` and `./gradlew checkScenarios -Pchange=redesign-empty-planner-panel`. Install on both phones for the maintainer's look.
+- [x] 4.2 Run `./gradlew check`, `npx @fission-ai/openspec validate --all` and `./gradlew checkScenarios -Pchange=redesign-empty-planner-panel`. Install on both phones for the maintainer's look.
