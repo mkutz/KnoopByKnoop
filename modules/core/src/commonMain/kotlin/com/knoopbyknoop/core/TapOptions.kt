@@ -38,19 +38,14 @@ data class KnotPreview(
 }
 
 /**
- * What a tapped knot became in a route and what else it can be, see `map-planning` "Changing what a
- * tapped knot became".
+ * What a tapped knot became in a route, and the three roles it can take in a fixed order, see
+ * `map-planning` "Changing what a tapped knot became".
  *
  * @property role what the knot became
- * @property preview where it went
- * @property choices the other roles it can take, each with its route and preview
+ * @property choices the start, the stop and the end, in this order, the one of [role]
+ *   [TapChoice.current]
  */
-class TapOptions(
-  val knot: Knot,
-  val role: WaypointRole,
-  val preview: KnotPreview,
-  val choices: List<TapChoice>,
-) {
+class TapOptions(val knot: Knot, val role: WaypointRole, val choices: List<TapChoice>) {
   companion object {
 
     /**
@@ -62,23 +57,52 @@ class TapOptions(
       val position =
         after.waypoints.indexOfFirst { it.id == knot.id }.takeIf { it >= 0 } ?: return null
       val role = after.roleOf(position)
-      val preview = KnotPreview.of(after, knot) ?: return null
+      val start = before.waypoints.first()
+      val end = before.waypoints.last()
       val choices =
-        listOf(WaypointRole.START, WaypointRole.END, WaypointRole.STOP)
-          .filter { it != role }
-          .mapNotNull { other ->
-            val session =
-              when (other) {
-                WaypointRole.START -> before.startAt(knot)
-                WaypointRole.END -> before.endAt(knot)
-                WaypointRole.STOP -> before.stopAt(knot)
-              }
-            KnotPreview.of(session, knot)?.let { TapChoice(other, session, it) }
-          }
-      return TapOptions(knot, role, preview, choices)
+        listOf(WaypointRole.START, WaypointRole.STOP, WaypointRole.END).mapNotNull { choice ->
+          val current = choice == role
+          val session =
+            when {
+              current -> after
+              choice == WaypointRole.START -> before.startAt(knot)
+              choice == WaypointRole.END -> before.endAt(knot)
+              else -> before.stopAt(knot)
+            }
+          // Start and end show only what changes: the tapped knot next to the start or end it
+          // takes over, which becomes a stop.
+          val preview =
+            when (choice) {
+              WaypointRole.START ->
+                KnotPreview(
+                  listOf(RouteKnot(knot, KnotRole.START), RouteKnot(start, KnotRole.STOP)),
+                  0,
+                  moreBefore = false,
+                  moreAfter = false,
+                )
+              WaypointRole.END ->
+                KnotPreview(
+                  listOf(RouteKnot(end, KnotRole.STOP), RouteKnot(knot, KnotRole.END)),
+                  1,
+                  moreBefore = false,
+                  moreAfter = false,
+                )
+              WaypointRole.STOP -> KnotPreview.of(session, knot) ?: return@mapNotNull null
+            }
+          TapChoice(choice, session, preview, current)
+        }
+      return TapOptions(knot, role, choices)
     }
   }
 }
 
-/** One other role a tapped knot can take, with the route it gives and its preview. */
-class TapChoice(val role: WaypointRole, val session: PlanningSession, val preview: KnotPreview)
+/**
+ * One role a tapped knot can take, with the route it gives and its preview; [current] for the role
+ * it got.
+ */
+class TapChoice(
+  val role: WaypointRole,
+  val session: PlanningSession,
+  val preview: KnotPreview,
+  val current: Boolean,
+)

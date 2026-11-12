@@ -18,12 +18,11 @@
   <string name="add_stop_here">Hier tussenstop</string>
   <string name="end_here">Hier eindigen</string>
   <string name="tap_note_undo">Ongedaan maken</string>
-  <string name="tap_note_added">%1$s toegevoegd</string>
-  <string name="tap_note_stop_between">%1$s toegevoegd als tussenstop tussen %2$s en %3$s</string>
-  <string name="tap_note_end_after">%1$s toegevoegd als einde na %2$s</string>
-  <string name="tap_choice_start">Maak %1$s de start</string>
-  <string name="tap_choice_end">Maak %1$s het einde</string>
-  <string name="tap_choice_stop">Maak %1$s een tussenstop</string>
+  <string name="tap_note_added_stop">%1$s toegevoegd als tussenstop</string>
+  <string name="tap_note_added_end">%1$s toegevoegd als einde</string>
+  <string name="tap_choice_as_start">Als start</string>
+  <string name="tap_choice_as_stop">Als tussenstop</string>
+  <string name="tap_choice_as_end">Als einde</string>
   <string name="start_point_set_end">Start gezet, tik op een knooppunt voor het einde</string>
   <string name="end_point_set_start">Einde gezet, tik op een knooppunt voor de start</string>
   <string name="straight_ways">De weg naar een gekozen plek is nog maar een rechte lijn, en de lengte ook</string>

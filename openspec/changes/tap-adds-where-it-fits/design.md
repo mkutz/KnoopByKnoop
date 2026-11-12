@@ -56,6 +56,19 @@ The apps draw the preview with their `KnotBadge`, including the start and end ma
 
 The choices are computed off the main thread, together with the tap.
 
+### One line and three buttons (after the second trial, 2026-11-12)
+
+The maintainer liked the preview once used to it, but wondered at first what it showed. They asked for a little text, a fixed order and fewer badges.
+
+The note is now:
+- one short line ("27 added as a stop");
+- the buttons [as start] [as stop] [as end], always in that order, with the one for the role it got selected and inactive;
+- Undo.
+
+The top preview row is gone: the selected button shows it. The start button previews the tapped knot before the current start, and the end button the current end before it. These two badges are taken from the waypoints, as that's what changes. Only the stop button shows three knots, the window from the stop route as before.
+
+`TapOptions.choices` therefore always holds the three roles in that order, each with `current`.
+
 ### Removing the switch
 
 `NewKnots` goes from the core, along with the switch composable and view, their icons and strings, and the stored setting. A stale stored value is simply ignored.

@@ -18,12 +18,11 @@
   <string name="add_stop_here">Ajouter une étape ici</string>
   <string name="end_here">Arriver ici</string>
   <string name="tap_note_undo">Annuler</string>
-  <string name="tap_note_added">%1$s ajouté</string>
-  <string name="tap_note_stop_between">%1$s ajouté comme étape entre %2$s et %3$s</string>
-  <string name="tap_note_end_after">%1$s ajouté comme arrivée après %2$s</string>
-  <string name="tap_choice_start">Faire de %1$s le départ</string>
-  <string name="tap_choice_end">Faire de %1$s l\'arrivée</string>
-  <string name="tap_choice_stop">Faire de %1$s une étape</string>
+  <string name="tap_note_added_stop">%1$s ajouté comme étape</string>
+  <string name="tap_note_added_end">%1$s ajouté comme arrivée</string>
+  <string name="tap_choice_as_start">Comme départ</string>
+  <string name="tap_choice_as_stop">Comme étape</string>
+  <string name="tap_choice_as_end">Comme arrivée</string>
   <string name="start_point_set_end">Départ choisi, touchez un point-nœud pour l\'arrivée</string>
   <string name="end_point_set_start">Arrivée choisie, touchez un point-nœud pour le départ</string>
   <string name="straight_ways">Le chemin vers un lieu choisi n\'est encore qu\'une ligne droite, sa longueur aussi</string>

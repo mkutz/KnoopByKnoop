@@ -1,26 +1,26 @@
 ## ADDED Requirements
 
 ### Requirement: Changing what a tapped knot became
-After a tapped knot was added to an existing route, the app SHALL show a short note previewing with badges where it went, with the knots around it, plus one choice for each other role it can take, start, end or stop, each previewed the same way, and Undo. The choices SHALL act as "Start here", "End here" and "Add stop here" do. The note SHALL go away after 6 seconds, on a choice or with the next tap, but not by itself while a screen reader is on.
+After a tapped knot was added to an existing route, the app SHALL show a short note: one line saying what it became, three buttons in the fixed order start, stop and end, each previewing that role with badges, and Undo. The button of the role it got SHALL show as selected and inactive. The buttons SHALL act as "Start here", "Add stop here" and "End here" do. The note SHALL go away after 6 seconds, on a choice or with the next tap, but not by itself while a screen reader is on.
 
 #### Scenario: Note after a tap
 - **WHEN** a route 12 → 14 → 15 exists and the user taps 27, which becomes a stop between 14 and 15
-- **THEN** the note shows the badges 14, 27 and 15 with 27 highlighted, the choices previewed as 27 before 12 for the start and 15 before 27 for the end, and Undo, without other text
+- **THEN** the note says "27 added as a stop" and shows the buttons 27 before 12 for the start, 14, 27 and 15 for the stop, selected, and 15 before 27 for the end, then Undo
 
 #### Scenario: Note for a new end
 - **WHEN** a tapped knot 22 became the new end after 15
-- **THEN** the note shows 15 and 22 with 22 highlighted, and offers 22 as the start and 22 as a stop, each previewed with the knots around it in that route
+- **THEN** the note says "22 added as the end", the end button shows 15 before 22 and is selected, and the stop button shows 22 with the knots around it where it would be a stop
 
 #### Scenario: Make it the start
-- **WHEN** 30 was added as a stop to 12 → 45 and the user chooses the start
+- **WHEN** 30 was added as a stop to 12 → 45 and the user chooses the start button
 - **THEN** the waypoints are 30, 12 as a stop, and 45
 
 #### Scenario: Make it the end
-- **WHEN** 30 was added as a stop to 12 → 45 and the user chooses the end
+- **WHEN** 30 was added as a stop to 12 → 45 and the user chooses the end button
 - **THEN** the waypoints are 12, 45 as a stop, and 30
 
 #### Scenario: Make it a stop
-- **WHEN** 28 was added as the new end of 12 → 45 and the user chooses the stop
+- **WHEN** 28 was added as the new end of 12 → 45 and the user chooses the stop button
 - **THEN** 28 is a stop where it adds the least distance, and 45 is the end again
 
 #### Scenario: Undo the tap
@@ -33,7 +33,7 @@ After a tapped knot was added to an existing route, the app SHALL show a short n
 
 #### Scenario: Note with a screen reader
 - **WHEN** a screen reader is on and 27 was added as a stop between 14 and 15
-- **THEN** it announces "27 added as a stop between 14 and 15", the choices read "Make 27 the start" and "Make 27 the end", and the note stays until a choice is used or the next tap
+- **THEN** it reads the line "27 added as a stop", the buttons as "As the start", "As a stop, selected" and "As the end", and the note stays until a choice is used or the next tap
 
 #### Scenario: No note for the first two taps
 - **WHEN** the user taps the start and then the end of a new route

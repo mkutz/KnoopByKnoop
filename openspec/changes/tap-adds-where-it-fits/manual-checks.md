@@ -38,10 +38,21 @@ The maintainer found the guesses good, but the text note too big and too wordy. 
 
 On the way, the Android note shrank twice: first smaller badges, then Undo moved into the row of choices. It's now about as tall as the text note, without any text. The previews come from the real alternative routes, so an out-and-back detour shows as such.
 
+## After the second trial: one line and three buttons (2026-11-12)
+
+The maintainer liked the previews once used to them, but wondered at first what they were seeing. They asked for a little text, a fixed order and fewer badges.
+
+| Scenario | Seen |
+|---|---|
+| Note after a tap (emulator) | ✅ "52 added as a stop", then [52 33] [51 52 51, selected] [09 52] and Undo, about 92 dp tall (`screenshots/android-three-buttons.png`) |
+| Note for a new end (simulator) | ✅ "06 added as the end", then [06 33] [32 06 32] [41 06, selected] and Undo (`screenshots/ios-three-buttons.png`) |
+| Make it the start (simulator) | ✅ "As the start": the waypoints are 06, 33 and 41 |
+| Undo the tap (simulator) | ✅ The route is 33 → 41 again |
+
 ## Not yet checked
 
 - Note with a screen reader (TalkBack, VoiceOver)
-- How it feels on the phones: the maintainer's second trial, with the preview note
+- How it feels on the phones: the maintainer's third trial, with one line and three buttons
 
 ## Steps for the maintainer
 

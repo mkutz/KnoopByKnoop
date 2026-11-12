@@ -106,39 +106,40 @@ class PlanningTest {
   private fun KnotPreview.refs() = knots.map { it.knot.ref }
 
   @Test
-  fun `Note after a tap previews where the knot went and the other roles`() {
+  fun `Note after a tap offers start stop and end in this order with the stop selected`() {
     val before = session.tapAll(knot12, knot45)
     val options = assertNotNull(TapOptions.of(before, before.tap(knot30), knot30))
 
     assertEquals(WaypointRole.STOP, options.role)
-    assertEquals(listOf("12", "30", "45"), options.preview.refs())
-    assertEquals(1, options.preview.highlighted)
-    assertFalse(options.preview.moreBefore || options.preview.moreAfter)
-    val (start, end) = options.choices
-    assertEquals(WaypointRole.START, start.role)
-    assertEquals(listOf("30", "12", "7"), start.preview.refs())
-    assertEquals(0, start.preview.highlighted)
-    assertTrue(start.preview.moreAfter)
-    assertEquals(WaypointRole.END, end.role)
-    assertEquals(listOf("7", "45", "30"), end.preview.refs())
-    assertEquals(2, end.preview.highlighted)
-    assertTrue(end.preview.moreBefore)
+    val (start, stop, end) = options.choices
+    assertEquals(
+      listOf(WaypointRole.START, WaypointRole.STOP, WaypointRole.END),
+      options.choices.map { it.role },
+    )
+    assertEquals(listOf(false, true, false), options.choices.map { it.current })
+    assertEquals(listOf("30", "12"), start.preview.refs())
+    assertEquals(listOf("12", "30", "45"), stop.preview.refs())
+    assertEquals(1, stop.preview.highlighted)
+    assertEquals(listOf("45", "30"), end.preview.refs())
+    assertEquals(listOf(knot30, knot12, knot45), start.session.waypoints)
+    assertEquals(listOf(knot12, knot45, knot30), end.session.waypoints)
   }
 
   @Test
-  fun `Note for a new end offers the start and a stop`() {
+  fun `Note for a new end selects the end and previews the stop where it fits`() {
     val before = session.tapAll(knot12, knot30)
     val options = assertNotNull(TapOptions.of(before, before.tap(knot45), knot45))
 
     assertEquals(WaypointRole.END, options.role)
-    assertEquals(listOf("12", "30", "45"), options.preview.refs())
-    assertEquals(listOf(WaypointRole.START, WaypointRole.STOP), options.choices.map { it.role })
+    assertEquals(listOf(false, false, true), options.choices.map { it.current })
+    assertEquals(listOf("30", "45"), options.choices[2].preview.refs())
+    assertEquals(listOf("7", "45", "30"), options.choices[1].preview.refs())
   }
 
   @Test
   fun `Make it a stop puts the knot where it adds the least distance and the end back`() {
     val before = session.tapAll(knot12, knot30)
-    val stop = assertNotNull(TapOptions.of(before, before.tap(knot45), knot45)).choices.last()
+    val stop = assertNotNull(TapOptions.of(before, before.tap(knot45), knot45)).choices[1]
 
     assertEquals(listOf(knot12, knot45, knot30), stop.session.waypoints)
   }

@@ -25,6 +25,13 @@
 - [x] 5.3 iOS: the same with `KnotBadge`, and the strings in `Localizable.xcstrings`. Check in the simulator.
 - [x] 5.4 Update `checked-by-hand.md` and `manual-checks.md`. Run `./gradlew check`, `openspec validate --all` and `checkScenarios -Pchange`. Install on both phones for the second trial.
 
+## 6. One line and three buttons (after the second trial)
+
+- [x] 6.1 Core: `TapOptions.choices` holds start, stop and end in this order, each with `current`. Start and end preview two badges (the tapped knot with the current start or end), and stop the window from its route. Update the tests `Note after a tap`, `Note for a new end` and `Make it a stop`.
+- [x] 6.2 Android: one line of text, the three buttons in a row (the current one selected and inactive), and Undo. Strings in all four languages. Check on the emulator.
+- [x] 6.3 iOS: the same. Check in the simulator.
+- [x] 6.4 Run the checks and install on both phones for the third trial.
+
 ## Workflow follow-up
 
 - Install on both phones for the maintainer's "how it feels" trial. Archive only if it feels right, otherwise revert.

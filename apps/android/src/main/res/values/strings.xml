@@ -19,12 +19,11 @@
   <string name="add_stop_here">Add stop here</string>
   <string name="end_here">End here</string>
   <string name="tap_note_undo">Undo</string>
-  <string name="tap_note_added">%1$s added</string>
-  <string name="tap_note_stop_between">%1$s added as a stop between %2$s and %3$s</string>
-  <string name="tap_note_end_after">%1$s added as the end after %2$s</string>
-  <string name="tap_choice_start">Make %1$s the start</string>
-  <string name="tap_choice_end">Make %1$s the end</string>
-  <string name="tap_choice_stop">Make %1$s a stop</string>
+  <string name="tap_note_added_stop">%1$s added as a stop</string>
+  <string name="tap_note_added_end">%1$s added as the end</string>
+  <string name="tap_choice_as_start">As the start</string>
+  <string name="tap_choice_as_stop">As a stop</string>
+  <string name="tap_choice_as_end">As the end</string>
   <string name="start_point_set_end">Start set, tap a knot to set the end</string>
   <string name="end_point_set_start">End set, tap a knot to set the start</string>
   <string name="straight_ways">The way to a chosen place is only a straight line so far, and so is its length</string>

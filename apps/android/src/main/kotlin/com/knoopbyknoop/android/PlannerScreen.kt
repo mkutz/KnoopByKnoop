@@ -111,6 +111,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -754,15 +755,14 @@ private fun WaypointSheet(
 }
 
 /**
- * What a tapped knot became, as a preview with badges, with a button per other role, each with its
- * own preview, and Undo, see `map-planning` "Changing what a tapped knot became". Goes away after 6
- * seconds, but not while TalkBack is on.
+ * What a tapped knot became, in one line, with the buttons start, stop and end, each previewing
+ * that role with badges, the current one selected and inactive, and Undo, see `map-planning`
+ * "Changing what a tapped knot became". Goes away after 6 seconds, but not while TalkBack is on.
  */
 @Composable
 private fun TapNoteCard(note: TapNote, viewModel: AppViewModel, modifier: Modifier = Modifier) {
   val context = LocalContext.current
   val options = note.options
-  val ref = options.knot.ref
   LaunchedEffect(note.id) {
     val accessibility =
       context.getSystemService(android.content.Context.ACCESSIBILITY_SERVICE)
@@ -772,22 +772,11 @@ private fun TapNoteCard(note: TapNote, viewModel: AppViewModel, modifier: Modifi
       viewModel.dismissTapNote(note.id)
     }
   }
-  // The tapped knot pops in between its neighbours.
+  // The tapped knot pops in where it went.
   val pop = remember(note.id) { Animatable(0.3f) }
   LaunchedEffect(note.id) {
     pop.animateTo(1f, spring(dampingRatio = 0.45f, stiffness = Spring.StiffnessMediumLow))
   }
-  val preview = options.preview
-  val before = preview.knots.getOrNull(preview.highlighted - 1)?.knot?.ref
-  val after = preview.knots.getOrNull(preview.highlighted + 1)?.knot?.ref
-  val sentence =
-    when {
-      options.role == WaypointRole.END && before != null ->
-        stringResource(R.string.tap_note_end_after, ref, before)
-      before != null && after != null ->
-        stringResource(R.string.tap_note_stop_between, ref, before, after)
-      else -> stringResource(R.string.tap_note_added, ref)
-    }
   Surface(
     shape = MaterialTheme.shapes.large,
     color = MaterialTheme.colorScheme.inverseSurface,
@@ -796,17 +785,17 @@ private fun TapNoteCard(note: TapNote, viewModel: AppViewModel, modifier: Modifi
     modifier = modifier.padding(horizontal = 12.dp, vertical = 8.dp).fillMaxWidth(),
   ) {
     Column(
-      verticalArrangement = Arrangement.spacedBy(4.dp),
-      modifier = Modifier.padding(start = 10.dp, top = 4.dp, end = 2.dp, bottom = 8.dp),
+      verticalArrangement = Arrangement.spacedBy(6.dp),
+      modifier = Modifier.padding(start = 12.dp, top = 10.dp, end = 4.dp, bottom = 8.dp),
     ) {
-      KnotPreviewRow(
-        preview,
-        highlightScale = pop.value,
-        modifier =
-          Modifier.fillMaxWidth().padding(top = 6.dp).semantics {
-            liveRegion = LiveRegionMode.Polite
-            contentDescription = sentence
-          },
+      Text(
+        stringResource(
+          if (options.role == WaypointRole.END) R.string.tap_note_added_end
+          else R.string.tap_note_added_stop,
+          options.knot.ref,
+        ),
+        style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
       )
       Row(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -816,25 +805,37 @@ private fun TapNoteCard(note: TapNote, viewModel: AppViewModel, modifier: Modifi
           val label =
             stringResource(
               when (choice.role) {
-                WaypointRole.START -> R.string.tap_choice_start
-                WaypointRole.END -> R.string.tap_choice_end
-                WaypointRole.STOP -> R.string.tap_choice_stop
-              },
-              ref,
+                WaypointRole.START -> R.string.tap_choice_as_start
+                WaypointRole.END -> R.string.tap_choice_as_end
+                WaypointRole.STOP -> R.string.tap_choice_as_stop
+              }
             )
+          val selected = MaterialTheme.colorScheme.inversePrimary
           OutlinedButton(
             onClick = { viewModel.chooseTap(choice) },
+            enabled = !choice.current,
             contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
             colors =
               ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.inverseOnSurface
+                contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                disabledContentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                disabledContainerColor = selected.copy(alpha = 0.22f),
               ),
             border =
-              BorderStroke(1.dp, MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.4f)),
+              BorderStroke(
+                if (choice.current) 2.dp else 1.dp,
+                if (choice.current) selected
+                else MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.4f),
+              ),
             modifier =
-              Modifier.weight(1f).heightIn(min = 40.dp).semantics { contentDescription = label },
+              Modifier.weight(if (choice.role == WaypointRole.STOP) 1.5f else 1f)
+                .heightIn(min = 40.dp)
+                .semantics {
+                  contentDescription = label
+                  this.selected = choice.current
+                },
           ) {
-            KnotPreviewRow(choice.preview)
+            KnotPreviewRow(choice.preview, highlightScale = if (choice.current) pop.value else 1f)
           }
         }
         IconButton(onClick = viewModel::undoTap) {
