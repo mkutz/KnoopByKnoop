@@ -266,34 +266,43 @@ final class AppModel: ObservableObject {
 
   /// Asks about ferries closed by the time the rider gets there before navigating; navigates at
   /// once when none is.
-  private func checkFerries() {
+  private func checkFerries(kept: Set<Ferry> = [], asked: Int32 = 0) {
     guard let session, let loaded, let startPosition else {
       navigate()
       return
     }
+    keptFerries = kept
+    ferriesAsked = asked
     let detour = FerryDetour.companion.of(
       session: session, geometry: loaded.hasGeometry ? loaded.geometry : nil, position: startPosition,
       nowMillis: Int64(Date().timeIntervalSince1970 * 1000),
       localTime: { millis in
         RouteFerries.ferryMoment(Date(timeIntervalSince1970: Double(millis.int64Value) / 1000))
-      }, language: AppLanguage.current)
+      }, language: AppLanguage.current, kept: kept, asked: asked)
     if let detour { ferryDetour = detour } else { navigate() }
   }
 
-  /// Navigates the way around the closed ferries, for this navigation only, see "Riding around it".
+  /// The ferries kept and the number of ferry questions asked since Navigate was pressed.
+  private var keptFerries: Set<Ferry> = []
+  private var ferriesAsked: Int32 = 0
+
+  /// Rides around the ferry asked about, for this navigation only, then asks about the next closed
+  /// ferry or navigates, see "Riding around it" and "Several closed ferries".
   func rideAroundFerries() {
     guard let around = ferryDetour?.around else { return }
     ferryDetour = nil
     Task {
       await showForNavigation(around)
-      navigate()
+      checkFerries(kept: keptFerries, asked: ferriesAsked + 1)
     }
   }
 
-  /// Navigates over the closed ferry, see "Keeping the ferry".
+  /// Keeps the ferry asked about, then asks about the next closed ferry or navigates, see "Keeping
+  /// the ferry".
   func keepFerries() {
+    guard let ferry = ferryDetour?.ferry else { return }
     ferryDetour = nil
-    navigate()
+    checkFerries(kept: keptFerries.union([ferry]), asked: ferriesAsked + 1)
   }
 
   /// The question dismissed: nothing starts, and a start nearby is undone, see "Question dismissed".

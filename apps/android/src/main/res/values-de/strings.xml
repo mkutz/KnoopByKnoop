@@ -121,6 +121,7 @@
   <string name="path_data_ready">Wege für diese Route sind geladen</string>
   <string name="path_data_unavailable">Wege für diese Route konnten nicht geladen werden</string>
   <string name="ferry_detour_title">Fähre geschlossen</string>
+  <string name="ferry_detour_title_numbered">Fähre %1$d von %2$d geschlossen</string>
   <string name="ferry_detour_around">Außen herum · %1$s länger, etwa %2$s</string>
   <string name="ferry_detour_keep">Mit der Fähre</string>
   <string name="ferry_detour_none">Es gibt keinen Weg drum herum.</string>

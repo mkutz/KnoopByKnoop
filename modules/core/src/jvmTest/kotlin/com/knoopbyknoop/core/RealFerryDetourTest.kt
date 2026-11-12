@@ -54,4 +54,30 @@ class RealFerryDetourTest {
     val line = detour.lines.single()
     assertTrue(line.size > 10, "the line follows the courses, ${line.size} points")
   }
+
+  @Test
+  fun `a winter evening way around Lülsdorf–Wesseling that would cross the ferry at Mondorf twice leaves it out too`() {
+    // 20 → 14 → 15: Lülsdorf–Wesseling first, Mondorf–Graurheindorf (14 → 15) at the end. Around
+    // Lülsdorf the way would cross at Mondorf and back, so one question names both ferries.
+    val winterThursday = CalendarDay(2026, 11, 12)
+    val winter = { millis: Long ->
+      val minutes = (millis / 60_000).toInt()
+      LocalMoment(winterThursday.plusDays(minutes / MINUTES_PER_DAY), minutes % MINUTES_PER_DAY)
+    }
+    val session =
+      PlanningSession.start(
+        area.graph,
+        listOf(luelsdorfSide, area.knot(258346290), area.knot(248902813)),
+      )
+    val position = GeoPoint(luelsdorfSide.latitude, luelsdorfSide.longitude)
+
+    val detour =
+      assertNotNull(FerryDetour.of(session, area.geometry, position, 21 * 3_600_000L, winter))
+
+    assertEquals(1, detour.count)
+    assertEquals(2, detour.warnings.size)
+    assertTrue(detour.warnings[1].startsWith("The ferry Autofähre Mondorf-Graurheindorf"))
+    val around = (detour.around?.route?.summary as? RouteSummary.Complete)?.knots.orEmpty()
+    assertTrue(around.zipWithNext().none { (a, b) -> area.graph.ferryBetween(a, b) != null })
+  }
 }

@@ -42,6 +42,11 @@ private constructor(
    * navigation": a start nearby and the knots on the way around a closed ferry.
    */
   val temporary: Set<Long> = setOf(),
+  /**
+   * The ferries the route of one navigation leaves out, as knot ID pairs, see `knot-navigation`
+   * "Riding around a closed ferry"; never stored.
+   */
+  private val avoiding: Set<Pair<Long, Long>> = setOf(),
 ) {
 
   val network: NetworkType = requireNotNull(graph.network) { "Cannot plan on an empty network" }
@@ -113,16 +118,16 @@ private constructor(
 
   /**
    * The route for one navigation through [newWaypoints]: this plan's waypoints in their order with
-   * further knots between them, which become temporary, and without the ferries in [avoiding], as
+   * further knots between them, which become temporary, and also without the ferries in [more], as
    * knot ID pairs, see `knot-navigation` "Riding around a closed ferry". Never stored.
    */
   fun through(
     newWaypoints: List<Knot>,
-    avoiding: Set<Pair<Long, Long>> = setOf(),
+    more: Set<Pair<Long, Long>> = setOf(),
   ): PlanningSession {
     val ids = waypoints.mapTo(HashSet()) { it.id }
     val newTemporary = temporary + newWaypoints.map { it.id }.filter { it !in ids }
-    return planned(newWaypoints, newTemporary, avoiding)
+    return planned(newWaypoints, newTemporary, avoiding + more)
   }
 
   /**
@@ -137,7 +142,7 @@ private constructor(
   fun addStopAt(point: Knot): PlanningSession {
     val route = requireNotNull(route) { "A stop needs a route" }
     val newGraph = graph.withRoutePoints(routePoints + point)
-    val newRouter = ShortestPathRouter(newGraph)
+    val newRouter = ShortestPathRouter(newGraph, avoiding)
     return withRoute(route.using(newRouter).insertStop(point), newGraph, newRouter)
   }
 
@@ -172,11 +177,11 @@ private constructor(
     PlanningSession(graph, listOf(), null, graph, ShortestPathRouter(graph))
 
   /**
-   * The same waypoints planned without the ferries in [avoided], as knot ID pairs, only to find the
-   * way around them, see `knot-navigation` "Riding around a closed ferry".
+   * The same waypoints planned also without the ferries in [more], as knot ID pairs, only to find
+   * the way around them, see `knot-navigation` "Riding around a closed ferry".
    */
-  internal fun routeAvoiding(avoided: Set<Pair<Long, Long>>): Route? =
-    if (waypoints.size >= 2) Route.plan(waypoints, ShortestPathRouter(routeGraph, avoided))
+  internal fun routeAvoiding(more: Set<Pair<Long, Long>>): Route? =
+    if (waypoints.size >= 2) Route.plan(waypoints, ShortestPathRouter(routeGraph, avoiding + more))
     else null
 
   /** An empty session on another network, e.g. hiking instead of cycling. */
@@ -189,13 +194,14 @@ private constructor(
   private fun planned(
     newWaypoints: List<Knot>,
     newTemporary: Set<Long> = temporary,
-    avoiding: Set<Pair<Long, Long>> = setOf(),
+    newAvoiding: Set<Pair<Long, Long>> = avoiding,
   ): PlanningSession {
     val newPoints = newWaypoints.filter { it.isRoutePoint }.distinct()
     val sameGraph = newPoints.toSet() == routePoints.toSet()
     val newGraph = if (sameGraph) routeGraph else graph.withRoutePoints(newPoints)
     val newRouter =
-      if (sameGraph && avoiding.isEmpty()) router else ShortestPathRouter(newGraph, avoiding)
+      if (sameGraph && newAvoiding == avoiding) router
+      else ShortestPathRouter(newGraph, newAvoiding)
     if (newWaypoints.size < 2)
       return PlanningSession(
         graph,
@@ -204,9 +210,10 @@ private constructor(
         newGraph,
         newRouter,
         temporary = newTemporary,
+        avoiding = newAvoiding,
       )
     val newRoute =
-      if (avoiding.isEmpty())
+      if (newAvoiding == avoiding)
         route?.using(newRouter)?.withWaypoints(newWaypoints) ?: Route.plan(newWaypoints, newRouter)
       else Route.plan(newWaypoints, newRouter)
     return PlanningSession(
@@ -216,6 +223,7 @@ private constructor(
       newGraph,
       newRouter,
       temporary = newTemporary,
+      avoiding = newAvoiding,
     )
   }
 
@@ -231,11 +239,12 @@ private constructor(
       newGraph,
       newRouter,
       temporary = temporary,
+      avoiding = avoiding,
     )
 
   private fun copy(newWaypoints: List<Knot>, route: Route?, endFirst: Boolean = false) =
     if (newWaypoints.filter { it.isRoutePoint }.toSet() == routePoints.toSet())
-      PlanningSession(graph, newWaypoints, route, routeGraph, router, endFirst, temporary)
+      PlanningSession(graph, newWaypoints, route, routeGraph, router, endFirst, temporary, avoiding)
     else {
       val newGraph = graph.withRoutePoints(newWaypoints)
       PlanningSession(
@@ -243,9 +252,10 @@ private constructor(
         newWaypoints,
         route,
         newGraph,
-        ShortestPathRouter(newGraph),
+        ShortestPathRouter(newGraph, avoiding),
         endFirst,
         temporary,
+        avoiding,
       )
     }
 

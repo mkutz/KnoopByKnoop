@@ -115,6 +115,7 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Map while asking — on the emulator and in the simulator: the map shows the ferry and the dashed way around above the question
 - Map after the answer — on the emulator and in the simulator: after the answer the dashed line is gone and the map shows the chosen route
 - Map after the ride — on the emulator: after riding around and Stop, the map shows the planned route over the ferry again
+- Question dismissed for one of several ferries — on the devices: on a route over two closed ferries, ride around the first, cancel the question about the second; nothing starts and the plan is as it was
 
 ## map-planning
 

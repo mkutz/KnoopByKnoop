@@ -2844,6 +2844,28 @@
         }
       }
     },
+    "Closed ferry %lld of %lld": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fähre %1$lld von %2$lld geschlossen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pont %1$lld van %2$lld gesloten"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bac %1$lld sur %2$lld fermé"
+          }
+        }
+      }
+    },
     "Ride around it · %@ longer, about %@": {
       "localizations": {
         "de": {

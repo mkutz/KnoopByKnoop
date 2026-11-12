@@ -52,6 +52,22 @@ Every place that saves the route while navigating (e.g. iOS's reattach after new
 
 `RouteSnapshot.avoidedFerries` is removed, and the parser already ignores unknown keys. `PlanningSession.avoidedFerries`, `avoidingFerries` and the `start(..., avoidedFerries)` parameter go. `ShortestPathRouter` keeps its `avoided` parameter for `FerryDetour`.
 
+### One question per ferry
+
+`FerryDetour.of` takes the ferries already answered with Keep (as `Ferry` values) and the number of questions asked so far. It returns the question for the first closed ferry on the session's route that has not been kept, or `null`.
+
+The way around leaves out that ferry, with all connections that have an equal `Ferry`, and repeats for ferries newly closed on the way around. Ferries further along the planned route are not this question's business, because they get their own question.
+
+`number` is the questions asked so far plus one. `count` is that, plus the other distinct closed ferries still on the route.
+
+The apps loop:
+- "Ride around it" shows `around` for the navigation and asks again from it.
+- "Keep" adds the ferry to the kept ones and asks again.
+- When there is no question left, navigation starts.
+- Cancel restores the plan.
+
+The session remembers the ferries its route avoids in a private `avoiding` set, never stored. Each later question then routes on top of the earlier answers.
+
 ## Risks / Trade-offs
 
 - **Middle knot not enough:** the replanned leg might go back over the ferry or take a shorter variant. → Check it and fall back to all inner knots. A test covers a detour where one middle knot is not enough.

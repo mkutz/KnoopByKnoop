@@ -23,6 +23,7 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.knoopbyknoop.core.BaseMapArea
 import com.knoopbyknoop.core.BaseMapSquares
+import com.knoopbyknoop.core.Ferry
 import com.knoopbyknoop.core.FerryDetour
 import com.knoopbyknoop.core.Fix
 import com.knoopbyknoop.core.GeoBounds
@@ -559,10 +560,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
    * Asks about ferries closed by the time the rider gets there before navigating, see
    * `knot-navigation` "Riding around a closed ferry"; navigates at once when none is.
    */
-  private fun checkFerries() {
+  private fun checkFerries(kept: Set<Ferry> = setOf(), asked: Int = 0) {
     val session = state.session ?: return
     val network = loaded ?: return
     val position = startPosition
+    keptFerries = kept
+    ferriesAsked = asked
     val detour = position?.let {
       FerryDetour.of(
         session,
@@ -571,26 +574,37 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         System.currentTimeMillis(),
         { millis -> ferryMoment(Instant.ofEpochMilli(millis)) },
         language,
+        kept,
+        asked,
       )
     }
     Log.i("Navigation", "ferry detour: ${detour?.warnings?.size}, ${detour?.extraDistance}")
     if (detour == null) navigate() else state = state.copy(ferryDetour = detour)
   }
 
+  /** The ferries kept and the number of ferry questions asked since Navigate was pressed. */
+  private var keptFerries: Set<Ferry> = setOf()
+  private var ferriesAsked = 0
+
   /**
-   * Navigates the way around the closed ferries, for this navigation only, see "Riding around it".
+   * Rides around the ferry asked about, for this navigation only, then asks about the next closed
+   * ferry or navigates, see "Riding around it" and "Several closed ferries".
    */
   fun rideAroundFerries() {
     val around = state.ferryDetour?.around ?: return
     state = state.copy(ferryDetour = null)
     showForNavigation(around)
-    navigate()
+    checkFerries(keptFerries, ferriesAsked + 1)
   }
 
-  /** Navigates over the closed ferry, see "Keeping the ferry". */
+  /**
+   * Keeps the ferry asked about, then asks about the next closed ferry or navigates, see "Keeping
+   * the ferry".
+   */
   fun keepFerries() {
+    val ferry = state.ferryDetour?.ferry ?: return
     state = state.copy(ferryDetour = null)
-    navigate()
+    checkFerries(keptFerries + ferry, ferriesAsked + 1)
   }
 
   /**

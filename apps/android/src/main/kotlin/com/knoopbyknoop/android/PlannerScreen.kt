@@ -1283,7 +1283,9 @@ private fun FerryDetourQuestion(
       ) {
         Column(modifier = Modifier.padding(24.dp)) {
           Text(
-            stringResource(R.string.ferry_detour_title),
+            if (detour.count > 1)
+              stringResource(R.string.ferry_detour_title_numbered, detour.number, detour.count)
+            else stringResource(R.string.ferry_detour_title),
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.semantics { heading() },
           )

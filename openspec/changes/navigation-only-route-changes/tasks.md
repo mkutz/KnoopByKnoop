@@ -34,6 +34,18 @@
 - [x] 5.2 Add a CHANGELOG Unreleased line ("Starting nearby and riding around a closed ferry count only for that ride"). Update the KDoc of `startNearby`/`rideAroundFerries`, which still say "for good".
 - [x] 5.3 Run `./gradlew check`, `npx @fission-ai/openspec validate --all` and `./gradlew checkScenarios -Pchange=navigation-only-route-changes`. All pass.
 
+## 6. One question per closed ferry (maintainer's feedback, 2026-11-12)
+
+- [x] 6.1 Core:
+  - `PlanningSession` keeps a private `avoiding` set across `through` and `routeAvoiding`.
+  - `FerryDetour.of` asks about one ferry: the first closed one not kept. It takes `kept` and `asked`, and gives `ferry`, `number` and `count`.
+  - Leaving a ferry out covers all its crossings, and warnings are per ferry.
+
+  Tests: `Several closed ferries`, `Keeping one ferry and riding around another`, `A ferry with two crossings`, `Map for each of several ferries`. Update `Another ferry on the detour`.
+- [ ] 6.2 Android: the view model asks ferry after ferry, keeping the kept ferries and the count. The question title becomes "Closed ferry 1 of 2" when there are several, in values, de, nl and fr. Check on the emulator at 21:00 with two closed ferries.
+- [ ] 6.3 iOS: the same in `AppModel` and the panel's question, with the strings in `Localizable.xcstrings`. Check in the simulator or on the iPhone.
+- [x] 6.4 Add `Question dismissed for one of several ferries` to `openspec/checked-by-hand.md`. Run `./gradlew check`, `openspec validate --all` and `./gradlew checkScenarios -Pchange=navigation-only-route-changes`.
+
 ## Workflow follow-up
 
 - The maintainer checks it on the iPhone (and the Pixel once wireless debugging is on) before archiving.

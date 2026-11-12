@@ -169,45 +169,104 @@ class FerryDetourTest {
     assertEquals(river.latitude, detour.bounds.minLatitude, 1e-9)
   }
 
-  @Test
-  fun `the map shows the nearest closed ferry with its way around and draws further ones too`() {
-    // A second river 40 km further east, with its own closed ferry (8–9) and bridge (10).
-    val second = knot(8, 62_433.0)
-    val secondFarBank = knot(9, 62_633.0)
-    val last = knot(11, 63_633.0)
-    val secondBridge = knot(10, 62_533.0, north = 3_000.0)
+  /** The first river with a second one 40 km further east, its closed ferry 8–9 and bridge 10. */
+  private val secondFerry = Ferry(name = "Second", openingHours = "Mo-Su 07:00-19:00")
+  private val second = knot(8, 62_433.0)
+  private val secondFarBank = knot(9, 62_633.0)
+  private val secondBridge = knot(10, 62_533.0, north = 3_000.0)
+  private val last = knot(11, 63_633.0)
+
+  private fun twoRivers(): NetworkGraph {
     val first = graph()
     val crossing = Connection(second.id, secondFarBank.id, 200)
+    return NetworkGraph(
+      first.knots.values + listOf(second, secondFarBank, secondBridge, last),
+      first.connections +
+        listOf(
+          Connection(end.id, second.id, 40_000),
+          crossing,
+          Connection(secondFarBank.id, last.id, 1_000),
+          Connection(second.id, secondBridge.id, 3_300),
+          Connection(secondBridge.id, secondFarBank.id, 3_200),
+        ),
+      first.ferries + (crossing to secondFerry),
+    )
+  }
+
+  private fun ask(session: PlanningSession, kept: Set<Ferry> = setOf(), asked: Int = 0) =
+    FerryDetour.of(
+      session,
+      null,
+      GeoPoint(start.latitude, start.longitude),
+      millisAt("18:20"),
+      ::localTime,
+      kept = kept,
+      asked = asked,
+    )
+
+  @Test
+  fun `Several closed ferries`() {
+    val session = PlanningSession.start(twoRivers(), listOf(start, last))
+
+    val first = assertNotNull(ask(session))
+    assertEquals(1, first.number)
+    assertEquals(2, first.count)
+    assertTrue(first.warnings.single().startsWith("The ferry Lülsdorf–Wesseling"))
+    assertEquals("6.3 km", first.extraDistance)
+    assertEquals(listOf(1L, 2, 5, 3, 4, 8, 9, 11), routeIds(first.around))
+
+    val next = assertNotNull(ask(assertNotNull(first.around), asked = 1))
+    assertEquals(2, next.number)
+    assertEquals(2, next.count)
+    assertTrue(next.warnings.single().startsWith("The ferry Second"), next.warnings.single())
+    assertEquals("6.3 km", next.extraDistance)
+    assertEquals(listOf(1L, 2, 5, 3, 4, 8, 10, 9, 11), routeIds(next.around))
+    assertNull(ask(assertNotNull(next.around), asked = 2))
+  }
+
+  @Test
+  fun `Keeping one ferry and riding around another`() {
+    val session = PlanningSession.start(twoRivers(), listOf(start, last))
+    val around = assertNotNull(ask(session)?.around)
+    val next = assertNotNull(ask(around, asked = 1))
+
+    assertNull(ask(around, kept = setOf(next.ferry), asked = 2))
+    assertEquals(listOf(1L, 2, 5, 3, 4, 8, 9, 11), routeIds(around), "over the second ferry")
+  }
+
+  @Test
+  fun `Map for each of several ferries`() {
+    val session = PlanningSession.start(twoRivers(), listOf(start, last))
+    val first = assertNotNull(ask(session))
+    val next = assertNotNull(ask(assertNotNull(first.around), asked = 1))
+
+    assertTrue(first.bounds.maxLongitude < end.longitude, "only the first river is in view")
+    assertEquals(1, first.lines.size)
+    assertTrue(next.bounds.minLongitude > end.longitude, "only the second river is in view")
+    assertEquals(secondBridge.latitude, next.bounds.maxLatitude, 1e-9)
+    assertEquals(1, next.lines.size)
+  }
+
+  @Test
+  fun `A ferry with two crossings`() {
+    // The ferry also lands at 7, 100 m upstream of 2: the way around takes neither crossing.
+    val ferry = Ferry(name = "Horsterveer", openingHours = untilSeven)
+    val otherLanding = knot(7, 21_233.0, north = 100.0)
+    val crossing = Connection(river.id, farBank.id, 200)
+    val otherCrossing = Connection(otherLanding.id, farBank.id, 220)
+    val base = graph(ferry = ferry)
     val graph =
       NetworkGraph(
-        first.knots.values + listOf(second, secondFarBank, secondBridge, last),
-        first.connections +
-          listOf(
-            Connection(end.id, second.id, 40_000),
-            crossing,
-            Connection(secondFarBank.id, last.id, 1_000),
-            Connection(second.id, secondBridge.id, 3_300),
-            Connection(secondBridge.id, secondFarBank.id, 3_200),
-          ),
-        first.ferries + (crossing to Ferry(name = "Second", openingHours = "Mo-Su 07:00-19:00")),
-      )
-    val session = PlanningSession.start(graph, listOf(start, last))
-
-    val detour =
-      assertNotNull(
-        FerryDetour.of(
-          session,
-          null,
-          GeoPoint(start.latitude, start.longitude),
-          millisAt("18:20"),
-          ::localTime,
-        )
+        base.knots.values + otherLanding,
+        base.connections + listOf(Connection(river.id, otherLanding.id, 100), otherCrossing),
+        mapOf(crossing to ferry, otherCrossing to ferry),
       )
 
-    assertEquals(2, detour.warnings.size)
-    assertEquals(2, detour.lines.size)
-    assertTrue(detour.bounds.maxLongitude < end.longitude, "only the first river is in view")
-    assertEquals(bridge.latitude, detour.bounds.maxLatitude, 1e-9)
+    val detour = assertNotNull(detour(graph, "18:20"))
+
+    assertEquals(1, detour.warnings.size)
+    assertEquals(1, detour.count)
+    assertEquals(listOf(1L, 2, 5, 3, 4), routeIds(detour.around))
   }
 
   @Test

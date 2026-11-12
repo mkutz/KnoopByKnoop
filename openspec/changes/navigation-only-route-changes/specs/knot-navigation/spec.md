@@ -81,7 +81,7 @@ When navigation is started more than 30 m from the start and a place on the cour
 - **THEN** the planner shows the plan from 06 again, as it was before Navigate
 
 ### Requirement: Riding around a closed ferry
-When navigation is started and a ferry on the route is closed at the estimated arrival or within 15 minutes after, as for "Ferry warning", the app SHALL ask before navigating whether to ride around it, with the warning and the detour's extra length and time. Riding around SHALL add temporary knots on the way around to the route of this navigation only, so that it leaves out that ferry and any other closed by then, see "The plan after navigation". Without a way around, the app SHALL say so.
+When navigation is started and a ferry on the route is closed at the estimated arrival or within 15 minutes after, as for "Ferry warning", the app SHALL ask before navigating whether to ride around it, with the warning and the detour's extra length and time. With several closed ferries, it SHALL ask about one ferry at a time, in riding order, and say which of how many it is; each answer counts for that ferry only. Riding around SHALL add temporary knots on the way around to the route of this navigation only, so that it leaves out that ferry and any other closed by then on the way around, see "The plan after navigation". A ferry with several crossings SHALL count as one ferry, and riding around it SHALL leave out all its crossings. Without a way around, the app SHALL say so.
 
 #### Scenario: Ferry closed on the way
 - **WHEN** the rider starts navigating at 18:20 a route over the ferry Lülsdorf–Wesseling, which closes at 19:00, and gets there around 19:40 at the usual pace
@@ -90,6 +90,22 @@ When navigation is started and a ferry on the route is closed at the estimated a
 #### Scenario: Riding around it
 - **WHEN** the rider chooses to ride around the ferry
 - **THEN** the navigated route has the plan's waypoints and temporary knots on the way around, it no longer takes the ferry, and navigation starts on it
+
+#### Scenario: Several closed ferries
+- **WHEN** the route takes the ferries Drielse Veer and Horsterveer, both closed by the time the rider gets there
+- **THEN** the app first asks about Drielse Veer as "Closed ferry 1 of 2", with the way around it and its extra length and time, and after the answer it asks about Horsterveer as "Closed ferry 2 of 2"
+
+#### Scenario: Keeping one ferry and riding around another
+- **WHEN** the rider rides around the first of two closed ferries and keeps the second
+- **THEN** navigation starts on the route around the first ferry and over the second, and the spoken warning comes for the second
+
+#### Scenario: A ferry with two crossings
+- **WHEN** the ferry Horsterveer is two connections of the network and the route takes one of them
+- **THEN** the app names Horsterveer once, and the way around it takes neither crossing
+
+#### Scenario: Question dismissed for one of several ferries
+- **WHEN** the rider rode around the first closed ferry and dismisses the question about the second
+- **THEN** navigation does not start and the plan stays as it was
 
 #### Scenario: Temporary knots are not stops
 - **WHEN** the rider rides around the ferry over the bridge knot 5
@@ -105,7 +121,7 @@ When navigation is started and a ferry on the route is closed at the estimated a
 
 #### Scenario: Another ferry on the detour
 - **WHEN** the detour around one closed ferry takes another ferry that is also closed by then
-- **THEN** that one is left out too, and the question names both
+- **THEN** that one is left out too, and the question about the first ferry names both
 
 #### Scenario: No way around
 - **WHEN** the closed ferry is the only link between two waypoints
@@ -128,11 +144,15 @@ When navigation is started and a ferry on the route is closed at the estimated a
 - **THEN** the question and its choices are in that language
 
 ### Requirement: Detour on the map
-While the app asks about a closed ferry, the map SHALL show the ferry and the detour together, zoomed to both, with the detour drawn as a second line distinct from the planned route. After the answer, the map SHALL show the route the rider chose until navigation ends, and the plan after that.
+While the app asks about a closed ferry, the map SHALL show that ferry and its detour together, zoomed to both, with the detour drawn as a second line distinct from the planned route. After the answer, the map SHALL show the route the rider chose until navigation ends, and the plan after that.
 
 #### Scenario: Map while asking
 - **WHEN** the app asks about the ferry Lülsdorf–Wesseling with a detour over the next bridge
 - **THEN** the map shows the ferry's crossing and the detour's line to the bridge and back, both in view
+
+#### Scenario: Map for each of several ferries
+- **WHEN** the app asks about the second of two closed ferries
+- **THEN** the map shows the second ferry and only its own detour, both in view
 
 #### Scenario: Map after the answer
 - **WHEN** the rider chooses to ride around the ferry

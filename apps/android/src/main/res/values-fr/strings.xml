@@ -121,6 +121,7 @@
   <string name="path_data_ready">Les chemins de cet itinéraire sont chargés</string>
   <string name="path_data_unavailable">Les chemins de cet itinéraire n\'ont pas pu être chargés</string>
   <string name="ferry_detour_title">Bac fermé</string>
+  <string name="ferry_detour_title_numbered">Bac %1$d sur %2$d fermé</string>
   <string name="ferry_detour_around">Contourner · %1$s de plus, environ %2$s</string>
   <string name="ferry_detour_keep">Garder le bac</string>
   <string name="ferry_detour_none">Il n’y a pas de détour possible.</string>

@@ -121,6 +121,7 @@
   <string name="path_data_ready">Paden voor deze route zijn geladen</string>
   <string name="path_data_unavailable">Paden voor deze route konden niet worden geladen</string>
   <string name="ferry_detour_title">Pont gesloten</string>
+  <string name="ferry_detour_title_numbered">Pont %1$d van %2$d gesloten</string>
   <string name="ferry_detour_around">Eromheen · %1$s langer, ongeveer %2$s</string>
   <string name="ferry_detour_keep">Met de pont</string>
   <string name="ferry_detour_none">Er is geen weg eromheen.</string>

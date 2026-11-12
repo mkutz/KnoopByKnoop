@@ -1221,7 +1221,13 @@ private struct FerryDetourQuestion: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
-        Text("Closed ferry ahead")
+        Group {
+          if detour.count > 1 {
+            Text("Closed ferry \(Int(detour.number)) of \(Int(detour.count))")
+          } else {
+            Text("Closed ferry ahead")
+          }
+        }
           .font(.title3.weight(.semibold))
           .accessibilityAddTraits(.isHeader)
         ForEach(detour.warnings, id: \.self) { warning in
