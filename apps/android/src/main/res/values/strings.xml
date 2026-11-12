@@ -19,6 +19,7 @@
   <string name="add_stop_here">Add stop here</string>
   <string name="end_here">End here</string>
   <string name="tap_note_undo">Undo</string>
+  <string name="tap_note_added_start">%1$s added as the start</string>
   <string name="tap_note_added_stop">%1$s added as a stop</string>
   <string name="tap_note_added_end">%1$s added as the end</string>
   <string name="tap_choice_as_start">As the start</string>

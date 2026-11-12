@@ -49,6 +49,14 @@ The maintainer liked the previews once used to them, but wondered at first what 
 | Make it the start (simulator) | ✅ "As the start": the waypoints are 06, 33 and 41 |
 | Undo the tap (simulator) | ✅ The route is 33 → 41 again |
 
+## After the third trial: the start as a candidate (2026-11-12)
+
+On the phones, the maintainer saw a knot beyond the start (60 before 05 on Amsterdam → Zandvoort) become a stop, never the start. The start is now a candidate like the end.
+
+| Scenario | Seen |
+|---|---|
+| Before the start (emulator) | ✅ Tapping 95 beyond the start 33: "95 added as the start", with the start button selected (`screenshots/android-new-start.png`) |
+
 ## Not yet checked
 
 - Note with a screen reader (TalkBack, VoiceOver)

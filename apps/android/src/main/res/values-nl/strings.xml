@@ -18,6 +18,7 @@
   <string name="add_stop_here">Hier tussenstop</string>
   <string name="end_here">Hier eindigen</string>
   <string name="tap_note_undo">Ongedaan maken</string>
+  <string name="tap_note_added_start">%1$s toegevoegd als start</string>
   <string name="tap_note_added_stop">%1$s toegevoegd als tussenstop</string>
   <string name="tap_note_added_end">%1$s toegevoegd als einde</string>
   <string name="tap_choice_as_start">Als start</string>

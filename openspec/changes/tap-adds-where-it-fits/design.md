@@ -16,9 +16,11 @@
 
 ## Decisions
 
-### Placement: the end as one more candidate
+### Placement: the start and the end as candidates
 
-`Route.insertWhereItFits(knot)` computes the added distance for each leg, as `insertStop` does, plus one candidate after the end: the length of the shortest path from the end to the knot. A round trip (first waypoint equals last) gets no end candidate. On a tie the stop wins, since it changes the route least.
+`Route.insertWhereItFits(knot)` computes the added distance for each leg, as `insertStop` does, plus one candidate before the start, the length of the shortest path from the knot to the start, and one after the end, the length of the shortest path from the end to the knot. A round trip (first waypoint equals last) gets neither. On a tie the stop wins, since it changes the route least, then the end.
+
+The start candidate came after the third trial (2026-11-12). The maintainer extended Amsterdam (05) → Zandvoort (76) with 60 on the far side of 05, and it became a stop: with only the end as a candidate, a knot before the start could never become the start.
 
 If no candidate is reachable, the knot goes before the end, as `insertStop` does today. The result says which it became (`STOP` or `END`), for the note.
 

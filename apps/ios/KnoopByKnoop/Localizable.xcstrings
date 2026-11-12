@@ -2800,6 +2800,28 @@
         }
       }
     },
+    "%@ added as the start": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ als Start hinzugefügt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ toegevoegd als start"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ajouté comme départ"
+          }
+        }
+      }
+    },
     "%@ added as a stop": {
       "localizations": {
         "de": {

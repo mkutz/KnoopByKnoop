@@ -7,8 +7,8 @@ The proposal is that one tap does the likely thing at once, with a quick way to 
 ## What Changes
 
 - **BREAKING (UI):** the "Add knots: Between | At end" switch goes, and with it the remembered choice.
-- Once a route exists, a tapped knot is added at once where it adds the least distance: as a stop in one of the legs, or after the end, so a knot beyond the end becomes the new end and the old end a stop. A round trip stays one: there is no place after its end.
-- After each such tap, a short note says what the knot became, e.g. "14 added as a stop", and offers "Make it the start", "Make it the end" and "Undo". It goes away after a few seconds, with the next tap, or when one of its choices is used.
+- Once a route exists, a tapped knot is added at once where it adds the least distance: as a stop in one of the legs, before the start, or after the end. So a knot before the start becomes the new start and the old start a stop, and a knot beyond the end becomes the new end and the old end a stop. A round trip stays one: it has no place before its start or after its end.
+- After each such tap, a short note says in one line what the knot became, e.g. "14 added as a stop". It shows the buttons as start, as stop and as end in this order, each previewing that role with badges, with the current one selected, and Undo. It goes away after a few seconds, with the next tap, or when one of its choices is used.
 - The first two taps stay as they are: start, then end.
 - Tapped places, places from the search and route points keep their "Start here", "Add stop here" and "End here" choices.
 

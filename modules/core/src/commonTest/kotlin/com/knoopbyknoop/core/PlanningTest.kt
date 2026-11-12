@@ -42,6 +42,26 @@ class PlanningTest {
   }
 
   @Test
+  fun `Before the start a tapped knot becomes the new start`() {
+    // To 30, 12 is 2000 m; as a stop between 30 and 45 it would add 2500 m, after 45 3500 m.
+    val extended = session.tapAll(knot30, knot45, knot12)
+
+    assertEquals(listOf(knot12, knot30, knot45), extended.waypoints)
+    assertEquals(WaypointRole.START, extended.roleOf(0))
+    assertEquals(WaypointRole.STOP, extended.roleOf(1))
+  }
+
+  @Test
+  fun `Note for a new start selects the start`() {
+    val before = session.tapAll(knot30, knot45)
+    val options = assertNotNull(TapOptions.of(before, before.tap(knot12), knot12))
+
+    assertEquals(WaypointRole.START, options.role)
+    assertEquals(listOf(true, false, false), options.choices.map { it.current })
+    assertEquals(listOf("12", "30"), options.choices[0].preview.refs())
+  }
+
+  @Test
   fun `Extending step by step adds the knots in the order they are tapped`() {
     assertEquals(listOf(knot12, knot30, knot45), session.tapAll(knot12, knot30, knot45).waypoints)
   }

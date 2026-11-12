@@ -69,10 +69,11 @@ private constructor(val waypoints: List<Knot>, val legs: List<Leg>, private val 
   }
 
   /**
-   * Adds [knot] where it adds the least distance: as a stop in one of the legs, or after the end,
-   * making it the new end and the old end a stop, see `map-planning` "Plan by tapping knots". A
-   * round trip has no place after its end. On a tie the stop wins. If [knot] cannot be reached at
-   * all, it is inserted right before the end, so the route reports it as unreachable.
+   * Adds [knot] where it adds the least distance: as a stop in one of the legs, before the start,
+   * making it the new start and the old start a stop, or after the end, making it the new end and
+   * the old end a stop, see `map-planning` "Plan by tapping knots". A round trip has no place
+   * before its start or after its end. On a tie the stop wins, then the end. If [knot] cannot be
+   * reached at all, it is inserted right before the end, so the route reports it as unreachable.
    */
   fun insertWhereItFits(knot: Knot): Route {
     val asStop =
@@ -86,8 +87,15 @@ private constructor(val waypoints: List<Knot>, val legs: List<Leg>, private val 
         .minByOrNull { (_, addedLength) -> addedLength }
     val roundTrip = waypoints.first() == waypoints.last()
     val asEnd = if (roundTrip) null else router.shortestPath(waypoints.last(), knot)?.lengthMeters
+    val asStart =
+      if (roundTrip) null else router.shortestPath(knot, waypoints.first())?.lengthMeters
+    val stopLength = asStop?.second ?: Int.MAX_VALUE
+    val endLength = asEnd ?: Int.MAX_VALUE
+    val startLength = asStart ?: Int.MAX_VALUE
     return when {
-      asEnd != null && (asStop == null || asEnd < asStop.second) -> withWaypoints(waypoints + knot)
+      asStart != null && startLength < stopLength && startLength < endLength ->
+        withWaypoints(listOf(knot) + waypoints)
+      asEnd != null && endLength < stopLength -> withWaypoints(waypoints + knot)
       else -> insertStop(knot, asStop?.first ?: waypoints.lastIndex)
     }
   }

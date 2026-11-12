@@ -7,6 +7,10 @@ After a tapped knot was added to an existing route, the app SHALL show a short n
 - **WHEN** a route 12 → 14 → 15 exists and the user taps 27, which becomes a stop between 14 and 15
 - **THEN** the note says "27 added as a stop" and shows the buttons 27 before 12 for the start, 14, 27 and 15 for the stop, selected, and 15 before 27 for the end, then Undo
 
+#### Scenario: Note for a new start
+- **WHEN** a tapped knot 60 became the new start before 05
+- **THEN** the note says "60 added as the start", and the start button shows 60 before 05 and is selected
+
 #### Scenario: Note for a new end
 - **WHEN** a tapped knot 22 became the new end after 15
 - **THEN** the note says "22 added as the end", the end button shows 15 before 22 and is selected, and the stop button shows 22 with the knots around it where it would be a stop
@@ -42,7 +46,7 @@ After a tapped knot was added to an existing route, the app SHALL show a short n
 ## MODIFIED Requirements
 
 ### Requirement: Plan by tapping knots
-Tapping a knot SHALL make it the start if there is no start yet, the end if there is no end yet, and otherwise add it where it adds the least distance: as a stop in one of the legs, or after the end, making it the new end and the old end a stop. A round trip SHALL stay one, so its knots are only added as stops. A knot that cannot be reached from the route SHALL be added before the end, so the route reports the leg as unreachable. Tapping a knot that already is a waypoint SHALL change nothing, so an accidental double tap does not create a round trip and the start does not turn into a stop; round trips are made with the action to return to the start. A tap SHALL select the knot nearest to the tapped position, within a tolerance that keeps knots easy to hit.
+Tapping a knot SHALL make it the start if there is no start yet, the end if there is no end yet, and otherwise add it where it adds the least distance: as a stop in one of the legs, before the start, making it the new start and the old start a stop, or after the end, making it the new end and the old end a stop. A round trip SHALL stay one, so its knots are only added as stops. A knot that cannot be reached from the route SHALL be added before the end, so the route reports the leg as unreachable. Tapping a knot that already is a waypoint SHALL change nothing, so an accidental double tap does not create a round trip and the start does not turn into a stop; round trips are made with the action to return to the start. A tap SHALL select the knot nearest to the tapped position, within a tolerance that keeps knots easy to hit.
 
 #### Scenario: Start and end
 - **WHEN** the user taps knot 12 and then knot 45
@@ -56,13 +60,17 @@ Tapping a knot SHALL make it the start if there is no start yet, the end if ther
 - **WHEN** a route from 12 to 45 exists and the user taps knot 28, which lies beyond 45 seen from 12
 - **THEN** the waypoints are 12, 45 and 28, with 28 as the end and 45 as a stop
 
+#### Scenario: Before the start
+- **WHEN** a route from 05 in Amsterdam to 76 in Zandvoort exists and the user taps 60, which lies on the far side of 05 seen from 76
+- **THEN** the waypoints are 60, 05 and 76, with 60 as the start and 05 as a stop
+
 #### Scenario: Extending step by step
 - **WHEN** the user taps 12, 45, 28 and 7, each further along in the same direction
 - **THEN** the waypoints are 12, 45, 28 and 7 in that order
 
 #### Scenario: Knot beyond the end of a round trip
 - **WHEN** the waypoints are 12, 45 and 12 and the user taps knot 28
-- **THEN** 28 becomes a stop where it adds the least distance, and the route stays a round trip from 12
+- **THEN** 28 becomes a stop where it adds the least distance, neither the new start nor the new end, and the route stays a round trip from 12
 
 #### Scenario: Tapping a knot that cannot be reached
 - **WHEN** a route from 12 to 45 exists and the user taps a knot that cannot be reached from it

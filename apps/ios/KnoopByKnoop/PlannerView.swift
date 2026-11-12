@@ -1254,9 +1254,11 @@ private struct TapNoteCard: View {
 
   private var line: String {
     let ref = note.options.knot.ref
-    return note.options.role == .end
-      ? String(localized: "\(ref) added as the end", bundle: AppLanguage.bundle)
-      : String(localized: "\(ref) added as a stop", bundle: AppLanguage.bundle)
+    switch note.options.role {
+    case .start: return String(localized: "\(ref) added as the start", bundle: AppLanguage.bundle)
+    case .end: return String(localized: "\(ref) added as the end", bundle: AppLanguage.bundle)
+    default: return String(localized: "\(ref) added as a stop", bundle: AppLanguage.bundle)
+    }
   }
 
   private func label(_ choice: TapChoice) -> String {

@@ -791,8 +791,11 @@ private fun TapNoteCard(note: TapNote, viewModel: AppViewModel, modifier: Modifi
     ) {
       Text(
         stringResource(
-          if (options.role == WaypointRole.END) R.string.tap_note_added_end
-          else R.string.tap_note_added_stop,
+          when (options.role) {
+            WaypointRole.START -> R.string.tap_note_added_start
+            WaypointRole.END -> R.string.tap_note_added_end
+            WaypointRole.STOP -> R.string.tap_note_added_stop
+          },
           options.knot.ref,
         ),
         style = MaterialTheme.typography.bodyMedium,

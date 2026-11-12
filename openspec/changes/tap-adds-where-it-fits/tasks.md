@@ -32,6 +32,11 @@
 - [x] 6.3 iOS: the same. Check in the simulator.
 - [x] 6.4 Run the checks and install on both phones for the third trial.
 
+## 7. The start as a candidate too (after the third trial)
+
+- [x] 7.1 Core: `Route.insertWhereItFits` also weighs the place before the start (not for a round trip), with the stop, then the end, winning ties. Tests: `Before the start` and `Note for a new start`, and the round trip neither starting nor ending.
+- [x] 7.2 Apps: the line "60 added as the start" on Android (all four languages) and iOS. Run the checks and install on both phones.
+
 ## Workflow follow-up
 
 - Install on both phones for the maintainer's "how it feels" trial. Archive only if it feels right, otherwise revert.
