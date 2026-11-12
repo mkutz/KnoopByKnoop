@@ -255,7 +255,8 @@ fun InfoButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
   NamedAction(stringResource(R.string.settings), modifier) {
     IconButton(
       onClick = onClick,
-      colors = IconButtonDefaults.iconButtonColors(contentColor = Green),
+      colors =
+        IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
       modifier = Modifier.size(MAP_BUTTON_SIZE).mapGlass(CircleShape),
     ) {
       Icon(

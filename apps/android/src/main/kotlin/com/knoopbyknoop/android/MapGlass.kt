@@ -11,6 +11,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -46,12 +47,13 @@ fun MapButtonDivider() {
   HorizontalDivider(color = Color.Gray.copy(alpha = 0.25f))
 }
 
-/** One button of a group, in the app's green, announced by [label]. */
+/** One button of a group, in the foreground colour, announced by [label]. */
 @Composable
 fun MapButton(label: String, @DrawableRes icon: Int, onClick: () -> Unit) {
   IconButton(
     onClick = onClick,
-    colors = IconButtonDefaults.iconButtonColors(contentColor = Green),
+    colors =
+      IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
     modifier = Modifier.size(MAP_BUTTON_SIZE),
   ) {
     Icon(painterResource(icon), contentDescription = label)

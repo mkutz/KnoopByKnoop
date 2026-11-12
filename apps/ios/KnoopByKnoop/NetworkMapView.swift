@@ -210,7 +210,7 @@ struct NetworkMapView: UIViewRepresentable {
     func button(_ symbol: String, _ action: Selector, label: String? = nil) -> UIButton {
       let button = UIButton(type: .system)
       button.setImage(UIImage(systemName: symbol), for: .normal)
-      button.tintColor = UIColor(Color.knoopGreen)
+      button.tintColor = .label
       if let label { button.accessibilityLabel = String(localized: String.LocalizationValue(label), bundle: AppLanguage.bundle) }
       button.translatesAutoresizingMaskIntoConstraints = false
       button.widthAnchor.constraint(equalToConstant: MapButtonGroup.size).isActive = true

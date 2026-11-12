@@ -458,7 +458,7 @@ struct PlannerView: View {
     } label: {
       Image(systemName: "gearshape")
         .font(.system(size: 20))
-        .foregroundStyle(Color.knoopGreen)
+        .foregroundStyle(.primary)
         .frame(width: 48, height: 48)
         .floatingBackground(in: Circle())
     }
