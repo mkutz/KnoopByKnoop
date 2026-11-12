@@ -17,9 +17,6 @@ private val lightColors =
     secondary = Color(0xFFF28C28),
     secondaryContainer = Color(0xFFD7F0E0),
     surfaceVariant = Color(0xFFEEF1EA),
-    // The green on the dark note after a tap, see `map-planning` "Changing what a tapped knot
-    // became".
-    inversePrimary = Color(0xFF8FD9A8),
   )
 
 /** The same green and orange on dark surfaces, see `map-planning` "Light and dark appearance". */
@@ -31,8 +28,6 @@ private val darkColors =
     secondaryContainer = Color(0xFF1E3B2B),
     onSecondaryContainer = Color(0xFFD7F0E0),
     surfaceVariant = Color(0xFF2B2F2A),
-    // The green on the light note after a tap.
-    inversePrimary = Color(0xFF1B6B3D),
     // A clear red, not Material's pale pink: at least 4.5:1 on the dark surfaces, see
     // `map-planning`
     // "Light and dark appearance".

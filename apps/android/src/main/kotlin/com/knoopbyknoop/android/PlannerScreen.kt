@@ -777,10 +777,11 @@ private fun TapNoteCard(note: TapNote, viewModel: AppViewModel, modifier: Modifi
   LaunchedEffect(note.id) {
     pop.animateTo(1f, spring(dampingRatio = 0.45f, stiffness = Spring.StiffnessMediumLow))
   }
+  // Light like the panel and the map buttons, see "Changing what a tapped knot became".
   Surface(
     shape = MaterialTheme.shapes.large,
-    color = MaterialTheme.colorScheme.inverseSurface,
-    contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+    color = MaterialTheme.colorScheme.surface,
+    contentColor = MaterialTheme.colorScheme.onSurface,
     shadowElevation = 6.dp,
     modifier = modifier.padding(horizontal = 12.dp, vertical = 8.dp).fillMaxWidth(),
   ) {
@@ -810,22 +811,21 @@ private fun TapNoteCard(note: TapNote, viewModel: AppViewModel, modifier: Modifi
                 WaypointRole.STOP -> R.string.tap_choice_as_stop
               }
             )
-          val selected = MaterialTheme.colorScheme.inversePrimary
+          val selected = MaterialTheme.colorScheme.primary
           OutlinedButton(
             onClick = { viewModel.chooseTap(choice) },
             enabled = !choice.current,
             contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
             colors =
               ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.inverseOnSurface,
-                disabledContentColor = MaterialTheme.colorScheme.inverseOnSurface,
-                disabledContainerColor = selected.copy(alpha = 0.22f),
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                disabledContentColor = MaterialTheme.colorScheme.onSurface,
+                disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
               ),
             border =
               BorderStroke(
                 if (choice.current) 2.dp else 1.dp,
-                if (choice.current) selected
-                else MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.4f),
+                if (choice.current) selected else MaterialTheme.colorScheme.outlineVariant,
               ),
             modifier =
               Modifier.weight(if (choice.role == WaypointRole.STOP) 1.5f else 1f)
@@ -842,7 +842,7 @@ private fun TapNoteCard(note: TapNote, viewModel: AppViewModel, modifier: Modifi
           Icon(
             painterResource(R.drawable.ic_undo),
             contentDescription = stringResource(R.string.tap_note_undo),
-            tint = MaterialTheme.colorScheme.inversePrimary,
+            tint = MaterialTheme.colorScheme.primary,
           )
         }
       }
@@ -882,7 +882,7 @@ private fun KnotPreviewRow(
                 scaleX = highlightScale
                 scaleY = highlightScale
               }
-              .border(2.dp, MaterialTheme.colorScheme.inversePrimary, CircleShape)
+              .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
               .padding(2.dp)
           else Modifier.clearAndSetSemantics {},
       ) {

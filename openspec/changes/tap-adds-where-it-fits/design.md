@@ -69,6 +69,8 @@ The top preview row is gone: the selected button shows it. The start button prev
 
 `TapOptions.choices` therefore always holds the three roles in that order, each with `current`.
 
+The Android note is light, like the panel and the map buttons, not a dark snackbar: it holds buttons with badges, not a passing message. The iPhone note uses the app's `floatingBackground`, Liquid Glass on iOS 26 (maintainer, 2026-11-12).
+
 ### Removing the switch
 
 `NewKnots` goes from the core, along with the switch composable and view, their icons and strings, and the stored setting. A stale stored value is simply ignored.

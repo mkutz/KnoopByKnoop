@@ -1298,8 +1298,8 @@ private struct TapNoteCard: View {
     }
     .padding(12)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24))
-    .shadow(color: .black.opacity(0.16), radius: 10, y: 4)
+    // Liquid Glass like the map's other floating controls.
+    .floatingBackground(in: RoundedRectangle(cornerRadius: 24))
     .task(id: note.id) {
       pop = 0.3
       withAnimation(.spring(duration: 0.5, bounce: 0.5)) { pop = 1 }
