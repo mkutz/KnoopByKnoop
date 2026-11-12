@@ -324,7 +324,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
       }
     )
     state = state.copy(online = connectivity.activeNetwork != null)
-    viewModelScope.launch { Navigating.state.collect { state = state.copy(navigation = it) } }
+    viewModelScope.launch {
+      Navigating.state.collect {
+        val ended = state.navigating && it == null
+        state = state.copy(navigation = it)
+        if (ended) restorePlan()
+      }
+    }
     viewModelScope.launch { loadPathData() }
     viewModelScope.launch { loadPlaceDetails() }
     viewModelScope.launch { loadBaseMap() }
@@ -571,11 +577,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     if (detour == null) navigate() else state = state.copy(ferryDetour = detour)
   }
 
-  /** Plans the way around the closed ferries for good, then navigates, see "Riding around it". */
+  /**
+   * Navigates the way around the closed ferries, for this navigation only, see "Riding around it".
+   */
   fun rideAroundFerries() {
     val around = state.ferryDetour?.around ?: return
     state = state.copy(ferryDetour = null)
-    update(around)
+    showForNavigation(around)
     navigate()
   }
 
@@ -585,9 +593,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     navigate()
   }
 
-  /** The question dismissed: nothing starts, as with the start question. */
+  /**
+   * The question dismissed: nothing starts, and a start nearby is undone, see "Question dismissed".
+   */
   fun dismissFerryDetour() {
     state = state.copy(ferryDetour = null)
+    restorePlan()
   }
 
   /** Rides to the plan's start, see `knot-navigation` "Riding to the start". */
@@ -596,13 +607,35 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     checkFerries()
   }
 
-  /** Starts the plan on the route nearby for good, then navigates, see "Starting nearby". */
+  /** Starts on the route nearby for this navigation only, then navigates, see "Starting nearby". */
   fun startNearby() {
     val choice = state.startChoice ?: return
     val session = state.session ?: return
     state = state.copy(startChoice = null)
-    update(session.startOnRouteAt(choice.nearby))
+    showForNavigation(session.startOnRouteAt(choice.nearby))
     checkFerries()
+  }
+
+  /**
+   * The plan as made while a route for one navigation is shown, see `knot-navigation` "The plan
+   * after navigation"; `null` otherwise.
+   */
+  private var plannedSession: PlanningSession? = null
+
+  /** Shows [session], a route for one navigation, without storing it. */
+  private fun showForNavigation(session: PlanningSession) {
+    if (loaded == null || state.navigating) return
+    if (plannedSession == null) plannedSession = state.session
+    show(session)
+  }
+
+  /**
+   * Shows the plan as made again after a route for one navigation, see "The plan after navigation".
+   */
+  private fun restorePlan() {
+    val planned = plannedSession ?: return
+    plannedSession = null
+    show(planned)
   }
 
   /** The question dismissed: nothing starts, see "Question dismissed". */
@@ -1048,7 +1081,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     // While another network loads, the shown route belongs to the previous one. While navigating,
     // the route is fixed, see `knot-navigation` "Route is fixed while navigating".
     if (loaded == null || state.navigating) return
+    // An edit makes the shown route the plan.
+    plannedSession = null
     storage.saveRoute(RouteSnapshot.of(session))
+    show(session)
+  }
+
+  private fun show(session: PlanningSession) {
     state =
       state.copy(
         session = session,
@@ -1121,6 +1160,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
     val (loadedNetwork, session, removedWaypoints) = result
     loaded = loadedNetwork
+    // The restored route is the plan as made, see `knot-navigation` "The plan after navigation".
+    plannedSession = null
     state =
       state.copy(
         loading = false,
@@ -1170,7 +1211,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     state.session?.let { session ->
       // Route points whose connection went away join the courses anew, see "Connection gone".
       val reattached = session.reattached(withCourses.geometry)
-      if (reattached !== session) update(reattached)
+      val planned = plannedSession
+      if (planned != null) {
+        // Only the plan as made is stored, see `knot-navigation` "The plan after navigation".
+        val plannedReattached = planned.reattached(withCourses.geometry)
+        plannedSession = plannedReattached
+        if (plannedReattached !== planned) storage.saveRoute(RouteSnapshot.of(plannedReattached))
+        if (!state.navigating) show(reattached) else state = state.copy(layers = layersFor(session))
+      } else if (reattached !== session) update(reattached)
       else state = state.copy(layers = layersFor(session))
     }
     // A navigation started before the courses had loaded takes them now, see `knot-navigation`
@@ -1222,7 +1270,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             current.graphSha256 != graphEntry.sha256 ||
             current.hasGeometry != hasGeometry
         ) {
-          loadNetwork(state.network, waypointsFrom = { state.session?.let(RouteSnapshot::of) })
+          loadNetwork(
+            state.network,
+            waypointsFrom = { (plannedSession ?: state.session)?.let(RouteSnapshot::of) },
+          )
         }
       }
   }

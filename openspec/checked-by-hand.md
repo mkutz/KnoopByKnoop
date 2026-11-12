@@ -28,7 +28,11 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Courses on a slow phone — on the emulator, where the courses take about 20 s: Navigate pressed before they have loaded, a recorded ride replayed
 - Question dismissed — on the devices: Navigate away from the start, the question closed without choosing
 - Position unknown — on the devices: Navigate without a position within 10 s, e.g. indoors
-- The plan after the ride — on the devices: started nearby, then Stop, the planner shows the new start
+- The plan after the ride — on the devices: started nearby, then Stop, the planner shows the plan from its own start (`navigation-only-route-changes` manual checks)
+- Plan restored after stopping — on the emulator: started nearby and rode around a closed ferry, then Stop, the planner shows the plan over the ferry and `route.json` never changed
+- Plan restored after arriving — on the devices: started nearby and rode to the end, the planner shows the plan from its own start
+- App ended while navigating — on the emulator: started nearby and rode around, the app was force-stopped and opened again, the planner shows the plan as made
+- Navigating the plan again — on the emulator: after Stop, Navigate asks again where to start and about the ferry
 - Header of steady height on a guided way — on the devices, finding and losing a way with a long street name ahead
 - Location access denied — on the devices
 - Screen off — on the devices
@@ -106,11 +110,11 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - The lock screen behind the navigation — on Android
 - Another app on top — on Android
 - Not navigating — on Android
-- Riding around it — on the emulator and in the simulator: Navigate on a route over a closed ferry, "Ride around it", navigation starts on the way around and the saved route keeps the ferry avoided (`avoid-closed-ferries` manual checks)
 - Keeping the ferry — on the emulator: "Keep the ferry" navigates over the ferry with the plan unchanged, and the spoken ferry warning follows
 - Question in all languages — on the emulator in German; the strings in Dutch and French are reviewed in the string files
 - Map while asking — on the emulator and in the simulator: the map shows the ferry and the dashed way around above the question
 - Map after the answer — on the emulator and in the simulator: after the answer the dashed line is gone and the map shows the chosen route
+- Map after the ride — on the emulator: after riding around and Stop, the map shows the planned route over the ferry again
 
 ## map-planning
 

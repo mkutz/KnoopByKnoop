@@ -14,11 +14,6 @@ import kotlinx.serialization.json.Json
 data class RouteSnapshot(
   val network: IndexedNetworkType,
   val waypoints: List<Waypoint>,
-  /**
-   * The ferries the plan avoids, as pairs of knot IDs, see `knot-navigation` "Riding around a
-   * closed ferry"; absent in routes saved before.
-   */
-  val avoidedFerries: List<List<Long>> = listOf(),
 ) {
 
   /**
@@ -95,8 +90,7 @@ data class RouteSnapshot(
     val network = requireNotNull(graph.network) { "Cannot restore on an empty network" }
     val (present, missing) = waypoints.partition { it.point != null || it.id in graph.knots }
     val knots = present.map { it.toKnot(network) ?: graph.knots.getValue(it.id) }
-    val avoided = avoidedFerries.filter { it.size == 2 }.mapTo(HashSet()) { pairOf(it[0], it[1]) }
-    return RestoredRoute(PlanningSession.start(graph, knots, avoided), missing.map { it.ref })
+    return RestoredRoute(PlanningSession.start(graph, knots), missing.map { it.ref })
   }
 
   companion object {
@@ -107,7 +101,6 @@ data class RouteSnapshot(
       RouteSnapshot(
         network = IndexedNetworkType.of(session.network),
         waypoints = session.waypoints.map { Waypoint(it.id, it.ref, StoredPoint.of(it)) },
-        avoidedFerries = session.avoidedFerries.map { (first, second) -> listOf(first, second) },
       )
 
     @Throws(IllegalArgumentException::class)

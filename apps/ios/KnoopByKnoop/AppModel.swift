@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import KnoopByKnoopCore
 import Network
@@ -173,8 +174,18 @@ final class AppModel: ObservableObject {
   /// Whether the saved route was restored; reloads before that would replace it with an empty one.
   private var restored = false
 
+  /// The plan as made while a route for one navigation is shown, see `knot-navigation` "The plan
+  /// after navigation"; `nil` otherwise.
+  private var plannedSession: PlanningSession?
+  private var navigationEnd: AnyCancellable?
+
   init() {
     defer {
+      // When navigation ends, the plan as made comes back, see "The plan after navigation".
+      navigationEnd = Navigator.shared.$state.map { $0 != nil }.removeDuplicates().dropFirst()
+        .sink { [weak self] navigating in
+          if !navigating { self?.restorePlan() }
+        }
       Task { [weak self] in
         let bytes = await BaseMapStore.shared.readInstalledBytes()
         self?.baseMapBytes = bytes
@@ -269,14 +280,12 @@ final class AppModel: ObservableObject {
     if let detour { ferryDetour = detour } else { navigate() }
   }
 
-  /// Plans the way around the closed ferries for good, then navigates, see "Riding around it".
+  /// Navigates the way around the closed ferries, for this navigation only, see "Riding around it".
   func rideAroundFerries() {
     guard let around = ferryDetour?.around else { return }
     ferryDetour = nil
-    change { _ in around }
-    let pending = changes
     Task {
-      await pending?.value
+      await showForNavigation(around)
       navigate()
     }
   }
@@ -287,9 +296,10 @@ final class AppModel: ObservableObject {
     navigate()
   }
 
-  /// The question dismissed: nothing starts, as with the start question.
+  /// The question dismissed: nothing starts, and a start nearby is undone, see "Question dismissed".
   func dismissFerryDetour() {
     ferryDetour = nil
+    restorePlan()
   }
 
   /// Rides to the plan's start, see `knot-navigation` "Riding to the start".
@@ -298,16 +308,35 @@ final class AppModel: ObservableObject {
     checkFerries()
   }
 
-  /// Starts the plan on the route nearby for good, then navigates, see "Starting nearby".
+  /// Starts on the route nearby for this navigation only, then navigates, see "Starting nearby".
   func startNearby(_ choice: StartChoice) {
     startChoice = nil
     let nearby = choice.nearby
-    change { $0.startOnRouteAt(nearby: nearby) }
     let pending = changes
     Task {
       await pending?.value
+      guard let session else { return }
+      let cut = await Task.detached { session.startOnRouteAt(nearby: nearby) }.value
+      await showForNavigation(cut)
       checkFerries()
     }
+  }
+
+  /// Shows `newSession`, a route for one navigation, without storing it.
+  private func showForNavigation(_ newSession: PlanningSession) async {
+    guard !navigating, let loaded else { return }
+    let geometry = loaded.geometry
+    let prepared = await Task.detached { PreparedSession(newSession, geometry: geometry) }.value
+    if plannedSession == nil { plannedSession = session }
+    show(prepared)
+  }
+
+  /// Shows the plan as made again after a route for one navigation, see "The plan after
+  /// navigation".
+  private func restorePlan() {
+    guard let planned = plannedSession else { return }
+    plannedSession = nil
+    show(planned)
   }
 
   /// The question dismissed: nothing starts, see "Question dismissed".
@@ -536,6 +565,8 @@ final class AppModel: ObservableObject {
       }.value
       // A network switch while preparing replaces the session; the change no longer applies.
       guard let prepared, session === current else { return }
+      // An edit makes the shown route the plan.
+      plannedSession = nil
       storage.saveRoute(RouteSnapshot.companion.of(session: prepared.session))
       show(prepared)
     }
@@ -794,11 +825,13 @@ final class AppModel: ObservableObject {
         let restored = snapshot.restore(graph: graph)
         return (restored.session, restored.removedWaypoints)
       }
-      return (PlanningSession.companion.start(graph: graph, waypoints: [], avoidedFerries: []), [])
+      return (PlanningSession.companion.start(graph: graph, waypoints: []), [])
     }.value
     loading = false
     guard network == self.network else { return }
     loaded = withoutCourses
+    // The restored route is the plan as made, see `knot-navigation` "The plan after navigation".
+    plannedSession = nil
     show(restored.0)
     if !restored.1.isEmpty {
       message = String(
@@ -830,7 +863,14 @@ final class AppModel: ObservableObject {
     if let session {
       // Route points whose connection went away join the courses anew, see "Connection gone".
       let reattached = session.reattached(geometry: withCourses.geometry)
-      if reattached !== session {
+      // Only the plan as made is stored, see `knot-navigation` "The plan after navigation".
+      if let planned = plannedSession {
+        let plannedReattached = planned.reattached(geometry: withCourses.geometry)
+        plannedSession = plannedReattached
+        if plannedReattached !== planned {
+          storage.saveRoute(RouteSnapshot.companion.of(session: plannedReattached))
+        }
+      } else if reattached !== session {
         storage.saveRoute(RouteSnapshot.companion.of(session: reattached))
       }
       show(reattached)
@@ -967,7 +1007,8 @@ final class AppModel: ObservableObject {
   private func reloadIfChanged() async {
     guard restored, let graphEntry = storage.graphEntry(network: network) else { return }
     if loaded?.graphSha256 != graphEntry.sha256 || loaded?.hasGeometry != status.hasGeometry {
-      await loadNetwork(network, snapshot: session.map { RouteSnapshot.companion.of(session: $0) })
+      await loadNetwork(
+        network, snapshot: (plannedSession ?? session).map { RouteSnapshot.companion.of(session: $0) })
     }
   }
 

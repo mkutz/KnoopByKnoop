@@ -4,6 +4,8 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -217,9 +219,82 @@ class FerryDetourTest {
   }
 
   @Test
+  fun `Riding around it`() {
+    val session = planned(graph())
+    val around = assertNotNull(detour(graph(), "18:20")?.around)
+
+    assertEquals(listOf(1L, 5, 4), around.waypoints.map { it.id })
+    assertEquals(setOf(bridge.id), around.temporary)
+    assertEquals(listOf(1L, 2, 5, 3, 4), routeIds(around))
+    assertEquals(listOf(1L, 4), session.waypoints.map { it.id }, "the plan stays")
+    assertEquals(listOf(1L, 2, 3, 4), routeIds(session))
+  }
+
+  @Test
+  fun `Temporary knots are not stops`() {
+    val around = assertNotNull(detour(graph(), "18:20")?.around)
+
+    val description = assertIs<RouteDescription.Complete>(MapFeatures.describe(around))
+
+    assertEquals(setOf(), description.stopPositions)
+    assertEquals(KnotRole.PASSED, description.knots.single { it.knot.id == bridge.id }.role)
+    assertFalse("\"position\":\"1\"" in MapFeatures.waypoints(around), "no marker for 5")
+  }
+
+  @Test
+  fun `the way around holds where the way back from a temporary knot over the ferry is shorter`() {
+    // Upstream 2–A–B–C–3: from B the ferry is nearer than C, yet the route goes on over C.
+    val a = knot(11, 21_233.0, north = 1_000.0)
+    val b = knot(12, 21_333.0, north = 2_000.0)
+    val c = knot(13, 21_433.0, north = 1_000.0)
+    val crossing = Connection(river.id, farBank.id, 200)
+    val graph =
+      NetworkGraph(
+        listOf(start, river, farBank, end, a, b, c),
+        listOf(
+          Connection(start.id, river.id, 21_233),
+          crossing,
+          Connection(farBank.id, end.id, 1_000),
+          Connection(river.id, a.id, 1_000),
+          Connection(a.id, b.id, 1_000),
+          Connection(b.id, c.id, 5_000),
+          Connection(c.id, farBank.id, 1_000),
+        ),
+        mapOf(crossing to Ferry(name = "Lülsdorf–Wesseling", openingHours = untilSeven)),
+      )
+
+    val around = assertNotNull(detour(graph, "18:20")?.around)
+
+    assertEquals(listOf(1L, 12, 4), around.waypoints.map { it.id })
+    assertEquals(listOf(1L, 2, 11, 12, 13, 3, 4), routeIds(around))
+    assertEquals("7.8 km", detour(graph, "18:20")?.extraDistance)
+  }
+
+  @Test
+  fun `Started nearby and riding around`() {
+    // Started nearby at the river, the ferry is reached right away, after 19:00.
+    val nearby = planned(graph()).startOnRouteAt(river)
+    val detour =
+      assertNotNull(
+        FerryDetour.of(
+          nearby,
+          null,
+          GeoPoint(river.latitude, river.longitude),
+          millisAt("19:10"),
+          ::localTime,
+        )
+      )
+
+    val around = assertNotNull(detour.around)
+    assertEquals(listOf(2L, 5, 3, 4), routeIds(around))
+    assertEquals(setOf(river.id, bridge.id), around.temporary)
+  }
+
+  @Test
   fun `Editing the plan afterwards`() {
     val graph = graph()
-    val avoided = planned(graph).avoidingFerries(setOf(pairOf(river.id, farBank.id)))
+    val session = planned(graph)
+    assertNotNull(detour(graph, "18:20")?.around)
     val further = knot(7, 23_433.0)
     val longer =
       NetworkGraph(
@@ -227,32 +302,32 @@ class FerryDetourTest {
         graph.connections + Connection(end.id, further.id, 1_000),
         graph.ferries,
       )
-    val session =
-      PlanningSession.start(longer, avoided.waypoints, avoided.avoidedFerries)
-        .tap(further, NewKnots.END)
 
-    assertEquals(listOf(1L, 2, 5, 3, 4, 7), routeIds(session))
+    val edited = PlanningSession.start(longer, session.waypoints).tap(further, NewKnots.END)
 
-    val restored = RouteSnapshot.parse(RouteSnapshot.of(session).toJson()).restore(longer).session
-    assertEquals(setOf(pairOf(river.id, farBank.id)), restored.avoidedFerries)
-    assertEquals(listOf(1L, 2, 5, 3, 4, 7), routeIds(restored))
+    assertEquals(listOf(1L, 2, 3, 4, 7), routeIds(edited))
+    val restored = RouteSnapshot.parse(RouteSnapshot.of(edited).toJson()).restore(longer).session
+    assertEquals(listOf(1L, 2, 3, 4, 7), routeIds(restored))
   }
 
   @Test
-  fun `routes saved before read without avoided ferries`() {
-    val text = """{"network":"cycling","waypoints":[{"id":1,"ref":"01"},{"id":4,"ref":"04"}]}"""
+  fun `Routes saved with avoided ferries`() {
+    val text =
+      """{"network":"cycling","waypoints":[{"id":1,"ref":"01"},{"id":4,"ref":"04"}],""" +
+        """"avoidedFerries":[[2,3]]}"""
 
     val restored = RouteSnapshot.parse(text).restore(graph()).session
 
-    assertEquals(setOf(), restored.avoidedFerries)
     assertEquals(listOf(1L, 2, 3, 4), routeIds(restored))
   }
 
   @Test
-  fun `clearing the plan forgets the avoided ferries`() {
-    val avoided = planned(graph()).avoidingFerries(setOf(pairOf(river.id, farBank.id)))
+  fun `the plan as made is stored without the temporary knots`() {
+    val around = assertNotNull(detour(graph(), "18:20")?.around)
 
-    assertEquals(setOf(), avoided.clear().avoidedFerries)
+    assertEquals(setOf(), around.clear().temporary)
+    val restored = RouteSnapshot.parse(RouteSnapshot.of(around).toJson()).restore(graph()).session
+    assertEquals(setOf(), restored.temporary)
   }
 
   private companion object {

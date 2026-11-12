@@ -299,7 +299,9 @@ object MapFeatures {
    * it is a route point.
    */
   fun waypoints(session: PlanningSession): String =
-    featureCollection(session.waypoints.withIndex().toList()) { (index, knot) ->
+    featureCollection(
+      session.waypoints.withIndex().filterNot { session.isTemporaryStop(it.index) }
+    ) { (index, knot) ->
       point(knot)
       properties {
         property("position", index.toString())
@@ -319,7 +321,14 @@ object MapFeatures {
     return legs.flatMapIndexed { index, leg ->
       val knots = leg.path!!.knots
       val passed = knots.drop(1).dropLast(1).map { RouteKnot(it, KnotRole.PASSED) }
-      val start = RouteKnot(knots.first(), if (index == 0) KnotRole.START else KnotRole.STOP)
+      val role =
+        when {
+          index == 0 -> KnotRole.START
+          // Knots added to ride around a closed ferry are ordinary knots of the route.
+          session.isTemporaryStop(index) -> KnotRole.PASSED
+          else -> KnotRole.STOP
+        }
+      val start = RouteKnot(knots.first(), role)
       val end = if (index == lastLeg) listOf(RouteKnot(knots.last(), KnotRole.END)) else listOf()
       listOf(start) + passed + end
     }

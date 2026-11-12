@@ -76,6 +76,8 @@ class StartChoiceTest {
     assertFalse(knot06 in cut.knots)
     assertEquals(WaypointRole.START, cut.roleOf(0))
     assertEquals(WaypointRole.STOP, cut.roleOf(1))
+    assertEquals(setOf(choice.nearby.id), cut.temporary, "the start nearby is for this ride")
+    assertEquals(listOf(knot06, knot02, knot28), session.waypoints, "the plan still starts at 06")
   }
 
   @Test
@@ -95,7 +97,9 @@ class StartChoiceTest {
     val choice = assertNotNull(choiceAt(east = 1010.0, north = -250.0))
 
     assertEquals(knot05, choice.nearby)
-    assertEquals(listOf(knot05, knot02, knot28), session.startOnRouteAt(choice.nearby).waypoints)
+    val cut = session.startOnRouteAt(choice.nearby)
+    assertEquals(listOf(knot05, knot02, knot28), cut.waypoints)
+    assertEquals(setOf(knot05.id), cut.temporary)
   }
 
   @Test
@@ -136,6 +140,7 @@ class StartChoiceTest {
 
     assertEquals(knot05, choice.nearby)
     assertEquals(300, choice.nearbyMeters)
+    assertEquals(knot05, session.startOnRouteAt(choice.nearby).waypoints.first())
   }
 
   @Test
