@@ -8,8 +8,13 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.horizontalScroll
@@ -17,7 +22,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -27,6 +32,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
@@ -39,10 +45,12 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -53,6 +61,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -116,6 +125,7 @@ import com.knoopbyknoop.core.HeaderRow
 import com.knoopbyknoop.core.IndexedNetworkType
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.KnotPlate
+import com.knoopbyknoop.core.KnotPreview
 import com.knoopbyknoop.core.KnotRole
 import com.knoopbyknoop.core.MapFeatures
 import com.knoopbyknoop.core.NavigationState
@@ -744,12 +754,15 @@ private fun WaypointSheet(
 }
 
 /**
- * What a tapped knot became, with the choices to change it, see `map-planning` "Changing what a
- * tapped knot became". Goes away after 6 seconds, but not while TalkBack is on.
+ * What a tapped knot became, as a preview with badges, with a button per other role, each with its
+ * own preview, and Undo, see `map-planning` "Changing what a tapped knot became". Goes away after 6
+ * seconds, but not while TalkBack is on.
  */
 @Composable
 private fun TapNoteCard(note: TapNote, viewModel: AppViewModel, modifier: Modifier = Modifier) {
   val context = LocalContext.current
+  val options = note.options
+  val ref = options.knot.ref
   LaunchedEffect(note.id) {
     val accessibility =
       context.getSystemService(android.content.Context.ACCESSIBILITY_SERVICE)
@@ -759,39 +772,134 @@ private fun TapNoteCard(note: TapNote, viewModel: AppViewModel, modifier: Modifi
       viewModel.dismissTapNote(note.id)
     }
   }
+  // The tapped knot pops in between its neighbours.
+  val pop = remember(note.id) { Animatable(0.3f) }
+  LaunchedEffect(note.id) {
+    pop.animateTo(1f, spring(dampingRatio = 0.45f, stiffness = Spring.StiffnessMediumLow))
+  }
+  val preview = options.preview
+  val before = preview.knots.getOrNull(preview.highlighted - 1)?.knot?.ref
+  val after = preview.knots.getOrNull(preview.highlighted + 1)?.knot?.ref
+  val sentence =
+    when {
+      options.role == WaypointRole.END && before != null ->
+        stringResource(R.string.tap_note_end_after, ref, before)
+      before != null && after != null ->
+        stringResource(R.string.tap_note_stop_between, ref, before, after)
+      else -> stringResource(R.string.tap_note_added, ref)
+    }
   Surface(
-    shape = MaterialTheme.shapes.small,
+    shape = MaterialTheme.shapes.large,
     color = MaterialTheme.colorScheme.inverseSurface,
     contentColor = MaterialTheme.colorScheme.inverseOnSurface,
     shadowElevation = 6.dp,
     modifier = modifier.padding(horizontal = 12.dp, vertical = 8.dp).fillMaxWidth(),
   ) {
-    Column(modifier = Modifier.padding(start = 16.dp, top = 12.dp, end = 8.dp, bottom = 4.dp)) {
-      Text(
-        stringResource(
-          if (note.role == WaypointRole.END) R.string.tap_note_end else R.string.tap_note_stop,
-          note.knot.ref,
-        ),
-        style = MaterialTheme.typography.bodyMedium,
-        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+    Column(
+      verticalArrangement = Arrangement.spacedBy(4.dp),
+      modifier = Modifier.padding(start = 10.dp, top = 4.dp, end = 2.dp, bottom = 8.dp),
+    ) {
+      KnotPreviewRow(
+        preview,
+        highlightScale = pop.value,
+        modifier =
+          Modifier.fillMaxWidth().padding(top = 6.dp).semantics {
+            liveRegion = LiveRegionMode.Polite
+            contentDescription = sentence
+          },
       )
-      FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.End,
+      Row(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
       ) {
-        val action = MaterialTheme.colorScheme.inversePrimary
-        TextButton(onClick = viewModel::makeTappedStart) {
-          Text(stringResource(R.string.tap_note_make_start), color = action)
-        }
-        if (note.role != WaypointRole.END)
-          TextButton(onClick = viewModel::makeTappedEnd) {
-            Text(stringResource(R.string.tap_note_make_end), color = action)
+        for (choice in options.choices) {
+          val label =
+            stringResource(
+              when (choice.role) {
+                WaypointRole.START -> R.string.tap_choice_start
+                WaypointRole.END -> R.string.tap_choice_end
+                WaypointRole.STOP -> R.string.tap_choice_stop
+              },
+              ref,
+            )
+          OutlinedButton(
+            onClick = { viewModel.chooseTap(choice) },
+            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+            colors =
+              ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.inverseOnSurface
+              ),
+            border =
+              BorderStroke(1.dp, MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.4f)),
+            modifier =
+              Modifier.weight(1f).heightIn(min = 40.dp).semantics { contentDescription = label },
+          ) {
+            KnotPreviewRow(choice.preview)
           }
-        TextButton(onClick = viewModel::undoTap) {
-          Text(stringResource(R.string.tap_note_undo), color = action)
+        }
+        IconButton(onClick = viewModel::undoTap) {
+          Icon(
+            painterResource(R.drawable.ic_undo),
+            contentDescription = stringResource(R.string.tap_note_undo),
+            tint = MaterialTheme.colorScheme.inversePrimary,
+          )
         }
       }
     }
+  }
+}
+
+/**
+ * The knots of [preview] as badges, the highlighted one larger by [highlightScale] and ringed, with
+ * "…" where the route goes on.
+ */
+@Composable
+private fun KnotPreviewRow(
+  preview: KnotPreview,
+  modifier: Modifier = Modifier,
+  highlightScale: Float = 1f,
+) {
+  Row(
+    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+    verticalAlignment = Alignment.CenterVertically,
+    modifier = modifier,
+  ) {
+    if (preview.moreBefore)
+      Text(
+        "…",
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.clearAndSetSemantics {},
+      )
+    preview.knots.forEachIndexed { index, (knot, role) ->
+      val highlighted = index == preview.highlighted
+      Box(
+        contentAlignment = Alignment.Center,
+        modifier =
+          if (highlighted)
+            Modifier.clearAndSetSemantics {}
+              .graphicsLayer {
+                scaleX = highlightScale
+                scaleY = highlightScale
+              }
+              .border(2.dp, MaterialTheme.colorScheme.inversePrimary, CircleShape)
+              .padding(2.dp)
+          else Modifier.clearAndSetSemantics {},
+      ) {
+        KnotBadge(
+          knot.ref,
+          role,
+          scale = if (highlighted) 0.8f else 0.7f,
+          plate = KnotPlate.of(knot.signRegion),
+          place = knot.routePoint?.placeKind,
+        )
+      }
+    }
+    if (preview.moreAfter)
+      Text(
+        "…",
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.clearAndSetSemantics {},
+      )
   }
 }
 

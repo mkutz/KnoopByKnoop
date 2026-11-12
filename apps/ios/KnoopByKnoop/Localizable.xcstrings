@@ -2800,90 +2800,134 @@
         }
       }
     },
-    "%@ added as a stop": {
+    "%@ added": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ als Zwischenstopp hinzugefügt"
+            "value": "%@ hinzugefügt"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ toegevoegd als tussenstop"
+            "value": "%@ toegevoegd"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ ajouté comme étape"
+            "value": "%@ ajouté"
           }
         }
       }
     },
-    "%@ added as the end": {
+    "%@ added as a stop between %@ and %@": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ als Ende hinzugefügt"
+            "value": "%1$@ als Zwischenstopp zwischen %2$@ und %3$@ hinzugefügt"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ toegevoegd als einde"
+            "value": "%1$@ toegevoegd als tussenstop tussen %2$@ en %3$@"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ ajouté comme arrivée"
+            "value": "%1$@ ajouté comme étape entre %2$@ et %3$@"
           }
         }
       }
     },
-    "Make it the start": {
+    "%@ added as the end after %@": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zum Start machen"
+            "value": "%1$@ als Ende nach %2$@ hinzugefügt"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Maak er de start van"
+            "value": "%1$@ toegevoegd als einde na %2$@"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "En faire le départ"
+            "value": "%1$@ ajouté comme arrivée après %2$@"
           }
         }
       }
     },
-    "Make it the end": {
+    "Make %@ the start": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zum Ende machen"
+            "value": "%@ zum Start machen"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Maak er het einde van"
+            "value": "Maak %@ de start"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "En faire l’arrivée"
+            "value": "Faire de %@ le départ"
+          }
+        }
+      }
+    },
+    "Make %@ the end": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ zum Ende machen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maak %@ het einde"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faire de %@ l’arrivée"
+          }
+        }
+      }
+    },
+    "Make %@ a stop": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ zum Zwischenstopp machen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maak %@ een tussenstop"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faire de %@ une étape"
           }
         }
       }

@@ -18,6 +18,13 @@
 - [x] 4.1 In `openspec/checked-by-hand.md`, remove the entries that belonged only to "What new knots become". Add the note's scenarios (`Note after a tap`, `Note for a new end`, `Note goes away`, `Note with a screen reader`, `No note for the first two taps`) with how they're checked.
 - [x] 4.2 Add a CHANGELOG Unreleased line. Run `./gradlew check`, `npx @fission-ai/openspec validate --all` and `./gradlew checkScenarios -Pchange=tap-adds-where-it-fits`.
 
+## 5. The note as a preview (after the first trial)
+
+- [x] 5.1 Core: add `PlanningSession.stopAt(knot)` and `TapOptions.of(before, after, knot)`, with a preview window of up to three route knots and "…" flags, and the choices for the other roles. Tests: `Note after a tap` and `Note for a new end` (previews and choices), and `Make it a stop`.
+- [x] 5.2 Android: the note shows the preview with `KnotBadge`, the highlighted knot popping in, a button per choice with its preview, and an Undo icon. Content descriptions are in all four languages. Check on the emulator.
+- [x] 5.3 iOS: the same with `KnotBadge`, and the strings in `Localizable.xcstrings`. Check in the simulator.
+- [x] 5.4 Update `checked-by-hand.md` and `manual-checks.md`. Run `./gradlew check`, `openspec validate --all` and `checkScenarios -Pchange`. Install on both phones for the second trial.
+
 ## Workflow follow-up
 
 - Install on both phones for the maintainer's "how it feels" trial. Archive only if it feels right, otherwise revert.

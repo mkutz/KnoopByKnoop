@@ -27,10 +27,21 @@ Route 33 → 41, then a tap on 06 near Lohmar, far beyond the end, driven by a t
 | Undo the tap | ✅ The stored route is 33 → 41 again |
 | Make it the start | ✅ The waypoints are 06, 33 as a stop, and 41 |
 
+## After the first trial: the note as a preview (2026-11-12)
+
+The maintainer found the guesses good, but the text note too big and too wordy. It now shows badges.
+
+| Scenario | Seen |
+|---|---|
+| Note after a tap (emulator) | ✅ Tapping 36 beside the route: the top row "… 43 36 43 …" with 36 highlighted and popping in; below it "36 43 60 …" as the start, "… 60 43 36" as the end, and an Undo icon; no text (`screenshots/android-preview-stop.png`) |
+| Note for a new end (simulator) | ✅ Tapping 06 far beyond the end: "… 31 32 06", with 06 as the start and 06 as a stop (`screenshots/ios-preview-end.png`) |
+
+On the way, the Android note shrank twice: first smaller badges, then Undo moved into the row of choices. It's now about as tall as the text note, without any text. The previews come from the real alternative routes, so an out-and-back detour shows as such.
+
 ## Not yet checked
 
 - Note with a screen reader (TalkBack, VoiceOver)
-- How it feels on the phones: the maintainer's trial, to decide whether to keep it
+- How it feels on the phones: the maintainer's second trial, with the preview note
 
 ## Steps for the maintainer
 

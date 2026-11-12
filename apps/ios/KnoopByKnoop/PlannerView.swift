@@ -1244,47 +1244,101 @@ private struct FerryDetourQuestion: View {
   }
 }
 
-/// What a tapped knot became, with the choices to change it, see `map-planning` "Changing what a
-/// tapped knot became". Goes away after 6 seconds, but not while VoiceOver is on.
+/// What a tapped knot became, as a preview with badges, with a button per other role, each with
+/// its own preview, and Undo, see `map-planning` "Changing what a tapped knot became". Goes away
+/// after 6 seconds, but not while VoiceOver is on.
 private struct TapNoteCard: View {
   let note: TapNote
   @ObservedObject var model: AppModel
+  @State private var pop: CGFloat = 0.3
 
-  private var message: String {
-    note.role == .end
-      ? String(localized: "\(note.knot.ref) added as the end", bundle: AppLanguage.bundle)
-      : String(localized: "\(note.knot.ref) added as a stop", bundle: AppLanguage.bundle)
+  private var ref: String { note.options.knot.ref }
+
+  private var sentence: String {
+    let preview = note.options.preview
+    let at = Int(preview.highlighted)
+    let before = at > 0 ? preview.knots[at - 1].knot.ref : nil
+    let after = at + 1 < preview.knots.count ? preview.knots[at + 1].knot.ref : nil
+    if note.options.role == .end, let before {
+      return String(localized: "\(ref) added as the end after \(before)", bundle: AppLanguage.bundle)
+    }
+    if let before, let after {
+      return String(
+        localized: "\(ref) added as a stop between \(before) and \(after)", bundle: AppLanguage.bundle)
+    }
+    return String(localized: "\(ref) added", bundle: AppLanguage.bundle)
+  }
+
+  private func label(_ choice: TapChoice) -> String {
+    switch choice.role {
+    case .start: String(localized: "Make \(ref) the start", bundle: AppLanguage.bundle)
+    case .end: String(localized: "Make \(ref) the end", bundle: AppLanguage.bundle)
+    default: String(localized: "Make \(ref) a stop", bundle: AppLanguage.bundle)
+    }
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 10) {
-      Text(message).font(.headline)
-      ViewThatFits(in: .horizontal) {
-        HStack(spacing: 8) { choices }
-        VStack(alignment: .leading, spacing: 8) { choices }
+    VStack(spacing: 6) {
+      KnotPreviewRow(preview: note.options.preview, highlightScale: pop)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(sentence)
+      HStack(spacing: 6) {
+        ForEach(Array(note.options.choices.enumerated()), id: \.offset) { _, choice in
+          Button { model.chooseTap(choice) } label: {
+            KnotPreviewRow(preview: choice.preview).frame(maxWidth: .infinity)
+          }
+          .buttonStyle(.bordered)
+          .buttonBorderShape(.capsule)
+          .accessibilityLabel(label(choice))
+        }
+        Button { model.undoTap() } label: {
+          Image(systemName: "arrow.uturn.backward").font(.body.weight(.semibold))
+            .frame(width: 30, height: 30)
+        }
+        .buttonStyle(.bordered)
+        .buttonBorderShape(.circle)
+        .tint(.primary)
+        .accessibilityLabel(Text("Undo"))
       }
     }
-    .padding(14)
-    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(10)
+    .frame(maxWidth: .infinity)
     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24))
     .shadow(color: .black.opacity(0.16), radius: 10, y: 4)
     .task(id: note.id) {
-      UIAccessibility.post(notification: .announcement, argument: message)
+      pop = 0.3
+      withAnimation(.spring(duration: 0.5, bounce: 0.5)) { pop = 1 }
+      UIAccessibility.post(notification: .announcement, argument: sentence)
       guard !UIAccessibility.isVoiceOverRunning else { return }
       try? await Task.sleep(for: .seconds(6))
       if !Task.isCancelled { model.dismissTapNote(id: note.id) }
     }
   }
+}
 
-  @ViewBuilder private var choices: some View {
-    Button("Make it the start") { model.makeTappedStart() }
-      .buttonStyle(.bordered)
-    if note.role != .end {
-      Button("Make it the end") { model.makeTappedEnd() }
-        .buttonStyle(.bordered)
+/// The knots of `preview` as badges, the highlighted one larger by `highlightScale` and ringed,
+/// with "…" where the route goes on.
+private struct KnotPreviewRow: View {
+  let preview: KnotPreview
+  var highlightScale: CGFloat = 1
+
+  var body: some View {
+    HStack(spacing: 4) {
+      if preview.moreBefore { Text("…").font(.headline).foregroundStyle(.secondary) }
+      ForEach(Array(preview.knots.enumerated()), id: \.offset) { index, routeKnot in
+        let highlighted = index == Int(preview.highlighted)
+        KnotBadge(
+          ref: routeKnot.knot.ref, role: routeKnot.role, plate: .of(routeKnot.knot.signRegion),
+          scale: highlighted ? 0.85 : 0.72, place: routeKnot.knot.routePoint?.placeKind
+        )
+        .padding(highlighted ? 2 : 0)
+        .overlay {
+          if highlighted { Circle().strokeBorder(Color.accentColor.opacity(0.6), lineWidth: 2) }
+        }
+        .scaleEffect(highlighted ? highlightScale : 1)
+      }
+      if preview.moreAfter { Text("…").font(.headline).foregroundStyle(.secondary) }
     }
-    Button("Undo") { model.undoTap() }
-      .buttonStyle(.bordered)
-      .tint(.primary)
+    .accessibilityHidden(true)
   }
 }

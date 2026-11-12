@@ -415,18 +415,11 @@ final class AppModel: ObservableObject {
     routeDescription = MapFeatures.shared.describe(session: session, language: AppLanguage.current)
   }
 
-  /// "Make it the start" in the note, see `map-planning` "Changing what a tapped knot became".
-  func makeTappedStart() {
-    guard let note = tapNote else { return }
+  /// One of the other roles in the note, see `map-planning` "Changing what a tapped knot became".
+  func chooseTap(_ choice: TapChoice) {
     tapNote = nil
-    change { _ in note.before.startAt(point: note.knot) }
-  }
-
-  /// "Make it the end" in the note.
-  func makeTappedEnd() {
-    guard let note = tapNote else { return }
-    tapNote = nil
-    change { _ in note.before.endAt(point: note.knot) }
+    let session = choice.session
+    change { _ in session }
   }
 
   /// "Undo" in the note: the route as it was before the tap.
@@ -490,18 +483,19 @@ final class AppModel: ObservableObject {
       let before = session
       change { $0.tap(knot: knot) }
       let pending = changes
+      tapNote = nil
+      tapNotes += 1
+      let id = tapNotes
       Task {
         await pending?.value
-        // A note only for a knot added to a route, see "Changing what a tapped knot became".
-        guard before.route != nil, let after = self.session, after !== before,
-          let position = after.waypoints.firstIndex(where: { $0.id == knot.id })
-        else {
-          tapNote = nil
-          return
-        }
-        tapNotes += 1
-        tapNote = TapNote(
-          knot: knot, role: after.roleOf(position: Int32(position)), before: before, id: tapNotes)
+        // A note only for a knot added to a route, with the other roles' routes worked out off the
+        // main thread, see "Changing what a tapped knot became".
+        guard let after = self.session, after !== before else { return }
+        let options = await Task.detached {
+          TapOptions.companion.of(before: before, after: after, knot: knot)
+        }.value
+        guard let options, self.session === after, tapNotes == id else { return }
+        tapNote = TapNote(options: options, before: before, id: id)
       }
     case let place as MapTapOffer:
       offer = PlaceOffer(offer: place, point: point)
@@ -1185,11 +1179,10 @@ final class AppModel: ObservableObject {
   }
 }
 
-/// What a tapped `knot` became in a route, with the session `before` the tap to go back to, see
-/// `map-planning` "Changing what a tapped knot became".
+/// The note after a tap: what the knot became and what else it can be, with the session `before`
+/// the tap for Undo, see `map-planning` "Changing what a tapped knot became".
 struct TapNote: @unchecked Sendable {
-  let knot: Knot
-  let role: WaypointRole
+  let options: TapOptions
   let before: PlanningSession
   let id: Int
 }

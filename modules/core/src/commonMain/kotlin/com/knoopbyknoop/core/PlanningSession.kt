@@ -129,6 +129,16 @@ private constructor(
     if (waypoints.isEmpty()) copy(listOf(point), route = null, endFirst = true)
     else planned(waypoints + point)
 
+  /**
+   * Adds [knot] as a stop in the leg where it adds the least distance, also a knot of the network;
+   * needs a route, see `map-planning` "Changing what a tapped knot became".
+   */
+  fun stopAt(knot: Knot): PlanningSession {
+    if (knot.isRoutePoint) return addStopAt(knot)
+    val route = requireNotNull(route) { "A stop needs a route" }
+    return withRoute(route.insertStop(knot))
+  }
+
   /** Adds [point] as a stop in the leg where it adds the least distance; needs a route. */
   fun addStopAt(point: Knot): PlanningSession {
     val route = requireNotNull(route) { "A stop needs a route" }

@@ -57,8 +57,9 @@ import com.knoopbyknoop.core.RouteKnot
 import com.knoopbyknoop.core.RouteSnapshot
 import com.knoopbyknoop.core.RouteSummary
 import com.knoopbyknoop.core.StartChoice
+import com.knoopbyknoop.core.TapChoice
+import com.knoopbyknoop.core.TapOptions
 import com.knoopbyknoop.core.WayFinder
-import com.knoopbyknoop.core.WaypointRole
 import com.knoopbyknoop.core.hasStraightLines
 import com.knoopbyknoop.core.reattached
 import com.knoopbyknoop.core.routePointFor
@@ -707,18 +708,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     state = state.copy(myPosition = null)
   }
 
-  /** "Make it the start" in the note, see `map-planning` "Changing what a tapped knot became". */
-  fun makeTappedStart() {
-    val note = state.tapNote ?: return
+  /**
+   * One of the other roles in the note, see `map-planning` "Changing what a tapped knot became".
+   */
+  fun chooseTap(choice: TapChoice) {
     state = state.copy(tapNote = null)
-    update(note.before.startAt(note.knot))
-  }
-
-  /** "Make it the end" in the note. */
-  fun makeTappedEnd() {
-    val note = state.tapNote ?: return
-    state = state.copy(tapNote = null)
-    update(note.before.endAt(note.knot))
+    update(choice.session)
   }
 
   /** "Undo" in the note: the route as it was before the tap. */
@@ -960,15 +955,17 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
       is MapTap.OnKnot -> {
         val after = session.tap(tapped.knot)
         update(after)
-        // A note only for a knot added to a route, see "Changing what a tapped knot became".
-        val position = after.waypoints.indexOf(tapped.knot)
-        state =
-          state.copy(
-            tapNote =
-              if (session.route != null && after !== session && position >= 0)
-                TapNote(tapped.knot, after.roleOf(position), session, ++tapNotes)
-              else null
-          )
+        state = state.copy(tapNote = null)
+        // A note only for a knot added to a route, with the other roles' routes worked out off the
+        // main thread, see "Changing what a tapped knot became".
+        val id = ++tapNotes
+        viewModelScope.launch {
+          val options =
+            withContext(Dispatchers.Default) { TapOptions.of(session, after, tapped.knot) }
+          if (options != null && state.session === after && tapNotes == id) {
+            state = state.copy(tapNote = TapNote(options, session, id))
+          }
+        }
       }
       is MapTap.OnRoutePoint -> {}
       // While navigating, a place shows its name only, see `map-planning` "Place while navigating".
@@ -1339,12 +1336,7 @@ private const val KEY_PLACES = "places"
 private const val PATH_DATA_DELAY_MILLIS = 2000L
 
 /**
- * What a tapped [knot] became in a route, with the session [before] the tap to go back to, see
- * `map-planning` "Changing what a tapped knot became".
+ * The note after a tap: what the knot became and what else it can be, with the session [before] the
+ * tap for Undo, see `map-planning` "Changing what a tapped knot became".
  */
-data class TapNote(
-  val knot: Knot,
-  val role: WaypointRole,
-  val before: PlanningSession,
-  val id: Long,
-)
+data class TapNote(val options: TapOptions, val before: PlanningSession, val id: Long)
