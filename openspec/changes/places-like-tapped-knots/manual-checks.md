@@ -4,18 +4,18 @@
 
 | Scenario | Seen |
 |---|---|
-| Offer as previews | ✅ An empty spot beside the route near 48 and 09: three buttons with the flag, [flag 95] [… 48 flag 09 …] [09 flag], no words (`screenshots/android-spot-stop.png`) |
-| Suggestion beside the route | ✅ The stop button ringed; choosing it put the flag in as a stop between 48 and 28 |
-| Offer without a route | ✅ After clearing: only "Add to route" (`screenshots/android-add-to-route.png`) |
-| First waypoint, End before the start | ✅ "Add to route" twice: the first spot the start, the second the end, a 2.5 km route (`screenshots/android-two-spots.png`) |
+| Spot added at once | ✅ A tap on an empty spot shows a spinner there (`screenshots/android-spot-adding.png`), then the spot is added: here as the new start before 14, as it lies far before it (`screenshots/android-spot-added.png`) |
+| Offer without a route | ✅ Earlier round: "Add to route" twice made a start and an end; now a spot is added at once the same way |
+
+The emulator takes about a minute to add a spot on this long route. The Pixel took about a second for the same work.
 
 ## Done in the simulator (2026-11-12)
 
 | Scenario | Seen |
 |---|---|
-| Suggestion beyond the end | ✅ On 33 → 41, a spot far beyond the end: [flag 33] [31 flag 31] [41 flag], the end ringed and read as "End here, Suggested"; choosing it made the flag the end (`screenshots/ios-spot-end.png`) |
+| Spot beyond the end, Note for a spot | ✅ On 33 → 41, a spot far beyond the end: added at once as the end, the note "Added as the end" with the flag in the previews (`screenshots/ios-spot-note.png`) |
 
 ## Not yet checked
 
-- A highlighted place (café) on the phones, with its details above the buttons
+- A highlighted place (restaurant, campsite) with "Add to route" on the phones
 - The maintainer's check on both phones

@@ -330,6 +330,12 @@ struct PlannerView: View {
       }
       // The choices for a tapped place, at its flag and above the controls, see `map-planning`
       // "Choose a route point on the map". In the map's coordinates, which ignore the safe area.
+      // A tapped spot or place being added, see "Choose a route point on the map".
+      if let adding = model.addingAt {
+        ProgressView()
+          .position(x: adding.x, y: adding.y - 30)
+          .ignoresSafeArea()
+      }
       // Right above the sheet, see `map-planning` "Changing what a tapped knot became".
       if let note = model.tapNote {
         TapNoteCard(note: note, model: model)
@@ -349,8 +355,7 @@ struct PlannerView: View {
         ) {
           PlaceOfferMenu(
             canAddStop: offer.offer.canAddStop, place: offer.offer.place, nameOnly: offer.nameOnly,
-            details: offer.details, options: offer.options, choose: model.chooseOffer,
-            addToRoute: model.addOfferToRoute)
+            details: offer.details, addToRoute: model.addOfferToRoute)
         }
         .ignoresSafeArea()
       }
@@ -999,15 +1004,10 @@ private struct PlaceOfferMenu: View {
   let nameOnly: Bool
   /// What OpenStreetMap tells about the place, see `map-planning` "Contacts on the place card".
   let details: PlaceDetails?
-  /// The start, stop and end buttons once worked out; `nil` before, and without a route.
-  let options: TapOptions?
-  let choose: (TapChoice) -> Void
   let addToRoute: () -> Void
   @Environment(\.openURL) private var openURL
-  /// 240 points in the default text size, 330 with the buttons for a route, wider for larger text,
-  /// up to the map's width.
+  /// 240 points in the default text size, wider for larger text, up to the map's width.
   @ScaledMetric(relativeTo: .body) private var width: CGFloat = 240
-  @ScaledMetric(relativeTo: .body) private var widthWithButtons: CGFloat = 330
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -1026,7 +1026,7 @@ private struct PlaceOfferMenu: View {
       }
       if !nameOnly { choices }
     }
-    .frame(maxWidth: canAddStop && !nameOnly ? widthWithButtons : width)
+    .frame(maxWidth: width)
     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
     .shadow(radius: 8)
   }
@@ -1092,43 +1092,12 @@ private struct PlaceOfferMenu: View {
     }
   }
 
-  /// Without a route, "Add to route", which adds the place as a tapped knot would be; once there
-  /// is one, the same buttons as after a tapped knot, the suggestion ringed, see "Choose a route
-  /// point on the map".
-  @ViewBuilder private var choices: some View {
-    if !canAddStop {
-      Button(action: addToRoute) {
-        Text("Add to route").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-          .padding(.horizontal, 16)
-      }
-    } else if let options {
-      HStack(spacing: 4) {
-        ForEach(Array(options.choices.enumerated()), id: \.offset) { _, choice in
-          let suggested = choice.role == options.suggested
-          Button { choose(choice) } label: {
-            KnotPreviewRow(preview: choice.preview).frame(maxWidth: .infinity)
-          }
-          .buttonStyle(.bordered)
-          .buttonBorderShape(.capsule)
-          .tint(suggested ? .accentColor : .secondary)
-          .overlay {
-            if suggested { Capsule().strokeBorder(Color.accentColor, lineWidth: 2) }
-          }
-          .accessibilityLabel(name(choice.role))
-          .accessibilityValue(suggested ? Text("Suggested") : Text(verbatim: ""))
-        }
-      }
-      .padding(8)
-    } else {
-      ProgressView().frame(maxWidth: .infinity, minHeight: 44)
-    }
-  }
-
-  private func name(_ role: WaypointRole) -> Text {
-    switch role {
-    case .start: Text("Start here")
-    case .end: Text("End here")
-    default: Text("Add stop here")
+  /// "Add to route", which adds the place as a tapped spot is added, see "Tapping a place on the
+  /// map".
+  private var choices: some View {
+    Button(action: addToRoute) {
+      Text("Add to route").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+        .padding(.horizontal, 16)
     }
   }
 }
@@ -1281,11 +1250,22 @@ private struct TapNoteCard: View {
   @State private var pop: CGFloat = 0.3
 
   private var line: String {
-    let ref = note.options.knot.ref
+    // A knot by its number, a place by its name or kind, a spot by its role alone.
+    let knot = note.options.knot
+    let point = knot.routePoint
+    let name: String? =
+      knot.ref.isEmpty ? (point?.placeName ?? point?.placeKind.map { PlaceIcons.kindName($0) }) : knot.ref
+    guard let name else {
+      switch note.options.role {
+      case .start: return String(localized: "Added as the start", bundle: AppLanguage.bundle)
+      case .end: return String(localized: "Added as the end", bundle: AppLanguage.bundle)
+      default: return String(localized: "Added as a stop", bundle: AppLanguage.bundle)
+      }
+    }
     switch note.options.role {
-    case .start: return String(localized: "\(ref) added as the start", bundle: AppLanguage.bundle)
-    case .end: return String(localized: "\(ref) added as the end", bundle: AppLanguage.bundle)
-    default: return String(localized: "\(ref) added as a stop", bundle: AppLanguage.bundle)
+    case .start: return String(localized: "\(name) added as the start", bundle: AppLanguage.bundle)
+    case .end: return String(localized: "\(name) added as the end", bundle: AppLanguage.bundle)
+    default: return String(localized: "\(name) added as a stop", bundle: AppLanguage.bundle)
     }
   }
 

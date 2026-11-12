@@ -39,21 +39,14 @@ data class KnotPreview(
 
 /**
  * What a tapped knot became in a route, and the three roles it can take in a fixed order, see
- * `map-planning` "Changing what a tapped knot became"; or the same for a point not yet added, see
- * "Choose a route point on the map".
+ * `map-planning` "Changing what a tapped knot became"; a knot of the network or a route point from
+ * a spot or a place.
  *
- * @property role what the knot became, or for a point not yet added where it would fit best
- * @property choices the start, the stop and the end, in this order; after a tap, the one of [role]
- *   is [TapChoice.current]
- * @property suggested for a point not yet added, the role where it adds the least distance; `null`
- *   after a tap
+ * @property role what the knot became
+ * @property choices the start, the stop and the end, in this order; the one of [role] is
+ *   [TapChoice.current]
  */
-class TapOptions(
-  val knot: Knot,
-  val role: WaypointRole,
-  val choices: List<TapChoice>,
-  val suggested: WaypointRole? = null,
-) {
+class TapOptions(val knot: Knot, val role: WaypointRole, val choices: List<TapChoice>) {
   companion object {
 
     /**
@@ -69,27 +62,14 @@ class TapOptions(
     }
 
     /**
-     * The options for [point], a route point not yet in the route of [session], with the role where
-     * it adds the least distance as the suggestion, or `null` without a route.
-     */
-    fun forPoint(session: PlanningSession, point: Knot): TapOptions? {
-      if (session.route == null) return null
-      val placed = session.placed(point)
-      val position =
-        placed.waypoints.indexOfFirst { it.id == point.id }.takeIf { it >= 0 } ?: return null
-      val suggested = placed.roleOf(position)
-      return TapOptions(point, suggested, choices(session, null, point, null), suggested)
-    }
-
-    /**
      * The start, the stop and the end for [knot] on the route of [before]; the one of [current] is
      * [after].
      */
     private fun choices(
       before: PlanningSession,
-      after: PlanningSession?,
+      after: PlanningSession,
       knot: Knot,
-      current: WaypointRole?,
+      current: WaypointRole,
     ): List<TapChoice> {
       val start = before.waypoints.first()
       val end = before.waypoints.last()
@@ -97,7 +77,7 @@ class TapOptions(
         val isCurrent = choice == current
         val session =
           when {
-            isCurrent && after != null -> after
+            isCurrent -> after
             choice == WaypointRole.START -> before.startAt(knot)
             choice == WaypointRole.END -> before.endAt(knot)
             else -> before.stopAt(knot)

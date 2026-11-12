@@ -1,16 +1,17 @@
 ## Why
 
-A tapped knot is now added where it fits, with a one-line note and the buttons [as start] [as stop] [as end] previewed with badges. A tapped place or empty spot ("flag") still offers a plain menu, "Start here", "Add stop here" and "End here". The maintainer finds the two too different (2026-11-12).
+A tapped knot is added where it fits, with a one-line note and the buttons [as start] [as stop] [as end] previewed with badges. A tapped place or empty spot ("flag") still offered a menu, "Start here", "Add stop here" and "End here". The maintainer finds the two too different (2026-11-12).
 
-Places can't simply be added on a tap, though. Tapping a place is also how its card with the opening hours and contacts is read. The maintainer chose to keep "tap shows, choose adds" for places, with the same buttons as the note.
+The first version of this change gave the place card the same buttons. On the phones, the maintainer still saw two ways: the knot is added at once and the note sits above the panel, while a place is added only after a choice, in a card at the spot. Only one difference has a reason: tapping a highlighted place also shows its opening hours and contacts, so adding it on every tap would change the route whenever the user just looks. An empty spot has nothing to show.
+
+So there is one way of adding: everything ends in the same note above the panel. Only highlighted places take one more step, "Add to route" in their card.
 
 ## What Changes
 
-- The choices of a tapped place or empty spot become three buttons in the order start, stop and end, like the note after a tapped knot. Each previews its role with badges: the place's icon or the flag, next to the start or end it would take over, or between the knots around it where it would be a stop.
-- The button where the place adds the least distance, as for a tapped knot, is marked as the suggestion. Nothing changes until one is chosen.
-- Without a route, the card offers just "Add to route", as knots ask nothing then either: the first place becomes the start, the second the end (maintainer, 2026-11-12). "Start here" and "End here" without a route go.
-- The words "Start here", "Add stop here" and "End here" are no longer shown, but remain the buttons' names for screen readers.
-- The place card keeps its name, opening hours and contacts above the buttons.
+- A tap on an empty spot adds a route point there at once, as a tapped knot: the start if there is none, the end if there is no end, otherwise where it adds the least distance, followed by the note with [as start] [as stop] [as end] and Undo.
+- A tap on a highlighted place (restaurant, campsite, …) shows its card with name, opening hours and contacts, and "Add to route". That button adds the place as a spot is added, the card closes, and the note follows.
+- The note says "Eiscafé Riviera added as a stop" for a place, and "Added as the end" for a spot. Its previews show the place's icon or the flag.
+- The "Start here", "Add stop here" and "End here" menu goes. Those names now mean the note's buttons for a route point.
 
 ## Capabilities
 
@@ -21,19 +22,19 @@ None.
 ### Modified Capabilities
 
 - `map-planning`:
-  - "Choose a route point on the map": the choices become badge-preview buttons with a suggestion.
-  - "Tapping a place on the map": the café card shows "Add to route" or the buttons.
-  - "What a chosen route point does": "Add to route" adds as the first two knot taps do.
+  - "Choose a route point on the map": a tapped spot is added at once where it fits.
+  - "Tapping a place on the map": the card offers "Add to route".
+  - "What a chosen route point does": the choices are the note's buttons.
+  - "Changing what a tapped knot became": the note follows spots and places too.
 
 ## Impact
 
-- Core: `TapOptions` gains the options for a point not yet in the route (`TapOptions.forPoint`), with the suggested role. `PlanningSession` gains placing a route point where it fits, which is today's knot placement with the route point's graph.
-- Android: `PlaceOfferMenu` shows the buttons, reusing the note's `KnotPreviewRow`.
-- iOS: `PlaceOfferMenu` likewise.
-- Tests: `PlanningTest` (suggestion, previews), and `openspec/checked-by-hand.md` for the cards.
+- Core: `PlanningSession.placed(point)` adds a route point as a tapped knot is added. `TapOptions.of` works for route points; `TapOptions.forPoint` and `suggested` go again.
+- Android and iOS: the tap on a spot adds at once (off the main thread) and shows the note. The place card shows "Add to route" instead of the menu or the buttons. The note's line names a place, or says "Added as …" for a spot.
+- Tests: `PlanningTest`, and `openspec/checked-by-hand.md` for the cards and the note.
 
 ## Out of scope
 
-- Adding a place at once on a tap, or showing a note after a place was chosen.
 - Places from the search, which only move the map ("Jump to a hit").
+- Making the previews faster on long routes.
 - The map control redesign.

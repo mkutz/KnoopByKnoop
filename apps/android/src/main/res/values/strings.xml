@@ -19,11 +19,13 @@
   <string name="add_stop_here">Add stop here</string>
   <string name="end_here">End here</string>
   <string name="add_to_route">Add to route</string>
-  <string name="place_choice_suggested">%1$s, suggested</string>
   <string name="tap_note_undo">Undo</string>
   <string name="tap_note_added_start">%1$s added as the start</string>
   <string name="tap_note_added_stop">%1$s added as a stop</string>
   <string name="tap_note_added_end">%1$s added as the end</string>
+  <string name="tap_note_spot_start">Added as the start</string>
+  <string name="tap_note_spot_stop">Added as a stop</string>
+  <string name="tap_note_spot_end">Added as the end</string>
   <string name="tap_choice_as_start">As the start</string>
   <string name="tap_choice_as_stop">As a stop</string>
   <string name="tap_choice_as_end">As the end</string>

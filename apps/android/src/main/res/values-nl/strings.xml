@@ -18,11 +18,13 @@
   <string name="add_stop_here">Hier tussenstop</string>
   <string name="end_here">Hier eindigen</string>
   <string name="add_to_route">Aan route toevoegen</string>
-  <string name="place_choice_suggested">%1$s, voorgesteld</string>
   <string name="tap_note_undo">Ongedaan maken</string>
   <string name="tap_note_added_start">%1$s toegevoegd als start</string>
   <string name="tap_note_added_stop">%1$s toegevoegd als tussenstop</string>
   <string name="tap_note_added_end">%1$s toegevoegd als einde</string>
+  <string name="tap_note_spot_start">Toegevoegd als start</string>
+  <string name="tap_note_spot_stop">Toegevoegd als tussenstop</string>
+  <string name="tap_note_spot_end">Toegevoegd als einde</string>
   <string name="tap_choice_as_start">Als start</string>
   <string name="tap_choice_as_stop">Als tussenstop</string>
   <string name="tap_choice_as_end">Als einde</string>

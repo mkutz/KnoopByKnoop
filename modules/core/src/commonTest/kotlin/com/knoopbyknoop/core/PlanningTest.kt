@@ -61,55 +61,53 @@ class PlanningTest {
     assertEquals(listOf("12", "30"), options.choices[0].preview.refs())
   }
 
-  // Requirement: Choose a route point on the map, the buttons for a place
+  // Requirement: Choose a route point on the map, a tapped spot added where it fits
 
   @Test
-  fun `Suggestion beside the route is the stop`() {
+  fun `Spot beside the route is added as a stop`() {
     // Halfway along 7–45, which the route 12 → 45 rides.
-    val point = TestNetwork.pointOn(knot7, knot45, 0.5)
-    val options = assertNotNull(TapOptions.forPoint(session.tapAll(knot12, knot45), point))
-
-    assertEquals(WaypointRole.STOP, options.suggested)
-  }
-
-  @Test
-  fun `Suggestion beyond the end is the end`() {
-    // Halfway along 30–45, beyond the end of 12 → 30.
-    val point = TestNetwork.pointOn(knot30, knot45, 0.5)
-    val options = assertNotNull(TapOptions.forPoint(session.tapAll(knot12, knot30), point))
-
-    assertEquals(WaypointRole.END, options.suggested)
-  }
-
-  @Test
-  fun `Offer as previews shows the point next to the start or around the stop or next to the end`() {
     val route = session.tapAll(knot12, knot45)
     val point = TestNetwork.pointOn(knot7, knot45, 0.5)
-    val options = assertNotNull(TapOptions.forPoint(route, point))
 
-    val (start, stop, end) = options.choices
-    assertEquals(listOf(point.id, knot12.id), start.preview.knots.map { it.knot.id })
-    assertEquals(listOf(knot7.id, point.id, knot45.id), stop.preview.knots.map { it.knot.id })
-    assertEquals(listOf(knot45.id, point.id), end.preview.knots.map { it.knot.id })
-    assertEquals(listOf(false, false, false), options.choices.map { it.current })
-    assertEquals(listOf(point, knot12, knot45), start.session.waypoints)
-    assertEquals(listOf(knot12, point, knot45), stop.session.waypoints)
-    assertEquals(listOf(knot12, knot45, point), end.session.waypoints)
+    val placed = route.placed(point)
+
+    assertEquals(listOf(knot12, point, knot45), placed.waypoints)
+    val options = assertNotNull(TapOptions.of(route, placed, point))
+    assertEquals(WaypointRole.STOP, options.role)
+    assertEquals(listOf(false, true, false), options.choices.map { it.current })
+    assertEquals(listOf(point.id, knot12.id), options.choices[0].preview.knots.map { it.knot.id })
+    assertEquals(listOf(point, knot12, knot45), options.choices[0].session.waypoints)
+    assertEquals(listOf(knot12, knot45, point), options.choices[2].session.waypoints)
   }
 
   @Test
-  fun `Offer without a route has no buttons and adds the place as a tapped knot`() {
-    val point = TestNetwork.pointOn(knot7, knot45, 0.5)
+  fun `Spot beyond the end becomes the new end`() {
+    // Halfway along 30–45, beyond the end of 12 → 30.
+    val route = session.tapAll(knot12, knot30)
+    val point = TestNetwork.pointOn(knot30, knot45, 0.5)
 
-    assertNull(TapOptions.forPoint(session, point))
-    assertNull(TapOptions.forPoint(session.tap(knot12), point))
+    val placed = route.placed(point)
+
+    assertEquals(listOf(knot12, knot30, point), placed.waypoints)
+    assertEquals(WaypointRole.END, assertNotNull(TapOptions.of(route, placed, point)).role)
   }
 
   @Test
-  fun `First waypoint from Add to route is the start`() {
+  fun `Offer without a route adds the spot as the start without a note`() {
     val point = TestNetwork.pointOn(knot7, knot45, 0.5)
 
-    val route = session.tap(point).tap(knot30)
+    val started = session.placed(point)
+
+    assertEquals(listOf(point), started.waypoints)
+    assertNull(TapOptions.of(session, started, point))
+    assertEquals(listOf(point, knot30), started.tap(knot30).waypoints)
+  }
+
+  @Test
+  fun `First waypoint from a tapped spot is the start`() {
+    val point = TestNetwork.pointOn(knot7, knot45, 0.5)
+
+    val route = session.placed(point).tap(knot30)
 
     assertEquals(listOf(point, knot30), route.waypoints)
     assertNotNull(route.route)
@@ -119,7 +117,7 @@ class PlanningTest {
   fun `End before the start from Add to route is the end after the only waypoint`() {
     val point = TestNetwork.pointOn(knot7, knot45, 0.5)
 
-    val route = session.tap(knot12).tap(point)
+    val route = session.tap(knot12).placed(point)
 
     assertEquals(listOf(knot12, point), route.waypoints)
     assertTrue(route.route?.summary is RouteSummary.Complete)

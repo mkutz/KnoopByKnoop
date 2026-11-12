@@ -2954,24 +2954,68 @@
         }
       }
     },
-    "Suggested": {
+    "Added as the start": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vorgeschlagen"
+            "value": "Als Start hinzugefügt"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Voorgesteld"
+            "value": "Toegevoegd als start"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Suggéré"
+            "value": "Ajouté comme départ"
+          }
+        }
+      }
+    },
+    "Added as a stop": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Zwischenstopp hinzugefügt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toegevoegd als tussenstop"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouté comme étape"
+          }
+        }
+      }
+    },
+    "Added as the end": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Ende hinzugefügt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toegevoegd als einde"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouté comme arrivée"
           }
         }
       }

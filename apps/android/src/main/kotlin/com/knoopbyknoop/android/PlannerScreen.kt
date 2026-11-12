@@ -134,7 +134,6 @@ import com.knoopbyknoop.core.PathDataStatus
 import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteSummary
 import com.knoopbyknoop.core.StartChoice
-import com.knoopbyknoop.core.TapOptions
 import com.knoopbyknoop.core.WaypointRole
 import com.knoopbyknoop.core.hasStraightLines
 import com.knoopbyknoop.core.nameIn
@@ -496,6 +495,14 @@ private fun MapArea(
       onOfferMoved = viewModel::offerMoved,
     )
     state.offer?.let { PlaceOfferMenu(it, viewModel) }
+    // A tapped spot or place being added, see "Choose a route point on the map".
+    state.addingAt?.let { at ->
+      CircularProgressIndicator(
+        modifier =
+          Modifier.offset { IntOffset(at.x.roundToInt() - 36, at.y.roundToInt() - 36) }.size(24.dp),
+        strokeWidth = 3.dp,
+      )
+    }
     // Below the status bar and clear of the cutout, where touches go to the system, see
     // `map-planning` "Clear of the system bars".
     Column(
@@ -790,15 +797,30 @@ private fun TapNoteCard(note: TapNote, viewModel: AppViewModel, modifier: Modifi
       verticalArrangement = Arrangement.spacedBy(6.dp),
       modifier = Modifier.padding(start = 12.dp, top = 10.dp, end = 4.dp, bottom = 8.dp),
     ) {
+      // A knot by its number, a place by its name or kind, a spot by its role alone.
+      val point = options.knot.routePoint
+      val name =
+        options.knot.ref.ifEmpty { null }
+          ?: point?.placeName
+          ?: point?.placeKind?.let { stringResource(placeKindLabel(it)) }
       Text(
-        stringResource(
-          when (options.role) {
-            WaypointRole.START -> R.string.tap_note_added_start
-            WaypointRole.END -> R.string.tap_note_added_end
-            WaypointRole.STOP -> R.string.tap_note_added_stop
-          },
-          options.knot.ref,
-        ),
+        if (name != null)
+          stringResource(
+            when (options.role) {
+              WaypointRole.START -> R.string.tap_note_added_start
+              WaypointRole.END -> R.string.tap_note_added_end
+              WaypointRole.STOP -> R.string.tap_note_added_stop
+            },
+            name,
+          )
+        else
+          stringResource(
+            when (options.role) {
+              WaypointRole.START -> R.string.tap_note_spot_start
+              WaypointRole.END -> R.string.tap_note_spot_end
+              WaypointRole.STOP -> R.string.tap_note_spot_stop
+            }
+          ),
         style = MaterialTheme.typography.bodyMedium,
         modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
       )
@@ -1334,53 +1356,6 @@ private fun placeKindLabel(kindKey: String) =
   }
 
 /**
- * The start, stop and end buttons for an offered place, each previewing that role with badges, the
- * suggestion ringed, see `map-planning` "Choose a route point on the map".
- */
-@Composable
-private fun PlaceChoiceButtons(options: TapOptions, viewModel: AppViewModel) {
-  Row(
-    horizontalArrangement = Arrangement.spacedBy(4.dp),
-    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-  ) {
-    for (choice in options.choices) {
-      val name =
-        stringResource(
-          when (choice.role) {
-            WaypointRole.START -> R.string.start_here
-            WaypointRole.END -> R.string.end_here
-            WaypointRole.STOP -> R.string.add_stop_here
-          }
-        )
-      val suggested = choice.role == options.suggested
-      val label = if (suggested) stringResource(R.string.place_choice_suggested, name) else name
-      OutlinedButton(
-        onClick = { viewModel.chooseOffer(choice) },
-        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
-        border =
-          BorderStroke(
-            if (suggested) 2.dp else 1.dp,
-            if (suggested) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.outlineVariant,
-          ),
-        colors =
-          ButtonDefaults.outlinedButtonColors(
-            containerColor =
-              if (suggested) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-          ),
-        modifier =
-          Modifier.heightIn(min = 40.dp).semantics {
-            contentDescription = label
-          },
-      ) {
-        KnotPreviewRow(choice.preview)
-      }
-    }
-  }
-}
-
-/**
  * The choices for a tapped place, at the place, see `map-planning` "Choose a route point on the
  * map". Dismissing changes nothing.
  */
@@ -1414,28 +1389,11 @@ private fun PlaceOfferMenu(offer: PlaceOffer, viewModel: AppViewModel) {
         if (!offer.nameOnly) HorizontalDivider()
       }
       if (offer.nameOnly) return@DropdownMenu
-      // Without a route, the place is added as a tapped knot would be; once there is one, the same
-      // buttons as after a tapped knot, see "Choose a route point on the map".
-      if (!offer.offer.canAddStop) {
-        DropdownMenuItem(
-          text = { Text(stringResource(R.string.add_to_route)) },
-          onClick = viewModel::addOfferToRoute,
-        )
-        return@DropdownMenu
-      }
-      val options = offer.options
-      if (options == null) {
-        // The size of the buttons while they are worked out, so the card does not jump.
-        Box(
-          contentAlignment = Alignment.Center,
-          modifier =
-            Modifier.padding(horizontal = 8.dp, vertical = 4.dp).width(300.dp).height(48.dp),
-        ) {
-          CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-        }
-      } else {
-        PlaceChoiceButtons(options, viewModel)
-      }
+      // Added as a tapped spot, then the note follows, see "Tapping a place on the map".
+      DropdownMenuItem(
+        text = { Text(stringResource(R.string.add_to_route)) },
+        onClick = viewModel::addOfferToRoute,
+      )
     }
   }
 }

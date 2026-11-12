@@ -204,6 +204,8 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Nearest knots with a screen reader — on the devices with a screen reader
 - The icons — on the devices
 - Note goes away — on the emulator: after 6 seconds, or with the next tap
+- Note for a place — on the devices: "Add to route" on a café's card, the note names the café and previews its icon (`places-like-tapped-knots` manual checks)
+- Note for a spot — in the simulator: a spot beyond the end, "Added as the end" with the flag in the previews
 - Note with a screen reader — on the devices with TalkBack and VoiceOver: announced, and stays until a choice is used
 - In landscape — on the devices in landscape
 - Larger text — on the devices at large text sizes

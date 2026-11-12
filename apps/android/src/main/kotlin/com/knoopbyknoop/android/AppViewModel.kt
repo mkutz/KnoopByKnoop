@@ -121,12 +121,12 @@ data class PlaceOffer(
    * or without them.
    */
   val details: PlaceDetails? = null,
-  /**
-   * The buttons for the place once worked out, see `map-planning` "Choose a route point on the
-   * map"; `null` before, and without a route, where "Add to route" is offered.
-   */
-  val options: TapOptions? = null,
 )
+
+/**
+ * Where a tapped spot is being added, for a spinner there until it is, see "Choose a route point".
+ */
+data class AddingAt(val x: Float, val y: Float)
 
 /** What to make of an offered place, see `map-planning` "What a chosen route point does". */
 /** A [knot] to show on the map; [request] counts the taps, so the same knot can be shown again. */
@@ -168,6 +168,8 @@ data class AppState(
   /** What tapped knots become, see `map-planning` "What new knots become". */
   /** What the last tapped knot became, while the note about it shows. */
   val tapNote: TapNote? = null,
+  /** Where a tapped spot or place is being added, while it is worked out. */
+  val addingAt: AddingAt? = null,
   /** The appearance chosen in the info sheet, see `map-planning` "Light and dark appearance". */
   val appearance: Appearance = Appearance.SYSTEM,
   /**
@@ -969,11 +971,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
       is MapTap.OnRoutePoint -> {}
       // While navigating, a place shows its name only, see `map-planning` "Place while navigating".
       is MapTap.Offer -> {
-        if (!state.navigating) {
-          val offer = PlaceOffer(tapped, x, y)
-          state = state.copy(offer = offer)
-          findOfferOptions(session, tapped)
-        } else if (tapped.place != null) {
+        // An empty spot is added at once; a place shows its card first, see "Choose a route point
+        // on the map" and "Tapping a place on the map".
+        if (!state.navigating && tapped.place == null) addPoint(session, tapped, x, y)
+        else if (!state.navigating) state = state.copy(offer = PlaceOffer(tapped, x, y))
+        else if (tapped.place != null) {
           state = state.copy(offer = PlaceOffer(tapped, x, y, nameOnly = true))
         }
         tapped.place?.let(::lookUpDetails)
@@ -1018,41 +1020,42 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   }
 
   /**
-   * Works out the buttons for an offered place off the main thread: the start, the stop and the end
-   * with their previews and the suggestion, see `map-planning` "Choose a route point on the map".
+   * Adds a route point for [tapped] where it fits, as a tapped knot, off the main thread, then
+   * shows the note, see `map-planning` "Choose a route point on the map". A later tap cancels it; a
+   * route changed meanwhile, e.g. by the courses coming in, is worked out again.
    */
-  private fun findOfferOptions(session: PlanningSession, tapped: MapTap.Offer) {
-    if (session.route == null) return
+  private fun addPoint(session: PlanningSession, tapped: MapTap.Offer, x: Float, y: Float) {
     val geometry = loaded?.geometry ?: return
+    val id = ++tapNotes
+    state = state.copy(tapNote = null, addingAt = AddingAt(x, y))
     viewModelScope.launch {
-      val options =
+      val added =
         withContext(Dispatchers.Default) {
-          session.routePointFor(tapped, geometry)?.let { TapOptions.forPoint(session, it) }
-        } ?: return@launch
-      val offer = state.offer
-      if (offer == null || offer.offer !== tapped) return@launch
-      // The route may have changed meanwhile, e.g. when the courses came in: work it out again.
+          session.routePointFor(tapped, geometry)?.let { point -> point to session.placed(point) }
+        }
+      if (tapNotes != id) return@launch
+      state = state.copy(addingAt = null)
+      val (point, after) = added ?: return@launch
       val current = state.session
-      if (current === session) state = state.copy(offer = offer.copy(options = options))
-      else if (current != null) findOfferOptions(current, tapped)
+      if (current !== session) {
+        if (current != null && !state.navigating) addPoint(current, tapped, x, y)
+        return@launch
+      }
+      update(after)
+      findWays()
+      val options = withContext(Dispatchers.Default) { TapOptions.of(session, after, point) }
+      if (options != null && tapNotes == id) {
+        state = state.copy(tapNote = TapNote(options, session, id))
+      }
     }
   }
 
-  /** One of the place's buttons, see `map-planning` "What a chosen route point does". */
-  fun chooseOffer(choice: TapChoice) {
-    state = state.copy(offer = null)
-    update(choice.session)
-    findWays()
-  }
-
-  /** "Add to route" without a route: the start, or the end if a start is set, as a tapped knot. */
+  /** "Add to route" on a place's card: added as a tapped spot, see "Tapping a place on the map". */
   fun addOfferToRoute() {
-    val offer = state.offer?.offer ?: return
+    val offer = state.offer ?: return
     state = state.copy(offer = null)
     val session = state.session ?: return
-    val point = session.routePointFor(offer, loaded?.geometry ?: return) ?: return
-    update(session.tap(point))
-    findWays()
+    addPoint(session, offer.offer, offer.x, offer.y)
   }
 
   /** Finds ways along paths in one place at a time, as the router is not thread safe. */
