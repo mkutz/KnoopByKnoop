@@ -41,22 +41,7 @@ struct NavigateIconAction: View {
   let action: () -> Void
 
   var body: some View {
-    let label = Image(systemName: "location.north.fill")
-      .font(.system(size: 22, weight: .bold))
-      .frame(width: 40, height: 40)
-    if #available(iOS 26, *) {
-      Button(action: action) { label }
-        .buttonStyle(.glassProminent)
-        .buttonBorderShape(.circle)
-        .tint(.actionGreen)
-        .accessibilityLabel(Text("Navigate"))
-    } else {
-      Button(action: action) { label }
-        .buttonStyle(.borderedProminent)
-        .buttonBorderShape(.circle)
-        .tint(.actionGreen)
-        .accessibilityLabel(Text("Navigate"))
-    }
+    RoundProminentAction(title: "Navigate", systemImage: "location.north.fill", color: .actionGreen, action: action)
   }
 }
 
@@ -67,15 +52,33 @@ struct StopIconAction: View {
   let action: () -> Void
 
   var body: some View {
-    Button(action: action) {
-      Image(systemName: "stop.fill")
-        .font(.system(size: 20, weight: .bold))
-        .foregroundStyle(.white)
-        .frame(width: 52, height: 52)
-        .background(Circle().fill(Color.actionRed))
+    RoundProminentAction(title: "Stop", systemImage: "stop.fill", color: .actionRed, action: action)
+  }
+}
+
+/// Navigate and Stop alike: 52 pt round, filled with [color], with prominent glass on iOS 26.
+private struct RoundProminentAction: View {
+
+  let title: LocalizedStringKey
+  let systemImage: String
+  let color: Color
+  let action: () -> Void
+
+  var body: some View {
+    let label = Image(systemName: systemImage)
+      .font(.system(size: 20, weight: .bold))
+      .foregroundStyle(.white)
+      .frame(width: 52, height: 52)
+    if #available(iOS 26, *) {
+      Button(action: action) { label }
+        .buttonStyle(.plain)
+        .glassEffect(.regular.tint(color).interactive(), in: Circle())
+        .accessibilityLabel(Text(title))
+    } else {
+      Button(action: action) { label.background(Circle().fill(color)) }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(title))
     }
-    .buttonStyle(.plain)
-    .accessibilityLabel(Text("Stop"))
   }
 }
 
