@@ -43,7 +43,7 @@
 
   Tests: `Several closed ferries`, `Keeping one ferry and riding around another`, `A ferry with two crossings`, `Map for each of several ferries`. Update `Another ferry on the detour`.
 - [ ] 6.2 Android: the view model asks ferry after ferry, keeping the kept ferries and the count. The question title becomes "Closed ferry 1 of 2" when there are several, in values, de, nl and fr. Check on the emulator at 21:00 with two closed ferries.
-- [ ] 6.3 iOS: the same in `AppModel` and the panel's question, with the strings in `Localizable.xcstrings`. Check in the simulator or on the iPhone.
+- [x] 6.3 iOS: the same in `AppModel` and the panel's question, with the strings in `Localizable.xcstrings`. Check in the simulator or on the iPhone.
 - [x] 6.4 Add `Question dismissed for one of several ferries` to `openspec/checked-by-hand.md`. Run `./gradlew check`, `openspec validate --all` and `./gradlew checkScenarios -Pchange=navigation-only-route-changes`.
 
 ## Workflow follow-up

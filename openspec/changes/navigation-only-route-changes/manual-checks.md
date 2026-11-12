@@ -26,7 +26,8 @@ The ferry was open at that time, so only starting nearby was checked. Same route
 ## On the iPhone (maintainer, 2026-11-12)
 
 - Starting nearby, Stop, Navigate again and closing the app while navigating all worked ("Yes").
-- On a long route to Den Helder, one question named all the closed ferries but showed only the first detour, and Horsterveer twice. That led to one question per ferry (option 1, confirmed by the maintainer) and one ferry per set of crossings (7bcab0e). This is not yet checked on the iPhone.
+- On a long route to Den Helder, one question named all the closed ferries but showed only the first detour, and Horsterveer twice. That led to one question per ferry (option 1, confirmed by the maintainer) and one ferry per set of crossings (7bcab0e).
+- With 7bcab0e, the maintainer saw the two questions on the iPhone ("Saw the two questions on my iPhone 👍").
 
 ## Steps for the maintainer
 
