@@ -29,6 +29,10 @@ The ferry was open at that time, so only starting nearby was checked. Same route
 - On a long route to Den Helder, one question named all the closed ferries but showed only the first detour, and Horsterveer twice. That led to one question per ferry (option 1, confirmed by the maintainer) and one ferry per set of crossings (7bcab0e).
 - With 7bcab0e, the maintainer saw the two questions on the iPhone ("Saw the two questions on my iPhone 👍").
 
+## On the Pixel (maintainer, 2026-11-12)
+
+- With aac562f's build, the per-ferry questions, riding around, keeping and the restored plan all work ("Works on the Pixel too").
+
 ## Steps for the maintainer
 
 On a phone, in the evening after the ferry's last crossing (Mondorf–Graurheindorf closes at 19:00 on winter weekdays):
