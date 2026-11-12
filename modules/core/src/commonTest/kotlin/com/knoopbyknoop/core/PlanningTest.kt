@@ -234,6 +234,19 @@ class PlanningTest {
   }
 
   @Test
+  fun `Note stays after a choice with the chosen role selected`() {
+    val before = session.tapAll(knot12, knot45)
+    val options = assertNotNull(TapOptions.of(before, before.tap(knot30), knot30))
+
+    val chosen = options.chosen(options.choices[0])
+
+    assertEquals(WaypointRole.START, chosen.role)
+    assertEquals(listOf(true, false, false), chosen.choices.map { it.current })
+    assertEquals(listOf(knot30, knot12, knot45), chosen.choices[0].session.waypoints)
+    assertEquals(listOf(knot12, knot30, knot45), chosen.choices[1].session.waypoints)
+  }
+
+  @Test
   fun `Undo the tap gives the route before it`() {
     val before = session.tapAll(knot12, knot45)
     val after = before.tap(knot30)

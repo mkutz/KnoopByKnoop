@@ -713,7 +713,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
    * One of the other roles in the note, see `map-planning` "Changing what a tapped knot became".
    */
   fun chooseTap(choice: TapChoice) {
-    state = state.copy(tapNote = null)
+    val note = state.tapNote ?: return
+    // Stays with the choice selected and its time started again, so a mistap can be put right.
+    state = state.copy(tapNote = TapNote(note.options.chosen(choice), note.before, ++tapNotes))
     update(choice.session)
   }
 

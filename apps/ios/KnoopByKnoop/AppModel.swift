@@ -412,7 +412,10 @@ final class AppModel: ObservableObject {
 
   /// One of the other roles in the note, see `map-planning` "Changing what a tapped knot became".
   func chooseTap(_ choice: TapChoice) {
-    tapNote = nil
+    guard let note = tapNote else { return }
+    // Stays with the choice selected and its time started again, so a mistap can be put right.
+    tapNotes += 1
+    tapNote = TapNote(options: note.options.chosen(choice: choice), before: note.before, id: tapNotes)
     let session = choice.session
     change { _ in session }
   }

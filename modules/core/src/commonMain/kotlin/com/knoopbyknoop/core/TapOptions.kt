@@ -47,6 +47,18 @@ data class KnotPreview(
  *   [TapChoice.current]
  */
 class TapOptions(val knot: Knot, val role: WaypointRole, val choices: List<TapChoice>) {
+
+  /**
+   * The note after [choice] was used: the same choices with that one selected, see `map-planning`
+   * "Changing what a tapped knot became".
+   */
+  fun chosen(choice: TapChoice): TapOptions =
+    TapOptions(
+      knot,
+      choice.role,
+      choices.map { TapChoice(it.role, it.session, it.preview, it.role == choice.role) },
+    )
+
   companion object {
 
     /**
