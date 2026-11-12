@@ -23,6 +23,11 @@ The ferry was open at that time, so only starting nearby was checked. Same route
 | Starting nearby | ✅ Navigation from the temporary start flag by 14, over the ferry (`screenshots/ios-navigating-nearby.png`) |
 | The plan after the ride | ✅ After Stop, the planner shows 12, 13, 14, ⛴, 15 again, and `route.json` holds 12 → 15 (`screenshots/ios-restored.png`) |
 
+## On the iPhone (maintainer, 2026-11-12)
+
+- Starting nearby, Stop, Navigate again and closing the app while navigating all worked ("Yes").
+- On a long route to Den Helder, one question named all the closed ferries but showed only the first detour, and Horsterveer twice. That led to one question per ferry (option 1, confirmed by the maintainer) and one ferry per set of crossings (7bcab0e). This is not yet checked on the iPhone.
+
 ## Steps for the maintainer
 
 On a phone, in the evening after the ferry's last crossing (Mondorf–Graurheindorf closes at 19:00 on winter weekdays):
