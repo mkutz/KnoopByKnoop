@@ -1029,9 +1029,10 @@ private fun rememberNavigate(viewModel: AppViewModel): () -> Unit {
 @Composable
 private fun NavigateButton(viewModel: AppViewModel) {
   val navigate = rememberNavigate(viewModel)
+  val finding = viewModel.state.findingStart
   NamedAction(stringResource(R.string.navigate)) {
     FilledIconButton(
-      onClick = navigate,
+      onClick = { if (!finding) navigate() },
       colors =
         IconButtonDefaults.filledIconButtonColors(
           containerColor = ActionColors.green,
@@ -1039,10 +1040,7 @@ private fun NavigateButton(viewModel: AppViewModel) {
         ),
       modifier = Modifier.size(48.dp),
     ) {
-      Icon(
-        painterResource(R.drawable.ic_action_navigate),
-        contentDescription = stringResource(R.string.navigate),
-      )
+      NavigateIcon(finding, Modifier.size(24.dp))
     }
   }
 }
@@ -1054,22 +1052,40 @@ private fun NavigateButton(viewModel: AppViewModel) {
 @Composable
 private fun NavigateFab(viewModel: AppViewModel, modifier: Modifier) {
   val navigate = rememberNavigate(viewModel)
+  val finding = viewModel.state.findingStart
   NamedAction(stringResource(R.string.navigate), modifier) {
     FloatingActionButton(
-      onClick = navigate,
+      onClick = { if (!finding) navigate() },
       containerColor = ActionColors.green,
       contentColor = Color.White,
       shape = CircleShape,
       modifier =
         Modifier.size(NAVIGATE_FAB_SIZE).border(1.dp, Color.White.copy(alpha = 0.5f), CircleShape),
     ) {
-      Icon(
-        painterResource(R.drawable.ic_action_navigate),
-        contentDescription = stringResource(R.string.navigate),
-        modifier = Modifier.size(28.dp),
-      )
+      NavigateIcon(finding, Modifier.size(28.dp))
     }
   }
+}
+
+/**
+ * Navigate's arrow, or a spinner while the rider's position is found, read as "Finding your
+ * position", see `knot-navigation` "Start on the route nearby".
+ */
+@Composable
+private fun NavigateIcon(finding: Boolean, modifier: Modifier) {
+  if (finding) {
+    val label = stringResource(R.string.finding_your_position)
+    CircularProgressIndicator(
+      color = Color.White,
+      strokeWidth = 2.5.dp,
+      modifier = modifier.semantics { contentDescription = label },
+    )
+  } else
+    Icon(
+      painterResource(R.drawable.ic_action_navigate),
+      contentDescription = stringResource(R.string.navigate),
+      modifier = modifier,
+    )
 }
 
 private val NAVIGATE_FAB_SIZE = 64.dp

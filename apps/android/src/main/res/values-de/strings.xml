@@ -149,4 +149,5 @@
   <string name="search_a_place">Ort suchen</string>
   <string name="nearest_knots">Nächste Knotenpunkte</string>
   <string name="not_set_yet">noch nicht gesetzt</string>
+  <string name="finding_your_position">Position wird gesucht</string>
 </resources>

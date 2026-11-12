@@ -27,6 +27,9 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Labels while zoomed in — the same recordings: labels steady while following
 - Courses on a slow phone — on the emulator, where the courses take about 20 s: Navigate pressed before they have loaded, a recorded ride replayed
 - Question dismissed — on the devices: Navigate away from the start, the question closed without choosing
+- Recent position — on the devices: Navigate right after "Show my position" asks or starts at once
+- Position too old or too rough — on the devices: Navigate indoors after a while without a position, decided within about two seconds outdoors
+- Waiting for the position — on the devices indoors: a spinner on Navigate at once, further taps ignored, read as "Finding your position" by TalkBack and VoiceOver
 - Position unknown — on the devices: Navigate without a position within 10 s, e.g. indoors
 - The plan after the ride — on the devices: started nearby, then Stop, the planner shows the plan from its own start (`navigation-only-route-changes` manual checks)
 - Plan restored after stopping — on the emulator: started nearby and rode around a closed ferry, then Stop, the planner shows the plan over the ferry and `route.json` never changed

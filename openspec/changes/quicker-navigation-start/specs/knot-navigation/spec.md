@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Start on the route nearby
-When navigation is started more than 30 m from the start and a place on the course before the first stop, more than 200 m along it from the start, is less than half as far as the start, the app SHALL ask once whether to ride to the start or to start on the route nearby, each with its straight distance. Starting nearby SHALL make that place the start of the route for this navigation only, as if the plan started there, see "The plan after navigation". The position SHALL be one at most 60 s old and accurate to 100 m, else a new one of that accuracy; while it is sought, Navigate SHALL show that it is working. The 30 m SHALL grow by the position's accuracy.
+When navigation is started more than 30 m from the start and a place on the course before the first stop, more than 200 m along it from the start, is less than half as far as the start, the app SHALL ask once whether to ride to the start or to start on the route nearby, each with its straight distance. Starting nearby SHALL make that place the start of the route for this navigation only, as if the plan started there, see "The plan after navigation". The position SHALL be one at most 60 s old and accurate to 100 m, else a new one of that accuracy; while it is sought, Navigate SHALL show that it is working.
 
 #### Scenario: Asked near the course
 - **WHEN** the route runs 06 → 02 → 28 with 02 a stop, and the rider starts navigation 250 m from the course of 06 → 02 and 4.4 km from 06

@@ -27,7 +27,7 @@
   - iOS: `PositionFinder.find(timeout:accuracy:maxAge:)` sets `desiredAccuracy = kCLLocationAccuracyHundredMeters` for this request and back to best afterwards. `requestLocation()` returns once that accuracy is reached.
   - Android: `Priority.PRIORITY_BALANCED_POWER_ACCURACY` with `durationMillis = 10_000`.
   - Both: "Show my position" keeps calling with today's settings, which stay the defaults.
-- **Accuracy in the core.** `StartChoice.of(..., accuracyMeters: Double = 0.0)` compares the start distance with `AT_START_METERS + accuracyMeters`. Nothing else changes: the course and the start are both measured from the same rough point, so their comparison holds.
+- **No accuracy in the core.** `StartChoice.of` asks only when a place on the course more than 200 m along from the start is less than half as far as the start. So the rider is at least about 400 m from the start, and 100 m of inaccuracy can't make it ask at the start. Widening `AT_START_METERS` by the accuracy was considered and dropped: it would never change a result.
 - **Feedback.**
   - iOS: `AppModel.findingStart` (`@Published`).
   - Android: `AppState.findingStart`.

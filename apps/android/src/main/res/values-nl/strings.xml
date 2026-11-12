@@ -149,4 +149,5 @@
   <string name="search_a_place">Plaats zoeken</string>
   <string name="nearest_knots">Dichtstbijzijnde knooppunten</string>
   <string name="not_set_yet">nog niet gekozen</string>
+  <string name="finding_your_position">Positie wordt gezocht</string>
 </resources>

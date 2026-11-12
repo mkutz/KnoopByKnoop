@@ -30,10 +30,28 @@ final class PositionFinder: NSObject, CLLocationManagerDelegate {
   }
 
   /// Asks for access "when in use" first if it was never asked for; gives up after [timeout].
-  func find(timeout: Duration = .seconds(15), _ completion: @escaping (Result) -> Void) {
-    guard self.completion == nil else { return }
+  /// With [maxAge], a fix the phone found within that time and at least as accurate as [accuracy]
+  /// is taken at once; a new one is sought at [accuracy], see `knot-navigation` "Start on the
+  /// route nearby".
+  func find(
+    timeout: Duration = .seconds(15), accuracy: CLLocationAccuracy = kCLLocationAccuracyBest,
+    maxAge: TimeInterval? = nil, _ completion: @escaping (Result) -> Void
+  ) {
+    // Busy with another request: no position for this one, so nobody waits for nothing.
+    guard self.completion == nil else {
+      completion(.notFound)
+      return
+    }
+    if hasAccess, let maxAge, let recent = manager.location,
+      -recent.timestamp.timeIntervalSinceNow <= maxAge,
+      recent.horizontalAccuracy >= 0, recent.horizontalAccuracy <= max(accuracy, 0)
+    {
+      completion(.found(Self.fix(recent)))
+      return
+    }
     self.completion = completion
     timeoutDuration = timeout
+    manager.desiredAccuracy = accuracy
     switch manager.authorizationStatus {
     case .notDetermined: manager.requestWhenInUseAuthorization()
     case .denied, .restricted: finish(.denied)
@@ -53,6 +71,7 @@ final class PositionFinder: NSObject, CLLocationManagerDelegate {
   private func finish(_ result: Result) {
     timeout?.cancel()
     timeout = nil
+    manager.desiredAccuracy = kCLLocationAccuracyBest
     let completion = completion
     self.completion = nil
     completion?(result)
@@ -72,12 +91,7 @@ final class PositionFinder: NSObject, CLLocationManagerDelegate {
   nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
     MainActor.assumeIsolated {
       guard let location = locations.last, completion != nil else { return }
-      finish(
-        .found(
-          Fix(
-            latitude: location.coordinate.latitude, longitude: location.coordinate.longitude,
-            accuracyMeters: location.horizontalAccuracy,
-            timeMillis: Int64(location.timestamp.timeIntervalSince1970 * 1000))))
+      finish(.found(Self.fix(location)))
     }
   }
 
@@ -87,5 +101,12 @@ final class PositionFinder: NSObject, CLLocationManagerDelegate {
       if (error as? CLError)?.code == .locationUnknown { return }
       if (error as? CLError)?.code == .denied { finish(.denied) } else { finish(.notFound) }
     }
+  }
+
+  private static func fix(_ location: CLLocation) -> Fix {
+    Fix(
+      latitude: location.coordinate.latitude, longitude: location.coordinate.longitude,
+      accuracyMeters: location.horizontalAccuracy,
+      timeMillis: Int64(location.timestamp.timeIntervalSince1970 * 1000))
   }
 }

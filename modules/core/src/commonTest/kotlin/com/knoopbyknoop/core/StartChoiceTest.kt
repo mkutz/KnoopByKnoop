@@ -119,6 +119,14 @@ class StartChoiceTest {
   }
 
   @Test
+  fun `Rough position at the start asks nothing in any direction`() {
+    for ((east, north) in
+      listOf(70.0 to 0.0, -70.0 to 0.0, 0.0 to 70.0, 0.0 to -70.0, 50.0 to 50.0)) {
+      assertNull(choiceAt(east, north), "at $east m east, $north m north")
+    }
+  }
+
+  @Test
   fun `Close to the start along the course`() {
     assertNull(choiceAt(east = 150.0, north = -100.0))
   }

@@ -7,6 +7,7 @@
 - The map's buttons stand in groups on glass (search; position and nearest knots; zoom) right above the panel and move with it. Settings have their own gear button at the top right. Navigate is a round button, on Android floating on the panel's edge. Back to start, Export GPX and Clear sit in a row below the route's knots instead of a menu. The note after a tap and the place card are in the same glass
 - The note after a tap stays open after choosing start, stop or end, so a mistap can be put right; it goes away 6 seconds after the last choice or with the next tap
 - Before there is a route, the panel shows "Plan a ride" with a slot for the start and one for the end, filled with the knot's badge and place as you tap, a short hint, and buttons to search a place or show the nearest knots
+- Navigate reacts at once: it shows a spinner while it finds your position, uses a position the phone found in the last minute, and no longer waits for a precise one, which indoors could take up to 10 seconds
 
 ## 0.15.0
 

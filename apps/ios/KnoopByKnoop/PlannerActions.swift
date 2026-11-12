@@ -38,10 +38,14 @@ struct IconAction: View {
 /// `map-planning` "Clear actions in the planner panel".
 struct NavigateIconAction: View {
 
+  /// Whether the rider's position is being found, see `knot-navigation` "Start on the route nearby".
+  var finding = false
   let action: () -> Void
 
   var body: some View {
-    RoundProminentAction(title: "Navigate", systemImage: "location.north.fill", color: .actionGreen, action: action)
+    RoundProminentAction(
+      title: finding ? "Finding your position" : "Navigate", systemImage: "location.north.fill",
+      color: .actionGreen, busy: finding, action: action)
   }
 }
 
@@ -62,21 +66,31 @@ private struct RoundProminentAction: View {
   let title: LocalizedStringKey
   let systemImage: String
   let color: Color
+  /// A spinner in place of the icon, ignoring taps.
+  var busy = false
   let action: () -> Void
 
   var body: some View {
-    let label = Image(systemName: systemImage)
-      .font(.system(size: 20, weight: .bold))
-      .foregroundStyle(.white)
-      .frame(width: 52, height: 52)
+    let label = ZStack {
+      if busy {
+        ProgressView().tint(.white)
+      } else {
+        Image(systemName: systemImage)
+          .font(.system(size: 20, weight: .bold))
+          .foregroundStyle(.white)
+      }
+    }
+    .frame(width: 52, height: 52)
     if #available(iOS 26, *) {
       Button(action: action) { label }
         .buttonStyle(.plain)
         .glassEffect(.regular.tint(color).interactive(), in: Circle())
+        .allowsHitTesting(!busy)
         .accessibilityLabel(Text(title))
     } else {
       Button(action: action) { label.background(Circle().fill(color)) }
         .buttonStyle(.plain)
+        .allowsHitTesting(!busy)
         .accessibilityLabel(Text(title))
     }
   }

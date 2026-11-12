@@ -804,7 +804,7 @@ private struct WaypointSheet: View {
     // Round, with only the icon, the same size in every language, see `map-planning` "Clear
     // actions in the planner panel".
     if model.canNavigate {
-      NavigateIconAction { model.startNavigation() }
+      NavigateIconAction(finding: model.findingStart) { model.startNavigation() }
     }
   }
 

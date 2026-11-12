@@ -1,4 +1,5 @@
 import Combine
+import CoreLocation
 import Foundation
 import KnoopByKnoopCore
 import Network
@@ -227,14 +228,22 @@ final class AppModel: ObservableObject {
   /// Navigate's question whether to ride to the start or start on the route nearby, see
   /// `knot-navigation` "Start on the route nearby".
   @Published var startChoice: StartChoice?
+  /// Whether Navigate is finding the rider's position, see `knot-navigation` "Start on the route
+  /// nearby".
+  @Published private(set) var findingStart = false
 
   /// Starts navigating the planned route. Away from the start but close to the route, asks first,
   /// with one position given up after 10 seconds, then navigation starts without asking, see
   /// `knot-navigation` "Start on the route nearby".
   func startNavigation() {
-    guard let session, let loaded, session.route != nil else { return }
-    positionFinder.find(timeout: .seconds(10)) { [weak self] result in
+    guard let session, let loaded, session.route != nil, !findingStart else { return }
+    // Shown on Navigate until the question or navigation takes over, see "Waiting for the
+    // position"; a recent rough fix is enough to decide, see "Recent position".
+    findingStart = true
+    positionFinder.find(timeout: .seconds(10), accuracy: kCLLocationAccuracyHundredMeters, maxAge: 60) {
+      [weak self] result in
       guard let self else { return }
+      findingStart = false
       var choice: StartChoice?
       if case .found(let fix) = result {
         choice = StartChoice.companion.of(

@@ -1016,6 +1016,28 @@
         }
       }
     },
+    "Finding your position": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Position wird gesucht"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Positie wordt gezocht"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recherche de votre position"
+          }
+        }
+      }
+    },
     "No knots in view": {
       "localizations": {
         "de": {

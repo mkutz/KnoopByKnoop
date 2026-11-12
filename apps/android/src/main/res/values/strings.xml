@@ -155,4 +155,5 @@
   <string name="search_a_place">Search a place</string>
   <string name="nearest_knots">Nearest knots</string>
   <string name="not_set_yet">not set yet</string>
+  <string name="finding_your_position">Finding your position</string>
 </resources>

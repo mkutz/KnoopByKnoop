@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
+import com.google.android.gms.location.CurrentLocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -218,6 +219,11 @@ data class AppState(
    * `knot-navigation` "Start on the route nearby".
    */
   val startChoice: StartChoice? = null,
+  /**
+   * Whether Navigate is finding the rider's position, see `knot-navigation` "Start on the route
+   * nearby".
+   */
+  val findingStart: Boolean = false,
   /**
    * Navigate's question whether to ride around a ferry closed by the time the rider gets there, see
    * `knot-navigation` "Riding around a closed ferry".
@@ -536,9 +542,23 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   fun startNavigation() {
     val session = state.session ?: return
     val network = loaded ?: return
-    if (session.route == null) return
+    if (session.route == null || state.findingStart) return
+    // Shown on Navigate until the question or navigation takes over, see "Waiting for the
+    // position"; a recent rough fix is enough to decide, see "Recent position".
+    state = state.copy(findingStart = true)
     viewModelScope.launch {
-      val location = withTimeoutOrNull(START_POSITION_TIMEOUT_MILLIS) { currentLocation() }
+      val location =
+        withTimeoutOrNull(START_POSITION_TIMEOUT_MILLIS) {
+            currentLocation(
+              CurrentLocationRequest.Builder()
+                .setPriority(Priority.PRIORITY_BALANCED_POWER_ACCURACY)
+                .setMaxUpdateAgeMillis(START_POSITION_MAX_AGE_MILLIS)
+                .setDurationMillis(START_POSITION_TIMEOUT_MILLIS)
+                .build()
+            )
+          }
+          ?.takeIf { it.hasAccuracy() && it.accuracy <= START_POSITION_ACCURACY_METERS }
+      state = state.copy(findingStart = false)
       val choice = location?.let {
         StartChoice.of(
           session,
@@ -832,11 +852,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   }
 
   @SuppressLint("MissingPermission") // Granted before locate() is called.
-  private suspend fun currentLocation(): Location? = suspendCancellableCoroutine { continuation ->
+  private suspend fun currentLocation(
+    request: CurrentLocationRequest =
+      CurrentLocationRequest.Builder().setPriority(Priority.PRIORITY_HIGH_ACCURACY).build()
+  ): Location? = suspendCancellableCoroutine { continuation ->
     val cancellation = CancellationTokenSource()
     try {
       LocationServices.getFusedLocationProviderClient(getApplication<Application>())
-        .getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cancellation.token)
+        .getCurrentLocation(request, cancellation.token)
         .addOnSuccessListener { continuation.resume(it) }
         .addOnFailureListener { continuation.resume(null) }
     } catch (exception: SecurityException) {
@@ -1358,6 +1381,12 @@ private const val LOCATE_TIMEOUT_MILLIS = 15_000L
 
 /** How long Navigate waits for a position to decide whether to ask, see "Position unknown". */
 private const val START_POSITION_TIMEOUT_MILLIS = 10_000L
+
+/** A fix up to this old decides at once, see `knot-navigation` "Recent position". */
+private const val START_POSITION_MAX_AGE_MILLIS = 60_000L
+
+/** Rougher fixes count as none for the start choice. */
+private const val START_POSITION_ACCURACY_METERS = 100f
 
 private const val KEY_APPEARANCE = "appearance"
 private const val KEY_PLACES = "places"
