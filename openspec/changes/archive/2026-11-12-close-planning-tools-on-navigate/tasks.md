@@ -11,4 +11,4 @@
 ## 3. Checks
 
 - [x] 3.1 Entries in `openspec/checked-by-hand.md` for the four scenarios, CHANGELOG line; `./gradlew check`, validate, `checkScenarios -Pchange=close-planning-tools-on-navigate`.
-- [ ] 3.2 On the emulator or simulator: place card, spot being added, search hit, nearest knots, each then Navigate. Install on both phones for the maintainer.
+- [x] 3.2 On the emulator or simulator: place card, spot being added, search hit, nearest knots, each then Navigate. Install on both phones for the maintainer.
