@@ -96,8 +96,6 @@
   <string name="collapsed">Ingeklapt</string>
   <string name="times_according_to_osm">Tijden volgens OpenStreetMap</string>
   <string name="website">Website</string>
-  <string name="more_actions">Meer acties</string>
-  <string name="info">Info</string>
   <string name="ferry_place">Pont %1$s</string>
   <string name="search_places">Plaatsen zoeken</string>
   <string name="search_needs_internet">Zoeken heeft een internetverbinding nodig</string>

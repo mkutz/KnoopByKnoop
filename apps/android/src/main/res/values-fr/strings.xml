@@ -96,8 +96,6 @@
   <string name="collapsed">Réduit</string>
   <string name="times_according_to_osm">Horaires selon OpenStreetMap</string>
   <string name="website">Site web</string>
-  <string name="more_actions">Plus d\'actions</string>
-  <string name="info">Infos</string>
   <string name="ferry_place">Bac %1$s</string>
   <string name="search_places">Rechercher un lieu</string>
   <string name="search_needs_internet">La recherche nécessite une connexion Internet</string>

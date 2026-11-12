@@ -45,6 +45,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
@@ -54,11 +55,15 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -76,6 +81,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.movableContentOf
@@ -84,6 +90,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -186,6 +193,9 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
   // the device is rotated, see `map-planning` "Landscape layout".
   // How high the question about a closed ferry is, so the map shows the detour above it.
   var detourCardHeight by remember { mutableIntStateOf(0) }
+  // Where the map's buttons stand: on the panel and what is on it in portrait, see `map-planning`
+  // "Map buttons in groups"; the map's bottom in landscape.
+  val buttonsBottom = remember { mutableStateOf<(() -> Float)?>(null) }
   val mapArea = remember {
     movableContentOf { currentState: AppState, modifier: Modifier ->
       MapArea(
@@ -198,12 +208,14 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
         onSwitch = { pendingNetwork = it },
         onInfo = { showInfo = true },
         infoShown = showInfo,
+        buttonsBottom = buttonsBottom.value,
         modifier = modifier,
       )
     }
   }
 
   if (landscape) {
+    SideEffect { buttonsBottom.value = null }
     Box(modifier = Modifier.fillMaxSize()) {
       Row(modifier = Modifier.fillMaxSize()) {
         mapArea(state, Modifier.weight(1f).fillMaxHeight())
@@ -224,7 +236,13 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
             // The search takes the panel's place while open, see `map-planning` "Landscape
             // layout".
             if (searching) PlaceSearchField(state, viewModel, onClose = closeSearch)
-            else WaypointSheet(state, viewModel, onShowKnot = viewModel::showOnMap)
+            else
+              WaypointSheet(
+                state,
+                viewModel,
+                navigateInHeader = true,
+                onShowKnot = viewModel::showOnMap,
+              )
           }
         }
       }
@@ -238,6 +256,7 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
     // with the coming knots above, and starting or ending navigation brings it down to its smallest
     // height, see `knot-navigation` "Panel height while navigating".
     val scaffoldState = rememberBottomSheetScaffoldState()
+    var noteHeight by remember { mutableIntStateOf(0) }
     var navigationHeight by remember { mutableIntStateOf(0) }
     // Whether a junction picture showed when it was measured: it makes the navigation part taller
     // only while it shows, see `knot-navigation` "Picture in the app".
@@ -325,7 +344,30 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
       ) { padding ->
         mapArea(state, Modifier.fillMaxSize().padding(padding))
       }
-      var noteHeight by remember { mutableIntStateOf(0) }
+      // Bottom to top on the panel's edge: the note after a tap, Navigate, the map's buttons, see
+      // `map-planning` "Map buttons in groups".
+      val sheetTop = {
+        runCatching { scaffoldState.bottomSheetState.requireOffset() }.getOrDefault(0f)
+      }
+      val current by rememberUpdatedState(state)
+      val showNavigate = state.canNavigate && !searching
+      val currentShowNavigate by rememberUpdatedState(showNavigate)
+      val fabRoom = with(density) { (NAVIGATE_FAB_SIZE + 12.dp).toPx() }
+      // Clear of the attribution at the map's bottom, which must stay visible.
+      val attribution = with(density) { 24.dp.toPx() }
+      val noteTop = {
+        sheetTop() - if (current.tapNote != null) noteHeight.toFloat() else attribution
+      }
+      SideEffect {
+        buttonsBottom.value = { noteTop() - if (currentShowNavigate) fabRoom else 0f }
+      }
+      if (showNavigate)
+        NavigateFab(
+          viewModel,
+          Modifier.align(Alignment.TopEnd).padding(end = 12.dp).offset {
+            IntOffset(0, (noteTop() - fabRoom).roundToInt())
+          },
+        )
       state.tapNote?.let { note ->
         // Right above the panel, wherever it is.
         TapNoteCard(
@@ -395,6 +437,7 @@ private fun MapArea(
   onSwitch: (IndexedNetworkType) -> Unit,
   onInfo: () -> Unit,
   infoShown: Boolean,
+  buttonsBottom: (() -> Float)?,
   modifier: Modifier,
 ) {
   // The map is shown right away; the network follows when it is loaded, see `map-planning`.
@@ -459,6 +502,7 @@ private fun MapArea(
       onMove = viewModel::mapMoved,
       modifier = Modifier.fillMaxSize(),
       position = state.navigation?.position,
+      buttonsBottom = buttonsBottom,
       track = state.navigation?.track,
       direction = state.navigation?.direction,
       nextKnot = state.navigation?.navigation?.nextKnot,
@@ -520,7 +564,7 @@ private fun MapArea(
         Row(
           // Scrolls at very large text, so the words stay on one line and the info button in reach.
           modifier =
-            Modifier.background(mapOverlayColor.copy(alpha = 0.85f), MaterialTheme.shapes.medium)
+            Modifier.mapGlass(MaterialTheme.shapes.medium)
               .horizontalScroll(rememberScrollState())
               .padding(horizontal = 8.dp),
           verticalAlignment = Alignment.CenterVertically,
@@ -551,9 +595,14 @@ private fun MapArea(
               modifier = Modifier.padding(end = 8.dp),
             )
           }
-          InfoButton(onClick = onInfo, modifier = Modifier.padding(vertical = 4.dp))
         }
     }
+    // The settings on their own, at the top right, see `network-sync` "Info sheet".
+    if (!state.navigating)
+      InfoButton(
+        onClick = onInfo,
+        modifier = Modifier.align(Alignment.TopEnd).windowInsetsPadding(topInsets).padding(12.dp),
+      )
     if (layers == null) {
       // Only without bundled graphs, e.g. a debug build that was built without internet access,
       // or for the moment it takes to read the graph.
@@ -599,6 +648,8 @@ private fun MapArea(
 private fun WaypointSheet(
   state: AppState,
   viewModel: AppViewModel,
+  /** Whether Navigate is in the header, in landscape; in portrait it floats over the map. */
+  navigateInHeader: Boolean = false,
   onNavigationHeight: (height: Int, picture: Boolean) -> Unit = { _, _ -> },
   onSummaryHeight: (Int) -> Unit = {},
   onShowKnot: (Knot) -> Unit = {},
@@ -682,33 +733,7 @@ private fun WaypointSheet(
               horizontalArrangement = Arrangement.spacedBy(4.dp),
               verticalAlignment = Alignment.CenterVertically,
             ) {
-              val context = LocalContext.current
-              val moreActions = buildList {
-                if (session.canReturnToStart)
-                  add(
-                    MenuAction(
-                      stringResource(R.string.back_to_start),
-                      R.drawable.ic_action_back_to_start,
-                      viewModel::returnToStart,
-                    )
-                  )
-                if (viewModel.canExportGpx)
-                  add(
-                    MenuAction(stringResource(R.string.export_gpx), R.drawable.ic_action_export) {
-                      viewModel.gpx()?.let { (fileName, content) ->
-                        shareGpx(context, fileName, content)
-                      }
-                    }
-                  )
-              }
-              if (moreActions.isNotEmpty()) MoreActions(moreActions)
-              if (session.waypoints.isNotEmpty())
-                IconAction(
-                  stringResource(R.string.clear),
-                  R.drawable.ic_action_clear,
-                  viewModel::clear,
-                )
-              if (state.canNavigate) NavigateButton(viewModel)
+              if (state.canNavigate && navigateInHeader) NavigateButton(viewModel)
               // In place of asking to tap a knot, see `map-planning` "Nearest knots".
               if (state.noKnotsInView && session.waypoints.isEmpty())
                 ProminentAction(
@@ -720,6 +745,7 @@ private fun WaypointSheet(
           },
         )
         complete?.let { RouteKnots(it) }
+        RouteActions(state, viewModel)
         state.pathData?.let { PathDataNote(it) }
         state.baseMap?.let { BaseMapNote(it) }
         // See `map-planning` "No path data".
@@ -788,10 +814,13 @@ private fun TapNoteCard(note: TapNote, viewModel: AppViewModel, modifier: Modifi
   // Light like the panel and the map buttons, see "Changing what a tapped knot became".
   Surface(
     shape = MaterialTheme.shapes.large,
-    color = MaterialTheme.colorScheme.surface,
+    color = Color.Transparent,
     contentColor = MaterialTheme.colorScheme.onSurface,
-    shadowElevation = 6.dp,
-    modifier = modifier.padding(horizontal = 12.dp, vertical = 8.dp).fillMaxWidth(),
+    modifier =
+      modifier
+        .padding(horizontal = 12.dp, vertical = 8.dp)
+        .fillMaxWidth()
+        .mapGlass(MaterialTheme.shapes.large),
   ) {
     Column(
       verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -980,29 +1009,118 @@ private fun SummaryWithActions(
  * navigation". Notifications are asked for too; without them, navigation runs and speaks, without
  * the notification.
  */
+/**
+ * Starts navigating, asking for location access first, see `knot-navigation` "Start navigation".
+ */
 @Composable
-private fun NavigateButton(viewModel: AppViewModel) {
+private fun rememberNavigate(viewModel: AppViewModel): () -> Unit {
   val launcher =
     rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
       granted ->
       if (granted[Manifest.permission.ACCESS_FINE_LOCATION] == true) viewModel.startNavigation()
       else viewModel.locationDenied()
     }
-  ProminentAction(
-    stringResource(R.string.navigate),
-    R.drawable.ic_action_navigate,
-    onClick = {
-      val permissions =
-        listOf(
-          Manifest.permission.ACCESS_FINE_LOCATION,
-          Manifest.permission.ACCESS_COARSE_LOCATION,
-        ) +
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-            listOf(Manifest.permission.POST_NOTIFICATIONS)
-          else listOf()
-      launcher.launch(permissions.toTypedArray())
-    },
-  )
+  return {
+    val permissions =
+      listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION) +
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+          listOf(Manifest.permission.POST_NOTIFICATIONS)
+        else listOf()
+    launcher.launch(permissions.toTypedArray())
+  }
+}
+
+/** Navigate as a round icon button in the side panel's header, in landscape. */
+@Composable
+private fun NavigateButton(viewModel: AppViewModel) {
+  val navigate = rememberNavigate(viewModel)
+  NamedAction(stringResource(R.string.navigate)) {
+    FilledIconButton(
+      onClick = navigate,
+      colors =
+        IconButtonDefaults.filledIconButtonColors(
+          containerColor = ActionColors.green,
+          contentColor = Color.White,
+        ),
+      modifier = Modifier.size(48.dp),
+    ) {
+      Icon(
+        painterResource(R.drawable.ic_action_navigate),
+        contentDescription = stringResource(R.string.navigate),
+      )
+    }
+  }
+}
+
+/**
+ * Navigate as a floating action button on the panel's edge, in portrait, see `map-planning` "Clear
+ * actions in the planner panel".
+ */
+@Composable
+private fun NavigateFab(viewModel: AppViewModel, modifier: Modifier) {
+  val navigate = rememberNavigate(viewModel)
+  NamedAction(stringResource(R.string.navigate), modifier) {
+    FloatingActionButton(
+      onClick = navigate,
+      containerColor = ActionColors.green,
+      contentColor = Color.White,
+      shape = CircleShape,
+      modifier =
+        Modifier.size(NAVIGATE_FAB_SIZE).border(1.dp, Color.White.copy(alpha = 0.5f), CircleShape),
+    ) {
+      Icon(
+        painterResource(R.drawable.ic_action_navigate),
+        contentDescription = stringResource(R.string.navigate),
+        modifier = Modifier.size(28.dp),
+      )
+    }
+  }
+}
+
+private val NAVIGATE_FAB_SIZE = 64.dp
+
+/**
+ * Back to start with its label, Export GPX and Clear, each when available, in one row below the
+ * route's knots, see `map-planning` "Clear actions in the planner panel".
+ */
+@Composable
+private fun RouteActions(state: AppState, viewModel: AppViewModel) {
+  val session = state.session ?: return
+  val context = LocalContext.current
+  val backToStart = session.canReturnToStart
+  val export = viewModel.canExportGpx
+  val clear = session.waypoints.isNotEmpty()
+  if (!backToStart && !export && !clear) return
+  Row(
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
+    verticalAlignment = Alignment.CenterVertically,
+    modifier = Modifier.padding(vertical = 4.dp),
+  ) {
+    if (backToStart)
+      FilledTonalButton(
+        onClick = viewModel::returnToStart,
+        colors =
+          ButtonDefaults.filledTonalButtonColors(
+            containerColor = ActionColors.greenContainer,
+            contentColor = ActionColors.iconGreen,
+          ),
+        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+      ) {
+        Icon(
+          painterResource(R.drawable.ic_action_back_to_start),
+          contentDescription = null,
+          modifier = Modifier.size(ButtonDefaults.IconSize),
+        )
+        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+        Text(stringResource(R.string.back_to_start))
+      }
+    if (export)
+      IconAction(stringResource(R.string.export_gpx), R.drawable.ic_action_export) {
+        viewModel.gpx()?.let { (fileName, content) -> shareGpx(context, fileName, content) }
+      }
+    if (clear)
+      IconAction(stringResource(R.string.clear), R.drawable.ic_action_clear, viewModel::clear)
+  }
 }
 
 /**
@@ -1365,10 +1483,15 @@ private fun PlaceOfferMenu(offer: PlaceOffer, viewModel: AppViewModel) {
     // Not focusable, so the map can still be moved and the menu follows its flag; a tap on the map
     // or Back closes it.
     BackHandler(onBack = viewModel::dismissOffer)
+    // In the map's glass, see `map-planning` "Glass on the map".
     DropdownMenu(
       expanded = true,
       onDismissRequest = viewModel::dismissOffer,
       properties = PopupProperties(focusable = false, dismissOnClickOutside = false),
+      containerColor = mapOverlayColor.copy(alpha = 0.92f),
+      border =
+        BorderStroke(1.dp, Color.White.copy(alpha = if (isAppInDarkTheme()) 0.12f else 0.6f)),
+      shadowElevation = 6.dp,
     ) {
       // The tapped place's icon and name, see `map-planning` "Tapping a place on the map".
       offer.offer.place?.let { place ->

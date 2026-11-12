@@ -11,18 +11,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
-import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
@@ -30,7 +29,6 @@ import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
@@ -248,62 +246,39 @@ fun StopIconAction(label: String, onClick: () -> Unit) {
   }
 }
 
-/** An entry of [MoreActions]: its label, icon and action. */
-data class MenuAction(val label: String, @DrawableRes val icon: Int, val onClick: () -> Unit)
-
 /**
- * The "More actions" icon button with a menu of [actions], each with icon and label, so the header
- * stays one row on narrow phones, see `map-planning` "Clear actions in the planner panel".
+ * The round gear button that opens the info sheet, on its own glass at the top right, see
+ * `network-sync` "Info sheet". "Settings" is read by TalkBack and shown on long press.
  */
 @Composable
-fun MoreActions(actions: List<MenuAction>) {
-  var expanded by remember { mutableStateOf(false) }
-  Box {
-    IconAction(stringResource(R.string.more_actions), R.drawable.ic_action_more) { expanded = true }
-    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-      actions.forEach { action ->
-        DropdownMenuItem(
-          text = { Text(action.label) },
-          leadingIcon = {
-            Icon(
-              painterResource(action.icon),
-              contentDescription = null,
-              tint = ActionColors.iconGreen,
-              modifier = Modifier.size(20.dp),
-            )
-          },
-          onClick = {
-            expanded = false
-            action.onClick()
-          },
-        )
-      }
+fun InfoButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+  NamedAction(stringResource(R.string.settings), modifier) {
+    IconButton(
+      onClick = onClick,
+      colors = IconButtonDefaults.iconButtonColors(contentColor = Green),
+      modifier = Modifier.size(MAP_BUTTON_SIZE).mapGlass(CircleShape),
+    ) {
+      Icon(
+        painterResource(R.drawable.ic_settings),
+        contentDescription = stringResource(R.string.settings),
+      )
     }
   }
 }
 
-/**
- * The round button that opens the info sheet, styled like the zoom buttons, see `network-sync`
- * "Info sheet". The label is read by TalkBack and shown on long press.
- */
+/** [content] with its [label] shown on a long press, for icon-only buttons. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InfoButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
-  TooltipBox(
-    positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Below),
-    tooltip = { PlainTooltip { Text(stringResource(R.string.info)) } },
-    state = rememberTooltipState(),
-    modifier = modifier,
-  ) {
-    SmallFloatingActionButton(
-      onClick = onClick,
-      containerColor = mapOverlayColor,
-      contentColor = Green,
+fun NamedAction(label: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+  // In a box of its own: the tooltip's wrapper drops alignment set on its modifier.
+  Box(modifier = modifier) {
+    TooltipBox(
+      positionProvider =
+        TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Below),
+      tooltip = { PlainTooltip { Text(label) } },
+      state = rememberTooltipState(),
     ) {
-      Icon(
-        painterResource(R.drawable.ic_action_info),
-        contentDescription = stringResource(R.string.info),
-      )
+      content()
     }
   }
 }

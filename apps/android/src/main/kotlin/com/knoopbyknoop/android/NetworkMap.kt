@@ -3,30 +3,38 @@ package com.knoopbyknoop.android
 import android.graphics.RectF
 import android.util.Log
 import android.view.Gravity
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -46,6 +54,7 @@ import com.knoopbyknoop.core.NetworkGraph
 import com.knoopbyknoop.core.PlaceHit
 import com.knoopbyknoop.core.PlaceKind
 import com.knoopbyknoop.core.RiddenTrack
+import kotlin.math.roundToInt
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
@@ -238,6 +247,11 @@ fun NetworkMap(
   modifier: Modifier = Modifier,
   /** The rider's position while navigating, see `knot-navigation` "Position on the map". */
   position: Fix? = null,
+  /**
+   * Where the map's buttons stand, as a y in the window, e.g. the panel's top edge; read while
+   * drawing, so they follow a drag. `null` for the map's bottom.
+   */
+  buttonsBottom: (() -> Float)? = null,
   /** The track ridden while navigating, see `knot-navigation` "Ridden track". */
   track: RiddenTrack? = null,
   /** The riding direction, see `knot-navigation` "Riding direction on the map". */
@@ -460,73 +474,89 @@ fun NetworkMap(
     }
   }
 
-  Box(modifier = modifier) {
+  // Where the map is on the screen, so its buttons stand on [buttonsBottom].
+  var mapTop by remember { mutableFloatStateOf(0f) }
+  var mapHeight by remember { mutableIntStateOf(0) }
+  Box(
+    modifier =
+      modifier.onGloballyPositioned {
+        mapTop = it.positionInRoot().y
+        mapHeight = it.size.height
+      }
+  ) {
     AndroidView(factory = { mapView })
-    Column(modifier = Modifier.align(Alignment.CenterEnd).padding(12.dp)) {
-      if (onSearch != null) {
-        SmallFloatingActionButton(
-          onClick = onSearch,
-          containerColor = mapOverlayColor,
-          contentColor = Green,
-          modifier = Modifier.padding(bottom = 12.dp),
-        ) {
-          Icon(
-            painterResource(R.drawable.ic_search),
-            contentDescription = stringResource(R.string.search_places),
-          )
-        }
+    // The buttons in groups, standing on the panel or what is on it, see `map-planning` "Map
+    // buttons in groups": groups that do not fit are left out, the zoom first.
+    val density = LocalDensity.current
+    val margin = with(density) { 12.dp.toPx() }
+    val button = with(density) { MAP_BUTTON_SIZE.toPx() }
+    val currentButtonsBottom by rememberUpdatedState(buttonsBottom)
+    // Without a panel below, clear of the attribution and the system's navigation bar.
+    val ownBottom = with(density) { WindowInsets.safeDrawing.getBottom(this) + 28.dp.toPx() }
+    val currentOwnBottom by rememberUpdatedState(ownBottom)
+    val bottomInMap by remember {
+      derivedStateOf {
+        (currentButtonsBottom?.invoke()?.minus(mapTop) ?: (mapHeight - currentOwnBottom)) - margin
       }
-      listOf("+" to 1.0, "−" to -1.0).forEach { (label, delta) ->
-        SmallFloatingActionButton(
-          onClick = { holder.zoomBy(delta) },
-          containerColor = mapOverlayColor,
-          contentColor = Green,
-          modifier = Modifier.padding(vertical = 4.dp),
-        ) {
-          Text(label, fontSize = 22.sp)
+    }
+    val positionButtons = listOfNotNull(onLocate, onShowNearest).size
+    val searchHeight = if (onSearch != null) button + margin else 0f
+    val positionHeight = if (positionButtons > 0) positionButtons * button + margin else 0f
+    val zoomHeight = 2 * button + margin
+    val currentTopControlsBottom by rememberUpdatedState(topControlsBottom)
+    val room by remember {
+      derivedStateOf { bottomInMap - currentTopControlsBottom - 2 * margin }
+    }
+    val showZoom = room >= searchHeight + positionHeight + zoomHeight
+    val showPosition = room >= searchHeight + positionHeight
+    Column(
+      verticalArrangement = Arrangement.spacedBy(12.dp),
+      modifier =
+        Modifier.align(Alignment.TopEnd).padding(end = 20.dp).layout { measurable, constraints ->
+          val placeable = measurable.measure(constraints.copy(minHeight = 0))
+          layout(placeable.width, placeable.height) {
+            placeable.place(0, (bottomInMap - placeable.height).roundToInt())
+          }
+        },
+    ) {
+      if (onSearch != null)
+        MapButtonGroup {
+          MapButton(stringResource(R.string.search_places), R.drawable.ic_search, onSearch)
         }
-      }
-      // While planning: the rider's position once per tap, see `map-planning` "Show my position".
-      if (onLocate != null) {
-        SmallFloatingActionButton(
-          onClick = onLocate,
-          containerColor = mapOverlayColor,
-          contentColor = Green,
-          modifier = Modifier.padding(top = 12.dp),
-        ) {
-          if (locating)
-            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-          else
-            Icon(
-              painterResource(R.drawable.ic_my_position),
-              contentDescription = stringResource(R.string.my_position),
-            )
+      // While planning: the rider's position once per tap, see `map-planning` "Show my position",
+      // and the nearest knots while none are in view, see "Nearest knots".
+      if (positionButtons > 0 && showPosition)
+        MapButtonGroup {
+          if (onLocate != null) {
+            if (locating) BusyMapButton()
+            else
+              MapButton(stringResource(R.string.my_position), R.drawable.ic_my_position, onLocate)
+          }
+          if (onLocate != null && onShowNearest != null) MapButtonDivider()
+          if (onShowNearest != null) {
+            if (findingNearest) BusyMapButton()
+            else
+              MapButton(
+                stringResource(R.string.show_nearest_knots),
+                R.drawable.ic_nearest_knots,
+                onShowNearest,
+              )
+          }
         }
-      }
-      // Only while planning with no knots in view, see `map-planning` "Nearest knots".
-      if (onShowNearest != null) {
-        SmallFloatingActionButton(
-          onClick = onShowNearest,
-          containerColor = mapOverlayColor,
-          contentColor = Green,
-          modifier = Modifier.padding(top = 12.dp),
-        ) {
-          if (findingNearest)
-            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-          else
-            Icon(
-              painterResource(R.drawable.ic_nearest_knots),
-              contentDescription = stringResource(R.string.show_nearest_knots),
-            )
+      if (showZoom)
+        MapButtonGroup {
+          MapButton(stringResource(R.string.zoom_in), R.drawable.ic_zoom_in) { holder.zoomBy(1.0) }
+          MapButtonDivider()
+          MapButton(stringResource(R.string.zoom_out), R.drawable.ic_zoom_out) {
+            holder.zoomBy(-1.0)
+          }
         }
-      }
       // Only while navigating and after the user moved the map away from the rider.
       if (position != null && !holder.following) {
         SmallFloatingActionButton(
           onClick = holder::recenter,
           containerColor = ActionColors.green,
           contentColor = Color.White,
-          modifier = Modifier.padding(top = 12.dp),
         ) {
           Icon(
             painterResource(R.drawable.ic_action_recenter),
@@ -1658,5 +1688,13 @@ private class MapHolder {
           PropertyFactory.iconIgnorePlacement(true),
         )
     )
+  }
+}
+
+/** A map button's place while what it does is under way. */
+@Composable
+private fun BusyMapButton() {
+  Box(contentAlignment = Alignment.Center, modifier = Modifier.size(MAP_BUTTON_SIZE)) {
+    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
   }
 }

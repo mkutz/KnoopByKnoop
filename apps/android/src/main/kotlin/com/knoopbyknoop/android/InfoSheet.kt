@@ -3,7 +3,6 @@ package com.knoopbyknoop.android
 import android.os.Build
 import androidx.activity.compose.LocalActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -343,8 +342,6 @@ fun LoadingNote(text: String, modifier: Modifier = Modifier) {
     text,
     style = MaterialTheme.typography.labelLarge,
     modifier =
-      modifier
-        .background(mapOverlayColor.copy(alpha = 0.9f), MaterialTheme.shapes.small)
-        .padding(horizontal = 12.dp, vertical = 6.dp),
+      modifier.mapGlass(MaterialTheme.shapes.small).padding(horizontal = 12.dp, vertical = 6.dp),
   )
 }

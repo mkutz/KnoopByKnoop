@@ -161,6 +161,20 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Tapping the top of the search field — on the devices
 - Landscape with a display cutout — on the devices in landscape
 - Compass below the status bar — on the devices
+- Groups on the map — on the emulator and in the simulator: search alone, position and nearest knots, zoom in and out
+- Moving with the panel — on the emulator and in the simulator: the column follows the panel pulled up and down
+- Above Navigate on Android — on the emulator: the column stands above the Navigate button, nothing covered
+- Panel pulled far up — on the emulator and in the simulator: the zoom group drops out first, then the position group
+- Glass on iOS — in the simulator and on the iPhone, light and dark
+- Note on the panel's edge — on the devices: after a tapped knot the note stands on the panel, the buttons above it
+- Note on a small phone — on a small simulator and emulator: the note keeps its place, groups drop out
+- Buttons with a screen reader — on the devices with TalkBack and VoiceOver: every button and group read by its name
+- Landscape — on the emulator and in the simulator in landscape: the column at the map's bottom right, above the attribution
+- Note and card in glass — on the devices: the tap note and the place card in the map's glass
+- One look on Android — on the emulator: switch, gear, groups, note, card and loading notes look alike
+- Readable on glass — on the devices, light and dark, over bright and dark map areas
+- Zoom buttons as one control — on the devices: one group, read as "Zoom in" and "Zoom out"
+- Navigate in landscape — on the emulator and in the simulator: a round Navigate at the end of the side panel's header
 - Navigate stands out — on the devices
 - Stop stands out — on the devices
 - Icon buttons with a screen reader — on the devices with a screen reader

@@ -34,6 +34,32 @@ struct IconAction: View {
   }
 }
 
+/// Navigate: a round prominent button with only the arrow, read as "Navigate" by VoiceOver, see
+/// `map-planning` "Clear actions in the planner panel".
+struct NavigateIconAction: View {
+
+  let action: () -> Void
+
+  var body: some View {
+    let label = Image(systemName: "location.north.fill")
+      .font(.system(size: 22, weight: .bold))
+      .frame(width: 40, height: 40)
+    if #available(iOS 26, *) {
+      Button(action: action) { label }
+        .buttonStyle(.glassProminent)
+        .buttonBorderShape(.circle)
+        .tint(.actionGreen)
+        .accessibilityLabel(Text("Navigate"))
+    } else {
+      Button(action: action) { label }
+        .buttonStyle(.borderedProminent)
+        .buttonBorderShape(.circle)
+        .tint(.actionGreen)
+        .accessibilityLabel(Text("Navigate"))
+    }
+  }
+}
+
 /// Stop while navigating: a filled round icon button of the same size in every language, read as
 /// "Stop" by VoiceOver, see `map-planning` "Clear actions in the planner panel".
 struct StopIconAction: View {

@@ -97,8 +97,6 @@
   <string name="collapsed">Collapsed</string>
   <string name="times_according_to_osm">Times according to OpenStreetMap</string>
   <string name="website">Website</string>
-  <string name="more_actions">More actions</string>
-  <string name="info">Info</string>
   <string name="ferry_place">Ferry %1$s</string>
   <string name="search_places">Search places</string>
   <string name="search_needs_internet">Search needs an internet connection</string>

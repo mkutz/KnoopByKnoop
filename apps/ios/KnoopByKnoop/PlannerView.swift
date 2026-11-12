@@ -34,6 +34,9 @@ struct PlannerView: View {
   @State private var navigationHeightKey: NavigationHeightKey?
   /// The attribution's height above the search, see `searchOverlay`.
   @State private var attributionHeight: CGFloat = 0
+  /// The tap note's height, so the map's buttons stand on it, see `map-planning` "Map buttons in
+  /// groups".
+  @State private var tapNoteHeight: CGFloat = 0
   /// Whether the place search is open in the panel, see `place-search` "Search while typing".
   @State private var searching = false
   /// The sheet's height before the search opened, to go back to when it closes.
@@ -287,7 +290,8 @@ struct PlannerView: View {
         nearestKnots: model.nearestKnots,
         onSearch: navigator.state == nil && !searching ? openSearch : nil,
         // Above the sheet, or the bottom safe area in landscape, and the attribution right above it.
-        bottomInset: (landscape ? screen.safeAreaInsets.bottom + 8 : restingSheetHeight) + attributionHeight + 8,
+        bottomInset: (landscape ? screen.safeAreaInsets.bottom + 8 : restingSheetHeight) + attributionHeight + 8
+          + (model.tapNote == nil ? 0 : tapNoteHeight),
         onIdle: model.mapIdle,
         shownKnot: model.shownKnot,
         detour: model.ferryDetour,
@@ -340,6 +344,7 @@ struct PlannerView: View {
       if let note = model.tapNote {
         TapNoteCard(note: note, model: model)
           .padding(.horizontal, 12)
+          .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { tapNoteHeight = $0 }
           .padding(.bottom, (landscape ? screen.safeAreaInsets.bottom + 8 : restingSheetHeight) + attributionHeight + 8)
           .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
           .ignoresSafeArea()
@@ -378,7 +383,7 @@ struct PlannerView: View {
     return { [model] in model.showNearestKnots() }
   }
 
-  /// The network switch and the info button, at the top of the map.
+  /// The network switch at the top left of the map and the gear at the top right.
   private var networkSwitch: some View {
     HStack {
       IconChoices(
@@ -394,12 +399,14 @@ struct PlannerView: View {
       )
       .fixedSize()
       .accessibilityLabel(String(localized: "Knot network", bundle: AppLanguage.bundle))
+      .padding(8)
+      .floatingBackground(in: RoundedRectangle(cornerRadius: 12))
+      Spacer(minLength: 8)
+      // The settings on their own, at the top right, see `network-sync` "Info sheet".
       infoButton
     }
-    // Without a fixed width, larger text would push the info button off a narrow phone.
+    // Without a fixed width, larger text would push the gear off a narrow phone.
     .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-    .padding(8)
-    .floatingBackground(in: RoundedRectangle(cornerRadius: 12))
     .padding(.horizontal, 12)
     .padding(.top, 8)
   }
@@ -442,21 +449,20 @@ struct PlannerView: View {
     detentBeforeSearch = nil
   }
 
-  /// A round button like the zoom buttons, see `network-sync` "Info sheet": a bare "i" could be
-  /// taken for the base map's tourist information symbol.
+  /// A round gear on glass, see `network-sync` "Info sheet", read as "Settings".
   private var infoButton: some View {
     Button {
       showInfo = true
       detent = .medium
     } label: {
-      Image(systemName: "info.circle")
+      Image(systemName: "gearshape")
         .font(.system(size: 20))
         .foregroundStyle(Color.knoopGreen)
-        .frame(width: 40, height: 40)
-        .background(Circle().fill(Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor(white: 0.17, alpha: 1) : .white })))
-        .shadow(color: .black.opacity(0.2), radius: 2, y: 1)
+        .frame(width: 48, height: 48)
+        .floatingBackground(in: Circle())
     }
-    .accessibilityLabel("Info")
+    .buttonStyle(.plain)
+    .accessibilityLabel("Settings")
   }
 
   /// The knots the map shows when it opens: the whole route if there is one.
@@ -571,6 +577,7 @@ private struct WaypointSheet: View {
           ProgressPanel(progress: progress, ferries: complete?.ferries ?? [], navigation: navigation)
         } else if let complete {
           RouteKnots(description: complete)
+          routeActions
           if let status = model.pathData {
             pathDataNote(status)
           }
@@ -745,7 +752,6 @@ private struct WaypointSheet: View {
   /// in the planner panel".
   private var actions: some View {
     HStack(alignment: .center) {
-      lesserActions
       mainAction
     }
     // Never squeezed: the summary and the spacer give way, or the actions move below them.
@@ -758,44 +764,38 @@ private struct WaypointSheet: View {
   private var summaryAboveStackedActions: some View {
     VStack(alignment: .trailing, spacing: 8) {
       summary.frame(maxWidth: .infinity, alignment: .leading)
-      if !session.waypoints.isEmpty || session.canReturnToStart || model.canExportGpx {
-        HStack(alignment: .center) { lesserActions }
-      }
       mainAction
     }
   }
 
-  @ViewBuilder private var lesserActions: some View {
-    if session.canReturnToStart || model.canExportGpx {
-      Menu {
+  /// Back to start with its label, Export GPX and Clear, each when available, in one row below the
+  /// route's knots, see `map-planning` "Clear actions in the planner panel".
+  @ViewBuilder private var routeActions: some View {
+    if session.canReturnToStart || model.canExportGpx || !session.waypoints.isEmpty {
+      HStack(spacing: 8) {
         if session.canReturnToStart {
-          Button("Back to start", systemImage: "arrow.uturn.backward") {
-            model.returnToStart()
-          }
+          Button("Back to start", systemImage: "arrow.uturn.backward") { model.returnToStart() }
+            .buttonStyle(.bordered)
+            .buttonBorderShape(.capsule)
+            .tint(.actionIconGreen)
         }
         if model.canExportGpx {
-          Button("Export GPX", systemImage: "square.and.arrow.up") {
+          IconAction(title: "Export GPX", systemImage: "square.and.arrow.up") {
             exportedGpx = model.exportGpx()
           }
         }
-      } label: {
-        Label("More actions", systemImage: "ellipsis")
+        if !session.waypoints.isEmpty {
+          IconAction(title: "Clear", systemImage: "trash") { model.clear() }
+        }
       }
-      .labelStyle(.iconOnly)
-      .buttonStyle(.bordered)
-      .buttonBorderShape(.circle)
-      .tint(.actionIconGreen)
-    }
-    if !session.waypoints.isEmpty {
-      IconAction(title: "Clear", systemImage: "trash") { model.clear() }
     }
   }
 
   @ViewBuilder private var mainAction: some View {
+    // Round, with only the icon, the same size in every language, see `map-planning` "Clear
+    // actions in the planner panel".
     if model.canNavigate {
-      ProminentAction(title: "Navigate", systemImage: "location.north.fill") {
-        model.startNavigation()
-      }
+      NavigateIconAction { model.startNavigation() }
     }
     // In place of asking to tap a knot, see `map-planning` "Nearest knots".
     if model.noKnotsInView && session.waypoints.isEmpty {
@@ -968,7 +968,7 @@ private struct OfferPlacement<Card: View>: View {
       ViewThatFits(in: .vertical) {
         card
         ScrollView { card }.scrollBounceBehavior(.basedOnSize)
-          .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
+          .floatingBackground(in: RoundedRectangle(cornerRadius: 14))
           .clipShape(RoundedRectangle(cornerRadius: 14))
       }
     }
@@ -1027,8 +1027,8 @@ private struct PlaceOfferMenu: View {
       if !nameOnly { choices }
     }
     .frame(maxWidth: width)
-    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
-    .shadow(radius: 8)
+    // In the map's glass, see `map-planning` "Glass on the map".
+    .floatingBackground(in: RoundedRectangle(cornerRadius: 14))
   }
 
   /// Whether the place is open now with its opening hours, its website and its phone number, each

@@ -203,132 +203,75 @@ struct NetworkMapView: UIViewRepresentable {
     return mapView
   }
 
-  /// Buttons to zoom in and out, in addition to the gestures.
+  /// The map's buttons in groups on glass, in one column on the sheet's edge, see `map-planning`
+  /// "Map buttons in groups": the search; the position and the nearest knots; zoom in and out; the
+  /// recenter button while navigating.
   private func addZoomButtons(to mapView: MLNMapView, coordinator: Coordinator) {
-    let buttons = [("plus", #selector(Coordinator.zoomIn)), ("minus", #selector(Coordinator.zoomOut))].map {
-      symbol, action in
+    func button(_ symbol: String, _ action: Selector, label: String? = nil) -> UIButton {
       let button = UIButton(type: .system)
       button.setImage(UIImage(systemName: symbol), for: .normal)
       button.tintColor = UIColor(Color.knoopGreen)
-      button.backgroundColor = UIColor { $0.userInterfaceStyle == .dark ? UIColor(white: 0.17, alpha: 1) : .white }
-      button.layer.cornerRadius = 20
-      button.layer.shadowOpacity = 0.2
-      button.layer.shadowRadius = 2
-      button.layer.shadowOffset = CGSize(width: 0, height: 1)
-      button.widthAnchor.constraint(equalToConstant: 40).isActive = true
-      button.heightAnchor.constraint(equalToConstant: 40).isActive = true
+      if let label { button.accessibilityLabel = String(localized: String.LocalizationValue(label), bundle: AppLanguage.bundle) }
+      button.translatesAutoresizingMaskIntoConstraints = false
+      button.widthAnchor.constraint(equalToConstant: MapButtonGroup.size).isActive = true
+      button.heightAnchor.constraint(equalToConstant: MapButtonGroup.size).isActive = true
       button.addTarget(coordinator, action: action, for: .touchUpInside)
       return button
     }
-    let stack = UIStackView(arrangedSubviews: buttons)
-    stack.axis = .vertical
-    stack.spacing = 8
-    stack.translatesAutoresizingMaskIntoConstraints = false
-    mapView.addSubview(stack)
-    // Only while navigating and after the user moved the map away from the rider, below the zoom
-    // buttons, so they don't move when it appears, see `knot-navigation` "Following the rider".
-    let recenter = UIButton(type: .system)
-    recenter.setImage(UIImage(systemName: "location.fill"), for: .normal)
+    func spinner(in button: UIButton) -> UIActivityIndicatorView {
+      let spinner = UIActivityIndicatorView(style: .medium)
+      spinner.translatesAutoresizingMaskIntoConstraints = false
+      spinner.isUserInteractionEnabled = false
+      button.addSubview(spinner)
+      NSLayoutConstraint.activate([
+        spinner.centerXAnchor.constraint(equalTo: button.centerXAnchor),
+        spinner.centerYAnchor.constraint(equalTo: button.centerYAnchor),
+      ])
+      return spinner
+    }
+    let search = button("magnifyingglass", #selector(Coordinator.search), label: "Search places")
+    search.isHidden = true
+    // While planning: the position once per tap, see `map-planning` "Show my position"; with no
+    // knots in view, the nearest knots, see "Nearest knots".
+    let locate = button("location", #selector(Coordinator.locate), label: "My position")
+    let nearest = button("signpost.right", #selector(Coordinator.showNearest), label: "Show the nearest knots")
+    nearest.isHidden = true
+    let zoomIn = button("plus", #selector(Coordinator.zoomIn), label: "Zoom in")
+    let zoomOut = button("minus", #selector(Coordinator.zoomOut), label: "Zoom out")
+    // Only while navigating and after the user moved the map away from the rider, see
+    // `knot-navigation` "Following the rider".
+    let recenter = button("location.fill", #selector(Coordinator.recenter))
     recenter.tintColor = .white
     recenter.backgroundColor = UIColor(Color.actionGreen)
-    recenter.layer.cornerRadius = 20
-    recenter.layer.shadowOpacity = 0.2
-    recenter.layer.shadowRadius = 2
-    recenter.layer.shadowOffset = CGSize(width: 0, height: 1)
+    recenter.layer.cornerRadius = MapButtonGroup.size / 2
     recenter.accessibilityLabel = String(localized: "Recenter", bundle: AppLanguage.bundle)
     recenter.isHidden = true
-    recenter.translatesAutoresizingMaskIntoConstraints = false
-    recenter.addTarget(coordinator, action: #selector(Coordinator.recenter), for: .touchUpInside)
-    mapView.addSubview(recenter)
-    coordinator.recenterButton = recenter
-    // While planning, in the recenter button's place: the position once per tap, see `map-planning`
-    // "Show my position".
-    let locate = UIButton(type: .system)
-    locate.setImage(UIImage(systemName: "location"), for: .normal)
-    locate.tintColor = UIColor(Color.knoopGreen)
-    locate.backgroundColor = UIColor { $0.userInterfaceStyle == .dark ? UIColor(white: 0.17, alpha: 1) : .white }
-    locate.layer.cornerRadius = 20
-    locate.layer.shadowOpacity = 0.2
-    locate.layer.shadowRadius = 2
-    locate.layer.shadowOffset = CGSize(width: 0, height: 1)
-    locate.accessibilityLabel = String(localized: "My position", bundle: AppLanguage.bundle)
-    locate.translatesAutoresizingMaskIntoConstraints = false
-    locate.addTarget(coordinator, action: #selector(Coordinator.locate), for: .touchUpInside)
-    let spinner = UIActivityIndicatorView(style: .medium)
-    spinner.translatesAutoresizingMaskIntoConstraints = false
-    spinner.isUserInteractionEnabled = false
-    locate.addSubview(spinner)
-    mapView.addSubview(locate)
-    coordinator.locateButton = locate
-    coordinator.locateSpinner = spinner
-    // While planning with no knots in view, see `map-planning` "Nearest knots".
-    let nearest = UIButton(type: .system)
-    nearest.setImage(UIImage(systemName: "signpost.right"), for: .normal)
-    nearest.tintColor = UIColor(Color.knoopGreen)
-    nearest.backgroundColor = UIColor { $0.userInterfaceStyle == .dark ? UIColor(white: 0.17, alpha: 1) : .white }
-    nearest.layer.cornerRadius = 20
-    nearest.layer.shadowOpacity = 0.2
-    nearest.layer.shadowRadius = 2
-    nearest.layer.shadowOffset = CGSize(width: 0, height: 1)
-    nearest.accessibilityLabel = String(localized: "Show the nearest knots", bundle: AppLanguage.bundle)
-    nearest.isHidden = true
-    nearest.translatesAutoresizingMaskIntoConstraints = false
-    nearest.addTarget(coordinator, action: #selector(Coordinator.showNearest), for: .touchUpInside)
-    let nearestSpinner = UIActivityIndicatorView(style: .medium)
-    nearestSpinner.translatesAutoresizingMaskIntoConstraints = false
-    nearestSpinner.isUserInteractionEnabled = false
-    nearest.addSubview(nearestSpinner)
-    mapView.addSubview(nearest)
-    coordinator.nearestButton = nearest
-    coordinator.nearestSpinner = nearestSpinner
-    let search = UIButton(type: .system)
-    search.setImage(UIImage(systemName: "magnifyingglass"), for: .normal)
-    search.tintColor = UIColor(Color.knoopGreen)
-    search.backgroundColor = UIColor { $0.userInterfaceStyle == .dark ? UIColor(white: 0.17, alpha: 1) : .white }
-    search.layer.cornerRadius = 20
-    search.layer.shadowOpacity = 0.2
-    search.layer.shadowRadius = 2
-    search.layer.shadowOffset = CGSize(width: 0, height: 1)
-    search.accessibilityLabel = String(localized: "Search places", bundle: AppLanguage.bundle)
-    search.isHidden = true
-    search.translatesAutoresizingMaskIntoConstraints = false
-    search.addTarget(coordinator, action: #selector(Coordinator.search), for: .touchUpInside)
-    mapView.addSubview(search)
+    let groups = [
+      MapButtonGroup(buttons: [search]), MapButtonGroup(buttons: [locate, nearest]),
+      MapButtonGroup(buttons: [zoomIn, zoomOut]),
+    ]
+    let column = UIStackView(arrangedSubviews: groups + [recenter])
+    column.axis = .vertical
+    column.alignment = .trailing
+    column.spacing = 12
+    column.translatesAutoresizingMaskIntoConstraints = false
+    mapView.addSubview(column)
     coordinator.searchButton = search
-    // Centred on the map where there is room, but ending above the sheet, see `place-search` "Field
-    // above the sheet on iOS". The search is first, so it stays reachable when a sheet made tall by
-    // large text leaves too little room and the lower buttons give way.
-    let centred = stack.centerYAnchor.constraint(equalTo: mapView.centerYAnchor)
-    centred.priority = .defaultHigh
-    let aboveSheet = nearest.bottomAnchor.constraint(lessThanOrEqualTo: mapView.bottomAnchor, constant: -12)
-    // Gives way to the top limit when the sheet is pulled up over most of the map.
+    coordinator.locateButton = locate
+    coordinator.locateSpinner = spinner(in: locate)
+    coordinator.nearestButton = nearest
+    coordinator.nearestSpinner = spinner(in: nearest)
+    coordinator.recenterButton = recenter
+    coordinator.buttonGroups = groups
+    let aboveSheet = column.bottomAnchor.constraint(equalTo: mapView.bottomAnchor, constant: -12)
+    // Gives way to the top limit when the groups that are left still do not fit.
     aboveSheet.priority = UILayoutPriority(999)
     coordinator.aboveSheet = aboveSheet
     NSLayoutConstraint.activate([
-      search.widthAnchor.constraint(equalToConstant: 40),
-      search.heightAnchor.constraint(equalToConstant: 40),
-      search.trailingAnchor.constraint(equalTo: stack.trailingAnchor),
-      search.bottomAnchor.constraint(equalTo: stack.topAnchor, constant: -8),
-      centred,
       aboveSheet,
-      search.topAnchor.constraint(greaterThanOrEqualTo: mapView.safeAreaLayoutGuide.topAnchor, constant: 60),
-      nearest.widthAnchor.constraint(equalToConstant: 40),
-      nearest.heightAnchor.constraint(equalToConstant: 40),
-      nearest.trailingAnchor.constraint(equalTo: stack.trailingAnchor),
-      nearest.topAnchor.constraint(equalTo: locate.bottomAnchor, constant: 8),
-      nearestSpinner.centerXAnchor.constraint(equalTo: nearest.centerXAnchor),
-      nearestSpinner.centerYAnchor.constraint(equalTo: nearest.centerYAnchor),
-      stack.trailingAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.trailingAnchor, constant: -12),
-      recenter.widthAnchor.constraint(equalToConstant: 40),
-      recenter.heightAnchor.constraint(equalToConstant: 40),
-      recenter.trailingAnchor.constraint(equalTo: stack.trailingAnchor),
-      recenter.topAnchor.constraint(equalTo: stack.bottomAnchor, constant: 20),
-      locate.widthAnchor.constraint(equalToConstant: 40),
-      locate.heightAnchor.constraint(equalToConstant: 40),
-      locate.trailingAnchor.constraint(equalTo: stack.trailingAnchor),
-      locate.topAnchor.constraint(equalTo: stack.bottomAnchor, constant: 20),
-      spinner.centerXAnchor.constraint(equalTo: locate.centerXAnchor),
-      spinner.centerYAnchor.constraint(equalTo: locate.centerYAnchor),
+      column.topAnchor.constraint(
+        greaterThanOrEqualTo: mapView.safeAreaLayoutGuide.topAnchor, constant: Coordinator.topControls),
+      column.trailingAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.trailingAnchor, constant: -12),
     ])
   }
 
@@ -361,8 +304,10 @@ struct NetworkMapView: UIViewRepresentable {
     context.coordinator.onSearch = onSearch
     context.coordinator.onIdle = onIdle
     context.coordinator.searchButton?.isHidden = onSearch == nil
+    context.coordinator.buttonGroups.forEach { $0.refresh() }
     context.coordinator.searchButton?.accessibilityLabel =
       String(localized: "Search places", bundle: AppLanguage.bundle)
+    context.coordinator.fitButtons(bottomInset: bottomInset, in: mapView)
     if let aboveSheet = context.coordinator.aboveSheet, aboveSheet.constant != -(bottomInset + 12) {
       aboveSheet.constant = -(bottomInset + 12)
       // The buttons follow the sheet once it rests; they glide there rather than jump, as the
@@ -408,6 +353,23 @@ struct NetworkMapView: UIViewRepresentable {
     weak var searchButton: UIButton?
     /// Keeps the map's buttons above the sheet, see `NetworkMapView.bottomInset`.
     var aboveSheet: NSLayoutConstraint?
+    /// The search, the position and the zoom groups, top to bottom.
+    var buttonGroups: [MapButtonGroup] = []
+    /// The room the network switch and the gear take at the top of the map.
+    static let topControls: CGFloat = 68
+
+    /// Leaves out the zoom group, then the position group, when the column does not fit between
+    /// the controls at the top and the sheet, see `map-planning` "Map buttons in groups".
+    func fitButtons(bottomInset: CGFloat, in mapView: MLNMapView) {
+      guard buttonGroups.count == 3, mapView.bounds.height > 0 else { return }
+      let room = mapView.bounds.height - bottomInset - 12 - mapView.safeAreaInsets.top - Coordinator.topControls
+      let (search, position, zoom) = (buttonGroups[0], buttonGroups[1], buttonGroups[2])
+      let spacing: CGFloat = 12
+      let searchHeight = search.contentHidden ? 0 : search.fittingHeight + spacing
+      let positionHeight = position.contentHidden ? 0 : position.fittingHeight + spacing
+      zoom.leftOut = room < searchHeight + positionHeight + zoom.fittingHeight
+      position.leftOut = room < searchHeight + position.fittingHeight
+    }
     private var shownNearest: NearestKnots?
     private var myPosition: Fix?
     private var marker: PlaceHit?
@@ -416,6 +378,7 @@ struct NetworkMapView: UIViewRepresentable {
 
     func showLocating(_ locating: Bool, available: Bool) {
       locateButton?.isHidden = !available
+      buttonGroups.forEach { $0.refresh() }
       locateButton?.imageView?.alpha = locating ? 0 : 1
       if locating { locateSpinner?.startAnimating() } else { locateSpinner?.stopAnimating() }
     }
@@ -426,6 +389,7 @@ struct NetworkMapView: UIViewRepresentable {
 
     func showFindingNearest(_ finding: Bool, available: Bool) {
       nearestButton?.isHidden = !available
+      buttonGroups.forEach { $0.refresh() }
       nearestButton?.imageView?.alpha = finding ? 0 : 1
       if finding { nearestSpinner?.startAnimating() } else { nearestSpinner?.stopAnimating() }
     }
@@ -1498,4 +1462,69 @@ struct NetworkMapView: UIViewRepresentable {
     }
 
   }
+}
+
+/// Map buttons that belong together on one piece of glass, with thin lines between them, see
+/// `map-planning` "Glass on the map". Hidden when all its buttons are, or when left out for room.
+final class MapButtonGroup: UIVisualEffectView {
+  static let size: CGFloat = 44
+  private let buttons: [UIButton]
+  private let stack = UIStackView()
+  /// Left out where the column has no room for it.
+  var leftOut = false { didSet { refresh() } }
+  /// Whether none of its buttons are shown.
+  var contentHidden: Bool { buttons.allSatisfy(\.isHidden) }
+  var fittingHeight: CGFloat {
+    CGFloat(buttons.filter { !$0.isHidden }.count) * MapButtonGroup.size
+  }
+
+  init(buttons: [UIButton]) {
+    self.buttons = buttons
+    let effect: UIVisualEffect
+    if #available(iOS 26, *) {
+      effect = UIGlassEffect()
+    } else {
+      effect = UIBlurEffect(style: .systemThickMaterial)
+    }
+    super.init(effect: effect)
+    layer.cornerRadius = MapButtonGroup.size / 2
+    layer.cornerCurve = .continuous
+    clipsToBounds = true
+    stack.axis = .vertical
+    stack.translatesAutoresizingMaskIntoConstraints = false
+    contentView.addSubview(stack)
+    NSLayoutConstraint.activate([
+      stack.topAnchor.constraint(equalTo: contentView.topAnchor),
+      stack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+      stack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+      stack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+      widthAnchor.constraint(equalToConstant: MapButtonGroup.size),
+    ])
+    for (index, button) in buttons.enumerated() {
+      if index > 0 {
+        let line = UIView()
+        line.backgroundColor = UIColor.separator
+        line.translatesAutoresizingMaskIntoConstraints = false
+        line.heightAnchor.constraint(equalToConstant: 1 / UIScreen.main.scale).isActive = true
+        stack.addArrangedSubview(line)
+      }
+      stack.addArrangedSubview(button)
+    }
+    refresh()
+  }
+
+  required init?(coder: NSCoder) { fatalError("not used") }
+
+  /// Shows the lines only between shown buttons, and the group only with one.
+  func refresh() {
+    let views = stack.arrangedSubviews
+    for (index, view) in views.enumerated() where !(view is UIButton) {
+      let shownBefore = views[..<index].contains { $0 is UIButton && !$0.isHidden }
+      let shownAfter = views[(index + 1)...].contains { $0 is UIButton && !$0.isHidden }
+      view.isHidden = !(shownBefore && shownAfter)
+    }
+    let hidden = leftOut || contentHidden
+    if isHidden != hidden { isHidden = hidden }
+  }
+
 }
