@@ -240,9 +240,19 @@ final class AppModel: ObservableObject {
     // Shown on Navigate until the question or navigation takes over, see "Waiting for the
     // position"; a recent rough fix is enough to decide, see "Recent position".
     findingStart = true
-    // The note over the map goes at once, see "Navigate closes the note".
+    // The note and the other planning tools go at once, see "Navigate closes the note" and
+    // "Planning tools close on Navigate": a spot being added is dropped by the note's id, a pending
+    // map move by `planningMoves`.
     tapNotes += 1
     tapNote = nil
+    planningMoves += 1
+    offer = nil
+    addingAt = nil
+    clearSearch()
+    showingHit = nil
+    locating = false
+    findingNearest = false
+    nearestKnots = nil
     positionFinder.find(timeout: .seconds(10), accuracy: kCLLocationAccuracyHundredMeters, maxAge: 60) {
       [weak self] result in
       guard let self else { return }
@@ -971,8 +981,10 @@ final class AppModel: ObservableObject {
   func locate() {
     guard !locating, !findingNearest else { return }
     locating = true
+    planningMoves += 1
+    let move = planningMoves
     positionFinder.find { [weak self] result in
-      guard let self else { return }
+      guard let self, planningMoves == move else { return }
       locating = false
       switch result {
       case .found(let fix): myPosition = fix
@@ -995,8 +1007,10 @@ final class AppModel: ObservableObject {
       return
     }
     findingNearest = true
+    planningMoves += 1
+    let move = planningMoves
     positionFinder.find { [weak self] result in
-      guard let self else { return }
+      guard let self, planningMoves == move else { return }
       findingNearest = false
       if case .found(let fix) = result {
         moveToNearestKnots(rider: fix)
@@ -1005,6 +1019,10 @@ final class AppModel: ObservableObject {
       }
     }
   }
+
+  /// Counts "Show my position" and "Nearest knots" on; Navigate counts it on too, so a map move
+  /// asked for before is not made, see "Planning tools close on Navigate".
+  private var planningMoves = 0
 
   private func moveToNearestKnots(rider: Fix?) {
     guard let center = mapCenter ?? initialPlace else { return }
@@ -1042,6 +1060,8 @@ final class AppModel: ObservableObject {
 
   /// Moves the map to `hit` and marks it; the route stays as it is.
   func choose(_ hit: PlaceHit) {
+    // Chosen a moment after the tap; not once Navigate was chosen, see "Search hit on Navigate".
+    guard !findingStart else { return }
     placeSearch.chosen(hit.name)
     marker = hit
   }

@@ -182,6 +182,10 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Landscape — on the emulator and in the simulator in landscape: the column at the map's bottom right, above the attribution
 - Note and card in glass — on the devices: the tap note and the place card in the map's glass
 - Navigate closes the note — on the emulator and the phones: tap a knot onto a route, choose Navigate while the note shows, the note goes at once
+- Place card on Navigate — on the emulator and in the simulator: tap a café with a route planned, choose Navigate, the card goes and the route stays
+- Spot being added on Navigate — on the emulator and in the simulator: "Add to route" on a far spot, Navigate at once, nothing is added and the spinner goes
+- Search hit on Navigate — on the emulator and in the simulator: choose a search hit, choose Navigate, the marker goes
+- Pending map move on Navigate — on the phones: "Nearest knots" or "Show my position" indoors, Navigate before the map moved, the map does not jump to it
 - One look on Android — on the emulator: switch, gear, groups, note, card and loading notes look alike
 - Readable on glass — on the devices, light and dark, over bright and dark map areas
 - Zoom buttons as one control — on the devices: one group, read as "Zoom in" and "Zoom out"

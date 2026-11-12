@@ -157,6 +157,10 @@ struct PlannerView: View {
       UIApplication.shared.isIdleTimerDisabled = navigating
       if !navigating { navigationHeight = 0 }
     }
+    // No search once Navigate was chosen, see `map-planning` "Planning tools close on Navigate".
+    .onChange(of: model.findingStart) { _, finding in
+      if finding && searching { closeSearch() }
+    }
   }
 
   /// The waypoints, or the info. The info and the confirmation are shown in the panel itself: while

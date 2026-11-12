@@ -545,9 +545,25 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     if (session.route == null || state.findingStart) return
     // Shown on Navigate until the question or navigation takes over, see "Waiting for the
     // position"; a recent rough fix is enough to decide, see "Recent position".
-    // The note over the map goes at once, see "Navigate closes the note".
+    // The note and the other planning tools go at once, see "Navigate closes the note" and
+    // "Planning tools close on Navigate": a spot being added is dropped by the note's id, a pending
+    // map move by [planningMoves].
     tapNotes++
-    state = state.copy(findingStart = true, tapNote = null)
+    planningMoves++
+    searchJob?.cancel()
+    state =
+      state.copy(
+        findingStart = true,
+        tapNote = null,
+        offer = null,
+        addingAt = null,
+        marker = null,
+        searchQuery = "",
+        searchResult = SearchResult.None,
+        locating = false,
+        findingNearest = false,
+        nearestKnots = null,
+      )
     viewModelScope.launch {
       val location =
         withTimeoutOrNull(START_POSITION_TIMEOUT_MILLIS) {
@@ -782,8 +798,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   fun locate() {
     if (state.locating || state.findingNearest) return
     state = state.copy(locating = true)
+    val move = ++planningMoves
     viewModelScope.launch {
       val location = withTimeoutOrNull(LOCATE_TIMEOUT_MILLIS) { currentLocation() }
+      if (planningMoves != move) return@launch
       state =
         if (location == null)
           state.copy(locating = false, message = text(R.string.position_not_found))
@@ -794,6 +812,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
           )
     }
   }
+
+  /**
+   * Counts "Show my position" and "Nearest knots" on; Navigate counts it on too, so a map move
+   * asked for before is not made, see "Planning tools close on Navigate".
+   */
+  private var planningMoves = 0L
 
   private fun Location.toFix() = Fix(latitude, longitude, accuracy.toDouble(), time)
 
@@ -814,8 +838,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
       return
     }
     state = state.copy(findingNearest = true)
+    val move = ++planningMoves
     viewModelScope.launch {
       val location = withTimeoutOrNull(LOCATE_TIMEOUT_MILLIS) { currentLocation() }
+      if (planningMoves != move) return@launch
       state = state.copy(findingNearest = false)
       moveToNearestKnots(rider = location?.toFix())
     }

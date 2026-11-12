@@ -186,8 +186,11 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
     searching = false
   }
   BackHandler(enabled = searching, onBack = closeSearch)
-  // No search while navigating.
-  LaunchedEffect(state.navigating) { if (state.navigating) searching = false }
+  // No search while navigating, nor once Navigate was chosen, see "Planning tools close on
+  // Navigate".
+  LaunchedEffect(state.navigating, state.findingStart) {
+    if (state.navigating || state.findingStart) searching = false
+  }
   val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
   // The same map in both layouts: moving it instead of creating a new one keeps its position when
   // the device is rotated, see `map-planning` "Landscape layout".
