@@ -2,8 +2,8 @@
 
 ## 1. The fixed moment
 
-- [ ] 1.1 Write `.github/scripts/coming-saturday.sh [now-epoch]`. It prints the epoch seconds of the next Saturday 12:00 Europe/Amsterdam strictly after now, using `python3` with `zoneinfo` so it is the same on Linux and macOS. Verify: task 1.2.
-- [ ] 1.2 Add `.github/scripts/coming-saturday-test.sh` with tests for "Coming Saturday", "Run on a Saturday afternoon" and "Summer time", each marked `# Scenario:`. Run it from `build.yml`. Verify: `sh .github/scripts/coming-saturday-test.sh` passes.
+- [x] 1.1 Write `.github/scripts/coming-saturday.sh [now-epoch]`. It prints the epoch seconds of the next Saturday 12:00 Europe/Amsterdam strictly after now, using `python3` with `zoneinfo` so it is the same on Linux and macOS. Verify: task 1.2.
+- [x] 1.2 Add `.github/scripts/coming-saturday-test.sh` with tests for "Coming Saturday", "Run on a Saturday afternoon" and "Summer time", each marked `# Scenario:`. Run it from `build.yml`. Verify: `sh .github/scripts/coming-saturday-test.sh` passes.
 
 ## 2. Positions and the place
 
