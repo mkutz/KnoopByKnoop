@@ -2,14 +2,16 @@ import Foundation
 import KnoopByKnoopCore
 
 /// The installed networks and the current route in the app's Application Support directory:
-/// `networks/<file>`, `networks/installed.json` (the installed index entries) and `route.json`.
-/// Files are written atomically, so they are never half-written.
+/// `networks/<file>`, `networks/installed.json` (the installed index entries), `route.json` and,
+/// beside it, `route-history.json`, the edits to take back. Files are written atomically, so they are
+/// never half-written.
 final class NetworkStorage: @unchecked Sendable {
 
   private let directory: URL
   private let networksDirectory: URL
   private let installedFile: URL
   private let routeFile: URL
+  private let routeHistoryFile: URL
   private let cameraFile: URL
 
   init() {
@@ -17,6 +19,7 @@ final class NetworkStorage: @unchecked Sendable {
     networksDirectory = directory.appendingPathComponent("networks")
     installedFile = networksDirectory.appendingPathComponent("installed.json")
     routeFile = directory.appendingPathComponent("route.json")
+    routeHistoryFile = directory.appendingPathComponent("route-history.json")
     cameraFile = directory.appendingPathComponent("camera.json")
     try? FileManager.default.createDirectory(at: networksDirectory, withIntermediateDirectories: true)
   }
@@ -124,6 +127,21 @@ final class NetworkStorage: @unchecked Sendable {
       try? Data(snapshot.toJson().utf8).write(to: routeFile, options: .atomic)
     } else {
       try? FileManager.default.removeItem(at: routeFile)
+    }
+  }
+
+  /// The edits to take back, see `map-planning` "Undo route edits"; none if unreadable.
+  func routeHistory() -> RouteHistory {
+    guard let text = try? String(contentsOf: routeHistoryFile, encoding: .utf8) else { return RouteHistory(before: []) }
+    return RouteHistory.companion.parse(text: text)
+  }
+
+  /// Keeps `history`, or deletes it if it is empty.
+  func saveRouteHistory(_ history: RouteHistory) {
+    if history.canUndo {
+      try? Data(history.toJson().utf8).write(to: routeHistoryFile, options: .atomic)
+    } else {
+      try? FileManager.default.removeItem(at: routeHistoryFile)
     }
   }
 

@@ -552,7 +552,8 @@ private struct WaypointSheet: View {
               EmptyRoute(
                 description: model.routeDescription as? RouteDescriptionStartOnly,
                 noKnotsInView: model.noKnotsInView, onSearch: onSearch,
-                onNearest: { model.showNearestKnots() }, onClear: { model.clear() })
+                onNearest: { model.showNearestKnots() }, onClear: { model.clear() },
+                onUndo: model.canUndo ? { model.undo() } : nil)
             } else if complete != nil {
               ViewThatFits(in: .horizontal) {
                 HStack(alignment: .center) {
@@ -781,10 +782,11 @@ private struct WaypointSheet: View {
     }
   }
 
-  /// Back to start with its label, Export GPX and Clear, each when available, in one row below the
-  /// route's knots, see `map-planning` "Clear actions in the planner panel".
+  /// Back to start with its label, Export GPX, Clear and Undo, each when available, in one row below
+  /// the route's knots, see `map-planning` "Clear actions in the planner panel".
   @ViewBuilder private var routeActions: some View {
-    if session.canReturnToStart || model.canExportGpx || !session.waypoints.isEmpty {
+    let undo = model.canUndo && !model.navigating
+    if session.canReturnToStart || model.canExportGpx || !session.waypoints.isEmpty || undo {
       HStack(spacing: 8) {
         if session.canReturnToStart {
           Button("Back to start", systemImage: "arrow.uturn.backward") { model.returnToStart() }
@@ -799,6 +801,9 @@ private struct WaypointSheet: View {
         }
         if !session.waypoints.isEmpty {
           IconAction(title: "Clear", systemImage: "trash") { model.clear() }
+        }
+        if undo {
+          IconAction(title: "Undo", systemImage: "arrow.counterclockwise") { model.undo() }
         }
       }
     }
@@ -1238,7 +1243,7 @@ private struct FerryDetourQuestion: View {
 }
 
 /// What a tapped knot became, in one line, with the buttons start, stop and end, each previewing
-/// that role with badges, the current one selected and inactive, and Undo, see `map-planning`
+/// that role with badges, the current one selected and inactive, see `map-planning`
 /// "Changing what a tapped knot became". Goes away after 6 seconds, but not while VoiceOver is on.
 private struct TapNoteCard: View {
   let note: TapNote
@@ -1292,14 +1297,6 @@ private struct TapNoteCard: View {
           .accessibilityLabel(label(choice))
           .accessibilityAddTraits(choice.current ? .isSelected : [])
         }
-        Button { model.undoTap() } label: {
-          Image(systemName: "arrow.uturn.backward").font(.body.weight(.semibold))
-            .frame(width: 28, height: 28)
-        }
-        .buttonStyle(.bordered)
-        .buttonBorderShape(.circle)
-        .tint(.primary)
-        .accessibilityLabel(Text("Undo"))
       }
     }
     .padding(12)

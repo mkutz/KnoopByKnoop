@@ -54,6 +54,7 @@ import com.knoopbyknoop.core.PlaceSearch
 import com.knoopbyknoop.core.PlaceSquares
 import com.knoopbyknoop.core.PlanningSession
 import com.knoopbyknoop.core.RouteDescription
+import com.knoopbyknoop.core.RouteHistory
 import com.knoopbyknoop.core.RouteKnot
 import com.knoopbyknoop.core.RouteSnapshot
 import com.knoopbyknoop.core.RouteSummary
@@ -229,6 +230,8 @@ data class AppState(
    * `knot-navigation` "Riding around a closed ferry".
    */
   val ferryDetour: FerryDetour? = null,
+  /** Whether there is an edit to take back, see `map-planning` "Undo route edits". */
+  val canUndo: Boolean = false,
 ) {
   val status: NetworkStatus
     get() = catalog.status(network)
@@ -757,11 +760,40 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     update(choice.session)
   }
 
-  /** "Undo" in the note: the route as it was before the tap. */
-  fun undoTap() {
-    val note = state.tapNote ?: return
-    state = state.copy(tapNote = null)
-    update(note.before)
+  /**
+   * Undo in the panel: takes back the last edit, see `map-planning` "Undo route edits". Restored on
+   * the current data, so the courses that came in since stay and knots gone are left out.
+   */
+  fun undo() {
+    val network = loaded ?: return
+    val current = state.session ?: return
+    if (state.navigating) return
+    val (restored, earlier) = history.undo(current.graph) ?: return
+    remember(earlier)
+    // Closes the note and drops a spot or place still being added.
+    tapNotes++
+    state =
+      state.copy(
+        tapNote = null,
+        addingAt = null,
+        message =
+          restored.removedWaypoints
+            .takeIf { it.isNotEmpty() }
+            ?.let { text(R.string.waypoint_removed, it.joinToString()) } ?: state.message,
+      )
+    val session =
+      if (network.hasGeometry) restored.session.reattached(network.geometry) else restored.session
+    update(session)
+    findWays()
+  }
+
+  /** The route before each of the last edits, see "Undo route edits". */
+  private var history = RouteHistory()
+
+  private fun remember(history: RouteHistory) {
+    this.history = history
+    storage.saveRouteHistory(history)
+    state = state.copy(canUndo = history.canUndo)
   }
 
   /** The note's time is up, unless a newer note took its place. */
@@ -979,6 +1011,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   fun switchNetwork(network: IndexedNetworkType) {
     if (state.navigating) return
     storage.saveRoute(null)
+    remember(RouteHistory())
     // The map stays until the other network is loaded, so it keeps its place; without a loaded
     // network, taps are ignored meanwhile.
     loaded = null
@@ -1008,7 +1041,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     when (val tapped = session.tapAt(position, radiusMeters, knot, network.geometry, place)) {
       is MapTap.OnKnot -> {
         val after = session.tap(tapped.knot)
-        update(after)
+        edit(after)
         state = state.copy(tapNote = null)
         // A note only for a knot added to a route, with the other roles' routes worked out off the
         // main thread, see "Changing what a tapped knot became".
@@ -1093,7 +1126,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (current != null && !state.navigating) addPoint(current, tapped, x, y)
         return@launch
       }
-      update(after)
+      edit(after)
       findWays()
       val options = withContext(Dispatchers.Default) { TapOptions.of(session, after, point) }
       if (options != null && tapNotes == id) {
@@ -1139,11 +1172,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   }
 
   fun moveWaypoint(from: Int, to: Int) {
-    state.session?.let { update(it.moveWaypoint(from, to)) }
+    state.session?.let { edit(it.moveWaypoint(from, to)) }
   }
 
   fun removeWaypoint(position: Int) {
-    state.session?.takeIf { it.canRemoveWaypoints }?.let { update(it.removeWaypoint(position)) }
+    state.session?.takeIf { it.canRemoveWaypoints }?.let { edit(it.removeWaypoint(position)) }
   }
 
   /**
@@ -1191,11 +1224,22 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   }
 
   fun clear() {
-    state.session?.let { update(it.clear()) }
+    state.session?.let { edit(it.clear()) }
   }
 
   fun returnToStart() {
-    state.session?.takeIf { it.canReturnToStart }?.let { update(it.returnToStart()) }
+    state.session?.takeIf { it.canReturnToStart }?.let { edit(it.returnToStart()) }
+  }
+
+  /**
+   * An edit by the user: keeps the route before it to take back, then shows [session], see
+   * `map-planning` "Undo route edits". Changes the app makes by itself go to [update] directly.
+   */
+  private fun edit(session: PlanningSession) {
+    if (loaded == null || state.navigating) return
+    val before = plannedSession ?: state.session
+    if (before != null) remember(history.record(before, session))
+    update(session)
   }
 
   private fun update(session: PlanningSession) {
@@ -1220,6 +1264,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   private suspend fun restoreRoute() {
     val snapshot = storage.route()
     val network = snapshot?.network ?: IndexedNetworkType.CYCLING
+    remember(
+      storage.routeHistory().takeIf { stored -> stored.before.all { it.network == network } }
+        ?: RouteHistory()
+    )
     state = state.copy(network = network)
     loadNetwork(network, waypointsFrom = { snapshot })
   }

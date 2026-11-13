@@ -10,6 +10,8 @@ struct EmptyRoute: View {
   let onSearch: (() -> Void)?
   let onNearest: () -> Void
   let onClear: () -> Void
+  /// Undo, after an edit, also with no waypoint left, see `map-planning` "Undo route edits".
+  let onUndo: (() -> Void)?
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
   var body: some View {
@@ -94,6 +96,9 @@ struct EmptyRoute: View {
         .buttonBorderShape(.capsule)
         .fixedSize(horizontal: false, vertical: true)
         .tint(.actionIconGreen)
+    }
+    if let onUndo {
+      IconAction(title: "Undo", systemImage: "arrow.counterclockwise", action: onUndo)
     }
   }
 

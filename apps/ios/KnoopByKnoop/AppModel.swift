@@ -103,6 +103,10 @@ final class AppModel: ObservableObject {
   /// what a tapped knot became".
   @Published private(set) var tapNote: TapNote?
   private var tapNotes = 0
+  /// Whether there is an edit to take back, see `map-planning` "Undo route edits".
+  @Published private(set) var canUndo = false
+  /// The route before each of the last edits, see "Undo route edits".
+  private var history = RouteHistory(before: [])
   /// How far the path data for the planned route is ready, `nil` if none is wanted.
   @Published private(set) var pathData: PathDataStatus?
   /// The data date of the installed path data.
@@ -442,11 +446,46 @@ final class AppModel: ObservableObject {
     change { _ in session }
   }
 
-  /// "Undo" in the note: the route as it was before the tap.
-  func undoTap() {
-    guard let note = tapNote else { return }
+  /// Undo in the panel: takes back the last edit, see `map-planning` "Undo route edits". Restored on
+  /// the current data, so the courses that came in since stay and knots gone are left out.
+  func undo() {
+    guard !navigating else { return }
+    // Closes the note and drops a spot or place still being added.
+    tapNotes += 1
     tapNote = nil
-    change { _ in note.before }
+    addingAt = nil
+    let previous = changes
+    changes = Task {
+      await previous?.value
+      guard let current = session, let loaded, !navigating,
+        let undone = history.undo(graph: current.graph), let restored = undone.first, let earlier = undone.second
+      else { return }
+      remember(earlier)
+      nonisolated(unsafe) let restoredSession = restored.session
+      let geometry = loaded.geometry
+      let hasGeometry = loaded.hasGeometry
+      let prepared = await Task.detached {
+        PreparedSession(
+          hasGeometry ? restoredSession.reattached(geometry: geometry) : restoredSession, geometry: geometry)
+      }.value
+      guard session === current else { return }
+      plannedSession = nil
+      storage.saveRoute(RouteSnapshot.companion.of(session: prepared.session))
+      show(prepared)
+      if !restored.removedWaypoints.isEmpty {
+        message = String(
+          localized:
+            "Waypoint \(restored.removedWaypoints.joined(separator: ", ")) no longer exists and was removed from the route."
+        )
+      }
+    }
+    findWays()
+  }
+
+  private func remember(_ history: RouteHistory) {
+    self.history = history
+    storage.saveRouteHistory(history)
+    canUndo = history.canUndo
   }
 
   /// The note's time is up, unless a newer note took its place.
@@ -466,6 +505,7 @@ final class AppModel: ObservableObject {
   func switchNetwork(_ network: IndexedNetworkType) {
     guard !navigating else { return }
     storage.saveRoute(nil)
+    remember(RouteHistory(before: []))
     self.network = network
     // The map stays until the other network is loaded, so it keeps its place; without a loaded
     // network, taps are ignored meanwhile.
@@ -501,7 +541,7 @@ final class AppModel: ObservableObject {
     case let onKnot as MapTapOnKnot:
       let knot = onKnot.knot
       let before = session
-      change { $0.tap(knot: knot) }
+      change(edit: true) { $0.tap(knot: knot) }
       let pending = changes
       tapNote = nil
       tapNotes += 1
@@ -573,7 +613,7 @@ final class AppModel: ObservableObject {
         if let current = self.session, !navigating { addPoint(current, tapped, at: point) }
         return
       }
-      change { _ in after }
+      change(edit: true) { _ in after }
       findWays()
       let options = await Task.detached {
         TapOptions.companion.of(before: session, after: after, knot: routePoint)
@@ -624,26 +664,28 @@ final class AppModel: ObservableObject {
   nonisolated(unsafe) private static let wayFinder = WayFinder(store: PathData.store)
 
   func moveWaypoint(from: Int, to: Int) {
-    change { $0.moveWaypoint(from: Int32(from), to: Int32(to)) }
+    change(edit: true) { $0.moveWaypoint(from: Int32(from), to: Int32(to)) }
   }
 
   func removeWaypoint(at position: Int) {
-    change { $0.canRemoveWaypoints ? $0.removeWaypoint(position: Int32(position)) : nil }
+    change(edit: true) { $0.canRemoveWaypoints ? $0.removeWaypoint(position: Int32(position)) : nil }
   }
 
   func clear() {
-    change { $0.clear() }
+    change(edit: true) { $0.clear() }
   }
 
   func returnToStart() {
-    change { $0.canReturnToStart ? $0.returnToStart() : nil }
+    change(edit: true) { $0.canReturnToStart ? $0.returnToStart() : nil }
   }
 
   private var changes: Task<Void, Never>?
 
   /// Applies a planning change and prepares its map layers off the main thread: routing on a large
-  /// network takes long enough to make the screen stutter. Changes run one after the other.
-  private func change(_ apply: @escaping @Sendable (PlanningSession) -> PlanningSession?) {
+  /// network takes long enough to make the screen stutter. Changes run one after the other. An `edit`
+  /// by the user keeps the route before it to take back, see `map-planning` "Undo route edits";
+  /// changes the app makes by itself do not.
+  private func change(edit: Bool = false, _ apply: @escaping @Sendable (PlanningSession) -> PlanningSession?) {
     guard !navigating else { return }
     let previous = changes
     changes = Task {
@@ -655,6 +697,7 @@ final class AppModel: ObservableObject {
       }.value
       // A network switch while preparing replaces the session; the change no longer applies.
       guard let prepared, session === current else { return }
+      if edit { remember(history.record(before: plannedSession ?? current, after: prepared.session)) }
       // An edit makes the shown route the plan.
       plannedSession = nil
       storage.saveRoute(RouteSnapshot.companion.of(session: prepared.session))
@@ -874,6 +917,8 @@ final class AppModel: ObservableObject {
   private func restoreRoute() async {
     let snapshot = storage.route()
     network = snapshot?.network ?? .cycling
+    let stored = storage.routeHistory()
+    remember(stored.before.allSatisfy { $0.network == network } ? stored : RouteHistory(before: []))
     await loadNetwork(network, snapshot: snapshot)
   }
 
@@ -1237,7 +1282,7 @@ final class AppModel: ObservableObject {
 }
 
 /// The note after a tap: what the knot became and what else it can be, with the session `before`
-/// the tap for Undo, see `map-planning` "Changing what a tapped knot became".
+/// the tap, see `map-planning` "Changing what a tapped knot became".
 struct TapNote: @unchecked Sendable {
   let options: TapOptions
   let before: PlanningSession

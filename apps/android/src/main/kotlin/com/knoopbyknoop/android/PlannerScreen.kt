@@ -696,6 +696,7 @@ private fun WaypointSheet(
             onSearch = onSearch,
             onNearest = viewModel::showNearestKnots,
             onClear = viewModel::clear,
+            onUndo = viewModel::undo.takeIf { state.canUndo },
           )
         else
           SummaryWithActions(
@@ -890,13 +891,6 @@ private fun TapNoteCard(note: TapNote, viewModel: AppViewModel, modifier: Modifi
           ) {
             KnotPreviewRow(choice.preview, highlightScale = if (choice.current) pop.value else 1f)
           }
-        }
-        IconButton(onClick = viewModel::undoTap) {
-          Icon(
-            painterResource(R.drawable.ic_undo),
-            contentDescription = stringResource(R.string.tap_note_undo),
-            tint = MaterialTheme.colorScheme.primary,
-          )
         }
       }
     }
@@ -1094,8 +1088,8 @@ private fun NavigateIcon(finding: Boolean, modifier: Modifier) {
 private val NAVIGATE_FAB_SIZE = 64.dp
 
 /**
- * Back to start with its label, Export GPX and Clear, each when available, in one row below the
- * route's knots, see `map-planning` "Clear actions in the planner panel".
+ * Back to start with its label, Export GPX, Clear and Undo, each when available, in one row below
+ * the route's knots, see `map-planning` "Clear actions in the planner panel".
  */
 @Composable
 private fun RouteActions(state: AppState, viewModel: AppViewModel) {
@@ -1104,7 +1098,8 @@ private fun RouteActions(state: AppState, viewModel: AppViewModel) {
   val backToStart = session.canReturnToStart
   val export = viewModel.canExportGpx
   val clear = session.waypoints.isNotEmpty()
-  if (!backToStart && !export && !clear) return
+  val undo = state.canUndo && !state.navigating
+  if (!backToStart && !export && !clear && !undo) return
   Row(
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalAlignment = Alignment.CenterVertically,
@@ -1134,6 +1129,7 @@ private fun RouteActions(state: AppState, viewModel: AppViewModel) {
       }
     if (clear)
       IconAction(stringResource(R.string.clear), R.drawable.ic_action_clear, viewModel::clear)
+    if (undo) IconAction(stringResource(R.string.undo), R.drawable.ic_undo, viewModel::undo)
   }
 }
 

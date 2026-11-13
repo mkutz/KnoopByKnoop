@@ -16,7 +16,7 @@
   <string name="add_stop_here">Ajouter une étape ici</string>
   <string name="end_here">Arriver ici</string>
   <string name="add_to_route">Ajouter à l\'itinéraire</string>
-  <string name="tap_note_undo">Annuler</string>
+  <string name="undo">Annuler</string>
   <string name="tap_note_added_start">%1$s ajouté comme départ</string>
   <string name="tap_note_added_stop">%1$s ajouté comme étape</string>
   <string name="tap_note_added_end">%1$s ajouté comme arrivée</string>

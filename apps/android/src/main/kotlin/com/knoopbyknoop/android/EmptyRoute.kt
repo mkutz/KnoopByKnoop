@@ -67,6 +67,8 @@ fun EmptyRoute(
   onSearch: (() -> Unit)?,
   onNearest: () -> Unit,
   onClear: () -> Unit,
+  /** Undo, after an edit, also with no waypoint left, see `map-planning` "Undo route edits". */
+  onUndo: (() -> Unit)?,
 ) {
   val waypoint = description?.waypoint
   val endFirst = description?.endFirst == true
@@ -142,6 +144,7 @@ fun EmptyRoute(
             onNearest,
           )
       }
+      if (onUndo != null) IconAction(stringResource(R.string.undo), R.drawable.ic_undo, onUndo)
     }
   }
 }

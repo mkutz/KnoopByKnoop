@@ -186,6 +186,11 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Spot being added on Navigate — on the emulator and in the simulator: "Add to route" on a far spot, Navigate at once, nothing is added and the spinner goes
 - Search hit on Navigate — on the emulator and in the simulator: choose a search hit, choose Navigate, the marker goes
 - Pending map move on Navigate — on the phones: "Nearest knots" or "Show my position" indoors, Navigate before the map moved, the map does not jump to it
+- Courses are not an edit — on the emulator and in the simulator: start the app, tap 2 knots before the courses are drawn, wait for them, choose Undo, the start is left and the map keeps the courses; `RouteHistory` restores on the current graph (`RouteHistoryTest`)
+- No undo while navigating — on the emulator and in the simulator: plan a route, choose Navigate, no Undo in the panel; it is back after Stop
+- Network switch discards the edits — on the emulator and in the simulator: plan, switch to hiking and confirm, no Undo; switch back, still none
+- Undo with a screen reader — TalkBack on the emulator, VoiceOver in the simulator: Undo in the action row and in the empty panel is read as "Undo", button
+- Undo in the empty panel — on the emulator and in the simulator: plan 2 knots, Clear, "Plan a ride" shows Undo after its buttons, Undo brings the route back
 - One look on Android — on the emulator: switch, gear, groups, note, card and loading notes look alike
 - Readable on glass — on the devices, light and dark, over bright and dark map areas
 - Zoom buttons as one control — on the devices: one group, read as "Zoom in" and "Zoom out"

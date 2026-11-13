@@ -7,6 +7,7 @@ import com.knoopbyknoop.core.IndexedNetworkType
 import com.knoopbyknoop.core.NetworkGeometry
 import com.knoopbyknoop.core.NetworkIndex
 import com.knoopbyknoop.core.NetworkIndexEntry
+import com.knoopbyknoop.core.RouteHistory
 import com.knoopbyknoop.core.RouteSnapshot
 import java.io.File
 import java.io.InputStream
@@ -14,14 +15,16 @@ import org.json.JSONObject
 
 /**
  * The installed networks and the current route in app-private storage: `networks/<file>`,
- * `networks/installed.json` (the installed index entries) and `route.json`. Files are written to a
- * temporary file and renamed, so they are never half-written.
+ * `networks/installed.json` (the installed index entries), `route.json` and, beside it,
+ * `route-history.json`, the edits to take back. Files are written to a temporary file and renamed,
+ * so they are never half-written.
  */
 class NetworkStorage(private val directory: File) {
 
   private val networksDirectory = File(directory, "networks")
   private val installedFile = File(networksDirectory, "installed.json")
   private val routeFile = File(directory, "route.json")
+  private val routeHistoryFile = File(directory, "route-history.json")
   private val cameraFile = File(directory, "camera.json")
 
   fun installed(): List<NetworkIndexEntry> =
@@ -133,6 +136,17 @@ class NetworkStorage(private val directory: File) {
   fun saveRoute(snapshot: RouteSnapshot?) {
     if (snapshot == null) routeFile.delete()
     else writeAtomically(routeFile, snapshot.toJson().encodeToByteArray())
+  }
+
+  /** The edits to take back, see `map-planning` "Undo route edits"; none if unreadable. */
+  fun routeHistory(): RouteHistory =
+    if (routeHistoryFile.exists()) RouteHistory.parse(routeHistoryFile.readText())
+    else RouteHistory()
+
+  /** Keeps [history], or deletes it if it is empty. */
+  fun saveRouteHistory(history: RouteHistory) {
+    if (!history.canUndo) routeHistoryFile.delete()
+    else writeAtomically(routeHistoryFile, history.toJson().encodeToByteArray())
   }
 
   private fun entry(network: IndexedNetworkType, kind: IndexedFileKind) =
