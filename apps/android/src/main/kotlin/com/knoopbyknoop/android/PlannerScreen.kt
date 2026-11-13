@@ -100,6 +100,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
@@ -121,6 +122,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -137,7 +139,6 @@ import com.knoopbyknoop.core.KnotPreview
 import com.knoopbyknoop.core.KnotRole
 import com.knoopbyknoop.core.MapFeatures
 import com.knoopbyknoop.core.NavigationState
-import com.knoopbyknoop.core.PathDataStatus
 import com.knoopbyknoop.core.RouteDescription
 import com.knoopbyknoop.core.RouteSummary
 import com.knoopbyknoop.core.StartChoice
@@ -745,8 +746,6 @@ private fun WaypointSheet(
         // Clear is in the empty panel itself before there is a route.
         if (description != RouteDescription.Empty && description !is RouteDescription.StartOnly)
           RouteActions(state, viewModel)
-        state.pathData?.let { PathDataNote(it) }
-        state.baseMap?.let { BaseMapNote(it) }
         // See `map-planning` "No path data".
         if (session.hasStraightLines) {
           Text(
@@ -1089,7 +1088,9 @@ private val NAVIGATE_FAB_SIZE = 64.dp
 
 /**
  * Back to start with its label, Export GPX, Clear and Undo, each when available, in one row below
- * the route's knots, see `map-planning` "Clear actions in the planner panel".
+ * the route's knots, with the download symbols at its end, see `map-planning` "Clear actions in the
+ * planner panel" and `network-sync` "Base map ready for the ride". Where the row does not fit, Back
+ * to start shows its icon only.
  */
 @Composable
 private fun RouteActions(state: AppState, viewModel: AppViewModel) {
@@ -1099,37 +1100,77 @@ private fun RouteActions(state: AppState, viewModel: AppViewModel) {
   val export = viewModel.canExportGpx
   val clear = session.waypoints.isNotEmpty()
   val undo = state.canUndo && !state.navigating
-  if (!backToStart && !export && !clear && !undo) return
-  Row(
-    horizontalArrangement = Arrangement.spacedBy(8.dp),
-    verticalAlignment = Alignment.CenterVertically,
-    modifier = Modifier.padding(vertical = 4.dp),
-  ) {
-    if (backToStart)
-      FilledTonalButton(
-        onClick = viewModel::returnToStart,
-        colors =
-          ButtonDefaults.filledTonalButtonColors(
-            containerColor = ActionColors.greenContainer,
-            contentColor = ActionColors.iconGreen,
-          ),
-        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-      ) {
-        Icon(
-          painterResource(R.drawable.ic_action_back_to_start),
-          contentDescription = null,
-          modifier = Modifier.size(ButtonDefaults.IconSize),
-        )
-        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-        Text(stringResource(R.string.back_to_start))
+  val downloads = state.baseMap != null || state.pathData != null
+  if (!backToStart && !export && !clear && !undo && !downloads) return
+  val row: @Composable (Boolean) -> Unit = { label ->
+    Row(
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      verticalAlignment = Alignment.CenterVertically,
+      modifier = Modifier.padding(vertical = 4.dp),
+    ) {
+      if (backToStart) {
+        if (label)
+          FilledTonalButton(
+            onClick = viewModel::returnToStart,
+            colors =
+              ButtonDefaults.filledTonalButtonColors(
+                containerColor = ActionColors.greenContainer,
+                contentColor = ActionColors.iconGreen,
+              ),
+            contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+          ) {
+            Icon(
+              painterResource(R.drawable.ic_action_back_to_start),
+              contentDescription = null,
+              modifier = Modifier.size(ButtonDefaults.IconSize),
+            )
+            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+            Text(stringResource(R.string.back_to_start), maxLines = 1, softWrap = false)
+          }
+        else
+          IconAction(
+            stringResource(R.string.back_to_start),
+            R.drawable.ic_action_back_to_start,
+            viewModel::returnToStart,
+          )
       }
-    if (export)
-      IconAction(stringResource(R.string.export_gpx), R.drawable.ic_action_export) {
-        viewModel.gpx()?.let { (fileName, content) -> shareGpx(context, fileName, content) }
+      if (export)
+        IconAction(stringResource(R.string.export_gpx), R.drawable.ic_action_export) {
+          viewModel.gpx()?.let { (fileName, content) -> shareGpx(context, fileName, content) }
+        }
+      if (clear)
+        IconAction(stringResource(R.string.clear), R.drawable.ic_action_clear, viewModel::clear)
+      if (undo) IconAction(stringResource(R.string.undo), R.drawable.ic_undo, viewModel::undo)
+      if (downloads) {
+        Spacer(Modifier.weight(1f))
+        DownloadSymbols(state.baseMap, state.pathData)
       }
-    if (clear)
-      IconAction(stringResource(R.string.clear), R.drawable.ic_action_clear, viewModel::clear)
-    if (undo) IconAction(stringResource(R.string.undo), R.drawable.ic_undo, viewModel::undo)
+    }
+  }
+  FirstThatFits(Modifier.fillMaxWidth(), { row(true) }, { row(false) })
+}
+
+/**
+ * The first of [choices] whose natural width fits, else the last, filling the width it gets: a row
+ * that gives up a label rather than run past the panel's edge.
+ */
+@Composable
+private fun FirstThatFits(modifier: Modifier, vararg choices: @Composable () -> Unit) {
+  SubcomposeLayout(modifier) { constraints ->
+    val loose = constraints.copy(minWidth = 0, maxWidth = Constraints.Infinity)
+    val index =
+      choices.indices.firstOrNull { index ->
+        subcompose("measure$index", choices[index]).all {
+          it.measure(loose).width <= constraints.maxWidth
+        }
+      } ?: choices.lastIndex
+    val placeables =
+      subcompose("place$index", choices[index]).map {
+        it.measure(constraints.copy(minWidth = constraints.maxWidth))
+      }
+    layout(constraints.maxWidth, placeables.maxOfOrNull { it.height } ?: 0) {
+      placeables.forEach { it.place(0, 0) }
+    }
   }
 }
 
@@ -1202,40 +1243,6 @@ private fun NavigationHeader(navigation: NavigationState, onStop: () -> Unit) {
       Text(sentence, style = MaterialTheme.typography.titleMedium)
     }
   }
-}
-
-/** Whether the ways for the route are in, see `network-sync` "Path data ready for the ride". */
-@Composable
-private fun PathDataNote(status: PathDataStatus) {
-  Text(
-    stringResource(
-      when (status) {
-        PathDataStatus.LOADING -> R.string.path_data_loading
-        PathDataStatus.READY -> R.string.path_data_ready
-        PathDataStatus.UNAVAILABLE -> R.string.path_data_unavailable
-      }
-    ),
-    style = MaterialTheme.typography.bodySmall,
-    color = MaterialTheme.colorScheme.onSurfaceVariant,
-    modifier = Modifier.padding(bottom = 4.dp),
-  )
-}
-
-/** Whether the route's base map is stored, see `network-sync` "Base map ready for the ride". */
-@Composable
-private fun BaseMapNote(status: PathDataStatus) {
-  Text(
-    stringResource(
-      when (status) {
-        PathDataStatus.LOADING -> R.string.base_map_loading
-        PathDataStatus.READY -> R.string.base_map_ready
-        PathDataStatus.UNAVAILABLE -> R.string.base_map_unavailable
-      }
-    ),
-    style = MaterialTheme.typography.bodySmall,
-    color = MaterialTheme.colorScheme.onSurfaceVariant,
-    modifier = Modifier.padding(bottom = 4.dp),
-  )
 }
 
 /**

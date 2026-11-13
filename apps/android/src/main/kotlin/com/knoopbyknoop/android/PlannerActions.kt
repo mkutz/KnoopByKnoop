@@ -67,6 +67,10 @@ object ActionColors {
   /** The background of a round action: light green, or dark green on the dark panel. */
   val greenContainer: Color
     @Composable get() = if (isAppInDarkTheme()) Color(0xFF1E3B2B) else Color(0xFFD7EEDF)
+
+  /** A download that couldn't be loaded, see `network-sync`: amber, as red means Stop. */
+  val warning: Color
+    @Composable get() = if (isAppInDarkTheme()) Color(0xFFFFB84D) else Color(0xFFB26A00)
 }
 
 /** A filled action with icon and label: Navigate, or Stop in red. */

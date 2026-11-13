@@ -505,32 +505,6 @@ private struct WaypointSheet: View {
   /// Opens the place search, `nil` while it is open.
   var onSearch: (() -> Void)? = nil
 
-  /// Whether the route's base map is stored, see `network-sync` "Base map ready for the ride".
-  private func baseMapNote(_ status: PathDataStatus) -> some View {
-    Group {
-      switch status {
-      case .loading: Text("Loading the map for this route…")
-      case .ready: Text("Map for this route is loaded")
-      default: Text("Map for this route couldn't be loaded")
-      }
-    }
-    .font(.caption)
-    .foregroundStyle(.secondary)
-  }
-
-  /// Whether the ways for the route are in, see `network-sync` "Path data ready for the ride".
-  private func pathDataNote(_ status: PathDataStatus) -> some View {
-    Group {
-      switch status {
-      case .loading: Text("Loading ways for this route…")
-      case .ready: Text("Ways for this route are loaded")
-      default: Text("Ways for this route couldn't be loaded")
-      }
-    }
-    .font(.caption)
-    .foregroundStyle(.secondary)
-  }
-
   var body: some View {
     let complete = model.routeDescription as? RouteDescriptionComplete
     // While navigating, where the rider is on the route, see `knot-navigation` "Progress strip".
@@ -592,12 +566,6 @@ private struct WaypointSheet: View {
         } else if let complete {
           RouteKnots(description: complete)
           routeActions
-          if let status = model.pathData {
-            pathDataNote(status)
-          }
-          if let status = model.baseMap {
-            baseMapNote(status)
-          }
           // See `map-planning` "No path data".
           if session.hasStraightLines {
             Text("The way to a chosen place is only a straight line so far, and so is its length")
@@ -783,28 +751,47 @@ private struct WaypointSheet: View {
   }
 
   /// Back to start with its label, Export GPX, Clear and Undo, each when available, in one row below
-  /// the route's knots, see `map-planning` "Clear actions in the planner panel".
+  /// the route's knots, with the download symbols at its end, see `map-planning` "Clear actions in
+  /// the planner panel" and `network-sync` "Base map ready for the ride". Where the row does not fit,
+  /// Back to start shows its icon only.
   @ViewBuilder private var routeActions: some View {
     let undo = model.canUndo && !model.navigating
-    if session.canReturnToStart || model.canExportGpx || !session.waypoints.isEmpty || undo {
-      HStack(spacing: 8) {
-        if session.canReturnToStart {
+    let downloads = model.baseMap != nil || model.pathData != nil
+    if session.canReturnToStart || model.canExportGpx || !session.waypoints.isEmpty || undo || downloads {
+      ViewThatFits(in: .horizontal) {
+        actionRow(backToStartLabel: true, undo: undo)
+        actionRow(backToStartLabel: false, undo: undo)
+      }
+    }
+  }
+
+  private func actionRow(backToStartLabel: Bool, undo: Bool) -> some View {
+    HStack(spacing: 8) {
+      if session.canReturnToStart {
+        if backToStartLabel {
           Button("Back to start", systemImage: "arrow.uturn.backward") { model.returnToStart() }
             .buttonStyle(.bordered)
             .buttonBorderShape(.capsule)
             .tint(.actionIconGreen)
+            .fixedSize()
+        } else {
+          IconAction(title: "Back to start", systemImage: "arrow.uturn.backward") { model.returnToStart() }
         }
-        if model.canExportGpx {
-          IconAction(title: "Export GPX", systemImage: "square.and.arrow.up") {
-            exportedGpx = model.exportGpx()
-          }
+      }
+      if model.canExportGpx {
+        IconAction(title: "Export GPX", systemImage: "square.and.arrow.up") {
+          exportedGpx = model.exportGpx()
         }
-        if !session.waypoints.isEmpty {
-          IconAction(title: "Clear", systemImage: "trash") { model.clear() }
-        }
-        if undo {
-          IconAction(title: "Undo", systemImage: "arrow.counterclockwise") { model.undo() }
-        }
+      }
+      if !session.waypoints.isEmpty {
+        IconAction(title: "Clear", systemImage: "trash") { model.clear() }
+      }
+      if undo {
+        IconAction(title: "Undo", systemImage: "arrow.counterclockwise") { model.undo() }
+      }
+      if model.baseMap != nil || model.pathData != nil {
+        Spacer(minLength: 0)
+        DownloadSymbols(baseMap: model.baseMap, pathData: model.pathData)
       }
     }
   }

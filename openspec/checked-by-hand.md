@@ -193,6 +193,7 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Undo in the empty panel — on the emulator and in the simulator: plan 2 knots, Clear, "Plan a ride" shows Undo after its buttons, Undo brings the route back
 - One look on Android — on the emulator: switch, gear, groups, note, card and loading notes look alike
 - Readable on glass — on the devices, light and dark, over bright and dark map areas
+- Back to start on a narrow phone — on the emulator at 360 dp (`wm size 1080x2400`, `wm density 480`) and on a 375 pt iPhone: a cycling route after an edit shows Back to start as an icon, the other actions and both symbols in one row; TalkBack and VoiceOver read "Back to start"
 - Zoom buttons as one control — on the devices: one group, read as "Zoom in" and "Zoom out"
 - Navigate in landscape — on the emulator and in the simulator: a round Navigate at the end of the side panel's header
 - Navigate stands out — on the devices
@@ -303,6 +304,10 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Map loaded — on the devices: the panel once it is in
 - Map not available — on the devices: a route planned in airplane mode
 - Map status in all languages — on the devices, in German, Dutch and French
+- Status sentence on a tap — on the devices: tap the network symbol while it spins, "Loading ways for this route…" shows above it
+- Panel keeps its height — on the devices: plan a cycling route with the sheet at its smallest, the sheet does not grow as the symbols appear and turn to checkmarks
+- No ways symbol on hiking — on the devices: a complete hiking route shows the map symbol only
+- Status marks without motion — Android with animations removed, iPhone with Reduce Motion: the checkmark replaces the spinner without a fade
 - A new route — on the devices: a new route in another area, then the info sheet's size, and the old area offline
 - Restarting the app — on the emulator: the app restarted in airplane mode shows the route's map
 - Opening the info sheet with a base map — on the devices
