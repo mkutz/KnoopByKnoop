@@ -535,6 +535,7 @@ private fun MapArea(
       nearestKnots = state.nearestKnots,
       onNearestShown = viewModel::nearestKnotsShown,
       shownKnot = state.shownKnot,
+      routesOpened = state.routesOpened,
       detour = state.ferryDetour,
       detourBottomPadding = detourBottomPadding,
       topControlsBottom = topControlsBottom,
@@ -1087,8 +1088,8 @@ private fun NavigateIcon(finding: Boolean, modifier: Modifier) {
 private val NAVIGATE_FAB_SIZE = 64.dp
 
 /**
- * Back to start with its label, Export GPX, Clear and Undo, each when available, in one row below
- * the route's knots, with the download symbols at its end, see `map-planning` "Clear actions in the
+ * Back to start with its label, Share, Clear and Undo, each when available, in one row below the
+ * route's knots, with the download symbols at its end, see `map-planning` "Clear actions in the
  * planner panel" and `network-sync` "Base map ready for the ride". Where the row does not fit, Back
  * to start shows its icon only.
  */
@@ -1097,11 +1098,14 @@ private fun RouteActions(state: AppState, viewModel: AppViewModel) {
   val session = state.session ?: return
   val context = LocalContext.current
   val backToStart = session.canReturnToStart
-  val export = viewModel.canExportGpx
+  val share = viewModel.canShareRoute
+  // The share sheets' titles, read here as resources can't be read in the click handlers.
+  val routeFileTitle = stringResource(R.string.share_route_file)
+  val gpxTitle = stringResource(R.string.export_gpx)
   val clear = session.waypoints.isNotEmpty()
   val undo = state.canUndo && !state.navigating
   val downloads = state.baseMap != null || state.pathData != null
-  if (!backToStart && !export && !clear && !undo && !downloads) return
+  if (!backToStart && !share && !clear && !undo && !downloads) return
   val row: @Composable (Boolean) -> Unit = { label ->
     Row(
       horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -1134,10 +1138,35 @@ private fun RouteActions(state: AppState, viewModel: AppViewModel) {
             viewModel::returnToStart,
           )
       }
-      if (export)
-        IconAction(stringResource(R.string.export_gpx), R.drawable.ic_action_export) {
-          viewModel.gpx()?.let { (fileName, content) -> shareGpx(context, fileName, content) }
-        }
+      if (share)
+        ShareAction(
+          onRouteFile = {
+            viewModel.routeFile()?.let { (fileName, content) ->
+              shareFile(
+                context,
+                fileName,
+                content,
+                ROUTE_FILE_TYPE,
+                routeFileTitle,
+              )
+            }
+          },
+          onGpx =
+            if (!viewModel.canExportGpx) null
+            else {
+              {
+                viewModel.gpx()?.let { (fileName, content) ->
+                  shareFile(
+                    context,
+                    fileName,
+                    content,
+                    GPX_TYPE,
+                    gpxTitle,
+                  )
+                }
+              }
+            },
+        )
       if (clear)
         IconAction(stringResource(R.string.clear), R.drawable.ic_action_clear, viewModel::clear)
       if (undo) IconAction(stringResource(R.string.undo), R.drawable.ic_undo, viewModel::undo)
@@ -1361,8 +1390,10 @@ private fun WaypointList(
         // A route point is named by its role, as it has no number, and by its place if it was made
         // from one, see `map-planning` "Route points from a place".
         val placeKind = knot.routePoint?.placeKind
-        // A knot by the village, town or city it lies in, see "Waypoint list with badges".
-        val locality = knot.place?.nameIn(viewModel.textLanguage)
+        // A knot by its own text from a route file, else by the village, town or city it lies in,
+        // see "Waypoint list with badges" and `route-sharing` "Knot texts in a route file".
+        val locality =
+          viewModel.state.session?.labelOf(knot) ?: knot.place?.nameIn(viewModel.textLanguage)
         val placeName =
           knot.routePoint?.placeName
             ?: placeKind?.let { stringResource(placeKindLabel(it)) }

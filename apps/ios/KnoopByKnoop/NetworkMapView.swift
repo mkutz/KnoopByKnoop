@@ -142,6 +142,9 @@ struct NetworkMapView: UIViewRepresentable {
   /// A coming knot to show while navigating, see `knot-navigation` "Showing a coming knot on the
   /// map".
   var shownKnot: ShownKnot? = nil
+  /// Counts the routes opened from files; each is shown whole once, see `route-sharing` "Open a
+  /// route file".
+  var routesOpened = 0
   /// The way around a closed ferry while Navigate asks about it, shown with the ferry, see
   /// `knot-navigation` "Detour on the map".
   var detour: FerryDetour? = nil
@@ -333,6 +336,7 @@ struct NetworkMapView: UIViewRepresentable {
     // Switched in place, the camera stays, see `map-planning` "Switching while the app is open".
     context.coordinator.reloadStyleIfAppearanceChanged(on: mapView)
     context.coordinator.show(graph: graph, layers: layers, focus: focus, on: mapView)
+    context.coordinator.fitToRoute(routesOpened)
   }
 
   /// Keeps the style and what is shown, so updates only touch what changed.
@@ -860,6 +864,17 @@ struct NetworkMapView: UIViewRepresentable {
       self.layers = layers
       self.focus = focus
       update()
+    }
+
+    /// The last of `routesOpened` shown whole.
+    private var routesFitted = 0
+
+    /// Shows the whole route once per opened route file, as soon as the map shows the network.
+    func fitToRoute(_ request: Int) {
+      guard request != routesFitted, focus.count >= 2, shownGraph != nil else { return }
+      routesFitted = request
+      hasPlace = true
+      fit(to: focus, animated: true)
     }
 
     @objc func zoomIn() { zoom(by: 1) }

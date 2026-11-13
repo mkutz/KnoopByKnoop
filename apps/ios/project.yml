@@ -51,6 +51,19 @@ targets:
         # openspec/changes/add-knot-navigation/spike.md: `audio` is needed to speak while locked.
         UIBackgroundModes: [location, audio]
         NSSupportsLiveActivities: true
+        # Route files open in the app, see `route-sharing` "Open a route file".
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: com.knoopbyknoop.route
+            UTTypeDescription: Knoop by Knoop route
+            UTTypeConformsTo: [net.daringfireball.markdown, public.utf8-plain-text]
+            UTTypeTagSpecification:
+              public.filename-extension: [knoop]
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Knoop by Knoop route
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Owner
+            LSItemContentTypes: [com.knoopbyknoop.route]
+        LSSupportsOpeningDocumentsInPlace: false
         # Only standard HTTPS, which is exempt: Apple then doesn't ask about encryption per build.
         ITSAppUsesNonExemptEncryption: false
     settings:

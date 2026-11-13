@@ -21,6 +21,8 @@ struct KnoopByKnoopApp: App {
       // Light or dark as chosen in the info sheet, also the status bar.
       .appAppearance()
       .onAppear { appDelegate.downloads = model.downloads }
+      // Route files from Files, mail, messengers or AirDrop, see `route-sharing` "Open a route file".
+      .onOpenURL { url in model.openRouteFile(at: url) }
       // The app's messages are shown by `PlannerView`, from the view on top, see `MessageAlert`.
       // The language chosen in the info sheet applies right away, see `app-languages` "Language
       // setting".

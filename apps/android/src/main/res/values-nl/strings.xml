@@ -30,6 +30,13 @@
   <string name="no_route_for">Geen route voor %1$s</string>
   <string name="back_to_start">Terug naar de start</string>
   <string name="export_gpx">GPX exporteren</string>
+  <string name="share">Delen</string>
+  <string name="share_route_file">Route voor Knoop by Knoop</string>
+  <string name="share_gpx">GPX voor andere apps</string>
+  <string name="route_file_none">Dit bestand bevat geen route die de app kan openen.</string>
+  <string name="route_file_left_out">Niet gevonden, uit de route gelaten: %1$s</string>
+  <string name="route_file_differs">De route wijkt af van de knooppuntenlijst in het bestand.</string>
+  <string name="route_file_while_navigating">Stop de navigatie om de route te openen.</string>
   <string name="clear">Wissen</string>
   <string name="navigate">Navigeren</string>
   <string name="stop">Stoppen</string>

@@ -38,6 +38,11 @@ private constructor(
    * "Riding around a closed ferry"; never stored.
    */
   private val avoiding: Set<Pair<Long, Long>> = setOf(),
+  /**
+   * The texts of waypoints by knot ID, from an opened route file, shown instead of their town, see
+   * `route-sharing` "Knot texts in a route file".
+   */
+  val labels: Map<Long, String> = mapOf(),
 ) {
 
   val network: NetworkType = requireNotNull(graph.network) { "Cannot plan on an empty network" }
@@ -63,6 +68,9 @@ private constructor(
    */
   fun isTemporaryStop(position: Int): Boolean =
     position in 1 until waypoints.lastIndex && waypoints[position].id in temporary
+
+  /** The text of [knot] from an opened route file, see [labels]. */
+  fun labelOf(knot: Knot): String? = labels[knot.id]
 
   /** What the waypoint at [position] is, see `map-planning` "What a chosen route point does". */
   fun roleOf(position: Int): WaypointRole =
@@ -228,6 +236,7 @@ private constructor(
         newRouter,
         temporary = newTemporary,
         avoiding = newAvoiding,
+        labels = labels,
       )
     val newRoute =
       if (newAvoiding == avoiding)
@@ -241,6 +250,7 @@ private constructor(
       newRouter,
       temporary = newTemporary,
       avoiding = newAvoiding,
+      labels = labels,
     )
   }
 
@@ -257,11 +267,22 @@ private constructor(
       newRouter,
       temporary = temporary,
       avoiding = avoiding,
+      labels = labels,
     )
 
   private fun copy(newWaypoints: List<Knot>, route: Route?, endFirst: Boolean = false) =
     if (newWaypoints.filter { it.isRoutePoint }.toSet() == routePoints.toSet())
-      PlanningSession(graph, newWaypoints, route, routeGraph, router, endFirst, temporary, avoiding)
+      PlanningSession(
+        graph,
+        newWaypoints,
+        route,
+        routeGraph,
+        router,
+        endFirst,
+        temporary,
+        avoiding,
+        labels,
+      )
     else {
       val newGraph = graph.withRoutePoints(newWaypoints)
       PlanningSession(
@@ -273,18 +294,26 @@ private constructor(
         endFirst,
         temporary,
         avoiding,
+        labels,
       )
     }
 
   companion object {
 
-    /** A session on [graph], optionally continuing with [waypoints], e.g. a restored route. */
-    fun start(graph: NetworkGraph, waypoints: List<Knot> = listOf()): PlanningSession {
+    /**
+     * A session on [graph], optionally continuing with [waypoints], e.g. a restored route, and the
+     * [labels] of its waypoints.
+     */
+    fun start(
+      graph: NetworkGraph,
+      waypoints: List<Knot> = listOf(),
+      labels: Map<Long, String> = mapOf(),
+    ): PlanningSession {
       val installed = graph.installed
       val routeGraph = installed.withRoutePoints(waypoints)
       val router = ShortestPathRouter(routeGraph)
       val route = if (waypoints.size >= 2) Route.plan(waypoints, router) else null
-      return PlanningSession(installed, waypoints, route, routeGraph, router)
+      return PlanningSession(installed, waypoints, route, routeGraph, router, labels = labels)
     }
   }
 }

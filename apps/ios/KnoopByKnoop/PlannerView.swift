@@ -299,6 +299,7 @@ struct PlannerView: View {
           + (model.tapNote == nil ? 0 : tapNoteHeight),
         onIdle: model.mapIdle,
         shownKnot: model.shownKnot,
+        routesOpened: model.routesOpened,
         detour: model.ferryDetour,
         // The question is in the panel, which is at half the whole screen while asking; the map
         // reaches behind the safe areas.
@@ -493,7 +494,7 @@ private struct WaypointSheet: View {
   @ObservedObject private var navigator = Navigator.shared
   @State private var rows: [WaypointRow] = []
   /// The exported GPX file while the share sheet shows it.
-  @State private var exportedGpx: ExportedGpx?
+  @State private var sharedFile: SharedFile?
   /// The height of the number to follow and the progress strip while navigating, 0 otherwise, and
   /// the text size it was measured at.
   let onNavigationHeight: (CGFloat, NavigationHeightKey) -> Void
@@ -553,7 +554,7 @@ private struct WaypointSheet: View {
           }
           // Presented from the planner sheet itself: presented from the map behind it, it would
           // dismiss the sheet, see `PlannerView`.
-          .sheet(item: $exportedGpx) { exported in
+          .sheet(item: $sharedFile) { exported in
             ShareSheet(url: exported.url)
               .presentationDetents([.medium, .large])
               .appAppearance()
@@ -609,7 +610,8 @@ private struct WaypointSheet: View {
             ).frame(width: 40)
             // A route point made from a place shows its name, see `map-planning` "Route points from a
             // place"; read with a comma, not the dot.
-            if let placeName = Self.placeName(of: row.knot) {
+            // Its own text from a route file instead, see `route-sharing` "Knot texts in a route file".
+            if let placeName = session.labelOf(knot: row.knot) ?? Self.placeName(of: row.knot) {
               Text(verbatim: "\(Self.roleName(role(index))) · \(placeName)").font(.callout).lineLimit(1)
                 .accessibilityLabel(Text(verbatim: "\(Self.roleName(role(index))), \(placeName)"))
             } else {
@@ -706,10 +708,9 @@ private struct WaypointSheet: View {
   /// The name of the place a route point was made from, or its kind's name; for a knot the village,
   /// town or city it lies in, see `map-planning` "Waypoint list with badges"; `nil` for others.
   private static func placeName(of knot: Knot) -> String? {
-    guard let kind = knot.routePoint?.placeKind else {
-      return knot.place?.nameIn(language: AppLanguage.current)
-    }
-    return knot.routePoint?.placeName ?? PlaceIcons.kindName(kind)
+    guard let point = knot.routePoint else { return knot.place?.nameIn(language: AppLanguage.current) }
+    // A route point from a route file has a name but no kind.
+    return point.placeName ?? point.placeKind.map { PlaceIcons.kindName($0) }
   }
 
   private static func roleName(_ role: KnotRole) -> String {
@@ -750,14 +751,14 @@ private struct WaypointSheet: View {
     }
   }
 
-  /// Back to start with its label, Export GPX, Clear and Undo, each when available, in one row below
+  /// Back to start with its label, Share, Clear and Undo, each when available, in one row below
   /// the route's knots, with the download symbols at its end, see `map-planning` "Clear actions in
   /// the planner panel" and `network-sync` "Base map ready for the ride". Where the row does not fit,
   /// Back to start shows its icon only.
   @ViewBuilder private var routeActions: some View {
     let undo = model.canUndo && !model.navigating
     let downloads = model.baseMap != nil || model.pathData != nil
-    if session.canReturnToStart || model.canExportGpx || !session.waypoints.isEmpty || undo || downloads {
+    if session.canReturnToStart || model.canShareRoute || !session.waypoints.isEmpty || undo || downloads {
       ViewThatFits(in: .horizontal) {
         actionRow(backToStartLabel: true, undo: undo)
         actionRow(backToStartLabel: false, undo: undo)
@@ -778,10 +779,21 @@ private struct WaypointSheet: View {
           IconAction(title: "Back to start", systemImage: "arrow.uturn.backward") { model.returnToStart() }
         }
       }
-      if model.canExportGpx {
-        IconAction(title: "Export GPX", systemImage: "square.and.arrow.up") {
-          exportedGpx = model.exportGpx()
+      if model.canShareRoute {
+        // The route file for Knoop by Knoop and, where it can be made, GPX for other apps, see
+        // `route-sharing` "Share the route".
+        Menu {
+          Button("Route for Knoop by Knoop") { sharedFile = model.shareRouteFile() }
+          if model.canExportGpx {
+            Button("GPX for other apps") { sharedFile = model.exportGpx() }
+          }
+        } label: {
+          Label("Share", systemImage: "square.and.arrow.up")
         }
+        .labelStyle(.iconOnly)
+        .buttonStyle(.bordered)
+        .buttonBorderShape(.circle)
+        .tint(.actionIconGreen)
       }
       if !session.waypoints.isEmpty {
         IconAction(title: "Clear", systemImage: "trash") { model.clear() }

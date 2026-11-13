@@ -54,6 +54,7 @@ import com.knoopbyknoop.core.PlaceSearch
 import com.knoopbyknoop.core.PlaceSquares
 import com.knoopbyknoop.core.PlanningSession
 import com.knoopbyknoop.core.RouteDescription
+import com.knoopbyknoop.core.RouteFile
 import com.knoopbyknoop.core.RouteHistory
 import com.knoopbyknoop.core.RouteKnot
 import com.knoopbyknoop.core.RouteSnapshot
@@ -136,6 +137,8 @@ data class ShownKnot(val knot: Knot, val request: Int)
 
 data class AppState(
   val network: IndexedNetworkType = IndexedNetworkType.CYCLING,
+  /** Counts the routes opened from files, so the map shows each whole, see "Open a route file". */
+  val routesOpened: Int = 0,
   val catalog: NetworkCatalog = NetworkCatalog(null, listOf()),
   val needsAppUpdate: Boolean = false,
   val online: Boolean = true,
@@ -794,6 +797,60 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   /** The route before each of the last edits, see "Undo route edits". */
   private var history = RouteHistory()
 
+  /**
+   * A route file waiting for its network to be loaded, and whether opening it is an edit Undo can
+   * take back: not after switching to its network, see `route-sharing` "Open a route file".
+   */
+  private var pendingRouteFile: Pair<RouteFile.Parsed, Boolean>? = null
+
+  /** Opens a route file's [text] in place of the planned route, see "Open a route file". */
+  fun openRouteFile(text: String) {
+    if (state.navigating) {
+      state = state.copy(message = text(R.string.route_file_while_navigating))
+      return
+    }
+    val parsed = RouteFile.parse(text)
+    val network = IndexedNetworkType.of(parsed.network)
+    val switching = network != state.network
+    pendingRouteFile = parsed to !switching
+    if (switching) switchNetwork(network) else openPendingRouteFile()
+  }
+
+  /** Opens [pendingRouteFile] once its network is loaded. */
+  private fun openPendingRouteFile() {
+    val (parsed, asEdit) = pendingRouteFile ?: return
+    val network = loaded ?: return
+    val session = state.session ?: return
+    if (IndexedNetworkType.of(parsed.network) != state.network) return
+    pendingRouteFile = null
+    val resolved = RouteFile.resolve(parsed, session.graph)
+    if (resolved == null) {
+      state = state.copy(message = text(R.string.route_file_none))
+      return
+    }
+    val restored = resolved.snapshot.restore(session.graph).session
+    val opened = if (network.hasGeometry) restored.reattached(network.geometry) else restored
+    if (asEdit) edit(opened) else update(opened)
+    // Closes the note and drops a spot or place still being added.
+    tapNotes++
+    val route = opened.route
+    state =
+      state.copy(
+        tapNote = null,
+        addingAt = null,
+        routesOpened = state.routesOpened + 1,
+        message =
+          when {
+            resolved.leftOut.isNotEmpty() ->
+              text(R.string.route_file_left_out, resolved.leftOut.joinToString())
+            route != null && RouteFile.differsFrom(route, resolved.listed) ->
+              text(R.string.route_file_differs)
+            else -> state.message
+          },
+      )
+    findWays()
+  }
+
   private fun remember(history: RouteHistory) {
     this.history = history
     storage.saveRouteHistory(history)
@@ -1216,6 +1273,20 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val course: List<GeoPoint>?,
   )
 
+  /**
+   * Whether the planned route can be shared as a route file, see `route-sharing` "Share the route".
+   */
+  val canShareRoute: Boolean
+    get() = !state.navigating && RouteFile.canShare(state.session?.route)
+
+  /** The route file of the planned route as its name and content, see [canShareRoute]. */
+  fun routeFile(): Pair<String, String>? {
+    val session = state.session ?: return null
+    val route = session.route?.takeIf { canShareRoute } ?: return null
+    return RouteFile.fileName(route) to
+      RouteFile.write(route, RouteFile.titleOf(route), session.labels)
+  }
+
   /** Whether the planned route can be exported as GPX. */
   val canExportGpx: Boolean
     get() = exportCourse != null
@@ -1348,6 +1419,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
               text(R.string.waypoint_removed, it.joinToString())
             } ?: state.message,
       )
+    openPendingRouteFile()
     addCourses(network, prepared.first, loadedNetwork)
   }
 

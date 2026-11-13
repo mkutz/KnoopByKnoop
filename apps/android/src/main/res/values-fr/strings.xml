@@ -30,6 +30,13 @@
   <string name="no_route_for">Pas d\'itinéraire pour %1$s</string>
   <string name="back_to_start">Retour au départ</string>
   <string name="export_gpx">Exporter en GPX</string>
+  <string name="share">Partager</string>
+  <string name="share_route_file">Itinéraire pour Knoop by Knoop</string>
+  <string name="share_gpx">GPX pour d’autres applications</string>
+  <string name="route_file_none">Ce fichier ne contient aucun itinéraire que l’application peut ouvrir.</string>
+  <string name="route_file_left_out">Introuvable, laissé hors de l’itinéraire : %1$s</string>
+  <string name="route_file_differs">L’itinéraire diffère de la liste de points-nœuds du fichier.</string>
+  <string name="route_file_while_navigating">Arrêtez la navigation pour ouvrir l’itinéraire.</string>
   <string name="clear">Effacer</string>
   <string name="navigate">Naviguer</string>
   <string name="stop">Arrêter</string>

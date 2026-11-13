@@ -10,6 +10,7 @@ import android.provider.Settings
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -21,12 +22,20 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.knoopbyknoop.core.Language
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private const val LOCK_CHECK_MILLIS = 1000L
 
+/** More than any route file holds; a bigger file is no route. */
+private const val ROUTE_FILE_MAX_BYTES = 1_000_000
+
 class MainActivity : AppCompatActivity() {
+
+  /** The same view model the screen uses. */
+  private val appViewModel: AppViewModel by viewModels()
 
   // While the app is visible, the navigation samples live, see `knot-navigation`.
   override fun onStart() {
@@ -53,6 +62,7 @@ class MainActivity : AppCompatActivity() {
         }
       }
     }
+    if (savedInstanceState == null) openRouteFile(intent)
     setContent {
       val viewModel: AppViewModel = viewModel()
       KnoopTheme(viewModel.state.appearance) {
@@ -94,6 +104,37 @@ class MainActivity : AppCompatActivity() {
         }
         PlannerScreen(state, viewModel, snackbarHostState)
       }
+    }
+  }
+
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    openRouteFile(intent)
+  }
+
+  /** Opens the route file [intent] views, see `route-sharing` "Open a route file". */
+  private fun openRouteFile(intent: Intent?) {
+    val uri = intent?.takeIf { it.action == Intent.ACTION_VIEW }?.data ?: return
+    // Opened once, not again when the activity is recreated.
+    intent.data = null
+    lifecycleScope.launch {
+      val text =
+        withContext(Dispatchers.IO) {
+          runCatching {
+            contentResolver.openInputStream(uri)?.use { input ->
+              val bytes = ByteArray(ROUTE_FILE_MAX_BYTES)
+              var read = 0
+              while (read < bytes.size) {
+                val count = input.read(bytes, read, bytes.size - read)
+                if (count < 0) break
+                read += count
+              }
+              if (read == bytes.size) null else bytes.decodeToString(0, read)
+            }
+          }
+            .getOrNull()
+        }
+      appViewModel.openRouteFile(text.orEmpty())
     }
   }
 

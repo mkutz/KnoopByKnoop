@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
@@ -29,6 +31,7 @@ import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
@@ -216,6 +219,35 @@ fun IconAction(label: String, @DrawableRes icon: Int, onClick: () -> Unit) {
         ),
     ) {
       Icon(painterResource(icon), contentDescription = label, modifier = Modifier.size(20.dp))
+    }
+  }
+}
+
+/**
+ * Share in the panel: an icon button opening its choices, the route file for Knoop by Knoop and,
+ * where it can be made, the GPX file for other apps, see `route-sharing` "Share the route".
+ */
+@Composable
+fun ShareAction(onRouteFile: () -> Unit, onGpx: (() -> Unit)?) {
+  var open by remember { mutableStateOf(false) }
+  Box {
+    IconAction(stringResource(R.string.share), R.drawable.ic_action_export) { open = true }
+    DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+      DropdownMenuItem(
+        text = { Text(stringResource(R.string.share_route_file)) },
+        onClick = {
+          open = false
+          onRouteFile()
+        },
+      )
+      if (onGpx != null)
+        DropdownMenuItem(
+          text = { Text(stringResource(R.string.share_gpx)) },
+          onClick = {
+            open = false
+            onGpx()
+          },
+        )
     }
   }
 }

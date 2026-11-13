@@ -22,14 +22,38 @@
     <activity
       android:name=".MainActivity"
       android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|uiMode|locale|layoutDirection"
-      android:exported="true">
+      android:exported="true"
+      android:launchMode="singleTask">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
+      <!-- Opens route files, see `route-sharing` "Open a route file". Messengers and mail often
+           give no file name or a generic type, so the app also offers itself for text and unknown
+           files, and refuses what it cannot read. -->
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:scheme="content" />
+        <data android:scheme="file" />
+        <data android:mimeType="text/markdown" />
+        <data android:mimeType="text/x-markdown" />
+        <data android:mimeType="text/plain" />
+        <data android:mimeType="application/octet-stream" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:scheme="content" />
+        <data android:scheme="file" />
+        <data android:host="*" />
+        <data android:pathPattern=".*\\.knoop" />
+        <data android:pathPattern=".*\\..*\\.knoop" />
+      </intent-filter>
     </activity>
 
-    <!-- Shares the exported GPX files, see `map-planning` "Export the route as GPX". -->
+    <!-- Shares the exported GPX files and route files, see `map-planning` "Export the route as GPX"
+         and `route-sharing` "Share the route". -->
     <provider
       android:name="androidx.core.content.FileProvider"
       android:authorities="${applicationId}.export"

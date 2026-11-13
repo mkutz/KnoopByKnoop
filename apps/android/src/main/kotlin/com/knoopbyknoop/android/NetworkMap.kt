@@ -294,6 +294,8 @@ fun NetworkMap(
   onNearestShown: () -> Unit = {},
   /** A coming knot to show while navigating, see `knot-navigation` "Showing a coming knot". */
   shownKnot: ShownKnot? = null,
+  /** Counts the routes opened from files; each shows the whole route once, see [fitToRoute]. */
+  routesOpened: Int = 0,
   /**
    * The way around a closed ferry while Navigate asks about it, shown together with the ferry, see
    * `knot-navigation` "Detour on the map".
@@ -442,6 +444,7 @@ fun NetworkMap(
   }
   LaunchedEffect(places) { holder.showPlaces(places) }
   LaunchedEffect(shownKnot) { shownKnot?.let { holder.showKnot(it.knot) } }
+  LaunchedEffect(routesOpened) { if (routesOpened > 0) holder.fitToRoute() }
   LaunchedEffect(detour, detourBottomPadding) { holder.showDetour(detour, detourBottomPadding) }
   // The offline style has no base map; it is loaded as soon as network access is back.
   LaunchedEffect(online) { if (online && holder.usesOfflineStyle) holder.loadBaseMap() }
@@ -1389,6 +1392,23 @@ private class MapHolder {
       }
       shownGraph = graph
     }
+    if (fitRequested && map != null && focus.size >= 2) {
+      fitRequested = false
+      fitTo(focus, animated = true)
+    }
+  }
+
+  /** Whether the route is to be shown whole once the map can, see [fitToRoute]. */
+  private var fitRequested = false
+
+  /**
+   * Shows the whole route, now or once the map and the route are shown, e.g. after a route file was
+   * opened, see `route-sharing` "Open a route file".
+   */
+  fun fitToRoute() {
+    fitRequested = true
+    hasPlace = true
+    update()
   }
 
   private fun fitTo(knots: Collection<Knot>, animated: Boolean) {

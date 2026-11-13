@@ -31,6 +31,13 @@
   <string name="no_route_for">No route for %1$s</string>
   <string name="back_to_start">Back to start</string>
   <string name="export_gpx">Export GPX</string>
+  <string name="share">Share</string>
+  <string name="share_route_file">Route for Knoop by Knoop</string>
+  <string name="share_gpx">GPX for other apps</string>
+  <string name="route_file_none">This file holds no route the app can open.</string>
+  <string name="route_file_left_out">Not found, left out of the route: %1$s</string>
+  <string name="route_file_differs">The route differs from the file’s list of knots.</string>
+  <string name="route_file_while_navigating">Stop navigating to open the route.</string>
   <string name="clear">Clear</string>
   <string name="navigate">Navigate</string>
   <string name="stop">Stop</string>

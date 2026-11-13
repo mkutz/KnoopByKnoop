@@ -423,10 +423,94 @@ final class AppModel: ObservableObject {
   /// Whether the planned route can be exported as GPX.
   var canExportGpx: Bool { exportCourse != nil }
 
+  /// Whether the planned route can be shared as a route file, see `route-sharing` "Share the route".
+  var canShareRoute: Bool { !navigating && RouteFile.shared.canShare(route: session?.route) }
+
+  /// Writes the planned route's route file for sharing, see `canShareRoute`.
+  func shareRouteFile() -> SharedFile? {
+    guard canShareRoute, let session, let route = session.route else { return nil }
+    return SharedFile.write(
+      fileName: RouteFile.shared.fileName(route: route),
+      content: RouteFile.shared.write(
+        route: route, title: RouteFile.shared.titleOf(route: route), labels: session.labels))
+  }
+
+  /// Counts the routes opened from files, so the map shows each whole, see `route-sharing` "Open a
+  /// route file".
+  @Published var routesOpened = 0
+
+  /// A route file waiting for its network to be loaded, and whether opening it is an edit Undo can
+  /// take back: not after switching to its network, see "Open a route file".
+  private var pendingRouteFile: (parsed: RouteFile.Parsed, asEdit: Bool)?
+
+  /// Opens the route file at `url`, handed over by another app, see "Open a route file".
+  func openRouteFile(at url: URL) {
+    let accessing = url.startAccessingSecurityScopedResource()
+    defer { if accessing { url.stopAccessingSecurityScopedResource() } }
+    // More than any route file holds; a bigger file is no route.
+    let data = (try? Data(contentsOf: url)).flatMap { $0.count < 1_000_000 ? $0 : nil }
+    openRouteFile(data.flatMap { String(data: $0, encoding: .utf8) } ?? "")
+  }
+
+  /// Opens a route file's `text` in place of the planned route, see "Open a route file".
+  func openRouteFile(_ text: String) {
+    guard !navigating else {
+      message = String(localized: "Stop navigating to open the route.")
+      return
+    }
+    let parsed = RouteFile.shared.parse(text: text)
+    let fileNetwork = IndexedNetworkType.companion.of(network: parsed.network)
+    let switching = fileNetwork != network
+    pendingRouteFile = (parsed, !switching)
+    if switching { switchNetwork(fileNetwork) } else { openPendingRouteFile() }
+  }
+
+  /// Opens `pendingRouteFile` once its network is loaded.
+  private func openPendingRouteFile() {
+    guard let pending = pendingRouteFile, loaded != nil,
+      IndexedNetworkType.companion.of(network: pending.parsed.network) == network
+    else { return }
+    pendingRouteFile = nil
+    // Closes the note and drops a spot or place still being added.
+    tapNotes += 1
+    tapNote = nil
+    addingAt = nil
+    nonisolated(unsafe) let parsed = pending.parsed
+    let previous = changes
+    changes = Task {
+      await previous?.value
+      guard let current = session, let loaded, !navigating else { return }
+      let geometry = loaded.geometry
+      let hasGeometry = loaded.hasGeometry
+      nonisolated(unsafe) let opened = await Task.detached { () -> (PreparedSession, RouteFile.Resolved)? in
+        guard let resolved = RouteFile.shared.resolve(parsed: parsed, graph: current.graph) else { return nil }
+        let restored = resolved.snapshot.restore(graph: current.graph).session
+        let session = hasGeometry ? restored.reattached(geometry: geometry) : restored
+        return (PreparedSession(session, geometry: geometry), resolved)
+      }.value
+      guard session === current else { return }
+      guard let (prepared, resolved) = opened else {
+        message = String(localized: "This file holds no route the app can open.")
+        return
+      }
+      if pending.asEdit { remember(history.record(before: plannedSession ?? current, after: prepared.session)) }
+      plannedSession = nil
+      storage.saveRoute(RouteSnapshot.companion.of(session: prepared.session))
+      show(prepared)
+      routesOpened += 1
+      if !resolved.leftOut.isEmpty {
+        message = String(localized: "Not found, left out of the route: \(resolved.leftOut.joined(separator: ", "))")
+      } else if let route = prepared.session.route, RouteFile.shared.differsFrom(route: route, listed: resolved.listed) {
+        message = String(localized: "The route differs from the file’s list of knots.")
+      }
+      findWays()
+    }
+  }
+
   /// Writes the planned route's GPX file for sharing, see [canExportGpx].
-  func exportGpx() -> ExportedGpx? {
+  func exportGpx() -> SharedFile? {
     guard let route = session?.route, let course = exportCourse else { return nil }
-    return ExportedGpx.write(
+    return SharedFile.write(
       fileName: Gpx.shared.fileName(route: route), content: Gpx.shared.write(route: route, course: course))
   }
 
@@ -960,7 +1044,7 @@ final class AppModel: ObservableObject {
         let restored = snapshot.restore(graph: graph)
         return (restored.session, restored.removedWaypoints)
       }
-      return (PlanningSession.companion.start(graph: graph, waypoints: []), [])
+      return (PlanningSession.companion.start(graph: graph, waypoints: [], labels: [:]), [])
     }.value
     loading = false
     guard network == self.network else { return }
@@ -968,6 +1052,7 @@ final class AppModel: ObservableObject {
     // The restored route is the plan as made, see `knot-navigation` "The plan after navigation".
     plannedSession = nil
     show(restored.0)
+    openPendingRouteFile()
     if !restored.1.isEmpty {
       message = String(
         localized: "Waypoint \(restored.1.joined(separator: ", ")) no longer exists and was removed from the route.")

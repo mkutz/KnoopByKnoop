@@ -295,6 +295,7 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Closing while the card is shown — on the devices: keep a card open over a place's closing time
 - Opening hours with a screen reader — on the devices with TalkBack and VoiceOver
 - Closing the card — on the devices
+- Opened route on the other network — on the devices: a hiking file opened while cycling is shown, then no Undo
 
 ## network-data
 
@@ -385,6 +386,14 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Failing checks — by a release run
 - No App Store Connect credentials — by a release run
 - Credentials set — by a release run
+
+## route-sharing
+
+- Share while offline — on the emulator and in the simulator in flight mode: the share sheet with the file
+- Open a shared route — on the emulator a file opened through the documents provider, as from Files, and in the simulator with `simctl openurl`; between the phones through a messenger
+- Opened on the other network — on the devices: a hiking file opened while cycling is shown
+- Opened while navigating — on the devices
+- Undo an opened route — on the emulator and in the simulator
 
 ## spec-checks
 

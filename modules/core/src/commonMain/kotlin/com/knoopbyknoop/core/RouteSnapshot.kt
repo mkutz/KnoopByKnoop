@@ -19,9 +19,16 @@ data class RouteSnapshot(
   /**
    * @property point for a route point, where it is and how it joins the network, see `map-planning`
    *   "Keeping route points"
+   * @property label the waypoint's text from an opened route file, see `route-sharing` "Knot texts
+   *   in a route file"
    */
   @Serializable
-  data class Waypoint(val id: Long, val ref: String, val point: StoredPoint? = null) {
+  data class Waypoint(
+    val id: Long,
+    val ref: String,
+    val point: StoredPoint? = null,
+    val label: String? = null,
+  ) {
 
     internal fun toKnot(network: NetworkType): Knot? = point?.toKnot(id, network)
   }
@@ -90,7 +97,9 @@ data class RouteSnapshot(
     val network = requireNotNull(graph.network) { "Cannot restore on an empty network" }
     val (present, missing) = waypoints.partition { it.point != null || it.id in graph.knots }
     val knots = present.map { it.toKnot(network) ?: graph.knots.getValue(it.id) }
-    return RestoredRoute(PlanningSession.start(graph, knots), missing.map { it.ref })
+    val labels =
+      present.mapNotNull { waypoint -> waypoint.label?.let { waypoint.id to it } }.toMap()
+    return RestoredRoute(PlanningSession.start(graph, knots, labels), missing.map { it.ref })
   }
 
   companion object {
@@ -100,7 +109,10 @@ data class RouteSnapshot(
     fun of(session: PlanningSession): RouteSnapshot =
       RouteSnapshot(
         network = IndexedNetworkType.of(session.network),
-        waypoints = session.waypoints.map { Waypoint(it.id, it.ref, StoredPoint.of(it)) },
+        waypoints =
+          session.waypoints.map {
+            Waypoint(it.id, it.ref, StoredPoint.of(it), session.labelOf(it))
+          },
       )
 
     @Throws(IllegalArgumentException::class)
