@@ -460,9 +460,30 @@ final class AppModel: ObservableObject {
     }
     let parsed = RouteFile.shared.parse(text: text)
     let fileNetwork = IndexedNetworkType.companion.of(network: parsed.network)
-    let switching = fileNetwork != network
-    pendingRouteFile = (parsed, !switching)
-    if switching { switchNetwork(fileNetwork) } else { openPendingRouteFile() }
+    guard fileNetwork != network else {
+      pendingRouteFile = (parsed, true)
+      openPendingRouteFile()
+      return
+    }
+    // The other network is switched to only if the file holds a route there, so a file without one
+    // leaves the route as it is. A network not installed yet is switched to and opens the file once
+    // it is downloaded.
+    let storage = self.storage
+    nonisolated(unsafe) let unsentParsed = parsed
+    Task {
+      nonisolated(unsafe) let (graphFile, found) = await Task.detached { () -> (GraphFile?, Bool) in
+        guard let graphFile = storage.graph(network: fileNetwork) else { return (nil, true) }
+        return (graphFile, RouteFile.shared.resolve(parsed: unsentParsed, graph: graphFile.graph) != nil)
+      }.value
+      if !found {
+        message = String(localized: "This file holds no route the app can open.")
+      } else if navigating {
+        message = String(localized: "Stop navigating to open the route.")
+      } else {
+        pendingRouteFile = (parsed, false)
+        switchNetwork(fileNetwork, graphFile: graphFile)
+      }
+    }
   }
 
   /// Opens `pendingRouteFile` once its network is loaded.
@@ -586,7 +607,8 @@ final class AppModel: ObservableObject {
     shownKnot = ShownKnot(knot: knot, request: (shownKnot?.request ?? 0) + 1)
   }
 
-  func switchNetwork(_ network: IndexedNetworkType) {
+  /// Switches to `network`; `graphFile` is its graph where it was read already.
+  func switchNetwork(_ network: IndexedNetworkType, graphFile: GraphFile? = nil) {
     guard !navigating else { return }
     storage.saveRoute(nil)
     remember(RouteHistory(before: []))
@@ -594,7 +616,8 @@ final class AppModel: ObservableObject {
     // The map stays until the other network is loaded, so it keeps its place; without a loaded
     // network, taps are ignored meanwhile.
     loaded = nil
-    Task { await loadNetwork(network, snapshot: nil) }
+    nonisolated(unsafe) let readGraph = graphFile
+    Task { await loadNetwork(network, snapshot: nil, readGraph: readGraph) }
   }
 
   /// Handles a tap on the map; `radiusMeters` is the touch target at the current zoom level.
@@ -1007,13 +1030,18 @@ final class AppModel: ObservableObject {
   }
 
   /// Loads a network off the main thread: reading it and preparing its map layers takes time.
-  /// `snapshot` is the route to continue with, e.g. after a restart or a data update.
-  private func loadNetwork(_ network: IndexedNetworkType, snapshot: RouteSnapshot?) async {
+  /// `snapshot` is the route to continue with, e.g. after a restart or a data update; `readGraph` the
+  /// network's graph where it was read already, e.g. to check a route file.
+  private func loadNetwork(
+    _ network: IndexedNetworkType, snapshot: RouteSnapshot?, readGraph: GraphFile? = nil
+  ) async {
     loading = session == nil
     let storage = self.storage
+    nonisolated(unsafe) let readGraph = readGraph
     // Step 1, the graph: knots, straight connections and the route, so planning can start.
     let prepared: (GraphFile, LoadedNetwork)? = await Task.detached {
-      guard let graphEntry = storage.graphEntry(network: network), let graphFile = storage.graph(network: network)
+      guard let graphEntry = storage.graphEntry(network: network),
+        let graphFile = readGraph ?? storage.graph(network: network)
       else { return nil }
       let graph = graphFile.graph
       let lines = NetworkGeometry.companion.straightLines(graph: graph)

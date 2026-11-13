@@ -811,9 +811,28 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
     val parsed = RouteFile.parse(text)
     val network = IndexedNetworkType.of(parsed.network)
-    val switching = network != state.network
-    pendingRouteFile = parsed to !switching
-    if (switching) switchNetwork(network) else openPendingRouteFile()
+    if (network == state.network) {
+      pendingRouteFile = parsed to true
+      openPendingRouteFile()
+      return
+    }
+    // The other network is switched to only if the file holds a route there, so a file without one
+    // leaves the route as it is. A network not installed yet is switched to and opens the file once
+    // it is downloaded.
+    viewModelScope.launch {
+      val graphFile = withContext(Dispatchers.Default) { storage.graph(network) }
+      val found =
+        graphFile == null ||
+          withContext(Dispatchers.Default) { RouteFile.resolve(parsed, graphFile.graph) } != null
+      when {
+        !found -> state = state.copy(message = text(R.string.route_file_none))
+        state.navigating -> state = state.copy(message = text(R.string.route_file_while_navigating))
+        else -> {
+          pendingRouteFile = parsed to false
+          switchNetwork(network, graphFile)
+        }
+      }
+    }
   }
 
   /** Opens [pendingRouteFile] once its network is loaded. */
@@ -1069,7 +1088,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     NetworkSyncWorker.enqueue(getApplication(), restart = true)
   }
 
-  fun switchNetwork(network: IndexedNetworkType) {
+  /** Switches to [network]; [graphFile] is its graph where it was read already. */
+  fun switchNetwork(network: IndexedNetworkType, graphFile: GraphFile? = null) {
     if (state.navigating) return
     storage.saveRoute(null)
     remember(RouteHistory())
@@ -1077,7 +1097,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     // network, taps are ignored meanwhile.
     loaded = null
     state = state.copy(network = network)
-    viewModelScope.launch { loadNetwork(network, waypointsFrom = { null }) }
+    viewModelScope.launch { loadNetwork(network, waypointsFrom = { null }, graphFile) }
   }
 
   /** Handles a tap on the map; [radiusMeters] is the touch target at the current zoom level. */
@@ -1352,17 +1372,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
    *
    * @param waypointsFrom the route to continue with, e.g. after a restart or a data update; read
    *   once the network is prepared
+   * @param readGraph the network's graph where it was read already, e.g. to check a route file
    */
   private suspend fun loadNetwork(
     network: IndexedNetworkType,
     waypointsFrom: () -> RouteSnapshot?,
+    readGraph: GraphFile? = null,
   ) {
     state = state.copy(loading = state.session == null)
     // Step 1, the graph: knots, straight connections and the route, so planning can start.
     val prepared =
       withContext(Dispatchers.Default) {
         val graphEntry = storage.graphEntry(network) ?: return@withContext null
-        val graphFile = storage.graph(network) ?: return@withContext null
+        val graphFile = readGraph ?: storage.graph(network) ?: return@withContext null
         graphFile to
           LoadedNetwork(
             graphSha256 = graphEntry.sha256,
