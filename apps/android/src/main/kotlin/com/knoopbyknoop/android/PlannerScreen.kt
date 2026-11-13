@@ -45,7 +45,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
@@ -60,6 +59,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -95,6 +95,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
@@ -356,23 +357,25 @@ fun PlannerScreen(state: AppState, viewModel: AppViewModel, snackbarHostState: S
       }
       val current by rememberUpdatedState(state)
       val showNavigate = state.canNavigate && !searching
-      val currentShowNavigate by rememberUpdatedState(showNavigate)
-      val fabRoom = with(density) { (NAVIGATE_FAB_SIZE + 12.dp).toPx() }
+      // Navigate while planning and Stop while navigating share the floating button's place, see
+      // `map-planning` "Clear actions in the planner panel".
+      val showFab = showNavigate || state.navigating
+      val currentShowFab by rememberUpdatedState(showFab)
+      val fabRoom = with(density) { (FAB_SIZE + 12.dp).toPx() }
       // Clear of the attribution at the map's bottom, which must stay visible.
       val attribution = with(density) { 24.dp.toPx() }
       val noteTop = {
         sheetTop() - if (current.tapNote != null) noteHeight.toFloat() else attribution
       }
       SideEffect {
-        buttonsBottom.value = { noteTop() - if (currentShowNavigate) fabRoom else 0f }
+        buttonsBottom.value = { noteTop() - if (currentShowFab) fabRoom else 0f }
       }
-      if (showNavigate)
-        NavigateFab(
-          viewModel,
-          Modifier.align(Alignment.TopEnd).padding(end = 12.dp).offset {
-            IntOffset(0, (noteTop() - fabRoom).roundToInt())
-          },
-        )
+      val fabModifier =
+        Modifier.align(Alignment.TopEnd).padding(end = 12.dp).offset {
+          IntOffset(0, (noteTop() - fabRoom).roundToInt())
+        }
+      if (state.navigating) StopFab(viewModel, fabModifier)
+      else if (showNavigate) NavigateFab(viewModel, fabModifier)
       state.tapNote?.let { note ->
         // Right above the panel, wherever it is.
         TapNoteCard(
@@ -679,7 +682,12 @@ private fun WaypointSheet(
             onNavigationHeight(it.height, navigation.guidedWay?.junctionAhead() != null)
           }
       ) {
-        NavigationHeader(navigation, onStop = viewModel::stopNavigation)
+        NavigationHeader(
+          navigation,
+          onStop = viewModel::stopNavigation,
+          // In portrait, Stop floats in Navigate's place instead.
+          showStop = navigateInHeader,
+        )
         val current = navigation.navigation
         if (progress != null && current != null)
           ProgressPanel(progress, complete?.ferries.orEmpty(), current)
@@ -1055,13 +1063,46 @@ private fun NavigateFab(viewModel: AppViewModel, modifier: Modifier) {
       onClick = { if (!finding) navigate() },
       containerColor = ActionColors.green,
       contentColor = Color.White,
-      shape = CircleShape,
-      modifier =
-        Modifier.size(NAVIGATE_FAB_SIZE).border(1.dp, Color.White.copy(alpha = 0.5f), CircleShape),
     ) {
-      NavigateIcon(finding, Modifier.size(28.dp))
+      NavigateIcon(finding, Modifier.size(24.dp))
     }
   }
+}
+
+/**
+ * Stop in Navigate's place while navigating, in portrait: the same floating action button in red,
+ * or over the lock screen the outlined button to hold, in its shape, see `map-planning` "Clear
+ * actions in the planner panel" and `knot-navigation` "Navigation over the lock screen".
+ */
+@Composable
+private fun StopFab(viewModel: AppViewModel, modifier: Modifier) {
+  val overLockScreen by Navigating.overLockScreen.collectAsState()
+  if (overLockScreen) {
+    val shape = FloatingActionButtonDefaults.shape
+    Box(modifier) {
+      HoldAction(
+        stringResource(R.string.stop_hold),
+        R.drawable.ic_action_stop,
+        viewModel::stopNavigation,
+        modifier = Modifier.shadow(6.dp, shape),
+        size = FAB_SIZE,
+        shape = shape,
+      )
+    }
+  } else
+    NamedAction(stringResource(R.string.stop), modifier) {
+      FloatingActionButton(
+        onClick = viewModel::stopNavigation,
+        containerColor = ActionColors.red,
+        contentColor = Color.White,
+      ) {
+        Icon(
+          painterResource(R.drawable.ic_action_stop),
+          contentDescription = stringResource(R.string.stop),
+          modifier = Modifier.size(24.dp),
+        )
+      }
+    }
 }
 
 /**
@@ -1085,7 +1126,8 @@ private fun NavigateIcon(finding: Boolean, modifier: Modifier) {
     )
 }
 
-private val NAVIGATE_FAB_SIZE = 64.dp
+/** Material's floating action button, Navigate's and Stop's in portrait. */
+private val FAB_SIZE = 56.dp
 
 /**
  * Back to start with its label, Share, Clear and Undo, each when available, in one row below the
@@ -1208,7 +1250,7 @@ private fun FirstThatFits(modifier: Modifier, vararg choices: @Composable () -> 
  * follow".
  */
 @Composable
-private fun NavigationHeader(navigation: NavigationState, onStop: () -> Unit) {
+private fun NavigationHeader(navigation: NavigationState, onStop: () -> Unit, showStop: Boolean) {
   val current = navigation.navigation
   val position = navigation.position
   val row =
@@ -1247,13 +1289,15 @@ private fun NavigationHeader(navigation: NavigationState, onStop: () -> Unit) {
         )
       } else {
         // A gap before Stop, so a badge's corner symbol does not touch it.
-        HeaderRowView(row, Modifier.weight(1f).padding(end = 12.dp))
+        HeaderRowView(row, Modifier.weight(1f).padding(end = if (showStop) 12.dp else 0.dp))
       }
-      // Over the lock screen, a touch in the pocket shouldn't end the ride.
-      val overLockScreen by Navigating.overLockScreen.collectAsState()
-      if (overLockScreen)
-        HoldAction(stringResource(R.string.stop_hold), R.drawable.ic_action_stop, onStop)
-      else StopIconAction(stringResource(R.string.stop), onStop)
+      if (showStop) {
+        // Over the lock screen, a touch in the pocket shouldn't end the ride.
+        val overLockScreen by Navigating.overLockScreen.collectAsState()
+        if (overLockScreen)
+          HoldAction(stringResource(R.string.stop_hold), R.drawable.ic_action_stop, onStop)
+        else StopIconAction(stringResource(R.string.stop), onStop)
+      }
     }
   }
   // The picture of a doubtful junction close ahead, below the row, so the row keeps its height,

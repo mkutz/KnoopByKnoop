@@ -112,11 +112,11 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Waking the phone on the ride — on Android
 - Audio playing — on Android
 - The place search — on Android
-- Before touching the stop button — on Android
+- Before touching the stop button — on Android: in portrait the outlined rounded square in the floating button's place, in landscape round in the header
 - A touch on the stop button — on Android
 - Letting go early — on Android
 - Without animations — on Android with animations off
-- Holding the stop button — on Android
+- Holding the stop button — on Android: the ring fills along the rounded square's edge from the top, clockwise
 - Stop with a screen reader — on Android with a screen reader
 - Unlocking — on Android
 - The notification — on Android
@@ -184,6 +184,7 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Groups on the map — on the emulator and in the simulator: search alone, position and nearest knots, zoom in and out
 - Moving with the panel — on the emulator and in the simulator: the column follows the panel pulled up and down
 - Above Navigate on Android — on the emulator: the column stands above the Navigate button, nothing covered
+- Above Stop on Android — on the emulator while navigating: the column stands above the Stop button, nothing covered
 - Panel pulled far up — on the emulator and in the simulator: the zoom group drops out first, then the position group
 - Glass on iOS — in the simulator and on the iPhone, light and dark
 - Note on the panel's edge — on the devices: after a tapped knot the note stands on the panel, the buttons above it
@@ -206,8 +207,9 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Back to start on a narrow phone — on the emulator at 360 dp (`wm size 1080x2400`, `wm density 480`) and on a 375 pt iPhone: a cycling route after an edit shows Back to start as an icon, the other actions and both symbols in one row; TalkBack and VoiceOver read "Back to start"
 - Zoom buttons as one control — on the devices: one group, read as "Zoom in" and "Zoom out"
 - Navigate in landscape — on the emulator and in the simulator: a round Navigate at the end of the side panel's header
-- Navigate stands out — on the devices
-- Stop stands out — on the devices
+- Navigate stands out — on the devices: on Android a rounded-square floating button
+- Stop stands out — on the devices: on Android the red floating button in Navigate's place, no Stop in the header
+- Stop in landscape on Android — on the emulator in landscape while navigating: the round red Stop at the end of the side panel's header
 - Icon buttons with a screen reader — on the devices with a screen reader
 - Name of an icon button on Android — on Android
 - Readable actions — on the devices by measuring contrast

@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Share a route from the panel: Share offers "Route for Knoop by Knoop", a small file that lists the knots in riding order like a hand-written knot list, and the GPX export for other apps. Open such a file from Files, mail, a messenger or AirDrop and the app shows the route, ready to ride; Undo brings back the one you had. Text after a stop's number in the file, like "lunch at the Fährhaus", shows in the waypoint list
+- Android: Navigate and Stop are Android's own floating button now, a rounded square in the same place on the panel's edge; Stop has left the navigation header, which gets the room for the numbers. Over the lock screen, the button to hold for stopping is in that place too
 - Android: on slow phones the app could stay on "Loading the cycling knot network…" with an empty panel after starting, until it was started again
 
 ## 0.16.0

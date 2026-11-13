@@ -39,9 +39,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathMeasure
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
@@ -52,6 +58,9 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
@@ -100,13 +109,20 @@ fun ProminentAction(
 }
 
 /**
- * Stop over the lock screen: round and outlined, the size of the Stop in the app, with a ring that
- * fills around it while held, and the label as a hint on a tap, so it doesn't pass for the usual
- * Stop button, see `knot-navigation` "Navigation over the lock screen".
+ * Stop over the lock screen: outlined, in the [shape] and [size] of the Stop in the app, with a
+ * ring that fills along its edge while held, and the label as a hint on a tap, so it doesn't pass
+ * for the usual Stop button, see `knot-navigation` "Navigation over the lock screen".
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HoldAction(label: String, @DrawableRes icon: Int, onHold: () -> Unit) {
+fun HoldAction(
+  label: String,
+  @DrawableRes icon: Int,
+  onHold: () -> Unit,
+  modifier: Modifier = Modifier,
+  size: Dp = STOP_SIZE,
+  shape: Shape = CircleShape,
+) {
   val currentOnHold by rememberUpdatedState(onHold)
   val fill = remember { Animatable(0f) }
   val scope = rememberCoroutineScope()
@@ -122,26 +138,31 @@ fun HoldAction(label: String, @DrawableRes icon: Int, onHold: () -> Unit) {
     Box(
       contentAlignment = Alignment.Center,
       modifier =
-        Modifier.size(STOP_SIZE)
+        modifier
+          .size(size)
           .drawBehind {
             val outline = OUTLINE_WIDTH.toPx()
             val ring = RING_WIDTH.toPx()
-            drawCircle(surface)
-            drawCircle(
+            val corner = cornerRadiusOf(shape, this.size, layoutDirection, this)
+            drawRoundRect(surface, cornerRadius = CornerRadius(corner))
+            drawRoundRect(
               ActionColors.red,
-              radius = size.minDimension / 2 - outline / 2,
+              topLeft = Offset(outline / 2, outline / 2),
+              size = Size(this.size.width - outline, this.size.height - outline),
+              cornerRadius = CornerRadius(corner - outline / 2),
               style = Stroke(outline),
             )
             if (fill.value > 0f) {
-              drawArc(
-                ActionColors.red,
-                startAngle = -90f,
-                sweepAngle = 360f * fill.value,
-                useCenter = false,
-                topLeft = Offset(ring / 2, ring / 2),
-                size = Size(size.width - ring, size.height - ring),
-                style = Stroke(ring, cap = StrokeCap.Round),
-              )
+              val edge =
+                ringPath(
+                  Rect(ring / 2, ring / 2, this.size.width - ring / 2, this.size.height - ring / 2),
+                  corner - ring / 2,
+                )
+              // Measured along the edge, so the ring fills at an even pace past the corners.
+              val measure = PathMeasure().apply { setPath(edge, forceClosed = false) }
+              val filled = Path()
+              measure.getSegment(0f, measure.length * fill.value, filled, startWithMoveTo = true)
+              drawPath(filled, ActionColors.red, style = Stroke(ring, cap = StrokeCap.Round))
             }
           }
           .clearAndSetSemantics {
@@ -188,7 +209,36 @@ fun HoldAction(label: String, @DrawableRes icon: Int, onHold: () -> Unit) {
   }
 }
 
-/** The size of the Stop buttons, in the app and over the lock screen. */
+/** The corner radius of [shape] at [size]: half the size for a circle. */
+private fun cornerRadiusOf(
+  shape: Shape,
+  size: Size,
+  layoutDirection: LayoutDirection,
+  density: Density,
+): Float =
+  when (val outline = shape.createOutline(size, layoutDirection, density)) {
+    is Outline.Rounded -> outline.roundRect.topLeftCornerRadius.x
+    else -> 0f
+  }
+
+/** The edge of a rounded rectangle, clockwise from the middle of its top. */
+private fun ringPath(rect: Rect, radius: Float): Path {
+  val r = radius.coerceIn(0f, rect.minDimension / 2)
+  return Path().apply {
+    moveTo(rect.center.x, rect.top)
+    lineTo(rect.right - r, rect.top)
+    arcTo(Rect(rect.right - 2 * r, rect.top, rect.right, rect.top + 2 * r), -90f, 90f, false)
+    lineTo(rect.right, rect.bottom - r)
+    arcTo(Rect(rect.right - 2 * r, rect.bottom - 2 * r, rect.right, rect.bottom), 0f, 90f, false)
+    lineTo(rect.left + r, rect.bottom)
+    arcTo(Rect(rect.left, rect.bottom - 2 * r, rect.left + 2 * r, rect.bottom), 90f, 90f, false)
+    lineTo(rect.left, rect.top + r)
+    arcTo(Rect(rect.left, rect.top, rect.left + 2 * r, rect.top + 2 * r), 180f, 90f, false)
+    close()
+  }
+}
+
+/** The size of the Stop buttons in the header, in the app and over the lock screen. */
 private val STOP_SIZE = 52.dp
 private val OUTLINE_WIDTH = 2.dp
 private val RING_WIDTH = 5.dp
