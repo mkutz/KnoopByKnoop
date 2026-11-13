@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Android: on slow phones the app could stay on "Loading the cycling knot network…" with an empty panel after starting, until it was started again
+
 ## 0.16.0
 
 - A tapped knot is added where it fits best: as a stop beside the route, or as the new end beyond it. A short note then offers to make it the start or the end instead. The "Add knots: Between | At end" switch is gone

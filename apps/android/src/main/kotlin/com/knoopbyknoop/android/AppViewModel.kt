@@ -378,7 +378,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
    * network access coming back, and at navigation start.
    */
   private suspend fun loadBaseMap() {
-    state = state.copy(baseMapBytes = baseMaps.installedBytes())
+    // Measured before the state is read: measuring suspends, and a copy of the state from before
+    // would drop what came in meanwhile, e.g. the loaded network on a slow phone.
+    val bytes = baseMaps.installedBytes()
+    state = state.copy(baseMapBytes = bytes)
     snapshotFlow { listOf(state.online, state.session, state.layers, state.baseMapDeletedFor) }
       .distinctUntilChanged()
       .collectLatest {
@@ -407,7 +410,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
       state.copy(baseMap = null, baseMapBytes = 0, baseMapDeletedFor = plannedCourse() ?: listOf())
     viewModelScope.launch {
       baseMaps.clear()
-      state = state.copy(baseMapBytes = baseMaps.installedBytes())
+      val bytes = baseMaps.installedBytes()
+      state = state.copy(baseMapBytes = bytes)
     }
   }
 
