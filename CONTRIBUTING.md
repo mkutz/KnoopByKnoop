@@ -95,6 +95,6 @@ adb shell am start -a android.intent.action.VIEW -t text/markdown \
   -d file:///data/user/0/com.knoopbyknoop/files/demo-route.knoop -n com.knoopbyknoop/.android.MainActivity
 ```
 
-On iOS, use the iPhone 17 Pro Max simulator with `xcrun simctl status_bar booted override --time 12:00 --batteryState charged --batteryLevel 100`.
+On iOS, use an iPhone 17 Pro Max simulator (create it with `xcrun simctl create`), with `xcrun simctl status_bar booted override --time 2026-11-14T12:00:00+01:00 --batteryState charged --batteryLevel 100`, and open the route with `xcrun simctl openurl booted file://$PWD/fastlane/screenshots/demo-route.knoop`.
 
 Set up by hand, once, in the consoles: App Privacy ("Data Not Collected"), price and availability, content rights (OpenStreetMap data) and the review notes in App Store Connect; the data safety form and the category Maps & Navigation in Play Console.

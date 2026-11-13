@@ -22,7 +22,7 @@
 
 ## 3. Screenshots
 
-- [ ] 3.1 Make the demo route `.knoop` file (the Kinderdijk loop over two ferries). Keep it in `fastlane/screenshots/demo-route.knoop`. Verify: opening it on the emulator and in the simulator shows the route.
+- [x] 3.1 Make the demo route `.knoop` file (the Kinderdijk loop over two ferries). Keep it in `fastlane/screenshots/demo-route.knoop`. Verify: opening it on the emulator and in the simulator shows the route.
 - [ ] 3.2 Extend the check with screenshot counts and sizes, read from the PNG header. Add tests for "Missing screenshot" and "Wrong screenshot size" to the check's test. Verify: the test passes.
 - [ ] 3.3 Take the five Android screenshots in all four languages on the 1080 × 1920 emulator, with System UI demo mode. Put them in `fastlane/metadata/android/<locale>/images/phoneScreenshots/`. Move the feature graphic and icon from `design/store`. Verify: the check passes, and the maintainer looks at the English set.
 - [ ] 3.4 Take the five iPhone screenshots in all four languages on the iPhone 17 Pro Max simulator, with `simctl status_bar override`. Put them in `fastlane/screenshots/ios/<locale>/`. Verify: the check passes, and the maintainer looks at the English set.
