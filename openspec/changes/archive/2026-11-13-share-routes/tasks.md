@@ -12,11 +12,11 @@
 
 ## 3. iOS
 
-- [ ] 3.1 Share in `routeActions` as a `Menu` with the two choices; `ExportedGpx` generalised to any shared file. Strings in all four languages. Check in the simulator: the share sheet with the file.
+- [x] 3.1 Share in `routeActions` as a `Menu` with the two choices; `ExportedGpx` generalised to any shared file. Strings in all four languages. Check in the simulator: the share sheet with the file.
 - [x] 3.2 Opening: the exported type and document type in `project.yml`, `onOpenURL` in `KnoopByKnoopApp` handing the text to `AppModel.open(text)` with the same behaviour as on Android. Check in the simulator by dragging a `.knoop` file in and opening it from Files.
 
 ## 4. Checks
 
 - [x] 4.1 Update the `checked-by-hand.md` lines that name Export GPX, and add the scenarios only the devices can check (`Share while offline`, `Home flag shared as it is`, `Open a shared route`, `Opened on the other network`, `Opened while navigating`, `Undo an opened route`, `Opened route on the other network`, and the panel scenarios changed to Share), with how they are checked. CHANGELOG Unreleased line.
-- [ ] 4.2 Manual check across the phones: share the route Siegburg 02 → 83 → 73 → 02 with a home flag from the Pixel to the iPhone and back, and open each; open a file written by hand from a paper-map list without an id. Both show the same route.
+- [x] 4.2 Manual check across the phones: share the route Siegburg 02 → 83 → 73 → 02 with a home flag from the Pixel to the iPhone and back, and open each; open a file written by hand from a paper-map list without an id. Both show the same route.
 - [x] 4.3 Run `./gradlew check` and `npx @fission-ai/openspec validate --all`, then `./gradlew checkScenarios -Pchange=share-routes`.

@@ -443,11 +443,11 @@ The map SHALL extend behind the system's status bar and navigation bar, while th
 - **THEN** the compass is below the search field, and the clock and the status icons, the battery among them, are not covered
 
 ### Requirement: Clear actions in the planner panel
-Navigate SHALL be the most prominent action, a filled round icon button with the navigation arrow and without a label: in the planner panel's header on iOS, and as a floating action button at the panel's top right edge on Android, moving with the panel. In landscape it SHALL be at the end of the side panel's header on both. While navigating, the header SHALL show Stop as a filled round icon button of the same size in every app language, announced as "Stop" to screen readers and showing its name on a long press on Android. Back to start, with an icon and its label, Export GPX, Clear and Undo, as icon buttons, SHALL be shown in one row in the panel below the route's knots, each only when available, with the download symbols at the row's end (see `network-sync` "Base map ready for the ride"); there SHALL be no "More actions" menu. Where the row does not fit, Back to start SHALL show its icon only, still named "Back to start" to screen readers and on a long press on Android. The header SHALL stay one row on phones 360 dp wide. Icon buttons SHALL be announced by name to screen readers. In light and in dark appearance, the labels of all these actions SHALL have a contrast of at least 4.5:1, and their icons at least 3:1, against what they are shown on.
+Navigate SHALL be the most prominent action, a filled round icon button with the navigation arrow and without a label: in the planner panel's header on iOS, and as a floating action button at the panel's top right edge on Android, moving with the panel. In landscape it SHALL be at the end of the side panel's header on both. While navigating, the header SHALL show Stop as a filled round icon button of the same size in every app language, announced as "Stop" to screen readers and showing its name on a long press on Android. Back to start, with an icon and its label, Share, Clear and Undo, as icon buttons, SHALL be shown in one row in the panel below the route's knots, each only when available, with the download symbols at the row's end (see `network-sync` "Base map ready for the ride"); there SHALL be no "More actions" menu. Where the row does not fit, Back to start SHALL show its icon only, still named "Back to start" to screen readers and on a long press on Android. The header SHALL stay one row on phones 360 dp wide. Icon buttons SHALL be announced by name to screen readers. In light and in dark appearance, the labels of all these actions SHALL have a contrast of at least 4.5:1, and their icons at least 3:1, against what they are shown on.
 
 #### Scenario: Navigate stands out
 - **WHEN** a complete route is planned
-- **THEN** Navigate shows as a filled round button with the navigation arrow, without a label, next to the distance on iOS and as a floating action button at the panel's top right on Android; below the knots, the panel shows Back to start with its label, if the route is not a round trip yet, then Export GPX, Clear and, after an edit, Undo as icon buttons, and the download symbols at the end, in one row, also 360 dp wide
+- **THEN** Navigate shows as a filled round button with the navigation arrow, without a label, next to the distance on iOS and as a floating action button at the panel's top right on Android; below the knots, the panel shows Back to start with its label, if the route is not a round trip yet, then Share, Clear and, after an edit, Undo as icon buttons, and the download symbols at the end, in one row, also 360 dp wide
 
 #### Scenario: Stop stands out
 - **WHEN** the rider is navigating
@@ -463,7 +463,7 @@ Navigate SHALL be the most prominent action, a filled round icon button with the
 
 #### Scenario: Icon buttons with a screen reader
 - **WHEN** a screen reader (TalkBack, VoiceOver) moves through the panel of a route planned by tapping
-- **THEN** it announces "Navigate", "Back to start", "Export GPX", "Clear" and "Undo" as buttons
+- **THEN** it announces "Navigate", "Back to start", "Share", "Clear" and "Undo" as buttons
 
 #### Scenario: Name of an icon button on Android
 - **WHEN** the user long-presses Clear on Android
@@ -483,7 +483,7 @@ Navigate SHALL be the most prominent action, a filled round icon button with the
 
 #### Scenario: Back to start on a narrow phone
 - **WHEN** a complete cycling route that is not a round trip is planned on a phone 360 dp wide, after an edit
-- **THEN** the row shows Back to start as an icon only, Export GPX, Clear, Undo and the map and network symbols in one row, and a screen reader announces "Back to start" as a button
+- **THEN** the row shows Back to start as an icon only, Share, Clear, Undo and the map and network symbols in one row, and a screen reader announces "Back to start" as a button
 
 ### Requirement: Light and dark appearance
 The app SHALL follow the appearance chosen in the info sheet, by default the system's light or dark appearance: the base map, the planner panel and the controls over the map SHALL all be light or all be dark. The dark base map SHALL show the same details as the light one, with water in blue and paths and roads visible against the land. Switching the appearance while the app is open SHALL switch the app without moving the map or changing the route, and without interrupting navigation. On Android, an appearance chosen in the info sheet SHALL reach the base map when the sheet closes, so the sheet's own switch stays smooth. The knots, the route and the highlighted knots SHALL stay distinguishable on the dark map.
@@ -596,10 +596,10 @@ While planning, the map SHALL offer a button, in one group with the nearest knot
 - **THEN** the position button is not shown, as the map follows the rider and offers its recenter button
 
 ### Requirement: Export the route as GPX
-The app SHALL export a complete planned route as a GPX 1.1 file and offer it in the system share sheet. The file SHALL contain the route's line along the knot network as one track, and each knot passed, in riding order, as a waypoint named with its number and typed as start, stop, end or knot. Export SHALL be offered only for a complete route whose line is known, not while navigating, and also offline.
+The app SHALL export a complete planned route as a GPX 1.1 file and offer it in the system share sheet, through the choice "GPX for other apps" of Share in the panel (see `route-sharing` "Share the route"). The file SHALL contain the route's line along the knot network as one track, and each knot passed, in riding order, as a waypoint named with its number and typed as start, stop, end or knot. Export SHALL be offered only for a complete route whose line is known, not while navigating, and also offline.
 
 #### Scenario: Export a route
-- **WHEN** the user plans a cycling route from knot 12 through stop 40 to knot 34 and chooses Export GPX in the header's menu
+- **WHEN** the user plans a cycling route from knot 12 through stop 40 to knot 34 and chooses Share and "GPX for other apps"
 - **THEN** the share sheet opens with a file `knoop-by-knoop-cycling-12-34.gpx`
 
 #### Scenario: Track along the network
@@ -616,15 +616,15 @@ The app SHALL export a complete planned route as a GPX 1.1 file and offer it in 
 
 #### Scenario: No export without a complete route
 - **WHEN** only a start is set, or the route's line is not loaded yet
-- **THEN** Export GPX is not offered
+- **THEN** "GPX for other apps" is not offered
 
 #### Scenario: No export while navigating
 - **WHEN** the rider is navigating
-- **THEN** Export GPX is not shown
+- **THEN** neither Share nor "GPX for other apps" is shown
 
 #### Scenario: Export while offline
 - **WHEN** the device is offline and a complete route with its line is planned
-- **THEN** Export GPX opens the share sheet with the file
+- **THEN** "GPX for other apps" opens the share sheet with the file
 
 ### Requirement: Knot badges at large text sizes
 The knot badges in the panel SHALL show their numbers at the same size whatever the system text size, like the badges on the map, so a number always fits within its badge.
@@ -1490,7 +1490,7 @@ When the user chooses Navigate, every planning tool still open SHALL close at on
 - **THEN** the map does not move for it once the position or the knots are found
 
 ### Requirement: Undo route edits
-Undo in the panel SHALL take back the last edit of the route being planned, and each further Undo the edit before, back to the oldest edit kept; there SHALL be no redo. An edit SHALL be every change the user makes to the waypoints while planning: a tapped knot, spot or place added, with the note's choices for it counting as part of that tap, "Start here", "Add stop here" and "End here", a waypoint removed or moved, Back to start, and Clear. Changes the app makes by itself, such as the courses coming in or a waypoint dropped after a data update, SHALL NOT be edits, and Undo SHALL keep what they brought. At least the last 50 edits SHALL be kept, also when the app is closed and opened again. Undo SHALL be shown only when there is an edit to take back and not while navigating. Switching the network SHALL discard the edits with the route. A knot that no longer exists SHALL be left out when an edit is taken back, as on a restart.
+Undo in the panel SHALL take back the last edit of the route being planned, and each further Undo the edit before, back to the oldest edit kept; there SHALL be no redo. An edit SHALL be every change the user makes to the waypoints while planning: a tapped knot, spot or place added, with the note's choices for it counting as part of that tap, "Start here", "Add stop here" and "End here", a waypoint removed or moved, Back to start, Clear, and a route file opened on the same network (see `route-sharing` "Open a route file"). Changes the app makes by itself, such as the courses coming in or a waypoint dropped after a data update, SHALL NOT be edits, and Undo SHALL keep what they brought. At least the last 50 edits SHALL be kept, also when the app is closed and opened again. Undo SHALL be shown only when there is an edit to take back and not while navigating. Switching the network, also by opening a route file of the other network, SHALL discard the edits with the route. A knot that no longer exists SHALL be left out when an edit is taken back, as on a restart.
 
 #### Scenario: Undo a tap
 - **WHEN** the route is 12 → 45 and the user taps 30, which becomes a stop, and then chooses Undo
@@ -1543,3 +1543,7 @@ Undo in the panel SHALL take back the last edit of the route being planned, and 
 #### Scenario: Undo with a screen reader
 - **WHEN** a screen reader (TalkBack, VoiceOver) reaches Undo
 - **THEN** it announces "Undo" as a button
+
+#### Scenario: Opened route on the other network
+- **WHEN** the user planned a cycling route by tapping and then opens a hiking route file
+- **THEN** the hiking route is shown and no Undo is shown
