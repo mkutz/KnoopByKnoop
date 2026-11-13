@@ -1,14 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.16.0
 
 - A tapped knot is added where it fits best: as a stop beside the route, or as the new end beyond it. A short note then offers to make it the start or the end instead. The "Add knots: Between | At end" switch is gone
 - Undo in the panel takes back the last change to the route, and each further Undo the one before: tapped knots and places, removed or moved waypoints, Back to start, even Clear. The last 50 changes are kept, also after closing the app
 - A tapped spot or a highlighted place (restaurant, campsite, …) offers "Add to route", which adds it where it fits, like a tapped knot, with the same note to change it
 - The map's buttons stand in groups on glass (search; position and nearest knots; zoom) right above the panel and move with it. Their icons and the gear for Settings at the top right are in the text colour, so they show in dark mode too. Navigate is a round button, on Android floating on the panel's edge. Back to start, Export GPX and Clear sit in a row below the route's knots instead of a menu. The note after a tap and the place card are in the same glass
-- The note after a tap stays open after choosing start, stop or end, so a mistap can be put right; it goes away 6 seconds after the last choice, with the next tap, or at once on Navigate. So do the other planning tools: an open place card, a spot still being added, the search and its marker, and a map move for "Show my position" or "Nearest knots" not yet made.
+- The note after a tap stays open after choosing start, stop or end, so a mistap can be put right; it goes away 6 seconds after the last choice, with the next tap, or at once on Navigate. So do the other planning tools: an open place card, a spot still being added, the search and its marker, and a map move for "Show my position" or "Nearest knots" not yet made
 - Before there is a route, the panel shows "Plan a ride" with a slot for the start and one for the end, filled with the knot's badge and place as you tap, a short hint, and buttons to search a place or show the nearest knots
-- Whether the map and the ways for a route are loaded shows as two symbols at the end of the panel's action row, with a spinner, a checkmark or a warning mark, instead of two lines of text, so the panel no longer jumps. Tap a symbol to read what it means for the ride. On narrow phones, Back to start shows its icon only. The info sheet's "Ways for guidance" is now "Paths and streets"
+- Whether the map and the paths and streets around a route are saved for offline use shows as two symbols at the end of the panel's action row, with a spinner, a checkmark or a warning mark, instead of two lines of text, so the panel no longer jumps. Tap a symbol to read what it means for the ride. On narrow phones, Back to start shows its icon only. The info sheet's "Ways for guidance" is now "Paths and streets"
 - Navigate reacts at once: it shows a spinner while it finds your position, uses a position the phone found in the last minute, and no longer waits for a precise one, which indoors could take up to 10 seconds
 
 ## 0.15.0
