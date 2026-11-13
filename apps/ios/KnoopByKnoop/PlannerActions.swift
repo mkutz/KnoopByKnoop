@@ -45,7 +45,10 @@ struct NavigateIconAction: View {
   var body: some View {
     RoundProminentAction(
       title: finding ? "Finding your position" : "Navigate", systemImage: "location.north.fill",
-      color: .actionGreen, busy: finding, action: action)
+      color: .actionGreen, busy: finding, action: action
+    )
+    // For the screenshot test, see `store-screenshots`.
+    .accessibilityIdentifier("navigate")
   }
 }
 
@@ -57,6 +60,7 @@ struct StopIconAction: View {
 
   var body: some View {
     RoundProminentAction(title: "Stop", systemImage: "stop.fill", color: .actionRed, action: action)
+      .accessibilityIdentifier("stop")
   }
 }
 

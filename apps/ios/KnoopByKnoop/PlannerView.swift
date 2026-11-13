@@ -231,6 +231,7 @@ struct PlannerView: View {
       let nearby = MapFeatures.shared.formatDistance(meters: choice.nearbyMeters, language: language)
       let start = MapFeatures.shared.formatDistance(meters: choice.startMeters, language: language)
       Button("Start on the route nearby · \(nearby)") { model.startNearby(choice) }
+        .accessibilityIdentifier("startNearby")
       if choice.start.isRoutePoint {
         Button("Ride to the start · \(start)") { model.rideToStart() }
       } else {
@@ -1099,6 +1100,7 @@ private struct PlaceOfferMenu: View {
       Text("Add to route").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
         .padding(.horizontal, 16)
     }
+    .accessibilityIdentifier("addToRoute")
   }
 }
 
@@ -1200,6 +1202,7 @@ private struct FerryDetourQuestion: View {
         }
           .font(.title3.weight(.semibold))
           .accessibilityAddTraits(.isHeader)
+          .accessibilityIdentifier("closedFerry")
         ForEach(detour.warnings, id: \.self) { warning in
           Text(warning).font(.body).fixedSize(horizontal: false, vertical: true)
         }

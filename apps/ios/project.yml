@@ -116,6 +116,24 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Knoop by Knoop
 
+  # The store screenshots, see `store-screenshots`; run by the workflow Store screenshots.
+  KnoopByKnoopScreenshots:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - KnoopByKnoopScreenshots
+    dependencies:
+      - target: KnoopByKnoop
+    configFiles:
+      Debug: Signing.xcconfig
+      Release: Signing.xcconfig
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.knoopbyknoop.screenshots
+        TARGETED_DEVICE_FAMILY: "1"
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: KnoopByKnoop
+
 # Defined here, so they survive regenerating the project; schemes edited in Xcode do not.
 schemes:
   KnoopByKnoop:
@@ -136,3 +154,12 @@ schemes:
       config: Release
       debugEnabled: false
       askForAppToLaunch: true
+  KnoopByKnoop Screenshots:
+    build:
+      targets:
+        KnoopByKnoop: all
+        KnoopByKnoopScreenshots: [test]
+    test:
+      config: Debug
+      targets:
+        - KnoopByKnoopScreenshots

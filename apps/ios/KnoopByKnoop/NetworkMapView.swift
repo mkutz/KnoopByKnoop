@@ -236,6 +236,7 @@ struct NetworkMapView: UIViewRepresentable {
       return spinner
     }
     let search = button("magnifyingglass", #selector(Coordinator.search), label: "Search places")
+    search.accessibilityIdentifier = "search"
     search.isHidden = true
     // While planning: the position once per tap, see `map-planning` "Show my position"; with no
     // knots in view, the nearest knots, see "Nearest knots".

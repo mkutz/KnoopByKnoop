@@ -88,6 +88,7 @@ struct PlaceSearchView: View {
         text: Binding(get: { model.online ? search.query : "" }, set: { search.search($0) })
       )
       .focused($focused)
+      .accessibilityIdentifier("searchField")
       .submitLabel(.search)
       // At once, without waiting for the pause after typing.
       .onSubmit { search.searchAgain() }

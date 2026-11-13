@@ -404,6 +404,12 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Listing update — by a run of Release store listing: both consoles show the texts and screenshots, no build or release changed
 - No App Store Connect credentials for the listing — by a run of Release store listing without the App Store Connect secrets
 
+## store-screenshots
+
+- Screenshots for review — by a run of Store screenshots: one artifact with 40 screenshots in the fastlane folders and the contact sheet
+- Screenshot in the wrong language — on the contact sheet of a run: each row's texts are in its language
+- Closed ferry — by running `.github/scripts/android-screenshots.sh` on an emulator with the clock on a Sunday at 12:00: it fails naming the Lekkerkerk ferry
+
 ## spec-checks
 
 - Commit changing only a spec — by a pull request on GitHub changing only a spec

@@ -39,6 +39,8 @@ jobs:
 
       - run: sh .github/scripts/coming-saturday-test.sh
 
+      - run: sh .github/scripts/screenshots-workflow-test.sh
+
       - run: sh .github/scripts/store-listing-check.sh
 
       # Pull requests from forks get no signing keys or store credentials, see `release-delivery`.
