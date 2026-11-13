@@ -10,4 +10,4 @@
 ## 3. Checks
 
 - [x] 3.1 `openspec/checked-by-hand.md` entries for the new scenarios, CHANGELOG line; `./gradlew check`, validate, `checkScenarios -Pchange=show-route-downloads-as-symbols`.
-- [ ] 3.2 On the emulator at 360 dp and in the simulator: loading, loaded and failed (airplane mode), cycling and hiking, TalkBack and VoiceOver, dark mode, the sheet keeps its height. Install on both phones.
+- [x] 3.2 On the emulator at 360 dp and in the simulator: loading, loaded and failed (airplane mode), cycling and hiking, TalkBack and VoiceOver, dark mode, the sheet keeps its height. Install on both phones.

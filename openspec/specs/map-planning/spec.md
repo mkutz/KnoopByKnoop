@@ -443,11 +443,11 @@ The map SHALL extend behind the system's status bar and navigation bar, while th
 - **THEN** the compass is below the search field, and the clock and the status icons, the battery among them, are not covered
 
 ### Requirement: Clear actions in the planner panel
-Navigate SHALL be the most prominent action, a filled round icon button with the navigation arrow and without a label: in the planner panel's header on iOS, and as a floating action button at the panel's top right edge on Android, moving with the panel. In landscape it SHALL be at the end of the side panel's header on both. While navigating, the header SHALL show Stop as a filled round icon button of the same size in every app language, announced as "Stop" to screen readers and showing its name on a long press on Android. Back to start, with an icon and its label, Export GPX, Clear and Undo, as icon buttons, SHALL be shown in one row in the panel below the route's knots, each only when available; there SHALL be no "More actions" menu. The header SHALL stay one row on phones 360 dp wide. Icon buttons SHALL be announced by name to screen readers. In light and in dark appearance, the labels of all these actions SHALL have a contrast of at least 4.5:1, and their icons at least 3:1, against what they are shown on.
+Navigate SHALL be the most prominent action, a filled round icon button with the navigation arrow and without a label: in the planner panel's header on iOS, and as a floating action button at the panel's top right edge on Android, moving with the panel. In landscape it SHALL be at the end of the side panel's header on both. While navigating, the header SHALL show Stop as a filled round icon button of the same size in every app language, announced as "Stop" to screen readers and showing its name on a long press on Android. Back to start, with an icon and its label, Export GPX, Clear and Undo, as icon buttons, SHALL be shown in one row in the panel below the route's knots, each only when available, with the download symbols at the row's end (see `network-sync` "Base map ready for the ride"); there SHALL be no "More actions" menu. Where the row does not fit, Back to start SHALL show its icon only, still named "Back to start" to screen readers and on a long press on Android. The header SHALL stay one row on phones 360 dp wide. Icon buttons SHALL be announced by name to screen readers. In light and in dark appearance, the labels of all these actions SHALL have a contrast of at least 4.5:1, and their icons at least 3:1, against what they are shown on.
 
 #### Scenario: Navigate stands out
 - **WHEN** a complete route is planned
-- **THEN** Navigate shows as a filled round button with the navigation arrow, without a label, next to the distance on iOS and as a floating action button at the panel's top right on Android; below the knots, the panel shows Back to start with its label, if the route is not a round trip yet, then Export GPX, Clear and, after an edit, Undo as icon buttons, in one row, also 360 dp wide
+- **THEN** Navigate shows as a filled round button with the navigation arrow, without a label, next to the distance on iOS and as a floating action button at the panel's top right on Android; below the knots, the panel shows Back to start with its label, if the route is not a round trip yet, then Export GPX, Clear and, after an edit, Undo as icon buttons, and the download symbols at the end, in one row, also 360 dp wide
 
 #### Scenario: Stop stands out
 - **WHEN** the rider is navigating
@@ -480,6 +480,10 @@ Navigate SHALL be the most prominent action, a filled round icon button with the
 #### Scenario: Navigate in landscape
 - **WHEN** a complete route is planned in landscape
 - **THEN** Navigate is the round icon button at the end of the side panel's header, on Android and iOS
+
+#### Scenario: Back to start on a narrow phone
+- **WHEN** a complete cycling route that is not a round trip is planned on a phone 360 dp wide, after an edit
+- **THEN** the row shows Back to start as an icon only, Export GPX, Clear, Undo and the map and network symbols in one row, and a screen reader announces "Back to start" as a button
 
 ### Requirement: Light and dark appearance
 The app SHALL follow the appearance chosen in the info sheet, by default the system's light or dark appearance: the base map, the planner panel and the controls over the map SHALL all be light or all be dark. The dark base map SHALL show the same details as the light one, with water in blue and paths and roads visible against the land. Switching the appearance while the app is open SHALL switch the app without moving the map or changing the route, and without interrupting navigation. On Android, an appearance chosen in the info sheet SHALL reach the base map when the sheet closes, so the sheet's own switch stays smooth. The knots, the route and the highlighted knots SHALL stay distinguishable on the dark map.
