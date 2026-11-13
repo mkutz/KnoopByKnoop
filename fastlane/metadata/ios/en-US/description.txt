@@ -1,4 +1,4 @@
-Knoop by Knoop plans and navigates rides on the knooppunt networks: the numbered junctions for cycling and hiking in the Netherlands, Belgium and North Rhine-Westphalia.
+Knoop by Knoop plans and navigates rides on the Knooppunt networks: the numbered junctions for cycling and hiking in the Netherlands, Belgium and North Rhine-Westphalia.
 
 PLAN BY TAPPING KNOTS
 Tap a knot for the start, another for the end, and the route follows the network between them along the actual paths. Add stops anywhere, move or remove them, and undo any change. Search a place or show the knots nearest to you. The waypoint list names the village each knot lies in, like a hand-written knot list.
