@@ -15,4 +15,4 @@
 ## 4. Checks
 
 - [x] 4.1 `openspec/checked-by-hand.md` entries for the scenarios checked on devices, CHANGELOG line; `./gradlew check`, validate, `checkScenarios -Pchange=add-undo-button`.
-- [ ] 4.2 On the emulator and in the simulator: undo a tap, a removal, a Clear, after a restart; Undo in the empty panel; screen reader; 360 dp row. Install on both phones.
+- [x] 4.2 On the emulator and in the simulator: undo a tap, a removal, a Clear, after a restart; Undo in the empty panel; screen reader; 360 dp row. Install on both phones.
