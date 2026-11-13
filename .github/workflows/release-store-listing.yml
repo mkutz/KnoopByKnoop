@@ -1,0 +1,155 @@
+name: Release store listing
+
+# Brings the store texts and screenshots in fastlane/ to both stores, see `store-listing` "One
+# trigger updates both store listings". Uploads no build, changes no release and submits nothing
+# for review; submitting the App Store version and promoting Play releases are done by hand.
+on:
+  workflow_dispatch:
+    inputs:
+      app-version:
+        description: App Store version to write to, e.g. 1.0.0; empty for the one being prepared
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: store-listing
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Listing and credentials
+    runs-on: ubuntu-latest
+
+    outputs:
+      android: ${{ steps.credentials.outputs.android }}
+      ios: ${{ steps.credentials.outputs.ios }}
+
+    steps:
+
+      - uses: actions/checkout@v7
+
+      - name: Only from main
+        run: |
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::The store listing is only taken from main, not $GITHUB_REF"
+            exit 1
+          fi
+
+      - run: sh .github/scripts/store-listing-check.sh
+
+      # A store without its credentials is skipped, as in releases. Job conditions cannot read
+      # secrets, so this step tells the store jobs whether theirs are set, without printing them.
+      - id: credentials
+        name: Check store credentials
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+        run: |
+          # Whether all the named variables are set; a notice names the missing ones.
+          ready() {
+            store=$1; shift
+            missing=""
+            for name in "$@"; do
+              eval "value=\${$name:-}"
+              [ -n "$value" ] || missing="$missing $name"
+            done
+            if [ -n "$missing" ]; then
+              echo "::notice::Skipping $store, its credentials are not set:$missing"
+              return 1
+            fi
+          }
+          android=true
+          ready "Google Play" PLAY_SERVICE_ACCOUNT_JSON || android=false
+          ios=true
+          ready "the App Store" APP_STORE_CONNECT_API_KEY APP_STORE_CONNECT_API_KEY_ID \
+            APP_STORE_CONNECT_API_ISSUER_ID || ios=false
+          echo "android=$android" >> "$GITHUB_OUTPUT"
+          echo "ios=$ios" >> "$GITHUB_OUTPUT"
+          if [ "$android" = false ] && [ "$ios" = false ]; then
+            echo "::error::No listing can be updated: neither store's credentials are set"
+            exit 1
+          fi
+
+  android:
+    name: Google Play
+    needs: check
+    if: needs.check.outputs.android == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v7
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+
+      - run: gem install fastlane --no-document
+
+      # The main store listing only: texts, feature graphic, icon and phone screenshots.
+      - name: Upload the listing
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: >
+          fastlane supply
+          --package_name com.knoopbyknoop
+          --json_key_data "$PLAY_SERVICE_ACCOUNT_JSON"
+          --metadata_path fastlane/metadata/android
+          --track internal
+          --skip_upload_apk true
+          --skip_upload_aab true
+          --skip_upload_changelogs true
+          --sync_image_upload true
+
+  ios:
+    name: App Store
+    needs: check
+    if: needs.check.outputs.ios == 'true'
+    runs-on: macos-latest
+
+    steps:
+
+      - uses: actions/checkout@v7
+
+      - run: brew install fastlane
+
+      - name: Write the API key
+        env:
+          API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+        run: |
+          printf '%s\n' "$API_KEY" > "$RUNNER_TEMP/AuthKey.p8"
+          jq --null-input \
+            --arg key_id "$API_KEY_ID" \
+            --arg issuer_id "$API_ISSUER_ID" \
+            --rawfile key "$RUNNER_TEMP/AuthKey.p8" \
+            '{key_id: $key_id, issuer_id: $issuer_id, key: $key}' > "$RUNNER_TEMP/api-key.json"
+
+      # Writes to the version being prepared, or to the given one; the log names it. Needs a key
+      # with the App Manager or Admin role, see CONTRIBUTING.md.
+      - name: Upload the listing
+        env:
+          APP_VERSION: ${{ inputs.app-version }}
+        run: |
+          set -- --app_version "$APP_VERSION"
+          [ -n "$APP_VERSION" ] || set --
+          fastlane deliver \
+            --api_key_path "$RUNNER_TEMP/api-key.json" \
+            --app_identifier com.knoopbyknoop \
+            --platform ios \
+            --metadata_path fastlane/metadata/ios \
+            --screenshots_path fastlane/screenshots/ios \
+            --app_rating_config_path fastlane/metadata/ios/app_rating_config.json \
+            --skip_binary_upload true \
+            --submit_for_review false \
+            --automatic_release false \
+            --overwrite_screenshots true \
+            --run_precheck_before_submit false \
+            --force true \
+            "$@"

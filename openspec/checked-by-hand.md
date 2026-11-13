@@ -400,6 +400,9 @@ A scenario gets a test as soon as one can check it; its line goes then.
 ## store-listing
 
 - Installed on an iPad — on an iPad simulator: the app opens in an iPhone-sized window with the iPhone layout
+- Screenshots show the current apps — by looking at the screenshots before starting Release store listing
+- Listing update — by a run of Release store listing: both consoles show the texts and screenshots, no build or release changed
+- No App Store Connect credentials for the listing — by a run of Release store listing without the App Store Connect secrets
 
 ## spec-checks
 

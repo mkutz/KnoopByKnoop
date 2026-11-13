@@ -50,7 +50,7 @@ fastlane/screenshots/ios/<locale>/{1..5}-*.png
 
 ### The listing workflow
 
-`.github/workflows/store-listing.yml`, run by hand (`workflow_dispatch`, no inputs, `main` only). It has two jobs.
+`.github/workflows/release-store-listing.yml`, run by hand (`workflow_dispatch`, `main` only). An optional input names the App Store version to write to. A check job first runs the listing check and looks for the credentials; then there are two store jobs. The `release-` prefix puts it under the existing secrets check, which lets only release workflows use secrets and only start them by hand.
 
 **iOS job:** `deliver` with
 
@@ -76,20 +76,13 @@ It writes to the version being prepared. When none exists, `deliver` creates one
 | `track` | `internal` (only as `supply` requires one; no release changes) |
 | `sync_image_upload` | `true` (only changed images are uploaded) |
 
-**Credentials:** each job checks its secrets first and skips with a `::notice::`, as `release.yml` does. `check-workflow-secrets.sh` covers the new workflow, so pull requests from forks still get no credentials.
+**Credentials:** the check job looks for each store's secrets and skips a store with a `::notice::`, as `release.yml` does.
 
 **Rejected:** pushing the listing in every release. The listing changes rarely, and a typo fix shouldn't need a version.
 
 ### App Store credentials
 
-`deliver` needs a key with the App Manager (or Admin) role. The workflow uses the existing `APP_STORE_CONNECT_API_KEY*` secrets.
-
-The first run shows whether the release key has that role. If it doesn't, the maintainer has two options:
-
-- raise its role in App Store Connect (Users and Access → Integrations), or
-- create an App Manager key and replace the three secrets.
-
-The local Developer key `NCMTDFGN37` stays for reading feedback.
+`deliver` needs a key with the App Manager or Admin role. The release key in the `APP_STORE_CONNECT_API_KEY*` secrets is a team key with the Admin role (`CONTRIBUTING.md`), so the workflow uses it. The local Developer key `NCMTDFGN37` stays for reading feedback.
 
 ### Screenshots
 
@@ -103,7 +96,11 @@ Taken by hand with `adb` and `xcrun simctl`, in a throwaway script kept outside 
 - Android: System UI demo mode, 12:00, full battery and signal, no notifications.
 - iOS: `simctl status_bar override`.
 
-**The route:** one demo route in the Netherlands, opened from a `.knoop` file so every language shows the same route. It is a cycling loop with a ferry and a campsite, e.g. around the Biesbosch. It is chosen when the screenshots are taken.
+**The route:** `fastlane/screenshots/demo-route.knoop`, a 12 km cycling loop from Kinderdijk, written with `RouteFile.write` from the published network: over the Kinderdijk ferry, along the south bank of the Lek to Nieuw-Lekkerland, over the Lekkerkerk ferry and back along the north bank. Every language shows the same route.
+
+**Time of day:** ferry states, arrival times on the strip and "open now" follow the real clock. The screenshots are therefore taken while all the route's ferries are open: Saturday 10:30–16:30 or weekdays until 18:00. Taken in the evening, Navigate asks about closed ferries and the waypoint list says "Closed until tomorrow".
+
+**Opening the route on Android:** the app reads a file opened from adb only from its own storage, so it is copied there with `run-as` and viewed as `file:///data/user/0/com.knoopbyknoop/files/demo-route.knoop`.
 
 **The five screenshots, the same on both platforms:**
 1. The planned route on the map with its panel
@@ -149,7 +146,6 @@ The texts are written in English first, then in German, French and Dutch in the 
 - **Translations by Claude may read stiff to native speakers.** → The maintainer reads the German. Dutch and French can go to testers before the listing goes public.
 - **Screenshots go stale** with each UI change. → `CONTRIBUTING.md` says when to retake them: after changes to the planner panel, navigation header or map controls.
 - **`deliver` creates a 1.0 version** if no version is being prepared. → The workflow logs the version it wrote to. The maintainer runs it after the release that is meant for review.
-- **The release key may lack App Manager.** → The first run fails with Apple's permission error. The fix is described above; nothing is half-written, because `deliver` stops before uploading.
 - **iPhone only can't be undone for users on iPad** who installed an earlier TestFlight build. → TestFlight builds aren't App Store versions, so Apple's rule doesn't apply yet. Those testers get iPhone mode with the next build.
 
 ## Migration Plan

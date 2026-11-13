@@ -60,3 +60,41 @@ The release workflows need these repository secrets:
 
 Only the release workflows may use secrets; a check in the Build workflow fails otherwise.
 Without the keystore variables, local release builds are signed with the debug key.
+
+
+## Store listing
+
+What the App Store and Google Play show about the apps lives in `fastlane/`, in English, German, French and Dutch, see the spec `store-listing`:
+
+- `fastlane/metadata/ios/<locale>/`: App Store name, subtitle, description, keywords, promotional text, support and privacy URLs; categories, copyright and the age rating (`app_rating_config.json`) one level up
+- `fastlane/metadata/android/<locale>/`: Google Play title and short description; `full_description.txt` is a link to the App Store description, so both stores say the same; feature graphic, icon and phone screenshots in `images/`
+- `fastlane/screenshots/ios/<locale>/`: the iPhone screenshots, 1320 × 2868
+
+The Build workflow checks that every language has every text within its store's limit and five screenshots per platform in sizes the stores take.
+
+Change the listing in a commit to `main`, then start the workflow **Release store listing** by hand.
+It replaces texts and screenshots on both stores; it uploads no build and submits nothing for review.
+It uses the release secrets above; the App Store Connect key needs the Admin or App Manager role to write metadata.
+For the App Store it writes to the version being prepared, or to the version given as input.
+
+Retake the screenshots after changes to the planner panel, the navigation header or the map controls.
+They show the loop in `fastlane/screenshots/demo-route.knoop`, taken while all its ferries are open (Saturday 10:30 to 16:30, or weekdays until 18:00), with the app set to each language:
+
+1. The planned route with the panel
+2. Navigating between 03 and 21
+3. The waypoint list
+4. A tapped place with its details
+5. The route in dark mode
+
+On Android, use an emulator at `adb shell wm size 1080x1920` with System UI demo mode (clock, full battery, no notifications).
+The app can only read a file from its own storage when it is opened from adb, so copy it there and view it:
+
+```bash
+adb shell "run-as com.knoopbyknoop sh -c 'cat > files/demo-route.knoop'" < fastlane/screenshots/demo-route.knoop
+adb shell am start -a android.intent.action.VIEW -t text/markdown \
+  -d file:///data/user/0/com.knoopbyknoop/files/demo-route.knoop -n com.knoopbyknoop/.android.MainActivity
+```
+
+On iOS, use the iPhone 17 Pro Max simulator with `xcrun simctl status_bar booted override --time 12:00 --batteryState charged --batteryLevel 100`.
+
+Set up by hand, once, in the consoles: App Privacy ("Data Not Collected"), price and availability, content rights (OpenStreetMap data) and the review notes in App Store Connect; the data safety form and the category Maps & Navigation in Play Console.
