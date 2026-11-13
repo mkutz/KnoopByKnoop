@@ -61,13 +61,13 @@ struct InfoSheet: View {
           // The downloaded ways, see `network-sync` "Path data in the info sheet".
           HStack {
             VStack(alignment: .leading) {
-              Text("Ways for guidance").font(.headline)
+              Text("Paths and streets").font(.headline)
               Text(waysDescription).font(.subheadline).foregroundStyle(.secondary)
             }
             Spacer()
             if model.pathDataDate != nil, model.pathDataBytes > 0 {
               Button("Delete") { model.deletePathData() }
-                .accessibilityLabel(Text("Delete downloaded ways"))
+                .accessibilityLabel(Text("Delete downloaded paths and streets"))
             }
           }
           if model.needsAppUpdate {
@@ -78,7 +78,7 @@ struct InfoSheet: View {
           Text("Downloaded data")
         } footer: {
           Text(
-            "Guides you back to the route along suitable paths, also without a connection. The app downloads the ways around planned cycling routes from GitHub, so GitHub can see the rough area of a route, but never where you are."
+            "Guides you back to the route along paths and streets off the knot network, also without a connection. The app downloads the paths and streets around planned cycling routes from GitHub, so GitHub can see the rough area of a route, but never where you are."
           )
         }
         // The downloaded place details, see `network-sync` "Place details in the info sheet".

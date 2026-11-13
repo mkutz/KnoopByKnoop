@@ -268,24 +268,24 @@
         }
       }
     },
-    "Delete downloaded ways": {
+    "Delete downloaded paths and streets": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Heruntergeladene Wege löschen"
+            "value": "Heruntergeladene Wege und Straßen löschen"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gedownloade paden verwijderen"
+            "value": "Gedownloade paden en straten verwijderen"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Supprimer les chemins téléchargés"
+            "value": "Supprimer les chemins et rues téléchargés"
           }
         }
       }
@@ -466,24 +466,24 @@
         }
       }
     },
-    "Guides you back to the route along suitable paths, also without a connection. The app downloads the ways around planned cycling routes from GitHub, so GitHub can see the rough area of a route, but never where you are.": {
+    "Guides you back to the route along paths and streets off the knot network, also without a connection. The app downloads the paths and streets around planned cycling routes from GitHub, so GitHub can see the rough area of a route, but never where you are.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Führt dich auf geeigneten Wegen zurück zur Route, auch ohne Verbindung. Die App lädt die Wege rund um geplante Radrouten von GitHub. GitHub sieht so ungefähr, wo eine Route liegt, aber nie, wo du bist."
+            "value": "Führt dich auf Wegen und Straßen abseits des Knotenpunktnetzes zurück zur Route, auch ohne Verbindung. Die App lädt die Wege und Straßen rund um geplante Radrouten von GitHub. GitHub sieht so ungefähr, wo eine Route liegt, aber nie, wo du bist."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leidt je over geschikte paden terug naar de route, ook zonder verbinding. De app downloadt de paden rond geplande fietsroutes van GitHub. GitHub kan zo ongeveer zien waar een route ligt, maar nooit waar jij bent."
+            "value": "Leidt je over paden en straten buiten het knooppuntennetwerk terug naar de route, ook zonder verbinding. De app downloadt de paden en straten rond geplande fietsroutes van GitHub. GitHub kan zo ongeveer zien waar een route ligt, maar nooit waar jij bent."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vous ramène à l'itinéraire par des chemins adaptés, même sans connexion. L'app télécharge les chemins autour des itinéraires vélo planifiés depuis GitHub. GitHub peut ainsi voir la zone approximative d'un itinéraire, mais jamais où vous êtes."
+            "value": "Vous ramène à l'itinéraire par des chemins et rues hors du réseau de points-nœuds, même sans connexion. L'app télécharge les chemins et rues autour des itinéraires vélo planifiés depuis GitHub. GitHub peut ainsi voir la zone approximative d'un itinéraire, mais jamais où vous êtes."
           }
         }
       }
@@ -1874,24 +1874,24 @@
         }
       }
     },
-    "Ways for guidance": {
+    "Paths and streets": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wege für die Führung"
+            "value": "Wege und Straßen"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paden voor begeleiding"
+            "value": "Paden en straten"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chemins pour le guidage"
+            "value": "Chemins et rues"
           }
         }
       }
@@ -2382,68 +2382,68 @@
     "⛴ %@": {
       "shouldTranslate": false
     },
-    "Loading ways for this route…": {
+    "Saving paths and streets around the route…": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wege für diese Route werden geladen…"
+            "value": "Wege und Straßen rund um die Route werden gespeichert…"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paden voor deze route worden geladen…"
+            "value": "Paden en straten rond de route worden opgeslagen…"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chargement des chemins de cet itinéraire…"
+            "value": "Enregistrement des chemins et rues autour de l'itinéraire…"
           }
         }
       }
     },
-    "Ways for this route are loaded": {
+    "Paths and streets around the route saved: directions back to it work offline": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wege für diese Route sind geladen"
+            "value": "Wege und Straßen rund um die Route gespeichert: Die Führung zurück zur Route geht auch offline"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paden voor deze route zijn geladen"
+            "value": "Paden en straten rond de route opgeslagen: begeleiding terug naar de route werkt ook offline"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les chemins de cet itinéraire sont chargés"
+            "value": "Chemins et rues autour de l'itinéraire enregistrés : le guidage pour y revenir fonctionne hors ligne"
           }
         }
       }
     },
-    "Ways for this route couldn't be loaded": {
+    "Paths and streets around the route not saved: off the route, only the knots guide you": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wege für diese Route konnten nicht geladen werden"
+            "value": "Wege und Straßen rund um die Route nicht gespeichert: Abseits der Route führen dich nur die Knotenpunkte"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paden voor deze route konden niet worden geladen"
+            "value": "Paden en straten rond de route niet opgeslagen: naast de route leiden alleen de knooppunten je"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les chemins de cet itinéraire n'ont pas pu être chargés"
+            "value": "Chemins et rues autour de l'itinéraire non enregistrés : hors itinéraire, seuls les points-nœuds vous guident"
           }
         }
       }
@@ -2734,68 +2734,68 @@
         }
       }
     },
-    "Loading the map for this route…": {
+    "Saving the map along the route…": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Karte für diese Route wird geladen…"
+            "value": "Karte entlang der Route wird gespeichert…"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kaart voor deze route wordt geladen…"
+            "value": "Kaart langs de route wordt opgeslagen…"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chargement de la carte de cet itinéraire…"
+            "value": "Enregistrement de la carte le long de l'itinéraire…"
           }
         }
       }
     },
-    "Map for this route is loaded": {
+    "Map along the route saved: it shows offline too": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Karte für diese Route ist geladen"
+            "value": "Karte entlang der Route gespeichert: Sie erscheint auch offline"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kaart voor deze route is geladen"
+            "value": "Kaart langs de route opgeslagen: die is ook offline te zien"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "La carte de cet itinéraire est chargée"
+            "value": "Carte le long de l'itinéraire enregistrée : elle s'affiche aussi hors ligne"
           }
         }
       }
     },
-    "Map for this route couldn't be loaded": {
+    "Map along the route not saved: offline, only the knots and the route show": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Karte für diese Route konnte nicht geladen werden"
+            "value": "Karte entlang der Route nicht gespeichert: Offline erscheinen nur die Knotenpunkte und die Route"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kaart voor deze route kon niet worden geladen"
+            "value": "Kaart langs de route niet opgeslagen: offline zie je alleen de knooppunten en de route"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "La carte de cet itinéraire n'a pas pu être chargée"
+            "value": "Carte le long de l'itinéraire non enregistrée : hors ligne, seuls les points-nœuds et l'itinéraire s'affichent"
           }
         }
       }

@@ -116,18 +116,18 @@
   <string name="language_de" translatable="false">Deutsch</string>
   <string name="language_nl" translatable="false">Nederlands</string>
   <string name="language_fr" translatable="false">Français</string>
-  <string name="ways">Ways for guidance</string>
+  <string name="ways">Paths and streets</string>
   <string name="ways_none">None downloaded</string>
   <string name="ways_delete">Delete</string>
-  <string name="ways_delete_description">Delete downloaded ways</string>
-  <string name="ways_explanation">Guides you back to the route along suitable paths, also without a connection. The app downloads the ways around planned cycling routes from GitHub, so GitHub can see the rough area of a route, but never where you are.</string>
+  <string name="ways_delete_description">Delete downloaded paths and streets</string>
+  <string name="ways_explanation">Guides you back to the route along paths and streets off the knot network, also without a connection. The app downloads the paths and streets around planned cycling routes from GitHub, so GitHub can see the rough area of a route, but never where you are.</string>
   <string name="place_details">Place details</string>
   <string name="place_details_none">None downloaded</string>
   <string name="place_details_delete_description">Delete downloaded place details</string>
   <string name="place_details_explanation">Websites, phone numbers and opening hours of the places on the map. The app downloads them from GitHub around planned routes and for places you tap while planning, so GitHub can see the rough area of a route or a place, but never where you are.</string>
-  <string name="path_data_loading">Loading ways for this route…</string>
-  <string name="path_data_ready">Ways for this route are loaded</string>
-  <string name="path_data_unavailable">Ways for this route couldn\'t be loaded</string>
+  <string name="path_data_loading">Saving paths and streets around the route…</string>
+  <string name="path_data_ready">Paths and streets around the route saved: directions back to it work offline</string>
+  <string name="path_data_unavailable">Paths and streets around the route not saved: off the route, only the knots guide you</string>
   <string name="ferry_detour_title">Closed ferry ahead</string>
   <string name="ferry_detour_title_numbered">Closed ferry %1$d of %2$d</string>
   <string name="ferry_detour_around">Ride around it · %1$s longer, about %2$s</string>
@@ -139,9 +139,9 @@
   <string name="start_nearby">Start on the route nearby · %1$s</string>
   <string name="ride_to_start">Ride to %1$s · %2$s</string>
   <string name="ride_to_start_point">Ride to the start · %1$s</string>
-  <string name="base_map_loading">Loading the map for this route…</string>
-  <string name="base_map_ready">Map for this route is loaded</string>
-  <string name="base_map_unavailable">Map for this route couldn\'t be loaded</string>
+  <string name="base_map_loading">Saving the map along the route…</string>
+  <string name="base_map_ready">Map along the route saved: it shows offline too</string>
+  <string name="base_map_unavailable">Map along the route not saved: offline, only the knots and the route show</string>
   <string name="base_map">Map</string>
   <string name="base_map_none">None stored</string>
   <string name="base_map_delete_description">Delete the stored map</string>

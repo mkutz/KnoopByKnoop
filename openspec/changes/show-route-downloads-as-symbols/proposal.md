@@ -7,18 +7,19 @@ Below the panel's actions, one or two lines of small text say whether the ways a
 - The two lines go. Instead, the end of the action row (Back to start, Export GPX, Clear, Undo) shows a map symbol for the base map and, on cycling routes, a network symbol for the ways.
 - Each symbol shows its status: a small spinner while loading, a checkmark when loaded, a warning mark when it couldn't be loaded.
 - The symbols take no extra line, so the sheet no longer changes height when they appear or change.
-- A screen reader reads each symbol as the sentence shown today, e.g. "Ways for this route are loaded". A tap on a symbol shows that sentence for a moment.
+- A screen reader reads each symbol as a sentence that says what the rider gets, e.g. "Paths and streets around the route saved: directions back to it work offline". A tap on a symbol shows that sentence for a moment.
+- "Ways" was our word, not the riders': the sentences and the info sheet's entry ("Ways for guidance") speak of paths and streets instead.
 
 ## Capabilities
 
 ### New Capabilities
 
 ### Modified Capabilities
-- `network-sync`: "Path data ready for the ride" and "Base map ready for the ride" show their status as symbols in the action row instead of lines of text.
+- `network-sync`: "Path data ready for the ride" and "Base map ready for the ride" show their status as symbols in the action row instead of lines of text, with sentences from the rider's side; "Path data in the info sheet" names the entry "Paths and streets".
 - `map-planning`: "Clear actions in the planner panel" holds the symbols at the row's end; Back to start shows its icon only where the row does not fit.
 
 ## Impact
 
 - Android: `PlannerScreen` (`RouteActions`, `PathDataNote`, `BaseMapNote`), new drawables for the map, the network and the status marks if Material symbols don't cover them.
 - iOS: `PlannerView` (`routeActions`, `pathDataNote`, `baseMapNote`) with SF Symbols.
-- Strings stay; they become the symbols' accessibility labels and tap text.
+- Strings: the six status sentences, the info sheet's title, delete label and explanation are reworded in English, German, Dutch and French.

@@ -23,17 +23,17 @@ struct DownloadSymbols: View {
 
   private static func mapSentence(_ status: PathDataStatus) -> String {
     switch status {
-    case .loading: String(localized: "Loading the map for this route…", bundle: AppLanguage.bundle)
-    case .ready: String(localized: "Map for this route is loaded", bundle: AppLanguage.bundle)
-    default: String(localized: "Map for this route couldn't be loaded", bundle: AppLanguage.bundle)
+    case .loading: String(localized: "Saving the map along the route…", bundle: AppLanguage.bundle)
+    case .ready: String(localized: "Map along the route saved: it shows offline too", bundle: AppLanguage.bundle)
+    default: String(localized: "Map along the route not saved: offline, only the knots and the route show", bundle: AppLanguage.bundle)
     }
   }
 
   private static func waysSentence(_ status: PathDataStatus) -> String {
     switch status {
-    case .loading: String(localized: "Loading ways for this route…", bundle: AppLanguage.bundle)
-    case .ready: String(localized: "Ways for this route are loaded", bundle: AppLanguage.bundle)
-    default: String(localized: "Ways for this route couldn't be loaded", bundle: AppLanguage.bundle)
+    case .loading: String(localized: "Saving paths and streets around the route…", bundle: AppLanguage.bundle)
+    case .ready: String(localized: "Paths and streets around the route saved: directions back to it work offline", bundle: AppLanguage.bundle)
+    default: String(localized: "Paths and streets around the route not saved: off the route, only the knots guide you", bundle: AppLanguage.bundle)
     }
   }
 }

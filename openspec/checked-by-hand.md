@@ -304,7 +304,7 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Map loaded — on the devices: the panel once it is in
 - Map not available — on the devices: a route planned in airplane mode
 - Map status in all languages — on the devices, in German, Dutch and French
-- Status sentence on a tap — on the devices: tap the network symbol while it spins, "Loading ways for this route…" shows above it
+- Status sentence on a tap — on the devices: tap the network symbol while it spins, "Saving paths and streets around the route…" shows above it
 - Panel keeps its height — on the devices: plan a cycling route with the sheet at its smallest, the sheet does not grow as the symbols appear and turn to checkmarks
 - No ways symbol on hiking — on the devices: a complete hiking route shows the map symbol only
 - Status marks without motion — Android with animations removed, iPhone with Reduce Motion: the checkmark replaces the spinner without a fade
