@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Last updated: 10 November 2026
+Last updated: 13 November 2026
 
 This policy covers the Knoop by Knoop apps for Android and iOS.
 
@@ -24,7 +24,7 @@ mail@knoopbyknoop.com
 
 - **Location.** While you navigate, the app uses your location to tell you the next knot. It is only used on the device and never sent anywhere. The app only accesses your location while it is in use, or while navigation runs, shown by a notification.
 - **Routes and settings.** Your current route, the downloaded networks, ways and place details, and your settings are stored on the device. They are removed when you uninstall the app.
-- **Shared routes.** When you share a route as a link or QR code, the link contains the route's knots. It is only passed to whoever you share it with.
+- **Shared routes.** When you share a route, the file (a Knoop by Knoop route or a GPX file) contains the route's knots and, for GPX, its track. It only goes to whoever you share it with, through the app you choose.
 
 
 ## Services the app contacts

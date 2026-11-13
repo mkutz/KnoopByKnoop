@@ -1,0 +1,1 @@
+fietsknooppunt,wandelknooppunt,fietsroute,wandelroute,fiets,routeplanner,navigatie,offline,GPX

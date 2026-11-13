@@ -1,0 +1,26 @@
+Knoop by Knoop plant und navigiert Touren auf den Knotenpunktnetzen: den nummerierten Kreuzungen zum Radfahren und Wandern in den Niederlanden, in Belgien und in Nordrhein-Westfalen.
+
+PLANEN DURCH ANTIPPEN
+Tippe einen Knotenpunkt als Start an, einen weiteren als Ziel, und die Route folgt dazwischen dem Netz, entlang der echten Wege. Füge überall Stopps hinzu, verschiebe oder entferne sie und mache jede Änderung rückgängig. Suche einen Ort oder zeig dir die Knotenpunkte in deiner Nähe. Die Wegpunktliste nennt den Ort jedes Knotenpunkts, wie ein handgeschriebener Knotenzettel.
+
+KNOTEN FÜR KNOTEN FAHREN
+Unterwegs sagt dir die App die Nummer, der du am nächsten Knotenpunkt folgst, per Sprache und auf dem Sperrbildschirm. So kann der Bildschirm aus bleiben, und der Akku hält. Sie warnt, wenn du die Route verlässt oder in die falsche Richtung fährst, führt dich zurück und zeigt knifflige Kreuzungen, bevor du dort bist.
+
+FÄHREN
+Fähren auf der Route zeigen, wann sie fahren. Ist eine geschlossen, wenn du dort ankommst, fragt die App vor dem Losfahren und bietet den Weg außen herum an.
+
+OFFLINE
+Die Netze, die Karte entlang deiner Route und die Wege drum herum werden auf dem Handy gespeichert. Planen und Fahren klappen so auch ohne Verbindung.
+
+ORTE
+Essen, Supermärkte, Campingplätze, Hotels und mehr sind auf der Karte hervorgehoben, mit Öffnungszeiten, Website und Telefonnummer. Mit einem Tippen kommen sie in deine Route.
+
+ROUTEN TEILEN
+Schick eine Route als kleine Datei an Freunde, die Knoop by Knoop nutzen, oder exportiere sie als GPX für andere Apps und Geräte.
+
+KOSTENLOS UND PRIVAT
+Keine Werbung, keine Konten, kein Tracking. Deine Position bleibt auf deinem Handy.
+
+Auf Deutsch, Englisch, Französisch und Niederländisch.
+
+Netzdaten © OpenStreetMap-Mitwirkende, verfügbar unter der Open Database License. Grundkarte von OpenFreeMap.

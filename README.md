@@ -4,7 +4,7 @@ A navigator and route planner for the knooppunt networks for cycling and hiking 
 
 - **Plan freely:** set a start and an end, then add, move and remove stops anywhere in between.
 - **Navigate knoop by knoop:** the app only tells you the next knot, so the screen can stay off and the battery lasts.
-- **Share routes** as links and QR codes.
+- **Share routes** as small files for other riders, or as GPX for other apps.
 - **Offline:** download a region once, plan and ride without a connection.
 
 Network data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, available under the ODbL. Base map by [OpenFreeMap](https://openfreemap.org), © [OpenMapTiles](https://openmaptiles.org), data from OpenStreetMap.

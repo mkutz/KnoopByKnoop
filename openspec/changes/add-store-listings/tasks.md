@@ -8,8 +8,8 @@
 
 ## 2. Store texts and their check
 
-- [ ] 2.1 Write `.github/scripts/store-listing-check.sh`. It checks every locale for every text file. It checks the limits from the spec, counted in characters with `python3`. It compares each locale's two descriptions. It names the file at fault. Verify: task 2.2.
-- [ ] 2.2 Add `.github/scripts/store-listing-check-test.sh` on fixture trees in a temp directory. It has tests for the scenarios "Missing text", "Text over the limit", "Limits count characters, not bytes" and "Different descriptions", each marked `# Scenario:`. Run both scripts from `build.yml`. Verify: `sh .github/scripts/store-listing-check-test.sh` passes.
+- [x] 2.1 Write `.github/scripts/store-listing-check.sh`. It checks every locale for every text file. It checks the limits from the spec, counted in characters with `python3`. It compares each locale's two descriptions. It names the file at fault. Verify: task 2.2.
+- [x] 2.2 Add `.github/scripts/store-listing-check-test.sh` on fixture trees in a temp directory. It has tests for the scenarios "Missing text", "Text over the limit", "Limits count characters, not bytes" and "Different descriptions", each marked `# Scenario:`. Run both scripts from `build.yml`. Verify: `sh .github/scripts/store-listing-check-test.sh` passes.
 - [ ] 2.3 Write the English texts in `fastlane/metadata/ios/en-US/` and `fastlane/metadata/android/en-US/`:
   - name, subtitle, description, keywords, promotional text
   - URLs, with `full_description.txt` as a symlink to the iOS description
@@ -18,7 +18,7 @@
 
   Verify: the check passes for `en-US`, and the maintainer approves the English texts.
 - [ ] 2.4 Translate into `de-DE`, `fr-FR` and `nl-NL` in the apps' own terms. Verify: the check passes for all four, and the maintainer reads the German.
-- [ ] 2.5 Fix `PRIVACY.md` (shared routes are files, not links or QR codes; update "Last updated") and the share line in `README.md`. Verify: `grep -n 'QR' PRIVACY.md README.md` finds nothing.
+- [x] 2.5 Fix `PRIVACY.md` (shared routes are files, not links or QR codes; update "Last updated") and the share line in `README.md`. Verify: `grep -n 'QR' PRIVACY.md README.md` finds nothing.
 
 ## 3. Screenshots
 

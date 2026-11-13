@@ -1,0 +1,26 @@
+Knoop by Knoop plant en navigeert ritten op de knooppuntnetwerken: de genummerde kruispunten voor fietsen en wandelen in Nederland, België en Noordrijn-Westfalen.
+
+PLANNEN DOOR TE TIKKEN
+Tik een knooppunt aan als start, een ander als eindpunt, en de route volgt het netwerk daartussen, langs de echte paden. Voeg overal tussenstops toe, verplaats of verwijder ze en maak elke wijziging ongedaan. Zoek een plaats of toon de knooppunten bij jou in de buurt. De lijst met routepunten noemt het dorp van elk knooppunt, als een handgeschreven knooppuntenlijst.
+
+KNOOP VOOR KNOOP
+Onderweg zegt de app je het nummer om te volgen bij het volgende knooppunt, gesproken en op het vergrendelscherm. Zo kan het scherm uit blijven en houdt de batterij het vol. Ze waarschuwt als je de route verlaat of de verkeerde kant op rijdt, leidt je terug en toont lastige kruispunten voordat je er bent.
+
+PONTEN
+Ponten op de route laten zien wanneer ze varen. Is er een gesloten als je er aankomt, dan vraagt de app het voor vertrek en biedt de weg eromheen aan.
+
+OFFLINE
+De netwerken, de kaart langs je route en de paden eromheen worden op je telefoon bewaard, dus plannen en rijden werken zonder verbinding.
+
+PLAATSEN
+Eten, supermarkten, campings, hotels en meer zijn op de kaart gemarkeerd, met openingstijden, website en telefoonnummer. Voeg er een met één tik toe aan je route.
+
+ROUTES DELEN
+Stuur een route als klein bestand naar vrienden die Knoop by Knoop gebruiken, of exporteer hem als GPX voor andere apps en apparaten.
+
+GRATIS EN PRIVÉ
+Geen advertenties, geen accounts, geen tracking. Je positie blijft op je telefoon.
+
+In het Nederlands, Engels, Duits en Frans.
+
+Netwerkgegevens © OpenStreetMap-bijdragers, beschikbaar onder de Open Database License. Basiskaart van OpenFreeMap.

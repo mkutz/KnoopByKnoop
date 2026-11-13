@@ -1,0 +1,1 @@
+point-noeud,knooppunt,vélo,cyclisme,randonnée,itinéraire,planificateur,GPS,hors ligne,GPX

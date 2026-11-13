@@ -1,0 +1,1 @@
+knooppunt,fietsknooppunt,knotenpunkt,bike,cycling,walking,route,planner,offline,navigation,GPX

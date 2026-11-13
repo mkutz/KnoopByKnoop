@@ -1,0 +1,1 @@
+Touchez les points-nœuds numérotés pour planifier une sortie, puis laissez l’app vous annoncer le prochain numéro – écran éteint, hors ligne.

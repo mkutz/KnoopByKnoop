@@ -1,0 +1,26 @@
+Knoop by Knoop planifie et guide vos sorties sur les réseaux de points-nœuds : les carrefours numérotés pour le vélo et la randonnée aux Pays-Bas, en Belgique et en Rhénanie-du-Nord-Westphalie.
+
+PLANIFIER EN TOUCHANT LES POINTS-NŒUDS
+Touchez un point-nœud pour le départ, un autre pour l’arrivée, et l’itinéraire suit le réseau entre les deux, le long des vrais chemins. Ajoutez des étapes où vous voulez, déplacez-les ou supprimez-les, et annulez chaque modification. Recherchez un lieu ou affichez les points-nœuds les plus proches. La liste des étapes indique le village de chaque point-nœud, comme une liste écrite à la main.
+
+POINT-NŒUD PAR POINT-NŒUD
+En route, l’app vous annonce le numéro à suivre au prochain point-nœud, à la voix et sur l’écran verrouillé : l’écran peut rester éteint et la batterie tient. Elle vous avertit quand vous quittez l’itinéraire ou roulez dans le mauvais sens, vous ramène sur votre route et montre les carrefours délicats avant que vous y arriviez.
+
+BACS
+Les bacs sur l’itinéraire indiquent leurs horaires. Si l’un d’eux sera fermé à votre arrivée, l’app vous le demande avant le départ et propose un détour.
+
+HORS LIGNE
+Les réseaux, la carte le long de votre itinéraire et les chemins autour sont enregistrés sur le téléphone : planifier et rouler fonctionnent sans connexion.
+
+LIEUX
+Restaurants, supermarchés, campings, hôtels et plus sont mis en évidence sur la carte, avec horaires d’ouverture, site web et numéro de téléphone. Ajoutez-en un à votre itinéraire d’un geste.
+
+PARTAGER DES ITINÉRAIRES
+Envoyez un itinéraire sous forme de petit fichier à vos amis qui utilisent Knoop by Knoop, ou exportez-le en GPX pour d’autres apps et appareils.
+
+GRATUIT ET PRIVÉ
+Pas de publicité, pas de compte, pas de pistage. Votre position reste sur votre téléphone.
+
+En français, anglais, allemand et néerlandais.
+
+Données du réseau © contributeurs OpenStreetMap, disponibles sous la licence Open Database License. Fond de carte par OpenFreeMap.

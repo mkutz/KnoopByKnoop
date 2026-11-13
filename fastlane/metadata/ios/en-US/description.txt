@@ -1,0 +1,26 @@
+Knoop by Knoop plans and navigates rides on the knooppunt networks: the numbered junctions for cycling and hiking in the Netherlands, Belgium and North Rhine-Westphalia.
+
+PLAN BY TAPPING KNOTS
+Tap a knot for the start, another for the end, and the route follows the network between them along the actual paths. Add stops anywhere, move or remove them, and undo any change. Search a place or show the knots nearest to you. The waypoint list names the village each knot lies in, like a hand-written knot list.
+
+RIDE KNOT BY KNOT
+While you ride, the app tells you the number to follow at the next knot, by voice and on the lock screen, so the screen can stay off and the battery lasts. It warns when you leave the route or ride the wrong way and guides you back, and shows tricky junctions before you reach them.
+
+FERRIES
+Ferries on the route show when they run. If one will be closed by the time you get there, the app asks before you leave and offers the way around.
+
+OFFLINE
+The networks, the map along your route and the paths around it are stored on the phone, so planning and riding work without a connection.
+
+PLACES
+Food, supermarkets, campsites, hotels and more are highlighted on the map, with opening hours, website and phone number. Add one to your route with a tap.
+
+SHARE ROUTES
+Send a route as a small file to friends who use Knoop by Knoop, or export it as GPX for other apps and devices.
+
+FREE AND PRIVATE
+No ads, no accounts, no tracking. Your position stays on your phone.
+
+In English, German, French and Dutch.
+
+Network data © OpenStreetMap contributors, available under the Open Database License. Base map by OpenFreeMap.
