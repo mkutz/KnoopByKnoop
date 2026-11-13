@@ -1966,6 +1966,7 @@ class NavigationTest {
     assertEquals(TurnDirection.STRAIGHT, turnAt45(knot12).turn)
   }
 
+  // Scenario: Slight left
   @Test
   fun `slight left at a knot`() {
     val angle = 40 * PI / 180
@@ -1996,6 +1997,7 @@ class NavigationTest {
     assertNull(turnAt45(knot(60, "60", east = 1000.0, north = -1000.0), geometry = false).turn)
   }
 
+  // Scenario: Start knot
   @Test
   fun `start knot without a turn`() {
     val started = start(east = -150.0)

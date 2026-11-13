@@ -248,39 +248,66 @@ Every notice SHALL be spoken in English, also with the screen off and while othe
 - **THEN** the music is lowered while the notice is spoken and plays on at its volume afterwards
 
 ### Requirement: Navigation with the screen off
-Navigation SHALL keep running with the screen off and while other apps are in use. While navigating, the app SHALL show outside the app what its panel shows: the next knot, far from it with the number to follow after it, close to it the number to follow there, see "Number to follow". With them, it SHALL show the distance to the next knot and the arrival at the end, renewed about every 100 m of the route, with a button to stop: on Android in an ongoing notification, from Android 16 as a Live Update with the route's progress; on iOS in a Live Activity on the lock screen and in the Dynamic Island, also with the route's progress. Showing them SHALL NOT need more location fixes than navigating does.
+Navigation SHALL keep running with the screen off and while other apps are in use. While navigating, the app SHALL show outside the app what its header shows (see "Number to follow", "Direction to the route", "Header on the way to the route"), without words, in the same way in every app language, renewed about every 100 m of the route and with every change of state, with a button to stop. Showing them SHALL NOT need more location fixes than navigating does.
+
+**On iOS**, a Live Activity on the lock screen and in the expanded Dynamic Island SHALL show:
+- the header's row
+- a bar along the route with the rider's place, marks for stops and ferries, and the end arrival at its end
+
+Off route and riding the wrong way, its card SHALL take the opposite of its usual appearance, light on a dark lock screen and dark on a light one.
+
+**The Dynamic Island** has room for little, so it SHALL show one element: the number to follow on its plate when close, the next knot when far, the light tile with the arrow off route or riding the wrong way, and the plain arrow on the way to the route. The compact island SHALL show that element on the leading side and the distance on the trailing side, made smaller rather than cut off; the minimal island the element alone.
+
+**On Android**, an ongoing notification SHALL show:
+- a title of numbers, arrow characters (↑ ↗ → ↘ ↓ ↙ ← ↖ for directions, → between a knot and the number to follow, › before the knot after) and distances
+- a second line with the end arrival after ■
+- a large icon with the knot to look for as its badge or plate, or the to-the-route symbol: on a dark disc off route, on a light one on the way to the route
+
+From Android 16 it SHALL be a Live Update with the route's progress and a status chip of at most 7 characters. Off route and on the way to the route, the chip's icon SHALL be the to-the-route symbol.
 
 #### Scenario: Far from the next knot in German
 - **WHEN** the app is in German, the rider is far from 29 with 25 to follow, and the system's text is larger than its default
-- **THEN** the notification's title shows "Nächster 29, dann 25" completely
+- **THEN** the notification's title shows "29 · 1.4 km › 25" completely, as in English
 
 #### Scenario: Lock screen
 - **WHEN** the rider is navigating, close to 45 with 12 to follow, and looks at the lock screen
-- **THEN** it shows "At 45 follow 12" and, e.g., "150 m to 45 · end around 19:05"
+- **THEN** the Live Activity shows 45 with "150 m", →, and 12 on its sign plate, and the bar with "19:05" at its end, and no words
 
 #### Scenario: Far from the next knot outside the app
 - **WHEN** the rider is 1.4 km from 29 with 25 to follow, and looks at the lock screen
-- **THEN** it shows "Next 29, then 25" on Android and "Next 29", "then 25" with badges on iOS, and "1.4 km to 29 · end around 15:25"
+- **THEN** it shows "29 · 1.4 km › 25" and "■ 15:25" on Android, and on iOS the badge 29, "1.4 km", › and a smaller badge 25, with the bar ending in "15:25"
 
 #### Scenario: Dynamic Island
-- **WHEN** the rider is navigating on an iPhone with a Dynamic Island and uses another app
-- **THEN** the Dynamic Island shows the next knot and the number to follow there
+- **WHEN** the rider is navigating on an iPhone with a Dynamic Island, close to 45 with 12 to follow, and uses another app
+- **THEN** the compact Dynamic Island shows 12 on its plate and "150 m", and nothing is cut off
 
 #### Scenario: Dynamic Island with room for one number
-- **WHEN** the Dynamic Island is shared, e.g. with a screen recording, so it has room for one number
-- **THEN** it shows the knot the app shows largest: the next knot while far from it or off route, the number to follow when close
+- **WHEN** the Dynamic Island is shared, e.g. with a screen recording, so it has room for one element
+- **THEN** it shows the number to follow on its plate when close, the next knot when far
+
+#### Scenario: Dynamic Island shared with another app
+- **WHEN** the rider listens to a podcast while navigating, far from 28 with 27 after it, 2.3 km away
+- **THEN** the island shows 28 and "2.3 km" in full, without cut badges or "…"
 
 #### Scenario: Off route outside the app
-- **WHEN** the rider is off route and looks at the lock screen
-- **THEN** it shows that they are off route, and the next knot
+- **WHEN** the rider is off route, 1.7 km from the route to the front left, with 02 next, on a path of the network, and looks at the lock screen
+- **THEN** the iPhone's card has the opposite appearance and shows the to-the-route symbol, the arrow, "1.7 km" and › 02, and Android shows "↖ 1.7 km › 02" with the to-the-route symbol on a dark disc as the large icon
+
+#### Scenario: Off route in the Dynamic Island
+- **WHEN** the same rider uses another app on an iPhone with a Dynamic Island
+- **THEN** the compact island shows the arrow on a light tile and "1.7 km", and the minimal island the light tile with the arrow
+
+#### Scenario: On the way to the route outside the app
+- **WHEN** the rider started navigating at home, 800 m from the route to the right, and looks at the lock screen
+- **THEN** the iPhone's card keeps its usual appearance with the to-the-route symbol, the arrow and "800 m", and Android shows "→ 800 m" with the to-the-route symbol on a light disc
 
 #### Scenario: Stop from the lock screen
 - **WHEN** the rider taps Stop in the notification or the Live Activity
 - **THEN** navigation stops, and the notification or Live Activity goes away
 
 #### Scenario: Progress outside the app
-- **WHEN** the rider passes a knot with the screen off, and the next knot is 800 m ahead and the end is reached around 19:05 at their pace
-- **THEN** the notification or Live Activity shows "800 m to 45 · end around 19:05"
+- **WHEN** the rider passes a knot with the screen off, and the next knot 45 is 800 m ahead with 12 to follow and the end is reached around 19:05 at their pace
+- **THEN** the notification or Live Activity shows 45, "800 m", › 12 and "19:05"
 
 #### Scenario: Distance on the way
 - **WHEN** the rider has ridden 100 m further towards 45 since the line was last renewed
@@ -288,7 +315,11 @@ Navigation SHALL keep running with the screen off and while other apps are in us
 
 #### Scenario: Live Update
 - **WHEN** the rider is navigating on Android 16 or newer
-- **THEN** the notification shows a bar along the route with their place and marks for stops and ferries, the knot to look for as a large badge, and the same knot as a chip in the status bar: the next knot while far from it, the number to follow when close
+- **THEN** the notification shows a bar along the route with their place, stops as points in their plate colour and a ferry they may miss as a dark point, the knot to look for as a large badge, and a chip in the status bar: "→12" when close to 45 with 12 to follow, "83" when far from 83
+
+#### Scenario: Chip off route
+- **WHEN** the rider is off route, 1.7 km from the route to the front left, on Android 16
+- **THEN** the chip shows the to-the-route symbol and "↖1.7 km"
 
 #### Scenario: Progress bar in the Live Activity
 - **WHEN** the rider is navigating on an iPhone and looks at the lock screen, or at the expanded Dynamic Island
@@ -296,15 +327,15 @@ Navigation SHALL keep running with the screen off and while other apps are in us
 
 #### Scenario: Live Activity in light and dark mode
 - **WHEN** the rider navigates on an iPhone and the system is in light or in dark mode
-- **THEN** the Live Activity's card on the lock screen is light or dark with it, with all its text readable, and follows a change of the mode with a later position
+- **THEN** the Live Activity's card on the lock screen is light or dark with it, opposite while off route or riding the wrong way, with all its content readable, and follows a change of the mode with a later position
 
 #### Scenario: Live Update turned off
 - **WHEN** the rider has turned off Live Updates for the app, or the phone has Android 16 without its QPR2 update
-- **THEN** the notification still shows the words, the distance and the bar, without the chip
+- **THEN** the notification still shows the title, the end arrival and the bar, without the chip
 
 #### Scenario: Older Android
 - **WHEN** the rider is navigating on an Android version before 16
-- **THEN** the notification shows the words, the distance and the arrival, and the knot to look for as a large badge
+- **THEN** the notification shows the same title and end arrival, and the knot to look for as a large badge
 
 ### Requirement: Position on the map
 While navigating with the app open, the map SHALL show the rider's position, the route and the next knot, so the rider can decide how to get back to the route.
@@ -740,11 +771,11 @@ While navigating, tapping a ferry on the progress strip SHALL open a popover wit
 - **THEN** it announces it as a button, "Ferry 76 → 02, at 21:10 closed until 1 May 10:00"
 
 ### Requirement: Way to the route on the map
-While navigating and off route, the map SHALL show a dashed straight line from the rider's position to the nearest point of the route ahead of them: on the course of the leg to the next knot, after the last place the rider was on the route. Without the network's courses, or before the first knot, the line SHALL go to the next knot. On a guided way, the map SHALL show a solid line along that way instead of the dashed line. While the map follows the rider, it SHALL keep both the rider and the end of that line in view, except close before a tricky spot on a guided way (see "Zoom at a tricky spot").
+While navigating and off route, the map SHALL show a dashed straight line from the rider's position to the point of the route ahead of them where the way back plus the route from there to the next knot is shortest: on the course of the leg to the next knot, after the last place the rider was on the route. The nearest such point SHALL be the target unless another saves at least 100 m; once the line leads to such a point ahead, it SHALL keep leading ahead until that saves less than 50 m. Without the network's courses, or before the first knot, the line SHALL go to the next knot. On a guided way, the map SHALL show a solid line along that way instead of the dashed line. While the map follows the rider, it SHALL keep both the rider and the end of that line in view, except close before a tricky spot on a guided way (see "Zoom at a tricky spot").
 
 #### Scenario: Line to the route
 - **WHEN** the rider heading to 02 left the course to the west and is off route 150 m from it, with 02 1.7 km ahead
-- **THEN** the map shows a dashed line from their position to the nearest point of the course ahead of where they left it, about 150 m long, not to 02
+- **THEN** the map shows a dashed line from their position to the nearest point of the course ahead of where they left it, about 150 m long, not to 02, as no other point saves 100 m
 
 #### Scenario: Route behind the rider
 - **WHEN** the rider is off route and the nearest point of the leg's course lies before the place where they left the route
@@ -758,10 +789,6 @@ While navigating and off route, the map SHALL show a dashed straight line from t
 - **WHEN** the rider is off route 400 m from the course and the map follows them
 - **THEN** the map shows both their position and the end of the line
 
-#### Scenario: Doubtful junction on the way back
-- **WHEN** the rider is off route on a guided way 1.2 km long and comes within 150 m of a doubtful junction on it
-- **THEN** the map zooms in on the junction, and the end of the line may leave the view until they are past it
-
 #### Scenario: Back on route
 - **WHEN** the rider comes back on route
 - **THEN** the dashed line is gone and the map follows the rider as before
@@ -773,6 +800,22 @@ While navigating and off route, the map SHALL show a dashed straight line from t
 #### Scenario: Back to the dashed line
 - **WHEN** the rider is off route and the guided way can't be replaced after leaving it
 - **THEN** the map shows the dashed line again
+
+#### Scenario: Walking on to where the route goes
+- **WHEN** the leg runs 600 m west along a river and then 200 m south to the end, and the rider left it 100 m into the westward part and is now 300 m west and 150 m south of where they left it, 150 m from the river and 200 m from the southward part
+- **THEN** the line leads west to the southward part of the leg, not back north to the nearer river
+
+#### Scenario: Cutting a loop short
+- **WHEN** the leg makes a 600 m loop that comes back within 80 m of where it started, and the rider leaves the route at the start of the loop and crosses towards its end, still nearer to the start
+- **THEN** the line leads to the end of the loop, not back into it
+
+#### Scenario: Steady target
+- **WHEN** the line leads to a point ahead because that saves more than 100 m, and with the next position it saves only about 70 m
+- **THEN** the line keeps leading ahead, not back to the nearest point
+
+#### Scenario: Doubtful junction on the way back
+- **WHEN** the rider is off route on a guided way 1.2 km long and comes within 150 m of a doubtful junction on it
+- **THEN** the map zooms in on the junction, and the end of the line may leave the view until they are past it
 
 ### Requirement: Direction to the route
 While navigating and off route without a guided way, the header SHALL show, on its dark background (see `map-planning` "Light and dark appearance"):
@@ -812,19 +855,19 @@ The header SHALL show no compass word. When the rider has not moved recently, th
 - **THEN** it announces "Off route, next 02, 1.7 km to the north-east"
 
 ### Requirement: Direction outside the app
-While navigating and off route without a guided way, the Android notification and the iOS Live Activity SHALL show the distance and compass direction to the next knot, e.g. "1.7 km north-east to 02", updated when the distance changed by 100 m or more, without more location fixes than navigating does.
+While navigating and off route without a guided way, the Android notification and the iOS Live Activity SHALL show an arrow towards the place where the rider gets back onto the route, relative to the riding direction, and the straight distance to it, as the header does (see "Direction to the route"), without a compass word. They SHALL be updated when the distance changed by 100 m or more, or the arrow by 45° or more, without more location fixes than navigating does.
 
 #### Scenario: Lock screen off route
-- **WHEN** the rider is off route without a guided way and with the screen off, 1.7 km south-west of 02
-- **THEN** the lock screen shows "Off route, next 02" and "1.7 km north-east to 02"
+- **WHEN** the rider is off route without a guided way and with the screen off, riding south, with the route 1.7 km to the north-east
+- **THEN** the lock screen shows an arrow pointing back to the left, "1.7 km", and no compass word
 
 #### Scenario: Updated on the way
-- **WHEN** the rider got 100 m closer to 02
+- **WHEN** the rider got 100 m closer to the route
 - **THEN** the lock screen shows the new distance
 
 #### Scenario: Back on route outside the app
 - **WHEN** the rider comes back on route
-- **THEN** the lock screen shows the number to follow and the progress line as before
+- **THEN** the lock screen shows the knots and the bar as before, in its usual appearance
 
 ### Requirement: Panel height while navigating
 In portrait, when navigation starts, the panel SHALL take the height of its navigation part: the number to follow and the progress strip with its distances and arrivals, whatever height it had while planning. While navigating, it SHALL not be lower than that, and the rider SHALL be able to drag it higher to see the coming knots. When navigation ends, it SHALL go back to its smallest planning height.
@@ -1094,7 +1137,7 @@ While navigating with the network's courses, a rider within 30 m of the course o
 
 #### Scenario: Wrong direction outside the app
 - **WHEN** the rider is riding the wrong way with the screen off or in another app
-- **THEN** the notification or Live Activity shows "Wrong direction, next 28" with its warning look, and the Dynamic Island shows the warning sign and 28
+- **THEN** the Live Activity's card has the opposite appearance with a U-turn symbol, 28 and the distance, the Dynamic Island shows the U-turn symbol on a light tile and 28, and the Android notification's title reads "↩ 28 · 2.2 km" with the U-turn symbol as its large icon and "↩28" as its chip
 
 #### Scenario: In the app's language
 - **WHEN** the app is in German and the rider is riding the wrong way
@@ -1160,11 +1203,15 @@ When the rider is more than 30 m from the guided way on two location fixes in a 
 - **THEN** the distance left shown is "360 m", and the line on the map runs from the rider to the way
 
 ### Requirement: Turn notices on the guided way
-On a guided way, the app SHALL say each turn once, about 100 m before it, e.g. "In 100 m, turn left". Turns within 40 m of each other SHALL count as one. Continuing straight on SHALL need no notice, and neither SHALL a bend where every other way at the junction turns at least 30° more than the way to take. Several turns at one junction that add up to straight on SHALL be said as straight on. When a way starts against the riding direction, the app SHALL say to turn back, and SHALL show it until the rider follows the way. The notice SHALL be spoken, also with the screen off and in the app's language.
+On a guided way, the app SHALL say each turn once, about 100 m before it, e.g. "In 100 m, turn left". Turns within 40 m of each other SHALL count as one. Continuing straight on SHALL need no notice, and neither SHALL a bend where every other way at the junction turns at least 30° more than the way to take. Several turns at one junction that add up to straight on SHALL be said as straight on. When a way starts against the riding direction, the app SHALL say to turn back, and SHALL show it until the rider follows the way. When a way starts 60° or more to the side of the riding direction, with no turn of its own within 40 m, the app SHALL say that turn at once, e.g. "Turn left now", and, like turning back, not again while the rider rides on without it. The notice SHALL be spoken, also with the screen off and in the app's language.
 
 #### Scenario: A turn ahead
 - **WHEN** the rider is 100 m from a left turn on the guided way
 - **THEN** the app says "In 100 m, turn left" once
+
+#### Scenario: Turn at the start of the way
+- **WHEN** the rider walks west along a street and a new way leaves it southwards right where they are
+- **THEN** the app says "Turn left now", and the header shows that turn before the next one
 
 #### Scenario: Turn close to the start of the way
 - **WHEN** a new way has its first turn 40 m ahead
@@ -1242,7 +1289,7 @@ On a guided way, the header, the Android notification and the iOS Live Activity 
 
 #### Scenario: On the lock screen
 - **WHEN** the same rider looks at the lock screen
-- **THEN** it shows "Off route, next 02" and "Left in 120 m · 1.9 km"
+- **THEN** it shows the to-the-route symbol, a left-turn arrow with "120 m" and "1.9 km", without the app's words; on Android the title reads "↰ 120 m · 1.9 km"
 
 #### Scenario: Distance to the course
 - **WHEN** the guided way ends on the course of the route, 300 m ahead
@@ -1343,7 +1390,7 @@ A route point SHALL be passed, reached and aimed at like a knot, with the same r
 - **THEN** the wording for the start, stop and end, and "To the start", is in that language, in the texts and the voice
 
 ### Requirement: Riding the way to a route point
-On a way along paths to a route point, the rider SHALL be told the distance and direction with the line on the map, with no directions at each turn, and leaving the way SHALL count as off route as on a course. On a straight line, which cannot be followed, the rider SHALL NOT be told they are off route, and SHALL be told the distance and direction to where it leads.
+On a way along paths to a route point, the rider SHALL be guided with the line on the map and turn notices, as described in "Guidance to a route point off the network" and "Guidance from a route point onto the network", and leaving the way SHALL count as off route as on a course. On a straight line, which cannot be followed, the rider SHALL NOT be told they are off route, and SHALL be told the distance and direction to where it leads.
 
 #### Scenario: Following a way along paths
 - **WHEN** the rider rides along the way to a stop
@@ -1680,3 +1727,262 @@ Changes made to the route for one navigation, by starting on the route nearby or
 #### Scenario: Routes saved with avoided ferries
 - **WHEN** the app reads a route saved by an earlier version that avoided a ferry for good
 - **THEN** the route has its waypoints and takes the ferry again
+
+### Requirement: Doubtful junctions
+On a guided way, a turn or a crossing SHALL count as doubtful when another similar exit is close by, the way crosses a main road, or the way leaves a road for a separate cycle path or path. Parts of a junction within 40 m of each other SHALL count as one junction.
+
+#### Scenario: A similar exit close by
+- **WHEN** the way takes an exit, and another rideable exit leaves the same junction less than 35° from it
+- **THEN** the junction is doubtful
+
+#### Scenario: Crossing a main road
+- **WHEN** the way crosses a primary, secondary or tertiary road, also going straight on
+- **THEN** the junction is doubtful
+
+#### Scenario: Leaving the road for a cycle path
+- **WHEN** the way leaves a street for a separate cycle path
+- **THEN** the junction is doubtful
+
+#### Scenario: A plain turn
+- **WHEN** the way turns between quiet streets, with no similar exit close by
+- **THEN** the junction isn't doubtful, and the short turn notice is given without a picture
+
+### Requirement: Wording for doubtful junctions
+At a doubtful junction, the turn notice SHALL describe what makes it doubtful in a short sentence, on screen, outside the app and in the voice, in the app's language.
+
+#### Scenario: Crossing a main road and turning
+- **WHEN** the way crosses a main road 100 m ahead and then turns left
+- **THEN** the app says "In 100 m, cross the main road, then turn left"
+
+#### Scenario: Cycle path after a road
+- **WHEN** the way leaves the street to the left for a cycle path 100 m ahead
+- **THEN** the app says "In 100 m, take the cycle path on the left"
+
+#### Scenario: A similar exit
+- **WHEN** the way takes the left of two similar exits 100 m ahead
+- **THEN** the app says "In 100 m, keep left at the fork"
+
+#### Scenario: Text on the Android lock screen
+- **WHEN** an Android rider approaches a doubtful junction with the screen off
+- **THEN** the notification shows the sentence, without a picture
+
+### Requirement: Junction picture
+A junction picture SHALL show the junction with the riding direction up: the way in a bold line with its direction, main roads as wide lines, other streets and cycle paths as short exits, and no footways, text, or map details. It SHALL be readable in light and dark appearance.
+
+#### Scenario: Picture of a junction
+- **WHEN** the way turns right over two main roads onto a cycle path
+- **THEN** the picture shows the way bold from the bottom to its end, the two roads wide, and the cycle path in its own color
+
+#### Scenario: Footways at a busy junction
+- **WHEN** a junction has footways next to the way
+- **THEN** the footways aren't drawn, unless the way uses them
+
+#### Scenario: Roads that can't be ridden
+- **WHEN** the way crosses over a trunk road
+- **THEN** the trunk road is drawn as a main road
+
+#### Scenario: Picture with a screen reader
+- **WHEN** a screen reader reaches the picture
+- **THEN** it announces the sentence of "Wording for doubtful junctions"
+
+### Requirement: Picture in the app
+While navigating with the app on screen, the app SHALL show the picture from about 150 m before a doubtful junction until it has been passed.
+
+#### Scenario: Approaching a doubtful junction in the app
+- **WHEN** the rider on a guided way comes within 150 m of a doubtful junction with the app on screen
+- **THEN** the header shows the picture next to the sentence, on Android and iOS
+
+#### Scenario: After the junction
+- **WHEN** the rider has passed the junction
+- **THEN** the picture is gone
+
+#### Scenario: Leaving the way before the junction
+- **WHEN** the rider leaves the guided way before the junction, and a new way is found
+- **THEN** the picture is gone, unless the new way has a doubtful junction within 150 m
+
+#### Scenario: No picture on an easy turn
+- **WHEN** the rider approaches a junction that isn't doubtful
+- **THEN** no picture is shown
+
+### Requirement: Picture on the iPhone lock screen
+On iOS, the Live Activity on the lock screen SHALL show the picture from about 150 m before a doubtful junction until it has been passed, drawn from data in the activity, without more location fixes than off route uses. The Dynamic Island SHALL stay text only.
+
+#### Scenario: On the iPhone's lock screen
+- **WHEN** the rider on iOS comes within 150 m of a doubtful junction with the phone locked
+- **THEN** the lock screen shows the picture next to the sentence and the distance
+
+#### Scenario: Dynamic Island at a doubtful junction
+- **WHEN** the rider approaches a doubtful junction with another app open
+- **THEN** the Dynamic Island shows text, without the picture
+
+#### Scenario: Back to text
+- **WHEN** the rider has passed the junction
+- **THEN** the lock screen shows the off-route text again
+
+#### Scenario: Screen comes on at a junction
+- **WHEN** the rider wakes the phone 80 m before a doubtful junction
+- **THEN** the lock screen already shows the picture
+
+### Requirement: Turn at the next knot
+While navigating close to the next knot, the sign plate around the number to follow SHALL show, as its arrow, the turn the route makes at that knot. The turn compares the route's direction over the 40 m before the knot with its direction over the 40 m after it, along the route's courses, also across knots within those 40 m. It SHALL be classified like the turns on the guided way:
+- straight on (↑)
+- slight left (↖) or slight right (↗)
+- left or right
+- sharp left (↙) or sharp right (↘)
+- back (a U-turn)
+
+The same arrow SHALL be shown on the plate in the Live Activity and the Dynamic Island. The Android notification's title SHALL have the turn's character before the number to follow. Where the turn cannot be told, the plate SHALL show the plain → instead.
+
+#### Scenario: Right turn at a knot
+- **WHEN** the rider is 150 m before 45, and the route comes into 45 heading north and leaves it heading east towards 12
+- **THEN** the plate around 12 shows a right-turn arrow
+
+#### Scenario: Straight on
+- **WHEN** the route passes 45 with less than the guided way's straight-on angle between its direction before and after the knot
+- **THEN** the plate shows ↑
+
+#### Scenario: Slight left
+- **WHEN** the route bends 40° to the left at 45
+- **THEN** the plate shows ↖
+
+#### Scenario: Turning back at an out-and-back knot
+- **WHEN** the route goes out to 45 and comes back the same way towards 12
+- **THEN** the plate shows a U-turn arrow
+
+#### Scenario: Knot right after the next one
+- **WHEN** 46 is 10 m after 45, and the route turns right between them
+- **THEN** close to 45, the plate shows the right turn, measured over the 40 m after 45, across 46
+
+#### Scenario: Knot with several signposts
+- **WHEN** the route enters 02 at its signpost by the river and leaves it from its signpost near the L 16, running along the path between them
+- **THEN** the turn is measured from the route's direction into the first signpost to its direction out of the second
+
+#### Scenario: Without courses
+- **WHEN** the network's courses are not installed
+- **THEN** the plate shows the plain →
+
+#### Scenario: Start knot
+- **WHEN** navigation begins at the start knot 24 and the rider has not moved yet
+- **THEN** the plate around the number to follow shows the plain →
+
+#### Scenario: Far from the knot
+- **WHEN** the rider is 1.2 km before 83
+- **THEN** no turn is shown, as there is no plate between knots
+
+#### Scenario: Turn on the lock screen
+- **WHEN** the rider is close to 45, turns right there towards 12, and looks at the lock screen
+- **THEN** the Live Activity shows the plate around 12 with the right-turn arrow, and the Android title reads "45 → ↱12"
+
+#### Scenario: Turn with a screen reader
+- **WHEN** a screen reader reaches the header close to 45 with a right turn to 12
+- **THEN** it announces "At 45 follow 12 to the right, 150 m"
+
+### Requirement: Waking the screen for notices
+While navigating with the app not on screen, every spoken notice SHALL also show on the screen: a locked phone SHALL light up and show the notice with what the panel shows. The alert SHALL be silent apart from the spoken notice, and SHALL NOT need a setting. Changes outside the app without a spoken notice SHALL NOT alert.
+
+#### Scenario: Reminder before a knot
+- **WHEN** the rider navigates with the phone locked and is reminded of 45, with 12 to follow there
+- **THEN** the screen lights up and shows the notice and the number to follow at 45, without a sound other than the spoken notice
+
+#### Scenario: Passing a knot
+- **WHEN** the rider passes 45 with the phone locked and hears "Next 12, then 31"
+- **THEN** the screen lights up and shows it
+
+#### Scenario: Off route and back
+- **WHEN** the rider leaves the route and later comes back to it, with the phone locked
+- **THEN** the screen lights up at "Off route" and at "Back on route"
+
+#### Scenario: A ferry closing
+- **WHEN** the rider is told a ferry on the route closes before they get there
+- **THEN** the screen lights up and shows that notice
+
+#### Scenario: Riding on between notices
+- **WHEN** the rider rides on with the phone locked and only the distance to the next knot is renewed
+- **THEN** the screen stays off
+
+#### Scenario: App on screen
+- **WHEN** the app is on screen while a notice is spoken
+- **THEN** nothing else alerts, the panel shows the notice as before
+
+### Requirement: Off route confirmed by a precise position
+The rider SHALL be told they are off route because of their distance to the course only after a position accurate to 20 m or better confirms it, more than 100 m from the course. A position less accurate than that SHALL make the app sample precisely, without a notice. A position not newer than the last one used SHALL be ignored. Passing a knot that is not on the route SHALL still count at once.
+
+#### Scenario: A coarse position far from the course
+- **WHEN** the rider rides on the course with the screen off and a position accurate to 40 m lies 200 m from the course
+- **THEN** the app samples precisely and says nothing, and when the next position accurate to 10 m is on the course, the rider stays on route
+
+#### Scenario: Leaving the route for real
+- **WHEN** the rider leaves the course and a position accurate to 10 m lies 150 m from it
+- **THEN** the app says "Off route" with the next knot, as before
+
+#### Scenario: The same position delivered again
+- **WHEN** the phone delivers a position again that navigation has already used, or an older one
+- **THEN** navigation ignores it, and the sampling does not change because of it
+
+#### Scenario: Passing a knot not on the route
+- **WHEN** the rider passes knot 77, which is not on the route
+- **THEN** the app says "Off route" at once, as before
+
+### Requirement: A knot the route visits twice
+After the rider passes a knot that the route visits again later, coming back within its circle SHALL count as that later visit only after the rider has been more than 200 m away from the knot since passing it.
+
+#### Scenario: Riding around at the knot
+- **WHEN** the route runs 27, 83, 15, …, 14, 83, 30, the rider passes 83 heading for 15, and comes within 30 m of 83 again before getting 200 m away from it
+- **THEN** 15 stays the next knot
+
+#### Scenario: Coming back after the loop
+- **WHEN** the rider rode on from 83 towards 15, left the loop more than 200 m from 83, and returns to 83 without passing 15, 14 and the knots between
+- **THEN** navigation continues from the second 83 with 30 as the next knot, as when skipping ahead
+
+### Requirement: Guidance to a route point off the network
+When the next route point is joined to the network by a way along paths, navigation SHALL guide along it like along the route: while the way follows a course of the network, the notices SHALL name the knot that course leads to; where the way leaves the network, the rider SHALL be told the turn with a reminder before it; from there, they SHALL be told each turn of the way to the route point, as on the guided way back to the route.
+
+#### Scenario: Towards the next knot
+- **WHEN** the route runs 28, 02 and the end flag, whose way follows the course from 02 towards 06 before leaving the network
+- **THEN** after 28 the rider hears "Next 02, then towards 06", and after 02 "Towards 06, then the end"
+
+#### Scenario: Leaving the network
+- **WHEN** the way to the end flag leaves the course of 02–06 by turning right into Cecilienstraße
+- **THEN** the rider hears "In 100 m, turn right into Cecilienstraße" before it, and "Turn right now into Cecilienstraße" at it
+
+#### Scenario: Turn by turn to the flag
+- **WHEN** the rider turned into Cecilienstraße and the way to the flag turns left into Kronprinzenstraße after 300 m
+- **THEN** the rider hears the turn as on the guided way back to the route, "In 100 m, turn left", and the header shows it with Kronprinzenstraße on the light tile of the way to the route
+
+#### Scenario: Header of steady height on a guided way
+- **WHEN** a way to the flag, or back to the route, is found or lost while the rider follows it, with a turn into a long street name ahead
+- **THEN** the header stays one row of the same height: the turn's arrow, its distance with the street below it, cut short if long, the distance left and the next knot, and it doesn't push the map up
+
+#### Scenario: The guided way on the map
+- **WHEN** the rider follows the way to the flag on route, and the way found runs along the planned way except for a block where it takes another street
+- **THEN** the map shows the guided way's line only along that other street, joined to the route at both ends, and not beside the route where they are the same; off route the whole guided way shows, as before
+
+#### Scenario: Missing the turn-off
+- **WHEN** the rider rides on along the course past Cecilienstraße
+- **THEN** they are told a way to the flag from where they are, as off route
+
+#### Scenario: A straight line
+- **WHEN** the next stretch is a straight line to a stop on a hiking route
+- **THEN** the rider is told the distance and direction to the stop, as before
+
+#### Scenario: Without path data
+- **WHEN** the path data for the way's squares is not installed
+- **THEN** the rider is told the turn-off with the distance and direction to the flag after it, and no turns
+
+### Requirement: Guidance from a route point onto the network
+When a route point is joined to the network by a way along paths, navigation SHALL guide from the route point along that way like the guided way back to the route, telling each turn, and SHALL tell the turn onto the course where the way joins it, naming the knot the course leads to.
+
+#### Scenario: From the start flag onto the network
+- **WHEN** the rider starts navigating at the start flag at home, whose way along paths joins the course of 02–28 after 600 m, turning left there towards 02
+- **THEN** the rider hears each turn of the way, and at the join "Turn left now onto the route towards 02", and then "Next 02" as usual
+
+### Requirement: Way searched again from a precise position
+A way to a route point or back to the route found from a position less precise than 20 m SHALL be searched again with the next position of 20 m or better, so a position that is off at the start does not decide the way.
+
+#### Scenario: Starting beside the start flag
+- **WHEN** the rider starts navigating at the start flag, whose planned way leaves southwards, the first position lies 30 m north of it with 30 m accuracy, and the way found from there runs east along another street
+- **THEN** with the next position of 8 m accuracy at the flag the way is searched again, and the guided way follows the planned way south
+
+#### Scenario: Precise from the start
+- **WHEN** the first position after starting is 5 m accurate
+- **THEN** the way found from it is kept, and not searched again for the next precise position

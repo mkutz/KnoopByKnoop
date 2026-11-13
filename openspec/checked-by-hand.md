@@ -45,6 +45,16 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Dynamic Island — on the iPhone
 - Dynamic Island with room for one number — on the iPhone
 - Stop from the lock screen — on the devices
+- Dynamic Island shared with another app — on the iPhone, with a podcast playing while navigating
+- Off route in the Dynamic Island — in the simulator with the Live Activity views, and on the iPhone
+- Chip off route — on the emulator and the Pixel, on a guided way
+- Text on the Android lock screen — on the emulator at a doubtful junction, and on the Pixel on a ride
+- Picture with a screen reader — the accessibility trees on the emulator and in the simulator, and heard once with TalkBack or VoiceOver on a ride
+- On the iPhone's lock screen — on the iPhone, locked at a doubtful junction on a ride
+- Dynamic Island at a doubtful junction — on the iPhone, locked at a doubtful junction on a ride
+- Back to text — on the iPhone, locked at a doubtful junction on a ride
+- Turn on the lock screen — on the emulator and in the simulator, and on the phones on a ride
+- Knot with several signposts — with the real data, a probe of every pair of Siegburg 02's neighbours, and on a ride at 02
 - Live Update — on Android 16
 - Progress bar in the Live Activity — on the iPhone
 - Live Activity in light and dark mode — on the iPhone
