@@ -7,7 +7,7 @@
 
 ## 2. Positions and the place
 
-- [ ] 2.1 With a throwaway core test on the published data (deleted afterwards), find the following, and write them as constants in a shared `fastlane/screenshots/demo.env`, read by both scripts:
+- [x] 2.1 With a throwaway core test on the published data (deleted afterwards), find the following, and write them as constants in a shared `fastlane/screenshots/demo.env`, read by both scripts:
   - two points 30 m apart on the course between 03 and 21
   - a highlighted place near the route with opening hours that are open on Saturday at 12:00 (a campsite or café near the windmills), with its name and position
 
