@@ -397,6 +397,10 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Opened while navigating — on the devices
 - Undo an opened route — on the emulator and in the simulator
 
+## store-listing
+
+- Installed on an iPad — on an iPad simulator: the app opens in an iPhone-sized window with the iPhone layout
+
 ## spec-checks
 
 - Commit changing only a spec — by a pull request on GitHub changing only a spec

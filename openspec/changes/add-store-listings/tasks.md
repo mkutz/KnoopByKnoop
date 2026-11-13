@@ -2,9 +2,9 @@
 
 ## 1. iPhone only
 
-- [ ] 1.1 Set `TARGETED_DEVICE_FAMILY: "1"` for the app and widget targets in `apps/ios/project.yml`. Drop `UISupportedInterfaceOrientations~ipad` if present, and set `ITSAppUsesNonExemptEncryption: false`. Regenerate with `xcodegen` and build for the simulator. Verify: `grep TARGETED_DEVICE_FAMILY apps/ios/KnoopByKnoop.xcodeproj/project.pbxproj` shows only `1`.
-- [ ] 1.2 Add `.github/scripts/ios-device-family-test.sh` with `# Scenario: iPhone only`, which fails unless every target in `project.yml` is iPhone only. Run it from `build.yml`. Verify: it passes, and fails when one target is set back to `"1,2"`.
-- [ ] 1.3 Add "Installed on an iPad" to `openspec/checked-by-hand.md` under `store-listing`, checked on an iPad simulator. Verify: the app runs in iPhone mode there.
+- [x] 1.1 Set `TARGETED_DEVICE_FAMILY: "1"` for the app and widget targets in `apps/ios/project.yml`. Drop `UISupportedInterfaceOrientations~ipad` if present, and set `ITSAppUsesNonExemptEncryption: false`. Regenerate with `xcodegen` and build for the simulator. Verify: `grep TARGETED_DEVICE_FAMILY apps/ios/KnoopByKnoop.xcodeproj/project.pbxproj` shows only `1`.
+- [x] 1.2 Add `.github/scripts/ios-device-family-test.sh` with `# Scenario: iPhone only`, which fails unless every target in `project.yml` is iPhone only. Run it from `build.yml`. Verify: it passes, and fails when one target is set back to `"1,2"`.
+- [x] 1.3 Add "Installed on an iPad" to `openspec/checked-by-hand.md` under `store-listing`, checked on an iPad simulator. Verify: the app runs in iPhone mode there.
 
 ## 2. Store texts and their check
 
