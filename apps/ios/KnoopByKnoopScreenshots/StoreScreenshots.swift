@@ -98,10 +98,13 @@ final class StoreScreenshots: XCTestCase {
     XCTAssertTrue(result.waitForExistence(timeout: 30), "\(placeName) not found by search")
     result.tap()
     pause(3)
-    let map = planner.otherElements.matching(identifier: "map").firstMatch
-    let centre = map.exists ? map : planner
-    centre.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: map.exists ? 0.5 : 0.3)).tap()
-    XCTAssertTrue(planner.buttons["addToRoute"].firstMatch.waitForExistence(timeout: 10), "no place card")
+    // The map centres the hit in the part of the screen above the panel, about halfway down.
+    planner.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.52)).tap()
+    // The place's card, not a spot's: both offer "Add to route".
+    let card = planner.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", placeName))
+      .element(boundBy: 0)
+    XCTAssertTrue(card.waitForExistence(timeout: 10), "no card for \(placeName)")
+    XCTAssertTrue(planner.buttons["addToRoute"].firstMatch.exists, "no place card")
     shot(planner, "4-place")
 
     // 5: the planned route in dark mode.

@@ -28,8 +28,8 @@
 
 ## 4. iOS
 
-- [ ] 4.1 Add the `KnoopByKnoopScreenshots` UI test target and its scheme to `apps/ios/project.yml`, and `accessibilityIdentifier`s where a control has no unique label. Verify: `xcodegen` and `xcodebuild build-for-testing` for the simulator pass.
-- [ ] 4.2 Write the UI test:
+- [x] 4.1 Add the `KnoopByKnoopScreenshots` UI test target and its scheme to `apps/ios/project.yml`, and `accessibilityIdentifier`s where a control has no unique label. Verify: `xcodegen` and `xcodebuild build-for-testing` for the simulator pass.
+- [x] 4.2 Write the UI test:
   - one method for shots 1–4 and one for shot 5
   - the language from `SCREENSHOT_LANGUAGE`
   - the route opened by URL, positions through `XCUIDevice.shared.location`
@@ -40,14 +40,14 @@
 
 ## 5. Workflow
 
-- [ ] 5.1 Add `.github/workflows/screenshots.yml` as in the design:
+- [x] 5.1 Add `.github/workflows/screenshots.yml` as in the design:
   - three jobs: android, ios, sheet
   - `permissions: contents: read`, no secrets
   - clocks set from `coming-saturday.sh`
   - one artifact with the fastlane layout and `contact-sheet.png`
 
   Add `.github/scripts/screenshots-workflow-test.sh`, marked `# Scenario: No write access`. It fails if the workflow asks for more than read permissions or uses secrets. Run it from `build.yml`. Verify: actionlint and the test pass.
-- [ ] 5.2 Add "Screenshots for review" and "Screenshot in the wrong language" to `openspec/checked-by-hand.md`, checked by a run of the workflow. Verify: `./gradlew checkScenarios -Pchange=automate-store-screenshots` passes.
+- [x] 5.2 Add "Screenshots for review" and "Screenshot in the wrong language" to `openspec/checked-by-hand.md`, checked by a run of the workflow. Verify: `./gradlew checkScenarios -Pchange=automate-store-screenshots` passes.
 - [ ] 5.3 Push and run the workflow. Verify:
   - The artifact has 40 screenshots in the fastlane layout, and the contact sheet shows them.
   - The status bars show 12:00, and the ferries show as open.
