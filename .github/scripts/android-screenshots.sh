@@ -243,6 +243,10 @@ for locale in $locales; do
   adb shell input swipe "$x" $((y - 120)) "$x" 300 600
   pause 2
   shot 3-waypoints
+  # Down again, so the buttons on the panel's edge, Navigate and later Stop, are on the screen.
+  wait_for "11 km"
+  adb shell input swipe "$x" $((y - 120)) "$x" 1700 600
+  pause 2
 
   # 2: navigating between 03 and 21, started on the route nearby, which needs the courses: after
   # clearing the app's data they download again.
