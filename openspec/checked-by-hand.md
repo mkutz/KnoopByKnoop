@@ -47,6 +47,9 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Stop from the lock screen — on the devices
 - Dynamic Island shared with another app — on the iPhone, with a podcast playing while navigating
 - Off route in the Dynamic Island — in the simulator with the Live Activity views, and on the iPhone
+- Stop next in the Dynamic Island — in the simulator with a route ending at the next knot, on the home screen, and on the iPhone for the minimal island
+- Corner symbols in the expanded island — on the simulator's lock screen, and on the iPhone by long-pressing the island
+- Distance counting down in the Dynamic Island — in the simulator while the distance counts down, and on the iPhone on the next ride or walk
 - Chip off route — on the emulator and the Pixel, on a guided way
 - Text on the Android lock screen — on the emulator at a doubtful junction, and on the Pixel on a ride
 - Picture with a screen reader — the accessibility trees on the emulator and in the simulator, and heard once with TalkBack or VoiceOver on a ride

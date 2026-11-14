@@ -13,6 +13,8 @@ extension NavigationActivityAttributes.HeaderKnotState {
 struct SignKnot: View {
   let knot: NavigationActivityAttributes.HeaderKnotState
   var side: CGFloat = 28
+  /// Off in the compact and minimal Dynamic Island, whose edge would cut the symbol off.
+  var cornerSymbol = true
 
   var body: some View {
     let plate = knot.plateColor
@@ -34,7 +36,7 @@ struct SignKnot: View {
       }
     }
     .overlay(alignment: .topTrailing) {
-      if let symbol = Self.cornerSymbol(knot.role) {
+      if cornerSymbol, let symbol = Self.cornerSymbol(knot.role) {
         Image(systemName: symbol)
           .font(.system(size: side * 0.27, weight: .black))
           .foregroundStyle(.white)

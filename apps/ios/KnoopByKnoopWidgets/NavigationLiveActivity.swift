@@ -34,9 +34,11 @@ struct NavigationLiveActivity: Widget {
         CompactLeading(state: context.state)
       } compactTrailing: {
         if let row = context.state.row {
-          // Smaller rather than cut off, e.g. "2.3 km" next to another app's activity.
-          Text(row.remaining ?? row.distance).font(.subheadline.bold()).lineLimit(1)
-            .minimumScaleFactor(0.6)
+          // Large enough to read at a glance, with digits of equal width so the island keeps its
+          // width while counting down; smaller rather than cut off, e.g. next to another app's
+          // activity, see `knot-navigation` "Distance counting down in the Dynamic Island".
+          Text(row.remaining ?? row.distance).font(.title3.bold().monospacedDigit()).lineLimit(1)
+            .minimumScaleFactor(0.5)
         }
       } minimal: {
         Minimal(state: context.state)
@@ -179,7 +181,7 @@ private struct CompactLeading: View {
     if let row = state.row, row.kind == .close, let follow = row.follow {
       // The sign and the turn's arrow without the plate, which the narrow region would cut off.
       HStack(spacing: 2) {
-        SignKnot(knot: follow, side: 20)
+        SignKnot(knot: follow, side: 20, cornerSymbol: false)
         let turn = row.turnDegrees
         Image(systemName: turn == nil ? "arrow.right" : turn == 180 ? "arrow.uturn.down" : "arrow.up")
           .font(.system(size: 12, weight: .bold))
@@ -201,13 +203,13 @@ private struct Minimal: View {
       switch row.kind {
       case .close:
         if let follow = row.follow {
-          SignKnot(knot: follow, side: 18)
+          SignKnot(knot: follow, side: 18, cornerSymbol: false)
             .padding(2)
             .background(
               RoundedRectangle(cornerRadius: 4).fill(follow.filled ? follow.plateColor : .white))
         }
       case .far, .end:
-        if let next = row.next { SignKnot(knot: next, side: 24) }
+        if let next = row.next { SignKnot(knot: next, side: 24, cornerSymbol: false) }
       case .wrongWay, .toRoute:
         WarningTile(row: row, side: 24)
       }

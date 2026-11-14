@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- iPhone: the Dynamic Island no longer cuts off the small corner symbol of the start, a stop or the end, and shows the distance larger, without changing its width as it counts down
+
 ## 1.0.0
 
 - Share a route from the panel: Share offers "Route for Knoop by Knoop", a small file that lists the knots in riding order like a hand-written knot list, and the GPX export for other apps. Open such a file from Files, mail, a messenger or AirDrop and the app shows the route, ready to ride; Undo brings back the one you had. Text after a stop's number in the file, like "lunch at the Fährhaus", shows in the waypoint list
