@@ -106,6 +106,18 @@ jobs:
           -derivedDataPath "$RUNNER_TEMP/derived"
           CODE_SIGNING_ALLOWED=NO
 
+      # The moment of `store-screenshots` "A fixed moment": the simulator follows the runner's
+      # clock and time zone, read when it boots, and the runner is thrown away afterwards.
+      - name: Set the clock
+        run: |
+          epoch=$(sh .github/scripts/coming-saturday.sh)
+          # Kept for the status bar: computed again once the clock is there, it would be a week on.
+          echo "MOMENT=$epoch" >> "$GITHUB_ENV"
+          sudo systemsetup -setusingnetworktime off
+          sudo systemsetup -settimezone Europe/Amsterdam
+          sudo date -u "$(date -u -r "$epoch" +%m%d%H%M%Y.%S)"
+          date
+
       - name: Prepare the simulator
         run: |
           xcrun simctl boot "$DEVICE"
@@ -117,18 +129,6 @@ jobs:
       # courses are put in place as the app would install them.
       - name: Seed the networks
         run: sh .github/scripts/ios-seed-networks.sh "$DEVICE"
-
-      # The moment of `store-screenshots` "A fixed moment": the simulator follows the runner's
-      # clock and time zone, and the runner is thrown away afterwards.
-      - name: Set the clock
-        run: |
-          epoch=$(sh .github/scripts/coming-saturday.sh)
-          # Kept for the status bar: computed again once the clock is there, it would be a week on.
-          echo "MOMENT=$epoch" >> "$GITHUB_ENV"
-          sudo systemsetup -setusingnetworktime off
-          sudo systemsetup -settimezone Europe/Amsterdam
-          sudo date -u "$(date -u -r "$epoch" +%m%d%H%M%Y.%S)"
-          date
 
       - name: Set the status bar
         run: |

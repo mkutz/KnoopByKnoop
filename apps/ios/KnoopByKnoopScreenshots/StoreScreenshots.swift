@@ -45,18 +45,27 @@ final class StoreScreenshots: XCTestCase {
 
     let app = launch(appearance: "light")
 
-    // 1: the planned route with the panel.
+    // 1: the planned route with the panel. Opened twice: on the first start the app shows the
+    // position, which can come after the route was fitted.
+    openRoute(app)
     openRoute(app)
     shot(app, "1-route")
 
     // 3: the waypoint list, with the panel pulled up.
     let length = app.staticTexts["11 km"].firstMatch
     XCTAssertTrue(length.waitForExistence(timeout: 30))
-    // Dragged from the route's length, which is on the panel; above it is the map.
-    length.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-      .press(
-        forDuration: 0.2,
-        thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1)))
+    // Dragged from the route's length, which is on the panel; above it is the map. Again if the
+    // waypoint list does not show, e.g. when the drag was taken for a tap.
+    // A waypoint's row, read e.g. as "Start, Kinderdijk".
+    let row = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Kinderdijk")).firstMatch
+    for _ in 0..<3 {
+      length.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        .press(
+          forDuration: 0.2,
+          thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1)))
+      if row.waitForExistence(timeout: 3) && row.isHittable { break }
+    }
+    XCTAssertTrue(row.exists && row.isHittable, "no waypoint list")
     pause(2)
     shot(app, "3-waypoints")
 
@@ -78,6 +87,8 @@ final class StoreScreenshots: XCTestCase {
       let nearby = app.buttons["startNearby"].firstMatch
       if nearby.waitForExistence(timeout: 15) {
         nearby.tap()
+        // The system asks for notifications once navigation runs.
+        allowSystemAlert()
         asked = true
         break
       }
