@@ -45,7 +45,7 @@
   - the steps done by hand in the consoles
 
   Verify: `./gradlew checkScenarios` passes.
-- [ ] 4.3 Run the workflow with the maintainer. Verify:
+- [x] 4.3 Run the workflow with the maintainer. Verify:
   - Both consoles show the texts and screenshots in all four languages.
   - No build or release was changed.
   - The App Store version is not submitted.
