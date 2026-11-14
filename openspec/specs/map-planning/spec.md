@@ -1547,3 +1547,14 @@ Undo in the panel SHALL take back the last edit of the route being planned, and 
 #### Scenario: Opened route on the other network
 - **WHEN** the user planned a cycling route by tapping and then opens a hiking route file
 - **THEN** the hiking route is shown and no Undo is shown
+
+### Requirement: Map buttons for screen readers
+A screen reader (TalkBack, VoiceOver) SHALL reach every button on the map while it shows: search, My position, the nearest knots, zoom in, zoom out and Recenter. Each SHALL be read with its label in the app's language.
+
+#### Scenario: Map buttons with VoiceOver
+- **WHEN** VoiceOver moves through the planner of a planned route on the iPhone
+- **THEN** it reaches "Search places", "My position", "Zoom in" and "Zoom out", each read with that label
+
+#### Scenario: Map buttons with TalkBack
+- **WHEN** TalkBack moves through the planner of a planned route on Android
+- **THEN** it reaches "Search places", "My position", "Zoom in" and "Zoom out", each read with that label

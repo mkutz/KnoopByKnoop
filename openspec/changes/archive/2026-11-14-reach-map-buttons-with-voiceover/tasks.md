@@ -4,7 +4,7 @@
 
 - [x] 1.1 In `NetworkMapView.swift`, return a container from `makeUIView` with the `MLNMapView` and the button column as siblings. Pin the column to the container, and reach the map view through the coordinator in `updateUIView`. Verify: the app builds; in the simulator the buttons look and work as before (search, My position, zoom, Recenter while navigating).
 - [x] 1.2 Add `MapAccessibilityTest` to the UI test target, marked `// Scenario: Map buttons with VoiceOver`. It launches the app in English, opens the demo route and asserts that buttons labelled "Search places", "My position", "Zoom in" and "Zoom out" exist and are hittable. Verify: it fails before 1.1 and passes after it.
-- [ ] 1.3 Check with VoiceOver on in the simulator or on the iPhone, in German too. Add "Map buttons with VoiceOver" to `openspec/checked-by-hand.md` under `map-planning`, checked this way and by the UI test. Verify: VoiceOver reads "Orte suchen", "Meine Position", "Vergrößern", "Verkleinern".
+- [x] 1.3 Check with VoiceOver on in the simulator or on the iPhone, in German too. Add "Map buttons with VoiceOver" to `openspec/checked-by-hand.md` under `map-planning`, checked this way and by the UI test. Verify: VoiceOver reads "Orte suchen", "Meine Position", "Vergrößern", "Verkleinern".
 
 ## 2. Android
 
