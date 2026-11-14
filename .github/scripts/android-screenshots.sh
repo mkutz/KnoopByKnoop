@@ -111,6 +111,18 @@ wait_for() {
   appears "$1" "${2:-30}" || fail "\"$1\" did not show in $language"
 }
 
+# The text of the first text field in $dump.
+field_text() {
+  python3 - "$dump" << 'PYTHON'
+import re, sys
+for node in re.finditer(r"<node [^>]*>", open(sys.argv[1], encoding="utf-8").read()):
+    attributes = dict(re.findall(r'([\w-]+)="([^"]*)"', node.group(0)))
+    if "EditText" in attributes.get("class", ""):
+        print(attributes.get("text", "").replace("&amp;", "&"))
+        break
+PYTHON
+}
+
 # Waits up to $2 seconds (300) until no element starts with $1.
 wait_gone() {
   seconds=${2:-300}
