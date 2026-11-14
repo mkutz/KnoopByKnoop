@@ -355,6 +355,7 @@ A scenario gets a test as soon as one can check it; its line goes then.
 
 ## place-search
 
+- Typing fast — on the emulator: "Blue Lotus Nieuw-Lekkerland" typed in one `adb shell input text`, in English and German; the field holds the whole text
 - Field above the sheet on iOS — on the iPhone
 - Sheet pulled up on iOS — on the iPhone
 - Typing on iOS — on the iPhone

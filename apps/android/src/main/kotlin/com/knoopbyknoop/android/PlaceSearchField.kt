@@ -56,9 +56,15 @@ fun PlaceSearchField(
   var field by remember {
     mutableStateOf(TextFieldValue(state.searchQuery, TextRange(state.searchQuery.length)))
   }
+  // The texts this field stored as the query since the last change from outside: they come back
+  // as the query a frame late and must not overwrite what was typed since, see `place-search`
+  // "Typed text is kept".
+  val sent = remember { mutableSetOf<String>() }
   LaunchedEffect(state.searchQuery) {
-    if (field.text != state.searchQuery)
-      field = TextFieldValue(state.searchQuery, TextRange(state.searchQuery.length))
+    fieldAfterQuery(field, state.searchQuery, sent)?.let {
+      field = it
+      sent.clear()
+    }
   }
   // The keyboard comes up with the field, as the user asked to search; text left from before is
   // searched again, so its hits show.
@@ -75,7 +81,10 @@ fun PlaceSearchField(
         value = if (state.online) field else TextFieldValue(""),
         onValueChange = {
           field = it
-          if (it.text != state.searchQuery) viewModel.search(it.text)
+          if (it.text != state.searchQuery) {
+            sent += it.text
+            viewModel.search(it.text)
+          }
         },
         enabled = state.online,
         singleLine = true,
@@ -88,7 +97,13 @@ fun PlaceSearchField(
         },
         trailingIcon = {
           if (state.searchQuery.isNotEmpty() && state.online) {
-            TextButton(onClick = viewModel::clearSearch) {
+            TextButton(
+              onClick = {
+                field = TextFieldValue("")
+                sent.clear()
+                viewModel.clearSearch()
+              }
+            ) {
               val clearSearch = stringResource(R.string.clear_search)
               Text(
                 "✕",
@@ -165,3 +180,15 @@ private fun Hit(hit: PlaceHit, onClick: () -> Unit) {
 private fun Message(text: String) {
   Text(text, modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.bodyMedium)
 }
+
+/**
+ * The field's value after the stored query became [query], or null to keep [field]: a query the
+ * field [sent] itself is its own typing coming back late and is ignored, any other replaces the
+ * text, with the cursor at the end, see `place-search` "Typed text is kept".
+ */
+internal fun fieldAfterQuery(
+  field: TextFieldValue,
+  query: String,
+  sent: Set<String>,
+): TextFieldValue? =
+  if (query == field.text || query in sent) null else TextFieldValue(query, TextRange(query.length))
