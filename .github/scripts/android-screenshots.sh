@@ -93,6 +93,31 @@ wait_for() {
   fail "\"$1\" did not show in $language"
 }
 
+# The text of the first text field in $dump.
+field_text() {
+  python3 - "$dump" << 'PYTHON'
+import re, sys
+for node in re.finditer(r"<node [^>]*>", open(sys.argv[1], encoding="utf-8").read()):
+    attributes = dict(re.findall(r'([\w-]+)="([^"]*)"', node.group(0)))
+    if "EditText" in attributes.get("class", ""):
+        print(attributes.get("text", "").replace("&amp;", "&"))
+        break
+PYTHON
+}
+
+# Waits up to $2 seconds (300) until no element starts with $1.
+wait_gone() {
+  seconds=${2:-300}
+  while [ "$seconds" -gt 0 ]; do
+    if look && [ -z "$(find_element "$1")" ]; then
+      return 0
+    fi
+    pause 2
+    seconds=$((seconds - 2))
+  done
+  fail "\"$1\" still showed in $language"
+}
+
 # Whether an element starting with $1 shows now.
 shows() { look && [ -n "$(find_element "$1")" ]; }
 
@@ -195,7 +220,10 @@ for locale in $locales; do
   pause 2
   shot 3-waypoints
 
-  # 2: navigating between 03 and 21, started on the route nearby.
+  # 2: navigating between 03 and 21, started on the route nearby, which needs the courses: after
+  # clearing the app's data they download again.
+  wait_gone "$(text loading_courses)"
+  wait_gone "$(text courses_loading)"
   for position in $RIDE_POSITIONS; do
     geo_fix "$position"
     pause 1
@@ -223,14 +251,21 @@ for locale in $locales; do
   shot 5-dark
   adb shell cmd uimode night no
   pause 2
-  # 4: a highlighted place, centred by showing the position there, then tapped. Not found by
-  # search: typing over adb into the field that searches as it is typed loses characters.
+  # 4: a highlighted place, found by search so the map centres on it, then tapped. Typed at once
+  # and searched with Enter, so the public search service gets few requests.
   open_route
-  geo_fix "$PLACE_POSITION"
-  pause 2
-  wait_for "$(text my_position)"
+  wait_for "$(text search_places)"
   tap "$x" "$y"
-  pause 5
+  pause 1
+  adb shell input text "$(echo "$PLACE_SEARCH" | sed 's/ /%s/g')"
+  pause 1
+  look || true
+  typed=$(field_text)
+  [ "$typed" = "$PLACE_SEARCH" ] || fail "typed \"$typed\" instead of \"$PLACE_SEARCH\" in $language"
+  adb shell input keyevent KEYCODE_ENTER
+  wait_for "$PLACE_NAME" 30
+  tap "$x" "$y"
+  pause 3
   # The place is in the middle of the map, above the panel.
   look
   map_bottom=$(python3 -c '
@@ -242,9 +277,6 @@ for node in re.finditer(r"<node [^>]*>", xml):
         break' "$dump")
   # The place card is a popup, which uiautomator does not see; the review checks it shows.
   tap 540 $((map_bottom / 2))
-  pause 2
-  # The position moved off the place again, so its dot does not cover it.
-  geo_fix "${RIDE_POSITIONS%% *}"
   pause 2
   shot 4-place
   adb shell input keyevent KEYCODE_BACK
