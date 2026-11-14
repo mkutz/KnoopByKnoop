@@ -15,8 +15,8 @@
 
 ## 3. Android
 
-- [ ] 3.1 Add `contentDescription`s to the Android controls the script must tap that have no text, in all four languages. Candidates are the panel handle and Navigate. Verify: `uiautomator dump` on the emulator lists them, and `./gradlew :apps:android:assembleDebug` passes.
-- [ ] 3.2 Write `.github/scripts/android-screenshots.sh <out-dir>` as in the design. For each language it:
+- [x] 3.1 Add `contentDescription`s to the Android controls the script must tap that have no text, in all four languages. Candidates are the panel handle and Navigate. (None needed: the icon buttons already have localised descriptions, checked with `uiautomator dump`.) Verify: `uiautomator dump` on the emulator lists them, and `./gradlew :apps:android:assembleDebug` passes.
+- [x] 3.2 Write `.github/scripts/android-screenshots.sh <out-dir>` as in the design. For each language it:
   - uses System UI demo mode
   - clears the app's data, grants permissions and sets the language
   - copies the route in with `run-as` and opens it
@@ -24,7 +24,7 @@
   - takes the five shots, failing with the question's text if Navigate asks about a closed ferry
 
   Verify: on the local emulator, with its clock set to a Saturday at 12:00 before the app starts, it writes 20 screenshots of 1080 × 1920 in the fastlane layout, in the right languages.
-- [ ] 3.3 Run the script on the local emulator with the clock on a Sunday at 12:00, when the Lekkerkerk ferry doesn't run. Add "Closed ferry" to `openspec/checked-by-hand.md` under `store-screenshots`, checked this way. Verify: the run fails naming Lekkerkerk – Nieuw Lekkerland.
+- [x] 3.3 Run the script on the local emulator with the clock on a Sunday at 12:00, when the Lekkerkerk ferry doesn't run. Add "Closed ferry" to `openspec/checked-by-hand.md` under `store-screenshots`, checked this way. Verify: the run fails naming Lekkerkerk – Nieuw Lekkerland.
 
 ## 4. iOS
 

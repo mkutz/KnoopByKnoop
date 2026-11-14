@@ -17,7 +17,19 @@ activity=$package/.android.MainActivity
 route=fastlane/screenshots/demo-route.knoop
 resources=apps/android/src/main/res
 dump=$(mktemp)
-trap 'rm -f "$dump"' EXIT
+
+# Gives the emulator back as it was, also after a failure: its screen, clock and status bar.
+restore() {
+  rm -f "$dump"
+  adb shell cmd uimode night no > /dev/null 2>&1 || true
+  adb shell am broadcast -a com.android.systemui.demo -e command exit > /dev/null 2>&1 || true
+  adb shell wm size reset > /dev/null 2>&1 || true
+  if [ -n "$clock" ]; then
+    adb shell cmd alarm set-time "$(date +%s)000" > /dev/null 2>&1 || true
+    adb shell settings put global auto_time 1 > /dev/null 2>&1 || true
+  fi
+}
+trap restore EXIT
 
 # shellcheck source=/dev/null
 . fastlane/screenshots/demo.env
@@ -284,7 +296,3 @@ for node in re.finditer(r"<node [^>]*>", xml):
 
 done
 
-adb shell cmd uimode night no
-adb shell am broadcast -a com.android.systemui.demo -e command exit > /dev/null
-adb shell wm size reset
-[ -z "$clock" ] || adb shell settings put global auto_time 1
