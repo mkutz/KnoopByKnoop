@@ -111,6 +111,8 @@ jobs:
       - name: Set the clock
         run: |
           epoch=$(sh .github/scripts/coming-saturday.sh)
+          # Kept for the status bar: computed again once the clock is there, it would be a week on.
+          echo "MOMENT=$epoch" >> "$GITHUB_ENV"
           sudo systemsetup -setusingnetworktime off
           sudo systemsetup -settimezone Europe/Amsterdam
           sudo date -u "$(date -u -r "$epoch" +%m%d%H%M%Y.%S)"
@@ -120,7 +122,9 @@ jobs:
         run: |
           xcrun simctl boot "$DEVICE"
           xcrun simctl bootstatus "$DEVICE" -b
-          xcrun simctl status_bar "$DEVICE" override --time "$(date +%Y-%m-%dT12:00:00%z)" \
+          # The moment in UTC, in the only ISO form simctl takes, with milliseconds and Z.
+          noon=$(date -u -r "$MOMENT" +%Y-%m-%dT%H:%M:%S.000Z)
+          xcrun simctl status_bar "$DEVICE" override --time "$noon" \
             --batteryState charged --batteryLevel 100 --wifiBars 3 --cellularMode notSupported
           xcrun simctl install "$DEVICE" "$RUNNER_TEMP"/derived/Build/Products/Debug-iphonesimulator/KnoopByKnoop.app
           xcrun simctl privacy "$DEVICE" grant location-always com.knoopbyknoop

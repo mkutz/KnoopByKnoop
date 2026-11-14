@@ -35,14 +35,6 @@ final class StoreScreenshots: XCTestCase {
 
   override func setUp() {
     continueAfterFailure = false
-    // The system's questions, e.g. for notifications on the first Navigate: allowed, in any
-    // language, by their default button.
-    addUIInterruptionMonitor(withDescription: "System alert") { alert in
-      let allow = alert.buttons.element(boundBy: alert.buttons.count > 1 ? 1 : 0)
-      guard allow.exists else { return false }
-      allow.tap()
-      return true
-    }
   }
 
   func testScreenshots() throws {
@@ -60,8 +52,11 @@ final class StoreScreenshots: XCTestCase {
     // 3: the waypoint list, with the panel pulled up.
     let length = app.staticTexts["11 km"].firstMatch
     XCTAssertTrue(length.waitForExistence(timeout: 30))
-    length.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: -1))
-      .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1)))
+    // Dragged from the route's length, which is on the panel; above it is the map.
+    length.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+      .press(
+        forDuration: 0.2,
+        thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1)))
     pause(2)
     shot(app, "3-waypoints")
 
@@ -74,6 +69,7 @@ final class StoreScreenshots: XCTestCase {
     let nearby = app.buttons["startNearby"].firstMatch
     XCTAssertTrue(nearby.waitForExistence(timeout: 30), "no question to start nearby")
     nearby.tap()
+    allowSystemAlert()
     pause(3)
     noClosedFerry(app)
     XCTAssertTrue(app.buttons["stop"].firstMatch.waitForExistence(timeout: 30))
@@ -85,30 +81,42 @@ final class StoreScreenshots: XCTestCase {
     app.buttons["stop"].firstMatch.tap()
     pause(2)
 
-    // 4: a highlighted place, found by search so the map centres on it, then tapped.
-    openRoute(app)
-    app.buttons["search"].firstMatch.tap()
-    let field = app.textFields["searchField"].firstMatch
+    // 4: a highlighted place, found by search so the map centres on it, then tapped. Started
+    // again, so the panel is down and the map's buttons, the search among them, show.
+    app.terminate()
+    let planner = launch(appearance: "light")
+    openRoute(planner)
+    // A UIKit button in the map's glass group, which XCUITest does not list as a button.
+    planner.descendants(matching: .any).matching(identifier: "search").firstMatch.tap()
+    let field = planner.textFields["searchField"].firstMatch
     XCTAssertTrue(field.waitForExistence(timeout: 10))
     field.tap()
     // Searched once with Return, so the public search service gets few requests.
     field.typeText(placeSearch + "\n")
-    let result = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", placeName))
+    let result = planner.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", placeName))
       .element(boundBy: 0)
     XCTAssertTrue(result.waitForExistence(timeout: 30), "\(placeName) not found by search")
     result.tap()
     pause(3)
-    let map = app.otherElements.matching(identifier: "map").firstMatch
-    let centre = map.exists ? map : app
+    let map = planner.otherElements.matching(identifier: "map").firstMatch
+    let centre = map.exists ? map : planner
     centre.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: map.exists ? 0.5 : 0.3)).tap()
-    XCTAssertTrue(app.buttons["addToRoute"].firstMatch.waitForExistence(timeout: 10), "no place card")
-    shot(app, "4-place")
+    XCTAssertTrue(planner.buttons["addToRoute"].firstMatch.waitForExistence(timeout: 10), "no place card")
+    shot(planner, "4-place")
 
     // 5: the planned route in dark mode.
-    app.terminate()
+    planner.terminate()
     let dark = launch(appearance: "dark")
     openRoute(dark)
     shot(dark, "5-dark")
+  }
+
+  /// Allows the system's question shown now, e.g. for notifications on the first Navigate, by its
+  /// second button, Allow, in any language.
+  private func allowSystemAlert() {
+    let alert = XCUIApplication(bundleIdentifier: "com.apple.springboard").alerts.firstMatch
+    guard alert.waitForExistence(timeout: 5), alert.buttons.count > 1 else { return }
+    alert.buttons.element(boundBy: 1).tap()
   }
 
   private func launch(appearance: String) -> XCUIApplication {
