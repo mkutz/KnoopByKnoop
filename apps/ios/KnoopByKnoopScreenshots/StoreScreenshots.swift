@@ -102,16 +102,26 @@ final class StoreScreenshots: XCTestCase {
     app.terminate()
     let planner = launch(appearance: "light")
     openRoute(planner)
-    // A UIKit button in the map's glass group, which XCUITest does not list as a button.
-    planner.descendants(matching: .any).matching(identifier: "search").firstMatch.tap()
-    let field = planner.textFields["searchField"].firstMatch
-    XCTAssertTrue(field.waitForExistence(timeout: 10))
-    field.tap()
-    // Searched once with Return, so the public search service gets few requests.
-    field.typeText(placeSearch + "\n")
+    // The public search service may be slow or busy; searched again up to three times.
     let result = planner.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", placeName))
       .element(boundBy: 0)
-    XCTAssertTrue(result.waitForExistence(timeout: 30), "\(placeName) not found by search")
+    for _ in 0..<3 {
+      let field = planner.textFields["searchField"].firstMatch
+      if !field.exists {
+        // A UIKit button in the map's glass group, which XCUITest does not list as a button.
+        planner.descendants(matching: .any).matching(identifier: "search").firstMatch.tap()
+        XCTAssertTrue(field.waitForExistence(timeout: 10), "no search field")
+      }
+      field.tap()
+      if let typed = field.value as? String, !typed.isEmpty, typed != field.placeholderValue {
+        field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: typed.count))
+      }
+      // Searched once with Return, so the public search service gets few requests.
+      field.typeText(placeSearch + "\n")
+      if result.waitForExistence(timeout: 30) { break }
+      pause(10)
+    }
+    XCTAssertTrue(result.exists, "\(placeName) not found by search")
     result.tap()
     pause(3)
     // The map centres the hit in the part of the screen above the panel, about halfway down.
