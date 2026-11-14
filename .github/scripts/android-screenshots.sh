@@ -70,17 +70,22 @@ look() {
   adb shell cat /sdcard/ui.xml > "$dump"
 }
 
-# The centre "x y" of the first element whose text or description starts with $1, if any.
+# The centre "x y" of the first element whose text or description starts with $1, if any; with
+# $2 "exact", of the first whose description is $1, e.g. a button that has the same word as texts.
 find_element() {
-  python3 - "$dump" "$1" << 'PYTHON'
+  python3 - "$dump" "$1" "${2:-}" << 'PYTHON'
 import re, sys
-xml, wanted = open(sys.argv[1], encoding="utf-8").read(), sys.argv[2]
+xml, wanted, exact = open(sys.argv[1], encoding="utf-8").read(), sys.argv[2], sys.argv[3] == "exact"
 for node in re.finditer(r"<node [^>]*>", xml):
     attributes = dict(re.findall(r'([\w-]+)="([^"]*)"', node.group(0)))
     if "EditText" in attributes.get("class", ""):
         continue
     texts = [attributes.get("text", ""), attributes.get("content-desc", "")]
-    if any(t.replace("&amp;", "&").startswith(wanted) for t in texts if t):
+    if exact:
+        found = attributes.get("content-desc", "").replace("&amp;", "&") == wanted
+    else:
+        found = any(t.replace("&amp;", "&").startswith(wanted) for t in texts if t)
+    if found:
         left, top, right, bottom = map(int, re.findall(r"\d+", attributes["bounds"]))
         print((left + right) // 2, (top + bottom) // 2)
         break
@@ -88,11 +93,12 @@ PYTHON
 }
 
 # Whether an element starting with $1 shows within $2 seconds (30); sets $x and $y to its centre.
+# $3 "exact" matches a description exactly, see find_element.
 appears() {
   seconds=${2:-30}
   while [ "$seconds" -gt 0 ]; do
     if look; then
-      position=$(find_element "$1")
+      position=$(find_element "$1" "${3:-}")
       if [ -n "$position" ]; then
         x=${position% *}
         y=${position#* }
@@ -108,7 +114,7 @@ appears() {
 # Waits up to $2 seconds (30) for an element starting with $1 and sets $x and $y to its centre.
 # Not called in a subshell, so its failure ends the script.
 wait_for() {
-  appears "$1" "${2:-30}" || fail "\"$1\" did not show in $language"
+  appears "$1" "${2:-30}" "${3:-}" || fail "\"$1\" did not show in $language"
 }
 
 # The text of the first text field in $dump.
@@ -265,19 +271,19 @@ for locale in $locales; do
       asked=true
       break
     fi
-    if appears "$(text stop)" 2; then tap "$x" "$y"; fi
+    if appears "$(text stop)" 5 exact; then tap "$x" "$y"; fi
     pause 20
   done
   [ "$asked" = true ] || fail "no question to start nearby in $language"
   pause 3
   no_closed_ferry
-  wait_for "$(text stop)"
+  wait_for "$(text stop)" 30 exact
   for position in $RIDE_POSITIONS; do
     geo_fix "$position"
     pause 2
   done
   shot 2-navigate
-  wait_for "$(text stop)"
+  wait_for "$(text stop)" 30 exact
   tap "$x" "$y"
   pause 2
 

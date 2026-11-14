@@ -37,21 +37,6 @@ final class StoreScreenshots: XCTestCase {
     continueAfterFailure = false
   }
 
-  /// Run by the workflow before it moves the clock: a fresh install downloads the networks and
-  /// their courses, which the screenshots need, and the downloads did not finish on CI after the
-  /// clock had moved.
-  func testWarmUp() {
-    let app = XCUIApplication()
-    app.launchArguments = ["-language", "en", "-AppleLanguages", "(en)"]
-    app.launch()
-    app.open(routeFile)
-    XCTAssertTrue(app.buttons["navigate"].firstMatch.waitForExistence(timeout: 300), "no route")
-    let loading = app.staticTexts["Loading the courses…"].firstMatch
-    let deadline = Date().addingTimeInterval(900)
-    while loading.exists && Date() < deadline { pause(5) }
-    XCTAssertFalse(loading.exists, "the courses did not load in 15 minutes")
-  }
-
   func testScreenshots() throws {
     let positions = try XCTUnwrap(demo["RIDE_POSITIONS"]).split(separator: " ").map(location)
     let placeSearch = try XCTUnwrap(demo["PLACE_SEARCH"])

@@ -113,16 +113,10 @@ jobs:
           xcrun simctl install "$DEVICE" "$RUNNER_TEMP"/derived/Build/Products/Debug-iphonesimulator/KnoopByKnoop.app
           xcrun simctl privacy "$DEVICE" grant location-always com.knoopbyknoop
 
-      # At the real time: the networks and their courses download on the first start, and did not
-      # finish after the clock had moved.
-      - name: Warm up
-        run: >
-          xcodebuild test-without-building
-          -project apps/ios/KnoopByKnoop.xcodeproj
-          -scheme 'KnoopByKnoop Screenshots'
-          -destination "platform=iOS Simulator,id=$DEVICE"
-          -derivedDataPath "$RUNNER_TEMP/derived"
-          -only-testing:KnoopByKnoopScreenshots/StoreScreenshots/testWarmUp
+      # The app's background downloads never finish on CI simulators, so the networks and their
+      # courses are put in place as the app would install them.
+      - name: Seed the networks
+        run: sh .github/scripts/ios-seed-networks.sh "$DEVICE"
 
       # The moment of `store-screenshots` "A fixed moment": the simulator follows the runner's
       # clock and time zone, and the runner is thrown away afterwards.

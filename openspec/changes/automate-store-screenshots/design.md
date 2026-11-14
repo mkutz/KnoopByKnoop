@@ -112,6 +112,10 @@ A `KnoopByKnoopScreenshots` UI test bundle target in `project.yml`, with one tes
 - **Screenshots:** `XCTAttachment(screenshot:)` with `lifetime = .keepAlways`, named `<n>-<name>`.
 - **Accessibility:** controls without labels (icon buttons, panel handle) get `accessibilityIdentifier`s only where VoiceOver labels don't already identify them.
 
+### Networks on the CI simulator
+
+The iOS app downloads networks and courses through a background `URLSession`, and on CI simulators those downloads never finish: the first runs waited 15 minutes at the real time, with "Loading the courses…" still showing. The workflow therefore puts the published graphs and courses into the app's storage, as the app installs them after a download (`ios-seed-networks.sh`): the files from `index.json` and an `installed.json` listing them. Graphs and courses come together, as the courses are only read with the graph they were made for. The app itself stays as released; only its data is put in place.
+
 ### Coordinates and place
 
 - **The navigation position** is a point on the course between 03 and 21. It is read once from the published `cycling.geometry` with a throwaway core test, as the demo route was, and written into the script as constants.
