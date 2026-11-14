@@ -52,18 +52,18 @@
 
 ## 5. By hand in the consoles (maintainer)
 
-- [ ] 5.1 App Store Connect:
+- [x] 5.1 App Store Connect:
   - App Privacy "Data Not Collected"
   - price free, availability (all countries, or the maintainer's choice)
   - content rights: uses third-party content (OpenStreetMap, ODbL)
   - review contact and notes: no login needed; how to plan a route and navigate
 
   Verify: App Store Connect shows no missing items for the version.
-- [ ] 5.2 Play Console: check that the data safety form matches `PRIVACY.md` (no data collected or shared) and the category is Maps & Navigation. Verify: the listing shows no warnings in Play Console.
+- [x] 5.2 Play Console: check that the data safety form matches `PRIVACY.md` (no data collected or shared) and the category is Maps & Navigation. Verify: the listing shows no warnings in Play Console.
 
 ## 6. Finish
 
-- [ ] 6.1 Run `./gradlew check` and `./gradlew checkScenarios -Pchange=add-store-listings`. Verify: both pass.
+- [x] 6.1 Run `./gradlew check` and `./gradlew checkScenarios -Pchange=add-store-listings`. Verify: both pass.
 
 ## Workflow follow-up
 
