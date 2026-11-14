@@ -28,7 +28,17 @@ reset() {
     echo "Knoop by Knoop" > "$android/title.txt"
     echo "Plan and ride the knot networks" > "$android/short_description.txt"
     ln -s "../../ios/$locale/description.txt" "$android/full_description.txt"
+    mkdir -p "$listing/screenshots/ios/$locale" "$android/images/phoneScreenshots"
+    for number in 1 2 3 4 5; do
+      png 1320 2868 "$listing/screenshots/ios/$locale/$number.png"
+      png 1080 1920 "$android/images/phoneScreenshots/$number.png"
+    done
   done
+}
+
+# Writes a PNG signature and header of the given width and height, all the check reads.
+png() {
+  python3 -c 'import struct, sys; sys.stdout.buffer.write(b"\x89PNG\r\n\x1a\n" + struct.pack(">I", 13) + b"IHDR" + struct.pack(">II", int(sys.argv[1]), int(sys.argv[2])) + bytes(5))' "$1" "$2" > "$3"
 }
 
 # Prints n times the character $1.
@@ -64,5 +74,22 @@ rm "$listing/metadata/android/en-US/full_description.txt"
 echo "Another text." > "$listing/metadata/android/en-US/full_description.txt"
 if output=$(sh "$script" "$listing" 2>&1); then fail "different descriptions fail"; fi
 case "$output" in *"android/en-US/full_description.txt: differs from"*"ios/en-US/description.txt"*) ;; *) fail "names both files, got: $output" ;; esac
+
+# Scenario: Missing screenshot
+reset
+rm "$listing/screenshots/ios/de-DE/5.png"
+if output=$(sh "$script" "$listing" 2>&1); then fail "four German iPhone screenshots fail"; fi
+case "$output" in *"screenshots/ios/de-DE: 4 iPhone screenshots, needs 5"*) ;; *) fail "names the German iPhone screenshots, got: $output" ;; esac
+
+# Scenario: Wrong screenshot size
+reset
+png 1179 2556 "$listing/metadata/android/en-US/images/phoneScreenshots/2.png"
+if output=$(sh "$script" "$listing" 2>&1); then fail "a 1179 × 2556 Android screenshot fails"; fi
+case "$output" in *"en-US/images/phoneScreenshots/2.png: 1179 × 2556"*) ;; *) fail "names it and its size, got: $output" ;; esac
+case "$output" in *"phoneScreenshots/1.png"*) fail "a 1080 × 1920 Android screenshot passes, got: $output" ;; esac
+
+reset
+png 1290 2796 "$listing/screenshots/ios/fr-FR/1.png"
+if sh "$script" "$listing" > /dev/null 2>&1; then fail "an iPhone screenshot of another size fails"; fi
 
 echo "store-listing-check.sh: all tests passed"

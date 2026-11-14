@@ -48,22 +48,22 @@
 
   Add `.github/scripts/screenshots-workflow-test.sh`, marked `# Scenario: No write access`. It fails if the workflow asks for more than read permissions or uses secrets. Run it from `build.yml`. Verify: actionlint and the test pass.
 - [x] 5.2 Add "Screenshots for review" and "Screenshot in the wrong language" to `openspec/checked-by-hand.md`, checked by a run of the workflow. Verify: `./gradlew checkScenarios -Pchange=automate-store-screenshots` passes.
-- [ ] 5.3 Push and run the workflow. Verify:
+- [x] 5.3 Push and run the workflow. Verify:
   - The artifact has 40 screenshots in the fastlane layout, and the contact sheet shows them.
   - The status bars show 12:00, and the ferries show as open.
   - The maintainer reviews the contact sheet.
 
 ## 6. Hand-over to add-store-listings
 
-- [ ] 6.1 After the maintainer's OK:
+- [x] 6.1 After the maintainer's OK:
   - copy the artifact's screenshots into `fastlane/`
   - remove `design/store/screenshots`
   - `git stash pop` the screenshot check from `add-store-listings`
   - commit them together, and tick `add-store-listings` tasks 3.2–3.5
 
   Verify: `sh .github/scripts/store-listing-check-test.sh` and `sh .github/scripts/store-listing-check.sh` pass.
-- [ ] 6.2 Replace the hand-taking steps in `CONTRIBUTING.md` "Store listing" with "start the workflow Store screenshots, review the contact sheet, commit the screenshots". Verify: the section names the workflow and the review.
-- [ ] 6.3 Run `./gradlew checkScenarios -Pchange=automate-store-screenshots` and `./gradlew check`. Verify: both pass.
+- [x] 6.2 Replace the hand-taking steps in `CONTRIBUTING.md` "Store listing" with "start the workflow Store screenshots, review the contact sheet, commit the screenshots". Verify: the section names the workflow and the review.
+- [x] 6.3 Run `./gradlew checkScenarios -Pchange=automate-store-screenshots` and `./gradlew check`. Verify: both pass.
 
 ## Workflow follow-up
 

@@ -67,7 +67,7 @@ Without the keystore variables, local release builds are signed with the debug k
 What the App Store and Google Play show about the apps lives in `fastlane/`, in English, German, French and Dutch, see the spec `store-listing`:
 
 - `fastlane/metadata/ios/<locale>/`: App Store name, subtitle, description, keywords, promotional text, support and privacy URLs; categories, copyright and the age rating (`app_rating_config.json`) one level up
-- `fastlane/metadata/android/<locale>/`: Google Play title and short description; `full_description.txt` is a link to the App Store description, so both stores say the same; feature graphic, icon and phone screenshots in `images/`
+- `fastlane/metadata/android/<locale>/`: Google Play title and short description; `full_description.txt` is a link to the App Store description, so both stores say the same; phone screenshots in `images/phoneScreenshots/`, the feature graphic and icon only for `en-US`, which Google Play shows for the other languages too (the graphic's source is `design/store/feature-graphic.svg`)
 - `fastlane/screenshots/ios/<locale>/`: the iPhone screenshots, 1320 × 2868
 
 The Build workflow checks that every language has every text within its store's limit and five screenshots per platform in sizes the stores take.
@@ -77,8 +77,8 @@ It replaces texts and screenshots on both stores; it uploads no build and submit
 It uses the release secrets above; the App Store Connect key needs the Admin or App Manager role to write metadata.
 For the App Store it writes to the version being prepared, or to the version given as input.
 
-Retake the screenshots after changes to the planner panel, the navigation header or the map controls.
-They show the loop in `fastlane/screenshots/demo-route.knoop`, taken while all its ferries are open (Saturday 10:30 to 16:30, or weekdays until 18:00), with the app set to each language:
+Retake the screenshots after changes to the planner panel, the navigation header or the map controls, see the spec `store-screenshots`.
+They show the loop in `fastlane/screenshots/demo-route.knoop` with the app set to each language, at the coming Saturday 12:00 in Amsterdam, when all its ferries are open:
 
 1. The planned route with the panel
 2. Navigating between 03 and 21
@@ -86,15 +86,13 @@ They show the loop in `fastlane/screenshots/demo-route.knoop`, taken while all i
 4. A tapped place with its details
 5. The route in dark mode
 
-On Android, use an emulator at `adb shell wm size 1080x1920` with System UI demo mode (clock, full battery, no notifications).
-The app can only read a file from its own storage when it is opened from adb, so copy it there and view it:
+To retake them:
 
-```bash
-adb shell "run-as com.knoopbyknoop sh -c 'cat > files/demo-route.knoop'" < fastlane/screenshots/demo-route.knoop
-adb shell am start -a android.intent.action.VIEW -t text/markdown \
-  -d file:///data/user/0/com.knoopbyknoop/files/demo-route.knoop -n com.knoopbyknoop/.android.MainActivity
-```
+1. Start the workflow **Store screenshots** by hand. It takes all 40 on an Android emulator and an iPhone simulator, in about 40 minutes, and needs no secrets; it commits nothing.
+2. Review the contact sheet `contact-sheet.png` in its artifact `store-screenshots-<run>`: one row per platform and language. Check the language, the clock at 12:00, the map tiles and the open place card.
+3. Copy the artifact's `fastlane/` folder over the repository's, commit the screenshots to `main`, and start **Release store listing**.
 
-On iOS, use an iPhone 17 Pro Max simulator (create it with `xcrun simctl create`), with `xcrun simctl status_bar booted override --time 2026-11-14T12:00:00+01:00 --batteryState charged --batteryLevel 100`, and open the route with `xcrun simctl openurl booted file://$PWD/fastlane/screenshots/demo-route.knoop`.
+The positions and the place the screenshots use are in `fastlane/screenshots/demo.env`.
+The scripts can also run locally: `.github/scripts/android-screenshots.sh <out-dir> [clock-epoch] [locales]` against the emulator, and the UI test `StoreScreenshots` in the scheme "KnoopByKnoop Screenshots" with `TEST_RUNNER_SCREENSHOT_LANGUAGE` set.
 
 Set up by hand, once, in the consoles: App Privacy ("Data Not Collected"), price and availability, content rights (OpenStreetMap data) and the review notes in App Store Connect; the data safety form and the category Maps & Navigation in Play Console.
