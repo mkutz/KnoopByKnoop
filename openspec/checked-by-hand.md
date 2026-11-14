@@ -132,6 +132,8 @@ A scenario gets a test as soon as one can check it; its line goes then.
 
 ## map-planning
 
+- Map buttons with VoiceOver — by `MapAccessibilityTest` (UI test, English and German), and with VoiceOver on the iPhone
+- Map buttons with TalkBack — on the emulator: `uiautomator dump`, which lists what TalkBack reads, has "Search places", "My position", "Zoom in" and "Zoom out"
 - Place in the waypoint list — on the emulator with the new data: "Start · Lohmar", "Stop · Siegburg" for 06 → 02 → 28
 - Waypoint in the open — the same route: 28 shows "End" only
 - Stop in every language — on the emulator and in the simulator: the same size in German, named "Beenden"

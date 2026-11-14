@@ -160,7 +160,7 @@ struct NetworkMapView: UIViewRepresentable {
 
   func makeCoordinator() -> Coordinator { Coordinator() }
 
-  func makeUIView(context: Context) -> MLNMapView {
+  func makeUIView(context: Context) -> MapContainer {
     let coordinator = context.coordinator
     coordinator.dark = context.environment.colorScheme == .dark
     coordinator.online = online
@@ -193,7 +193,8 @@ struct NetworkMapView: UIViewRepresentable {
       }
     }
     mapView.addGestureRecognizer(tap)
-    addZoomButtons(to: mapView, coordinator: context.coordinator)
+    let container = MapContainer(mapView: mapView)
+    addZoomButtons(to: container, coordinator: context.coordinator)
     DispatchQueue.main.asyncAfter(deadline: .now() + baseMapTimeout) { [weak mapView] in
       guard let mapView, coordinator.style == nil else { return }
       coordinator.useOfflineStyle(on: mapView)
@@ -203,13 +204,13 @@ struct NetworkMapView: UIViewRepresentable {
         if let mapView, coordinator.usesOfflineStyle { coordinator.loadBaseMap(on: mapView) }
       }
     }
-    return mapView
+    return container
   }
 
   /// The map's buttons in groups on glass, in one column on the sheet's edge, see `map-planning`
   /// "Map buttons in groups": the search; the position and the nearest knots; zoom in and out; the
   /// recenter button while navigating.
-  private func addZoomButtons(to mapView: MLNMapView, coordinator: Coordinator) {
+  private func addZoomButtons(to container: MapContainer, coordinator: Coordinator) {
     func button(_ symbol: String, _ action: Selector, label: String? = nil) -> UIButton {
       let button = UIButton(type: .system)
       // In the text colour, see `map-planning` "Glass on the map". As a palette colour, because the
@@ -262,7 +263,7 @@ struct NetworkMapView: UIViewRepresentable {
     column.alignment = .trailing
     column.spacing = 12
     column.translatesAutoresizingMaskIntoConstraints = false
-    mapView.addSubview(column)
+    container.addSubview(column)
     coordinator.searchButton = search
     coordinator.locateButton = locate
     coordinator.locateSpinner = spinner(in: locate)
@@ -270,19 +271,20 @@ struct NetworkMapView: UIViewRepresentable {
     coordinator.nearestSpinner = spinner(in: nearest)
     coordinator.recenterButton = recenter
     coordinator.buttonGroups = groups
-    let aboveSheet = column.bottomAnchor.constraint(equalTo: mapView.bottomAnchor, constant: -12)
+    let aboveSheet = column.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -12)
     // Gives way to the top limit when the groups that are left still do not fit.
     aboveSheet.priority = UILayoutPriority(999)
     coordinator.aboveSheet = aboveSheet
     NSLayoutConstraint.activate([
       aboveSheet,
       column.topAnchor.constraint(
-        greaterThanOrEqualTo: mapView.safeAreaLayoutGuide.topAnchor, constant: Coordinator.topControls),
-      column.trailingAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+        greaterThanOrEqualTo: container.safeAreaLayoutGuide.topAnchor, constant: Coordinator.topControls),
+      column.trailingAnchor.constraint(equalTo: container.safeAreaLayoutGuide.trailingAnchor, constant: -12),
     ])
   }
 
-  func updateUIView(_ mapView: MLNMapView, context: Context) {
+  func updateUIView(_ container: MapContainer, context: Context) {
+    let mapView = container.mapView
     // Again on each update, so they follow the language chosen in the info sheet.
     context.coordinator.recenterButton?.accessibilityLabel =
       String(localized: "Recenter", bundle: AppLanguage.bundle)
@@ -1546,4 +1548,28 @@ final class MapButtonGroup: UIVisualEffectView {
     if isHidden != hidden { isHidden = hidden }
   }
 
+}
+
+/// The map with its buttons beside it rather than in it, see `map-planning` "Map buttons for screen
+/// readers": MapLibre's map view lists only its own elements to VoiceOver, so buttons added to it
+/// could not be reached. Its other subviews take the map's place in the layout.
+final class MapContainer: UIView {
+
+  let mapView: MLNMapView
+
+  init(mapView: MLNMapView) {
+    self.mapView = mapView
+    super.init(frame: .zero)
+    mapView.translatesAutoresizingMaskIntoConstraints = false
+    addSubview(mapView)
+    NSLayoutConstraint.activate([
+      mapView.topAnchor.constraint(equalTo: topAnchor),
+      mapView.bottomAnchor.constraint(equalTo: bottomAnchor),
+      mapView.leadingAnchor.constraint(equalTo: leadingAnchor),
+      mapView.trailingAnchor.constraint(equalTo: trailingAnchor),
+    ])
+  }
+
+  @available(*, unavailable)
+  required init?(coder: NSCoder) { fatalError("not used") }
 }

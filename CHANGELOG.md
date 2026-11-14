@@ -6,6 +6,7 @@
 - Android: Navigate and Stop are Android's own floating button now, a rounded square in the same place on the panel's edge; Stop has left the navigation header, which gets the room for the numbers. Over the lock screen, the button to hold for stopping is in that place too
 - Android: on slow phones the app could stay on "Loading the cycling knot network…" with an empty panel after starting, until it was started again
 - Android: typing fast into the search no longer loses letters
+- iPhone: VoiceOver reaches the map's buttons: search, position, nearest knots, zoom and Recenter
 
 ## 0.16.0
 
