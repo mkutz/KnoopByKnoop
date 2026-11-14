@@ -41,7 +41,7 @@ fastlane/screenshots/ios/<locale>/{1..5}-*.png
 ### Categories and age rating
 
 - **Categories:**
-  - App Store: primary category Navigation, secondary Health & Fitness.
+  - App Store: primary category Navigation, secondary Health & Fitness, written as App Store Connect's identifiers `NAVIGATION` and `HEALTH_AND_FITNESS`.
   - Google Play: category Maps & Navigation, set once in Play Console. `supply` doesn't set categories.
 - **Age rating:**
   - App Store: from an `app_rating_config.json` with every content question answered "none".
