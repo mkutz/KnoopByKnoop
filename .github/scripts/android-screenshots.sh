@@ -36,6 +36,7 @@ trap restore EXIT
 
 fail() {
   echo "android-screenshots: $1" >&2
+  adb logcat -d -s Navigation 2> /dev/null | tail -5 >&2 || true
   adb exec-out screencap -p > "$out/failure.png" 2> /dev/null || true
   exit 1
 }
@@ -86,9 +87,8 @@ for node in re.finditer(r"<node [^>]*>", xml):
 PYTHON
 }
 
-# Waits up to $2 seconds (30) for an element starting with $1 and sets $x and $y to its centre.
-# Not called in a subshell, so its failure ends the script.
-wait_for() {
+# Whether an element starting with $1 shows within $2 seconds (30); sets $x and $y to its centre.
+appears() {
   seconds=${2:-30}
   while [ "$seconds" -gt 0 ]; do
     if look; then
@@ -102,19 +102,13 @@ wait_for() {
     pause 1
     seconds=$((seconds - 1))
   done
-  fail "\"$1\" did not show in $language"
+  return 1
 }
 
-# The text of the first text field in $dump.
-field_text() {
-  python3 - "$dump" << 'PYTHON'
-import re, sys
-for node in re.finditer(r"<node [^>]*>", open(sys.argv[1], encoding="utf-8").read()):
-    attributes = dict(re.findall(r'([\w-]+)="([^"]*)"', node.group(0)))
-    if "EditText" in attributes.get("class", ""):
-        print(attributes.get("text", "").replace("&amp;", "&"))
-        break
-PYTHON
+# Waits up to $2 seconds (30) for an element starting with $1 and sets $x and $y to its centre.
+# Not called in a subshell, so its failure ends the script.
+wait_for() {
+  appears "$1" "${2:-30}" || fail "\"$1\" did not show in $language"
 }
 
 # Waits up to $2 seconds (300) until no element starts with $1.
@@ -240,10 +234,29 @@ for locale in $locales; do
     geo_fix "$position"
     pause 1
   done
-  wait_for "$(text navigate)"
-  tap "$x" "$y"
-  wait_for "$(text start_nearby)"
-  tap "$x" "$y"
+  # Navigate asks for a position at most 60 s old, which the emulator only reports for new fixes,
+  # so they keep coming while it looks. The question also needs the courses; without either,
+  # navigation starts towards the start, and is stopped to ask again.
+  last=${RIDE_POSITIONS##* }
+  asked=false
+  for _ in 1 2 3 4 5; do
+    (
+      for _ in $(seq 15); do
+        geo_fix "$last"
+        pause 1
+      done
+    ) &
+    wait_for "$(text navigate)"
+    tap "$x" "$y"
+    if appears "$(text start_nearby)" 15; then
+      tap "$x" "$y"
+      asked=true
+      break
+    fi
+    if appears "$(text stop)" 2; then tap "$x" "$y"; fi
+    pause 20
+  done
+  [ "$asked" = true ] || fail "no question to start nearby in $language"
   pause 3
   no_closed_ferry
   wait_for "$(text stop)"

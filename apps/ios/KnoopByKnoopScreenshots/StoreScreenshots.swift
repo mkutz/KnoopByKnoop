@@ -65,11 +65,27 @@ final class StoreScreenshots: XCTestCase {
       XCUIDevice.shared.location = XCUILocation(location: position)
       pause(1)
     }
-    app.buttons["navigate"].firstMatch.tap()
-    let nearby = app.buttons["startNearby"].firstMatch
-    XCTAssertTrue(nearby.waitForExistence(timeout: 30), "no question to start nearby")
-    nearby.tap()
-    allowSystemAlert()
+    // The question needs the courses and a fresh position, which a fresh install may not have yet:
+    // navigation then starts towards the start, and is stopped to ask again.
+    var asked = false
+    for _ in 0..<5 {
+      for position in positions {
+        XCUIDevice.shared.location = XCUILocation(location: position)
+        pause(1)
+      }
+      app.buttons["navigate"].firstMatch.tap()
+      allowSystemAlert()
+      let nearby = app.buttons["startNearby"].firstMatch
+      if nearby.waitForExistence(timeout: 15) {
+        nearby.tap()
+        asked = true
+        break
+      }
+      let stop = app.buttons["stop"].firstMatch
+      if stop.exists { stop.tap() }
+      pause(20)
+    }
+    XCTAssertTrue(asked, "no question to start nearby")
     pause(3)
     noClosedFerry(app)
     XCTAssertTrue(app.buttons["stop"].firstMatch.waitForExistence(timeout: 30))
