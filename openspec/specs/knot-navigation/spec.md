@@ -912,15 +912,15 @@ The distances and arrivals below the progress strip's marks SHALL grow with the 
 - **THEN** the strip shows its labels as before
 
 ### Requirement: Number to follow at large text sizes
-In every app language and at large system text sizes, the header SHALL show its badges, arrows, distances and Stop completely. The badges SHALL keep their size, like the badges on the map. Where a distance does not fit in the row, it SHALL be shown in a line below it. The header SHALL have the same height in every app language at the same text size.
+In every app language and at large system text sizes, the header SHALL show its badges, arrows, distances and, where the header holds it, Stop completely. The badges SHALL keep their size, like the badges on the map. Where a distance does not fit in the row, it SHALL be shown in a line below it. The header SHALL have the same height in every app language at the same text size.
 
 #### Scenario: Number to follow at the largest text size
 - **WHEN** the system text size is at its largest and the rider is 150 m before 94 with 41 to follow
-- **THEN** the header shows 94, the arrow, 41 and Stop completely, and "150 m" completely below them
+- **THEN** the header shows 94, the arrow, 41 and, where the header holds it, Stop completely, and "150 m" completely below them
 
 #### Scenario: Next knot at the largest text size
 - **WHEN** the system text size is at its largest and the rider is 467 m before 94 with 41 to follow
-- **THEN** the header shows 94, "467 m", › 41 and Stop completely
+- **THEN** the header shows 94, "467 m", › 41 and, where the header holds it, Stop completely
 
 #### Scenario: Number to follow at the default text size
 - **WHEN** the system text size is the default
@@ -928,7 +928,7 @@ In every app language and at large system text sizes, the header SHALL show its 
 
 #### Scenario: Off route in German
 - **WHEN** the app is in German and the rider is off route, 1.7 km from the route
-- **THEN** the header shows the to-the-route symbol, the arrow, "1.7 km" and Stop completely, at the same height as in English
+- **THEN** the header shows the to-the-route symbol, the arrow, "1.7 km" and, where the header holds it, Stop completely, at the same height as in English
 
 ### Requirement: Coming knots
 While navigating, the panel SHALL list the coming knots of the route below the progress strip, in riding order from the next knot to the end: each with its badge as on the map, the place it lies in, named as in the waypoint list, the distance to it along the route and the arrival, at the pace of "Ferry arrival estimate", following each position while shown. Ferries SHALL be listed between the knots they connect, with their arrival state as on the strip, and so SHALL the borders the route crosses, each naming the country and the province or state beyond it, in the app's language. Passed knots SHALL NOT be listed.
@@ -985,7 +985,7 @@ Tapping a knot in the list of coming knots SHALL show that knot on the map, with
 - **THEN** the map moves to the rider at the navigation zoom and follows them again
 
 ### Requirement: Navigation over the lock screen
-On Android, while navigating with the app on top when the phone is locked, the app SHALL show the navigation over the lock screen when the phone is woken, without unlocking. Only the navigation SHALL be reachable there: the place search SHALL be hidden, and anything else SHALL need unlocking. Stopping SHALL need holding the stop button for about a second. The button SHALL be round and the size of the usual Stop button, and SHALL look different from it: outlined, with a ring around it that fills while it is held, so its behavior shows without reading it. A short tap SHALL show the hint "Hold to stop". The notification SHALL stay available. When navigation ends, the lock screen SHALL show as usual.
+On Android, while navigating with the app on top when the phone is locked, the app SHALL show the navigation over the lock screen when the phone is woken, without unlocking. Only the navigation SHALL be reachable there: the place search SHALL be hidden, and anything else SHALL need unlocking. Stopping SHALL need holding the stop button for about a second. The button SHALL have the place, shape and size of the usual Stop button, on Android in portrait the floating action button's rounded square at the panel's top right edge, and SHALL look different from it: outlined, with a ring along its edge that fills while it is held, and without a label on it, so its behavior shows without reading it. A short tap SHALL show the hint "Hold to stop". The notification SHALL stay available. When navigation ends, the lock screen SHALL show as usual.
 
 #### Scenario: Waking the phone on the ride
 - **WHEN** the rider locks the phone with the app on top while navigating, and wakes it
@@ -1001,7 +1001,7 @@ On Android, while navigating with the app on top when the phone is locked, the a
 
 #### Scenario: Before touching the stop button
 - **WHEN** the navigation shows over the lock screen
-- **THEN** the stop button is round and outlined, with an empty ring, the size of the solid red Stop button in the app and unlike it
+- **THEN** the stop button has the place, rounded-square shape and size of the solid red Stop button in the app, and is outlined with an empty ring along its edge, unlike it
 
 #### Scenario: A touch on the stop button
 - **WHEN** the rider taps the stop button over the lock screen
@@ -1017,7 +1017,7 @@ On Android, while navigating with the app on top when the phone is locked, the a
 
 #### Scenario: Holding the stop button
 - **WHEN** the rider holds the stop button over the lock screen
-- **THEN** the ring fills around the button over about a second, and when it is closed, navigation stops and the lock screen shows as usual
+- **THEN** the ring fills along the button's edge over about a second, and when it is closed, navigation stops and the lock screen shows as usual
 
 #### Scenario: Stop with a screen reader
 - **WHEN** a screen reader reaches the stop button over the lock screen

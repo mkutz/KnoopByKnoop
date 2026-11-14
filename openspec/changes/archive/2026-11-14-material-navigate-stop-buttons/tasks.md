@@ -8,4 +8,4 @@
 
 - [x] 2.1 Update `openspec/checked-by-hand.md` for the changed and new scenarios ("Above Stop on Android", "Stop in landscape on Android"), and add a CHANGELOG Unreleased line.
 - [x] 2.2 Run `./gradlew check` and `npx @fission-ai/openspec validate --all`, then `./gradlew checkScenarios -Pchange=material-navigate-stop-buttons`.
-- [ ] 2.3 The maintainer rides with it on the Pixel: reaching Stop, stopping by accident, the map covered in the lower right.
+- [x] 2.3 The maintainer rides with it on the Pixel: reaching Stop, stopping by accident, the map covered in the lower right.
