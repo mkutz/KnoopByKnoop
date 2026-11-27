@@ -12,7 +12,9 @@ kotlin {
   // The web planner, see `web-planner`. Tests run on Node, which needs no browser.
   js {
     browser { testTask { enabled = false } }
-    nodejs()
+    // The core's tests run on Node.js; some take longer than Mocha's default 2 s on a slow CI
+    // runner.
+    nodejs { testTask { useMocha { timeout = "20s" } } }
   }
 
   // The iOS app links this framework, see apps/ios/project.yml.
