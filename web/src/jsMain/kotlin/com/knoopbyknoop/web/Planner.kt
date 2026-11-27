@@ -1,5 +1,6 @@
 package com.knoopbyknoop.web
 
+import com.knoopbyknoop.core.GeoBounds
 import com.knoopbyknoop.core.GeoPoint
 import com.knoopbyknoop.core.Gpx
 import com.knoopbyknoop.core.IndexedNetworkType
@@ -201,6 +202,23 @@ class Planner(
     if (other == network && loaded != null) return
     history = keptHistory(other)
     load(other, keptSnapshot(other), pendingFile = null)
+  }
+
+  /**
+   * The kept [key] was changed by the planner in another tab of this browser: takes over its route
+   * and undo history where they are this network's, so the next edit here builds on them, see
+   * `web-planner` "Route kept in the browser". A `null` key means the storage was cleared.
+   */
+  fun keptElsewhere(key: String?) {
+    if (key != null && key != routeKey(network) && key != historyKey(network)) return
+    history = keptHistory(network)
+    val network = loaded ?: return
+    val restored = keptSnapshot(this.network)?.restore(network.graph)
+    val taken = restored?.session ?: PlanningSession.start(network.graph)
+    session = if (network.hasGeometry) taken.reattached(network.geometry) else taken
+    message = null
+    changed()
+    afterChange()
   }
 
   private fun keptSnapshot(network: IndexedNetworkType): RouteSnapshot? =
@@ -469,6 +487,30 @@ class Planner(
     history = newHistory
     kept.write(historyKey(network), newHistory.toJson())
   }
+
+  /**
+   * The area the route covers as drawn: along its courses once they are loaded, else through its
+   * knots; `null` without a route of two waypoints.
+   */
+  fun routeBounds(): GeoBounds? {
+    val current = session ?: return null
+    if (current.waypoints.size < 2) return null
+    val points =
+      plannedCourse()
+        ?: (current.route?.legs?.flatMap { it.path?.knots ?: listOf(it.from, it.to) }
+            ?: current.waypoints)
+          .map { GeoPoint(it.latitude, it.longitude) }
+    return GeoBounds(
+      points.minOf { it.latitude },
+      points.minOf { it.longitude },
+      points.maxOf { it.latitude },
+      points.maxOf { it.longitude },
+    )
+  }
+
+  /** Whether [routeBounds] follows the courses of the whole route. */
+  val routeBoundsFollowCourses: Boolean
+    get() = plannedCourse() != null
 
   private fun plannedCourse(): List<GeoPoint>? {
     val current = session ?: return null

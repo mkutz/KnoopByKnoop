@@ -94,18 +94,31 @@ object TestNetwork {
   fun graph(network: NetworkType = NetworkType.CYCLING) =
     NetworkGraph(knots(network), connections, ferries)
 
-  fun geometry(graph: NetworkGraph) =
+  /** Straight courses, or each bending [bendNorth] meters north halfway. */
+  fun geometry(graph: NetworkGraph, bendNorth: Double = 0.0) =
     NetworkGeometry(
       graph,
       graph.connections.map { connection ->
         val from = graph.knots.getValue(connection.fromId)
         val to = graph.knots.getValue(connection.toId)
-        listOf(GeoPoint(from.latitude, from.longitude), GeoPoint(to.latitude, to.longitude))
+        val middle =
+          GeoPoint(
+            (from.latitude + to.latitude) / 2 + bendNorth / METERS_PER_DEGREE_LATITUDE,
+            (from.longitude + to.longitude) / 2,
+          )
+        if (bendNorth == 0.0)
+          listOf(GeoPoint(from.latitude, from.longitude), GeoPoint(to.latitude, to.longitude))
+        else
+          listOf(
+            GeoPoint(from.latitude, from.longitude),
+            middle,
+            GeoPoint(to.latitude, to.longitude),
+          )
       },
     )
 
   /** The networks of this test, loaded at once, without path data. */
-  class Source : NetworkSource {
+  class Source(private val bendNorth: Double = 0.0) : NetworkSource {
     val graphs = IndexedNetworkType.entries.associateWith { graph(it.network) }
     var squareLoads = 0
 
@@ -124,7 +137,7 @@ object TestNetwork {
       LoadedNetwork(
         loaded.network.network,
         loaded.network.graph,
-        geometry(loaded.network.graph),
+        geometry(loaded.network.graph, bendNorth),
         true,
       )
 

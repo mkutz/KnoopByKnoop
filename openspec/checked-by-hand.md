@@ -401,6 +401,8 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Scan to the phone — plan a route on a computer and scan the QR code with an iPhone and an Android phone that have the app: the app opens with the route
 - Hint to zoom in — on the published planner without a kept route: the map says to zoom in or search a place, and the hint goes once the knots show
 - Moving a stop with the keyboard — with Tab and Enter only, on a route with three stops: moving the stop down keeps the focus on a move button, typing in the search field while the route's data loads keeps the text and the cursor, an opened ferry or knot list stays open
+- Undo a cleared route — in Chrome on a local build: clear a route of three stops, Undo shows below the empty-route hint and brings the route back
+- Kept route in view — in Chrome on a local build: keep a route whose course bends away from its knots (99 → 75 near Zutphen), reload, and the whole route line is in view once the courses are in; zoom or pan while the courses load, and the map stays where it was put
 - New publication — by the next run of Update Network Data: the Website workflow runs after it, and https://knoopbyknoop.com/data/index.json names the new publication's folder within two hours
 
 ## release-delivery

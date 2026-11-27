@@ -116,6 +116,9 @@ class MapView(
     map.on("style.load") { _: dynamic -> addLayers() }
     map.on("click") { event: dynamic -> click(event) }
     map.on("zoomend") { _: dynamic -> onZoom() }
+    map.on("movestart") { event: dynamic ->
+      if (event.originalEvent != undefined) movedByVisitor = true
+    }
     map.on("mousemove") { event: dynamic ->
       val features: dynamic =
         map.queryRenderedFeatures(event.point, json("layers" to clickableLayers()))
@@ -141,6 +144,9 @@ class MapView(
   /** Whether the knots are drawn at the map's zoom, see `web-planner` "First view". */
   val knotsShown: Boolean
     get() = (map.getZoom() as Double) >= KNOT_MIN_ZOOM
+
+  /** Whether the visitor has moved or zoomed the map, set back by the page. */
+  var movedByVisitor = false
 
   /** Called when the map has zoomed. */
   var onZoom: () -> Unit = {}

@@ -140,8 +140,12 @@ Undo SHALL take back the last edit of the route, and each further Undo the edit 
 - **WHEN** the visitor removes the stop 83 from 02 → 83 → 73 and chooses Undo
 - **THEN** the route is 02 → 83 → 73 again
 
+#### Scenario: Undo a cleared route
+- **WHEN** the visitor clears the route 02 → 83 → 73
+- **THEN** the panel shows Undo next to the hint for an empty route, and Undo brings back 02 → 83 → 73
+
 ### Requirement: Route kept in the browser
-The route of each network with its undo history, and the network shown last, SHALL be kept in the visitor's browser and restored when the planner is opened again in that browser. Nothing of the route SHALL be sent to knoopbyknoop.com.
+The route of each network with its undo history, and the network shown last, SHALL be kept in the visitor's browser and restored when the planner is opened again in that browser, with the map showing the whole route. A change of the route in another tab of the same browser SHALL be taken over, so that no tab overwrites a newer route with an older one. Nothing of the route SHALL be sent to knoopbyknoop.com.
 
 #### Scenario: Reload
 - **WHEN** the visitor plans 02 → 83 → 73 and reloads the page
@@ -150,6 +154,14 @@ The route of each network with its undo history, and the network shown last, SHA
 #### Scenario: Browser storage unavailable
 - **WHEN** the browser blocks site storage
 - **THEN** the planner works, and the route is only lost on reload
+
+#### Scenario: Kept route in view
+- **WHEN** the planner opens with a kept route whose courses bend away from its knots
+- **THEN** the map shows the whole route with its courses, unless the visitor has moved the map meanwhile
+
+#### Scenario: Route changed in another tab
+- **WHEN** the visitor has the planner open in two tabs with 02 → 83, adds 73 in one tab and goes back to the other
+- **THEN** the other tab shows 02 → 83 → 73, and Undo there takes back 73
 
 ### Requirement: Place search in the planner
 The planner SHALL offer a search field listing matching places, stations, addresses and businesses while the visitor types, in the page's language, within the area the networks cover, as the apps' search does (see `place-search` "Search while typing"). Choosing a hit SHALL move the map there.

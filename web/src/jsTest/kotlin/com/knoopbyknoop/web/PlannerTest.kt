@@ -394,6 +394,72 @@ class RoutesPerNetworkTest {
   }
 
   @Test
+  fun `Route changed in another tab - the other tab takes it over with its undo history`() =
+    runTest {
+      val storage = TestNetwork.Storage()
+      val first = TestNetwork.planner(this, storage)
+      advanceUntilIdle()
+      listOf(TestNetwork.K02, TestNetwork.K83).forEach { first.clickOn(it) }
+      val second = TestNetwork.planner(this, storage)
+      advanceUntilIdle()
+
+      second.clickOn(TestNetwork.K73)
+      first.keptElsewhere(Planner.historyKey(IndexedNetworkType.CYCLING))
+      first.keptElsewhere(Planner.routeKey(IndexedNetworkType.CYCLING))
+
+      assertEquals(listOf("02", "83", "73"), first.waypoints)
+      first.undo()
+      assertEquals(listOf("02", "83"), first.waypoints)
+      val reloaded = TestNetwork.planner(this, storage)
+      advanceUntilIdle()
+      assertEquals(listOf("02", "83"), reloaded.waypoints)
+    }
+
+  @Test
+  fun `a change in another tab to the other network's route leaves this one`() = runTest {
+    val storage = TestNetwork.Storage()
+    val planner = TestNetwork.planner(this, storage)
+    advanceUntilIdle()
+    listOf(TestNetwork.K02, TestNetwork.K83).forEach { planner.clickOn(it) }
+    storage.write(Planner.routeKey(IndexedNetworkType.HIKING), "")
+
+    planner.keptElsewhere(Planner.routeKey(IndexedNetworkType.HIKING))
+
+    assertEquals(listOf("02", "83"), planner.waypoints)
+  }
+
+  @Test
+  fun `the route's area takes in its courses once they are loaded`() = runTest {
+    val bendNorth = 1_000.0
+    val planner = TestNetwork.planner(this, source = TestNetwork.Source(bendNorth))
+    advanceUntilIdle()
+    listOf(TestNetwork.K02, TestNetwork.K28).forEach { planner.clickOn(it) }
+    val knotsNorth =
+      maxOf(
+        graph.knots.getValue(TestNetwork.K02).latitude,
+        graph.knots.getValue(TestNetwork.K28).latitude,
+      )
+
+    val bounds = planner.routeBounds()!!
+
+    assertTrue(planner.routeBoundsFollowCourses)
+    assertTrue(bounds.maxLatitude > knotsNorth + 0.8 * bendNorth / 111_320.0)
+  }
+
+  @Test
+  fun `a cleared route comes back with Undo`() = runTest {
+    val planner = TestNetwork.planner(this)
+    advanceUntilIdle()
+    listOf(TestNetwork.K02, TestNetwork.K83, TestNetwork.K73).forEach { planner.clickOn(it) }
+
+    planner.clear()
+
+    assertTrue(planner.canUndo)
+    planner.undo()
+    assertEquals(listOf("02", "83", "73"), planner.waypoints)
+  }
+
+  @Test
   fun `the network shown last opens with its route after a reload`() = runTest {
     val storage = TestNetwork.Storage()
     val planner = TestNetwork.planner(this, storage)

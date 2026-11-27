@@ -88,3 +88,13 @@ Observations for the maintainer, in order of impact:
 Not covered: Safari, Firefox, a real phone, light appearance at phone width. The browser storage of knoopbyknoop.com in the maintainer's Chrome still holds the test routes of this session (cycling 99 → 75, hiking L59).
 
 Correction to the findings summary: the clock read 19:01Z when the log was written, so the session ran 18:56Z–19:01Z by the system clock, not until 19:27Z. The wall-clock time of the tool calls was longer; that estimate was a guess.
+
+# Follow-up: fixes (after the session)
+
+Correction to O7, O8 and finding 2: the Undo probe in E7 read only `section.route`, while the planner's message is drawn above that section. Re-checked on the live site (same storage as E7, reload, Undo): the panel says "Removed, no longer on the network: 42". Undo does report dropped knots; finding 2 was wrong.
+
+Fixed in `add-web-planner`, checked in Chrome on a local build:
+
+- Finding 1: the page listens to the `storage` event and takes over the route and undo history of the network shown when another tab changes them (`Planner.keptElsewhere`). Two tabs: clearing in one empties the other at once, and its Undo brings back the route from before the clear instead of overwriting it.
+- Finding 3: the route's area follows its courses once they are in (`Planner.routeBounds`); a first fit made before the courses is made again when they arrive, unless the visitor has moved the map meanwhile. 99 → 75 near Zutphen is now in view whole; zooming out while loading kept the zoom. Knot 75 near the bottom edge sits exactly at the 48 px fit padding.
+- New, found while checking: after "Clear route" the empty panel had no Undo, so a clear could not be taken back, against "Undo SHALL be shown only when there is an edit to take back". Undo now shows below the empty-route hint.

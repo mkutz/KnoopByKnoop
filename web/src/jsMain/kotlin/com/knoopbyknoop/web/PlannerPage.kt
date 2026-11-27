@@ -199,6 +199,7 @@ class PlannerPage(private val root: HTMLElement) {
   private var placesShown = true
   private var fittedNetwork: Any? = null
   private var fittedOpened = 0
+  private var refitWithCourses = false
 
   /** The clicked spot or place, with its choices. */
   private class Card(val offer: MapTap.Offer?, val place: MapPlace?)
@@ -208,6 +209,11 @@ class PlannerPage(private val root: HTMLElement) {
     root.append(panel, mapElement)
     mapElement.append(mapStatus)
     darkQuery.addEventListener("change", { mapView.setDark(darkQuery.matches) })
+    // Only other tabs' changes come as storage events.
+    window.addEventListener(
+      "storage",
+      { event -> planner.keptElsewhere(event.unsafeCast<org.w3c.dom.StorageEvent>().key) },
+    )
     mapView.onZoom = { showMapStatus() }
     planner.onChange = { render() }
     planner.onDetails = { render() }
@@ -338,12 +344,19 @@ class PlannerPage(private val root: HTMLElement) {
     // Only on the first load: switching the network keeps the map where it is.
     if (network != null && fittedNetwork == null && session != null) {
       fittedNetwork = network.graph
-      val bounds = routeBounds() ?: GeoBounds.of(network.graph)
+      refitWithCourses = !planner.routeBoundsFollowCourses && planner.routeBounds() != null
+      mapView.movedByVisitor = false
+      val bounds = planner.routeBounds() ?: GeoBounds.of(network.graph)
       bounds?.let { mapView.fit(it) }
+    }
+    // The courses bend away from the knots: fit again once they are in, unless the map was moved.
+    if (refitWithCourses && planner.routeBoundsFollowCourses) {
+      refitWithCourses = false
+      if (!mapView.movedByVisitor) planner.routeBounds()?.let { mapView.fit(it) }
     }
     if (planner.openedRoutes != fittedOpened) {
       fittedOpened = planner.openedRoutes
-      routeBounds()?.let { mapView.fit(it) }
+      planner.routeBounds()?.let { mapView.fit(it) }
     }
     showMapStatus()
     val kept = keepFocus()
@@ -433,20 +446,6 @@ class PlannerPage(private val root: HTMLElement) {
     const val FOCUSABLE = "button, input, a[href], summary"
   }
 
-  private fun routeBounds(): GeoBounds? {
-    val waypoints = planner.session?.waypoints?.takeIf { it.size >= 2 } ?: return null
-    val knots =
-      planner.session?.route?.let { route ->
-        route.legs.flatMap { it.path?.knots ?: listOf(it.from, it.to) }
-      } ?: waypoints
-    return GeoBounds(
-      knots.minOf { it.latitude },
-      knots.minOf { it.longitude },
-      knots.maxOf { it.latitude },
-      knots.maxOf { it.longitude },
-    )
-  }
-
   private fun networkSwitch() =
     element("div", "network-switch") {
       setAttribute("role", "group")
@@ -534,6 +533,9 @@ class PlannerPage(private val root: HTMLElement) {
       val description = planner.description
       if (session.waypoints.isEmpty()) {
         append(element("p", "hint", text("route.empty")))
+        // A cleared route can be brought back.
+        if (planner.canUndo)
+          append(element("div", "actions") { append(button(text("undo")) { planner.undo() }) })
         return@element
       }
       val list = element("ol", "waypoints")
