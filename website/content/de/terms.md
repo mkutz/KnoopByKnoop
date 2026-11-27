@@ -17,7 +17,7 @@ Die App hilft dir, Routen über Knotenpunktnetze zu planen und ihnen zu folgen, 
 ## Wer die App anbietet
 
 Michael Kutz\
-Wellenstr. 52, 53721 Siegburg\
+Wellenstr. 53, 53721 Siegburg\
 mail@knoopbyknoop.com
 
 

@@ -17,7 +17,7 @@ L'application vous aide à planifier et suivre des itinéraires sur les réseaux
 ## Qui propose l'application
 
 Michael Kutz\
-Wellenstr. 52, 53721 Siegburg\
+Wellenstr. 53, 53721 Siegburg\
 mail@knoopbyknoop.com
 
 

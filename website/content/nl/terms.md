@@ -17,7 +17,7 @@ De app helpt je routes over knooppuntnetwerken te plannen en te volgen, maar ze 
 ## Wie de app aanbiedt
 
 Michael Kutz\
-Wellenstr. 52, 53721 Siegburg\
+Wellenstr. 53, 53721 Siegburg\
 mail@knoopbyknoop.com
 
 

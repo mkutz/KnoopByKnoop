@@ -12,7 +12,7 @@
 - [x] 2.1 Help pages in `website/content/{en,de,nl,fr}/help.md`: planning, navigating, sharing, "no knots on the map" (the network areas, search or move the map), and contact (mail and GitHub issues). Test "No knots on the map" (each help page has the section, naming the three areas).
 - [x] 2.2 `PRIVACY.md` gets the section on the website (GitHub Pages, IP address and request data, no cookies, no analytics). English legal pages built from `PRIVACY.md` and `TERMS.md`.
 - [ ] 2.3 German, Dutch and French privacy policy and terms in `website/content/<lang>/`, each with front matter `translates:` and the note that the English version is binding, with a link to it. Tests "English text updated, translation not" and "Binding version named". The maintainer reviews the German texts, and decides on a review of Dutch and French.
-  - Done 2026-11-27: the translations and tests. Left: the maintainer's review.
+  - Done 2026-11-27: the translations and tests; the maintainer reviewed and approved the German texts. Left: the decision on Dutch and French.
 - [x] 2.4 Legal notice per language with name, postal and mail address, matching the privacy policy's "Who is responsible". Test "Who runs the site", which fails when the legal notice and privacy policy disagree.
 - [x] 2.5 A 404 page and `robots.txt`. Verify: both exist in `website/build/site/`.
 

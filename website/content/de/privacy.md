@@ -19,7 +19,7 @@ Wenn du eine Route planst oder beim Planen einen Ort antippst, kann GitHub auch 
 ## Verantwortlich
 
 Michael Kutz\
-Wellenstr. 52, 53721 Siegburg\
+Wellenstr. 53, 53721 Siegburg\
 mail@knoopbyknoop.com
 
 

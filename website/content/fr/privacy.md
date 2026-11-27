@@ -19,7 +19,7 @@ Quand vous planifiez un itinéraire ou touchez un lieu pendant la planification,
 ## Responsable
 
 Michael Kutz\
-Wellenstr. 52, 53721 Siegburg\
+Wellenstr. 53, 53721 Siegburg\
 mail@knoopbyknoop.com
 
 

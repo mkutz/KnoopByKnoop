@@ -16,7 +16,7 @@ When you plan a route or tap a place while planning, GitHub can also see its rou
 ## Who is responsible
 
 Michael Kutz\
-Wellenstr. 52, 53721 Siegburg\
+Wellenstr. 53, 53721 Siegburg\
 mail@knoopbyknoop.com
 
 

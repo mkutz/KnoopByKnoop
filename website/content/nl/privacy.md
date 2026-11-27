@@ -19,7 +19,7 @@ Als je een route plant of tijdens het plannen een plaats aantikt, kan GitHub ook
 ## Wie is verantwoordelijk
 
 Michael Kutz\
-Wellenstr. 52, 53721 Siegburg\
+Wellenstr. 53, 53721 Siegburg\
 mail@knoopbyknoop.com
 
 
