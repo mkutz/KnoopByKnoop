@@ -439,15 +439,29 @@ final class AppModel: ObservableObject {
   /// route file".
   @Published var routesOpened = 0
 
-  /// A route file waiting for its network to be loaded, and whether opening it is an edit Undo can
-  /// take back: not after switching to its network, see "Open a route file".
-  private var pendingRouteFile: (parsed: RouteFile.Parsed, asEdit: Bool)?
+  /// A route file waiting for its network to be loaded, whether opening it is an edit Undo can take
+  /// back: not after switching to its network, see "Open a route file", and whether it came as a
+  /// route link.
+  private var pendingRouteFile: (parsed: RouteFile.Parsed, asEdit: Bool, link: Bool)?
+
+  /// A route file or link opened before the kept route was restored, when the network to compare it
+  /// with is not known yet: opened by `restoreRoute`.
+  private var startupRouteFile: (text: String, link: Bool)?
+
+  /// Whether `restoreRoute` has set the network of the kept route.
+  private var networkRestored = false
+
+  private func noRouteMessage(link: Bool) -> String {
+    link
+      ? String(localized: "This link holds no route the app can open.")
+      : String(localized: "This file holds no route the app can open.")
+  }
 
   /// Opens the route file at `url`, handed over by another app, see "Open a route file".
   func openRouteFile(at url: URL) {
     // A route link, see `route-sharing` "Open a route link in the app".
     if url.scheme == "https" || url.scheme == "http" {
-      openRouteFile(RouteLink.shared.textOf(link: url.absoluteString) ?? "")
+      openRouteFile(RouteLink.shared.textOf(link: url.absoluteString) ?? "", link: true)
       return
     }
     let accessing = url.startAccessingSecurityScopedResource()
@@ -457,8 +471,13 @@ final class AppModel: ObservableObject {
     openRouteFile(data.flatMap { String(data: $0, encoding: .utf8) } ?? "")
   }
 
-  /// Opens a route file's `text` in place of the planned route, see "Open a route file".
-  func openRouteFile(_ text: String) {
+  /// Opens a route file's `text`, or a route link's when `link`, in place of the planned route, see
+  /// "Open a route file" and "Open a route link in the app".
+  func openRouteFile(_ text: String, link: Bool = false) {
+    guard networkRestored else {
+      startupRouteFile = (text, link)
+      return
+    }
     guard !navigating else {
       message = String(localized: "Stop navigating to open the route.")
       return
@@ -466,29 +485,35 @@ final class AppModel: ObservableObject {
     let parsed = RouteFile.shared.parse(text: text)
     let fileNetwork = IndexedNetworkType.companion.of(network: parsed.network)
     guard fileNetwork != network else {
-      pendingRouteFile = (parsed, true)
+      pendingRouteFile = (parsed, true, link)
       openPendingRouteFile()
       return
     }
-    // The other network is switched to only if the file holds a route there, so a file without one
-    // leaves the route as it is. A network not installed yet is switched to and opens the file once
-    // it is downloaded.
+    Task { _ = await openOnOtherNetwork(parsed, fileNetwork, link: link) }
+  }
+
+  /// Switches to `fileNetwork` to open `parsed` there, only if the file holds a route there, so a
+  /// file without one leaves the route as it is; a network not installed yet is switched to and
+  /// opens the file once it is downloaded. Whether it switched.
+  private func openOnOtherNetwork(
+    _ parsed: RouteFile.Parsed, _ fileNetwork: IndexedNetworkType, link: Bool
+  ) async -> Bool {
     let storage = self.storage
     nonisolated(unsafe) let unsentParsed = parsed
-    Task {
-      nonisolated(unsafe) let (graphFile, found) = await Task.detached { () -> (GraphFile?, Bool) in
-        guard let graphFile = storage.graph(network: fileNetwork) else { return (nil, true) }
-        return (graphFile, RouteFile.shared.resolve(parsed: unsentParsed, graph: graphFile.graph) != nil)
-      }.value
-      if !found {
-        message = String(localized: "This file holds no route the app can open.")
-      } else if navigating {
-        message = String(localized: "Stop navigating to open the route.")
-      } else {
-        pendingRouteFile = (parsed, false)
-        switchNetwork(fileNetwork, graphFile: graphFile)
-      }
+    nonisolated(unsafe) let (graphFile, found) = await Task.detached { () -> (GraphFile?, Bool) in
+      guard let graphFile = storage.graph(network: fileNetwork) else { return (nil, true) }
+      return (graphFile, RouteFile.shared.resolve(parsed: unsentParsed, graph: graphFile.graph) != nil)
+    }.value
+    if !found {
+      message = noRouteMessage(link: link)
+    } else if navigating {
+      message = String(localized: "Stop navigating to open the route.")
+    } else {
+      pendingRouteFile = (parsed, false, link)
+      switchNetwork(fileNetwork, graphFile: graphFile)
+      return true
     }
+    return false
   }
 
   /// Opens `pendingRouteFile` once its network is loaded.
@@ -516,7 +541,7 @@ final class AppModel: ObservableObject {
       }.value
       guard session === current else { return }
       guard let (prepared, resolved) = opened else {
-        message = String(localized: "This file holds no route the app can open.")
+        message = self.noRouteMessage(link: pending.link)
         return
       }
       if pending.asEdit { remember(history.record(before: plannedSession ?? current, after: prepared.session)) }
@@ -622,8 +647,11 @@ final class AppModel: ObservableObject {
     // network, taps are ignored meanwhile.
     loaded = nil
     nonisolated(unsafe) let readGraph = graphFile
-    Task { await loadNetwork(network, snapshot: nil, readGraph: readGraph) }
+    networkLoad = Task { await loadNetwork(network, snapshot: nil, readGraph: readGraph) }
   }
+
+  /// The load started by the last `switchNetwork`.
+  private var networkLoad: Task<Void, Never>?
 
   /// Handles a tap on the map; `radiusMeters` is the touch target at the current zoom level.
   func tap(latitude: Double, longitude: Double, radiusMeters: Double, at point: CGPoint, place: MapPlace?) {
@@ -1031,6 +1059,23 @@ final class AppModel: ObservableObject {
     network = snapshot?.network ?? .cycling
     let stored = storage.routeHistory()
     remember(stored.before.allSatisfy { $0.network == network } ? stored : RouteHistory(before: []))
+    networkRestored = true
+    // A file or link opened with the app's start: on the other network, that network is loaded in
+    // place of the kept one, see "Open a route link in the app".
+    if let (text, link) = startupRouteFile {
+      startupRouteFile = nil
+      let parsed = RouteFile.shared.parse(text: text)
+      let other = IndexedNetworkType.companion.of(network: parsed.network)
+      if navigating {
+        openRouteFile(text, link: link)
+      } else if other == network {
+        pendingRouteFile = (parsed, true, link)
+      } else if await openOnOtherNetwork(parsed, other, link: link) {
+        // Loaded before the start goes on, so a reload cannot replace the opened route.
+        await networkLoad?.value
+        return
+      }
+    }
     await loadNetwork(network, snapshot: snapshot)
   }
 

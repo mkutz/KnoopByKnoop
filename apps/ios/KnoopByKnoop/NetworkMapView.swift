@@ -1035,8 +1035,9 @@ struct NetworkMapView: UIViewRepresentable {
     /// the whole region.
     private func edgePadding(in mapView: MLNMapView) -> UIEdgeInsets {
       mapView.bounds.width > mapView.bounds.height
-        ? UIEdgeInsets(top: 72, left: 40, bottom: 96, right: 80)
-        : UIEdgeInsets(top: 140, left: 40, bottom: 260, right: 60)
+        // Right: clear of the map's buttons, with room for a badge.
+        ? UIEdgeInsets(top: 72, left: 40, bottom: 96, right: 96)
+        : UIEdgeInsets(top: 140, left: 40, bottom: 260, right: 96)
     }
 
     /// [edgePadding] with room for a badge and its ring at the edge of the area.

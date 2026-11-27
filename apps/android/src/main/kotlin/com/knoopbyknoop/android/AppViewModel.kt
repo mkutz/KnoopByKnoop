@@ -798,13 +798,35 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
   private var history = RouteHistory()
 
   /**
-   * A route file waiting for its network to be loaded, and whether opening it is an edit Undo can
-   * take back: not after switching to its network, see `route-sharing` "Open a route file".
+   * A route file waiting for its network to be loaded; [asEdit] whether opening it is an edit Undo
+   * can take back: not after switching to its network, see `route-sharing` "Open a route file";
+   * [link] whether it came as a route link.
    */
-  private var pendingRouteFile: Pair<RouteFile.Parsed, Boolean>? = null
+  private class PendingRoute(val parsed: RouteFile.Parsed, val asEdit: Boolean, val link: Boolean)
 
-  /** Opens a route file's [text] in place of the planned route, see "Open a route file". */
-  fun openRouteFile(text: String) {
+  private var pendingRouteFile: PendingRoute? = null
+
+  /**
+   * A route file or link opened before the kept route was restored, when the network to compare it
+   * with is not known yet: opened by [restoreRoute].
+   */
+  private var startupRouteFile: Pair<String, Boolean>? = null
+
+  /** Whether [restoreRoute] has set the network of the kept route. */
+  private var networkRestored = false
+
+  private fun noRouteMessage(link: Boolean) =
+    text(if (link) R.string.route_link_none else R.string.route_file_none)
+
+  /**
+   * Opens a route file's [text], or a route link's when [link], in place of the planned route, see
+   * "Open a route file" and "Open a route link in the app".
+   */
+  fun openRouteFile(text: String, link: Boolean = false) {
+    if (!networkRestored) {
+      startupRouteFile = text to link
+      return
+    }
     if (state.navigating) {
       state = state.copy(message = text(R.string.route_file_while_navigating))
       return
@@ -812,39 +834,51 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val parsed = RouteFile.parse(text)
     val network = IndexedNetworkType.of(parsed.network)
     if (network == state.network) {
-      pendingRouteFile = parsed to true
+      pendingRouteFile = PendingRoute(parsed, asEdit = true, link)
       openPendingRouteFile()
       return
     }
-    // The other network is switched to only if the file holds a route there, so a file without one
-    // leaves the route as it is. A network not installed yet is switched to and opens the file once
-    // it is downloaded.
-    viewModelScope.launch {
-      val graphFile = withContext(Dispatchers.Default) { storage.graph(network) }
-      val found =
-        graphFile == null ||
-          withContext(Dispatchers.Default) { RouteFile.resolve(parsed, graphFile.graph) } != null
-      when {
-        !found -> state = state.copy(message = text(R.string.route_file_none))
-        state.navigating -> state = state.copy(message = text(R.string.route_file_while_navigating))
-        else -> {
-          pendingRouteFile = parsed to false
-          switchNetwork(network, graphFile)
-        }
+    viewModelScope.launch { openOnOtherNetwork(parsed, network, link) }
+  }
+
+  /**
+   * Switches to [network] to open [parsed] there, only if the file holds a route there, so a file
+   * without one leaves the route as it is; a network not installed yet is switched to and opens the
+   * file once it is downloaded. Whether it switched.
+   */
+  private suspend fun openOnOtherNetwork(
+    parsed: RouteFile.Parsed,
+    network: IndexedNetworkType,
+    link: Boolean,
+  ): Boolean {
+    val graphFile = withContext(Dispatchers.Default) { storage.graph(network) }
+    val found =
+      graphFile == null ||
+        withContext(Dispatchers.Default) { RouteFile.resolve(parsed, graphFile.graph) } != null
+    when {
+      !found -> state = state.copy(message = noRouteMessage(link))
+      state.navigating -> state = state.copy(message = text(R.string.route_file_while_navigating))
+      else -> {
+        pendingRouteFile = PendingRoute(parsed, asEdit = false, link)
+        switchNetwork(network, graphFile)
+        return true
       }
     }
+    return false
   }
 
   /** Opens [pendingRouteFile] once its network is loaded. */
   private fun openPendingRouteFile() {
-    val (parsed, asEdit) = pendingRouteFile ?: return
+    val pending = pendingRouteFile ?: return
+    val parsed = pending.parsed
+    val asEdit = pending.asEdit
     val network = loaded ?: return
     val session = state.session ?: return
     if (IndexedNetworkType.of(parsed.network) != state.network) return
     pendingRouteFile = null
     val resolved = RouteFile.resolve(parsed, session.graph)
     if (resolved == null) {
-      state = state.copy(message = text(R.string.route_file_none))
+      state = state.copy(message = noRouteMessage(pending.link))
       return
     }
     val restored = resolved.snapshot.restore(session.graph).session
@@ -1097,8 +1131,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     // network, taps are ignored meanwhile.
     loaded = null
     state = state.copy(network = network)
-    viewModelScope.launch { loadNetwork(network, waypointsFrom = { null }, graphFile) }
+    networkLoad = viewModelScope.launch {
+      loadNetwork(network, waypointsFrom = { null }, graphFile)
+    }
   }
+
+  /** The load started by the last [switchNetwork]. */
+  private var networkLoad: Job? = null
 
   /** Handles a tap on the map; [radiusMeters] is the touch target at the current zoom level. */
   fun tap(
@@ -1364,6 +1403,23 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         ?: RouteHistory()
     )
     state = state.copy(network = network)
+    networkRestored = true
+    // A file or link opened with the app's start: on the other network, that network is loaded in
+    // place of the kept one, see "Open a route link in the app".
+    startupRouteFile?.let { (text, link) ->
+      startupRouteFile = null
+      val parsed = RouteFile.parse(text)
+      val other = IndexedNetworkType.of(parsed.network)
+      when {
+        state.navigating -> openRouteFile(text, link)
+        other == network -> pendingRouteFile = PendingRoute(parsed, asEdit = true, link)
+        openOnOtherNetwork(parsed, other, link) -> {
+          // Loaded before the start goes on, so a reload cannot replace the opened route.
+          networkLoad?.join()
+          return
+        }
+      }
+    }
     loadNetwork(network, waypointsFrom = { snapshot })
   }
 

@@ -3328,6 +3328,28 @@
         }
       }
     },
+    "This link holds no route the app can open.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Link enthält keine Route, die die App öffnen kann."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze link bevat geen route die de app kan openen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce lien ne contient aucun itinéraire que l’application peut ouvrir."
+          }
+        }
+      }
+    },
     "This file holds no route the app can open.": {
       "localizations": {
         "de": {

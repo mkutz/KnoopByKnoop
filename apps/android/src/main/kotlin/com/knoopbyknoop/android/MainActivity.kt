@@ -122,7 +122,7 @@ class MainActivity : AppCompatActivity() {
     // Opened once, not again when the activity is recreated.
     intent.data = null
     if (uri.scheme == "https" || uri.scheme == "http") {
-      appViewModel.openRouteFile(RouteLink.textOf(uri.toString()).orEmpty())
+      appViewModel.openRouteFile(RouteLink.textOf(uri.toString()).orEmpty(), link = true)
       return
     }
     lifecycleScope.launch {

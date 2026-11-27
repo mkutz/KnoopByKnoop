@@ -14,13 +14,13 @@ object RouteLink {
 
   /**
    * The route file text carried by [link], or `null` when [link] is no route link or its text can't
-   * be decoded. `http`, `www.` and a missing slash before `#` are accepted, as people and
-   * messengers change links.
+   * be decoded. `http`, `www.`, a missing slash before `#` and parameters before `#` (such as
+   * `?fbclid=…`) are accepted, as people and messengers change links.
    */
   fun textOf(link: String): String? {
     val match = LINK.matchEntire(link.trim()) ?: return null
     return percentDecoded(match.groupValues[1])?.takeIf { it.isNotBlank() }
   }
 
-  private val LINK = Regex("""https?://(?:www\.)?knoopbyknoop\.com/route/?#(.*)""")
+  private val LINK = Regex("""https?://(?:www\.)?knoopbyknoop\.com/route/?(?:\?[^#]*)?#(.*)""")
 }

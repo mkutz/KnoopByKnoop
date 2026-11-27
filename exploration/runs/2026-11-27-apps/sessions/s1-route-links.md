@@ -96,3 +96,12 @@ Observations:
 Not covered: the OS handing links to the apps (needs release signing: App Links verification, universal links), links from real messengers and cameras, very long links, iOS while navigating, the Dynamic Island change (waits on the maintainer's iPhone).
 
 Correction to the findings summary: the clock read 19:40Z when the summary was written, so the session ran about 16 minutes (19:24Z–19:40Z), not 25.
+
+# Follow-up: fixes (after the session)
+
+Fixed in `add-web-planner`, checked on the emulator and in the simulator with debug builds:
+
+- Bug 1: a file or link opened before the kept route is restored is held and opened by the restore, which then loads the file's network in place of the kept one and waits for it. On iOS the first attempt (without waiting) still ended empty: `reloadIfChanged()` ran during the switch's load, found no loaded network and loaded again with the old route, finishing last. The same order existed on Android with `watchSync()`. Cold starts now open the link's route both ways on both apps (hiking kept → cycling link, cycling kept → hiking link), without Undo, as opening on the other network is no edit. Files opened from a closed app had the same bug.
+- Bug 2: `RouteLink.textOf` accepts parameters before `#`; the `?fbclid=` link opens on both apps.
+- Observation 4: the fitted route keeps 96 pt (iOS) and 104 dp (Android) free on the right; 75 and L67 are clear of the buttons.
+- Observation 5: links that hold no route say "This link holds no route the app can open." (four languages, both apps).

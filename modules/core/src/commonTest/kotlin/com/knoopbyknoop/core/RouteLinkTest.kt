@@ -46,8 +46,21 @@ class RouteLinkTest {
   }
 
   @Test
+  fun `Link with added parameters - what messengers add before the hash is ignored`() {
+    val encoded = RouteLink.of(file).substringAfter('#')
+
+    assertEquals(file, RouteLink.textOf("https://knoopbyknoop.com/route/?fbclid=IwAR0x#$encoded"))
+    assertEquals(
+      file,
+      RouteLink.textOf("https://knoopbyknoop.com/route?utm_source=a&utm_medium=b#$encoded"),
+    )
+  }
+
+  @Test
   fun `other links and empty routes and broken escapes are no route links`() {
     assertNull(RouteLink.textOf("https://knoopbyknoop.com/plan/#abc"))
+    assertNull(RouteLink.textOf("https://knoopbyknoop.com/plan/?a=/route/#abc"))
+    assertNull(RouteLink.textOf("https://knoopbyknoop.com/routes/#abc"))
     assertNull(RouteLink.textOf("https://example.com/route/#abc"))
     assertNull(RouteLink.textOf("https://knoopbyknoop.com/route/#"))
     assertNull(RouteLink.textOf("https://knoopbyknoop.com/route/#%E"))

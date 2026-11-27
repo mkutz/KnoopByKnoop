@@ -1417,7 +1417,10 @@ private class MapHolder {
       LatLngBounds.Builder()
         .apply { knots.forEach { include(LatLng(it.latitude, it.longitude)) } }
         .build()
-    val update = CameraUpdateFactory.newLatLngBounds(bounds, 160)
+    // Clear of the map's buttons on the right, with room for a badge, see `route-sharing` "Open a
+    // route link in the app".
+    val density = android.content.res.Resources.getSystem().displayMetrics.density
+    val update = CameraUpdateFactory.newLatLngBounds(bounds, 160, 160, (104 * density).toInt(), 160)
     if (animated) map?.animateCamera(update) else map?.moveCamera(update)
   }
 

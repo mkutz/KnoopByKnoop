@@ -418,6 +418,8 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Share while offline — on the emulator and in the simulator in flight mode: the share sheet with the file
 - Open a shared route — on the emulator a file opened through the documents provider, as from Files, and in the simulator with `simctl openurl`; between the phones through a messenger
 - Opened on the other network — on the devices: a hiking file opened while cycling is shown
+- Link for the other network while the app is closed — on the emulator (`am start` of the link with the package) and in the simulator (`simctl terminate`, then `simctl openurl`): with hiking shown last, a cycling link opens on cycling with its route, and the other way round
+- Link without a route — on the emulator and in the simulator: `https://knoopbyknoop.com/route/` says the link holds no route the app can open
 - Opened while navigating — on the devices
 - Undo an opened route — on the emulator and in the simulator
 - Link opened on Android — with a release build from Play once https://knoopbyknoop.com/.well-known/assetlinks.json is published: `adb shell pm get-app-links com.knoopbyknoop` shows knoopbyknoop.com verified, and a route link tapped in a messenger opens the route in the app
