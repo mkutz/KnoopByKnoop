@@ -22,7 +22,8 @@
   - Done 2026-11-27: the workflow (actionlint runs in Build on push; the local run was not allowed). The first run after the push (cf70cf0) built, checked and published the site.
 - [x] 3.2 Maintainer: enable GitHub Pages with source "GitHub Actions" and push the change. Verify: the site is reachable at https://mkutz.github.io/knoopbyknoop/.
   - Done 2026-11-27: Pages enabled and pushed. The custom domain was already set, so the github.io address redirects to knoopbyknoop.com; the site itself is checked there in 3.3.
-- [ ] 3.3 Maintainer, guided: in the Pages settings, set the custom domain knoopbyknoop.com. At Hostinger, replace the A records with GitHub Pages' four addresses, add `www` CNAME `mkutz.github.io`, and leave the MX records. Then turn on "Enforce HTTPS". Verify: https://knoopbyknoop.com and https://www.knoopbyknoop.com show the site with a valid certificate, and mail still arrives.
+- [x] 3.3 Maintainer, guided: in the Pages settings, set the custom domain knoopbyknoop.com. At Hostinger, replace the A records with GitHub Pages' four addresses, add `www` CNAME `mkutz.github.io`, and leave the MX records. Then turn on "Enforce HTTPS". Verify: https://knoopbyknoop.com and https://www.knoopbyknoop.com show the site with a valid certificate, and mail still arrives.
+  - Done 2026-11-27: DNS at Hostinger changed, Let's Encrypt certificate, HTTPS enforced; http and www redirect to https://knoopbyknoop.com/, all pages 200, a test mail arrived.
 
 ## 4. Store URLs
 
