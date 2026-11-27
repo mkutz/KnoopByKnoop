@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.0
 
 - Plan in the browser at knoopbyknoop.com/plan: the cycling and hiking networks on a big map, planned by clicking knots as in the app, with places, search and ferries; take the route along by scanning its QR code, as a link, a route file or GPX
 - Route links (knoopbyknoop.com/route/…) open the route in the app, like a route file
