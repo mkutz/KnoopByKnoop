@@ -97,3 +97,14 @@ class PublishedDataTest {
     assertFailsWith<DataProblem> { PublishedData(Site(mapOf()), "data/").index() }
   }
 }
+
+class RoutePageTest {
+
+  @Test
+  fun `Link without the app - the planner in the browser's language, else English`() {
+    assertEquals("nl/plan/", plannerPathFor(listOf("nl-BE", "en")))
+    assertEquals("de/plan/", plannerPathFor(listOf("es-ES", "de-AT")))
+    assertEquals("plan/", plannerPathFor(listOf("es-ES", "it")))
+    assertEquals("plan/", plannerPathFor(listOf("en-GB", "fr")))
+  }
+}

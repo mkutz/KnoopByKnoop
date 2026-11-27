@@ -395,6 +395,11 @@ A scenario gets a test as soon as one can check it; its line goes then.
 
 ## web-planner
 
+- Cycling network around Siegburg — in a browser on the published planner: search "Bahnhof Siegburg", and the cycling knots with their numbers (02, 28, 01 …) show joined by their courses
+- Dark setting — with the system set to dark, the planner shows the dark base map and a dark panel; switching back to light while it is open switches it without moving the map or losing the route
+- First visit — in Chrome's developer tools with the cache disabled and the network throttled to 50 Mbit/s: the knots show within five seconds of opening the planner
+- Scan to the phone — plan a route on a computer and scan the QR code with an iPhone and an Android phone that have the app: the app opens with the route
+- Opening the planner — in Chrome, Firefox and Safari: opening the planner never asks for the location
 - New publication — by the next run of Update Network Data: the Website workflow runs after it, and https://knoopbyknoop.com/data/index.json names the new publication's folder within two hours
 
 ## release-delivery

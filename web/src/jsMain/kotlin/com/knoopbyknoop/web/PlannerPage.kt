@@ -400,38 +400,37 @@ class PlannerPage(private val root: HTMLElement) {
   private fun cardOf(card: Card) =
     element("section", "card") {
       setAttribute("aria-label", text("card.label"))
-      val place = card.place
-      if (place != null) {
-        append(element("h2", text = place.name ?: text("place.${place.kindKey}")))
-        if (place.name != null) append(element("p", "kind", text("place.${place.kindKey}")))
-        planner.detailsOf(place)?.let { details ->
-          details.openingStatusAt(nowInCoveredArea(), language)?.let {
-            append(element("p", if (it.open) "status open" else "status closed", it.text))
-          }
-          details.openingHours?.let { append(element("p", "hours", it)) }
-          details.websiteUri?.let { uri ->
-            append(
-              element("p") {
-                append(
-                  (element("a", text = details.displayWebsite ?: uri) as HTMLAnchorElement).apply {
-                    href = uri
-                    rel = "noopener"
-                  }
-                )
-              }
-            )
-          }
-          details.dialUri?.let { uri ->
-            append(
-              element("p") {
-                append(
-                  (element("a", text = details.displayPhone ?: uri) as HTMLAnchorElement).apply {
-                    href = uri
-                  }
-                )
-              }
-            )
-          }
+      card.place?.let { place ->
+        val content =
+          PlaceCard.of(place, planner.detailsOf(place), nowInCoveredArea(), language) { text(it) }
+        append(element("h2", text = content.title))
+        content.kind?.let { append(element("p", "kind", it)) }
+        content.status?.let {
+          append(element("p", if (it.open) "status open" else "status closed", it.text))
+        }
+        content.hours?.let { append(element("p", "hours", it)) }
+        content.website?.let { uri ->
+          append(
+            element("p") {
+              append(
+                (element("a", text = content.websiteText ?: uri) as HTMLAnchorElement).apply {
+                  href = uri
+                  rel = "noopener"
+                }
+              )
+            }
+          )
+        }
+        content.dial?.let { uri ->
+          append(
+            element("p") {
+              append(
+                (element("a", text = content.phoneText ?: uri) as HTMLAnchorElement).apply {
+                  href = uri
+                }
+              )
+            }
+          )
         }
       }
       val actions = element("div", "actions")

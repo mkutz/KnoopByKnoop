@@ -122,39 +122,96 @@ private val loadingAttributes =
 private val ownHosts = setOf("knoopbyknoop.com", "www.knoopbyknoop.com")
 
 /**
- * Everything a generated page or stylesheet loads from another site, named with the file and the
- * address, see "No tracking and nothing from other sites". `<link rel="alternate">` and
- * `rel="canonical"` name the site's own pages and load nothing.
+ * The services the planner may load from, and only the planner: the base map and the place search,
+ * see `project-website` "No tracking and nothing from other sites".
+ */
+val PLANNER_HOSTS = setOf("tiles.openfreemap.org", "photon.komoot.io")
+
+/**
+ * Hosts the planner's scripts only name and never load from: XML namespaces of SVG and GPX, links
+ * in texts (MapLibre, GitHub, the OpenStreetMap wiki) and MapLibre's placeholder host.
+ */
+val NAMED_ONLY_HOSTS =
+  setOf(
+    "www.w3.org",
+    "www.topografix.com",
+    "maplibre.org",
+    "github.com",
+    "wiki.openstreetmap.org",
+    "maplibre.invalid",
+  )
+
+/** The planner's own files: its pages, scripts and base map style. */
+fun isPlannerFile(path: String) =
+  path.endsWith("plan/index.html") ||
+    path == "planner.js" ||
+    path == "maplibre-gl-worker.js" ||
+    path.startsWith("map-styles/")
+
+private val scriptSource =
+  Regex("""<script\b[^>]*\bsrc\s*=\s*["']([^"']+)["']""", RegexOption.IGNORE_CASE)
+
+private val addressInScript =
+  Regex("""(?:https?:)?//[a-z0-9.-]+\.[a-z]{2,}(?::\d+)?[^\s"'`)<>]*""", RegexOption.IGNORE_CASE)
+
+/**
+ * Everything a generated file loads from another site, named with the file and the address, see "No
+ * tracking and nothing from other sites". `<link rel="alternate">` and `rel="canonical"` name the
+ * site's own pages and load nothing. Pages and stylesheets are read for what they load; scripts and
+ * the map style for every address they hold, apart from [NAMED_ONLY_HOSTS]. The planner's files may
+ * load from [PLANNER_HOSTS], but scripts only from the site itself.
  */
 fun foreignResources(files: Map<String, String>): List<String> = files.flatMap { (path, text) ->
-  val withoutPageLinks =
-    text.replace(
-      Regex(
-        """<link\b[^>]*\brel\s*=\s*["'](?:alternate|canonical)["'][^>]*>""",
-        RegexOption.IGNORE_CASE,
-      ),
-      "",
-    )
-  loadingAttributes
-    .flatMap { pattern -> pattern.findAll(withoutPageLinks).map { it.groupValues[1] } }
-    .flatMap { value -> value.split(',').map { it.trim().substringBefore(' ') } }
-    .filter { address -> isForeign(address) }
-    .distinct()
-    .map { "$path loads $it from another site" }
+  val allowed = ownHosts + if (isPlannerFile(path)) PLANNER_HOSTS else setOf()
+  val problems =
+    if (path.endsWith(".js") || path.endsWith(".json")) {
+      addressInScript
+        .findAll(text)
+        .map { it.value }
+        .filter {
+          hostOf(it)?.let { host -> host !in allowed && host !in NAMED_ONLY_HOSTS } == true
+        }
+        .toList()
+    } else {
+      val withoutPageLinks =
+        text.replace(
+          Regex(
+            """<link\b[^>]*\brel\s*=\s*["'](?:alternate|canonical)["'][^>]*>""",
+            RegexOption.IGNORE_CASE,
+          ),
+          "",
+        )
+      val scripts =
+        scriptSource
+          .findAll(withoutPageLinks)
+          .map { it.groupValues[1] }
+          .filter { address ->
+            hostOf(address)?.let { it !in ownHosts } ?: !address.isRelative()
+          }
+      val loads =
+        loadingAttributes
+          .flatMap { pattern -> pattern.findAll(withoutPageLinks).map { it.groupValues[1] } }
+          .flatMap { value -> value.split(',').map { it.trim().substringBefore(' ') } }
+          .filter { address -> hostOf(address)?.let { it !in allowed } ?: !address.isRelative() }
+      (scripts + loads).toList()
+    }
+  problems.distinct().map { "$path loads $it from another site" }
 }
 
-private fun isForeign(address: String): Boolean {
+/** Whether [this] stays on the site: relative, or a `data:` address. */
+private fun String.isRelative(): Boolean {
+  val lower = lowercase()
+  return !Regex("^[a-z][a-z0-9+.-]*:").containsMatchIn(lower) || lower.startsWith("data:")
+}
+
+/** The host [address] loads from, `null` for a relative or `data:` address. */
+private fun hostOf(address: String): String? {
   val lower = address.lowercase()
-  val host =
+  val rest =
     when {
-        lower.startsWith("//") -> lower.removePrefix("//")
-        Regex("^[a-z][a-z0-9+.-]*:").containsMatchIn(lower) ->
-          if (lower.startsWith("http://") || lower.startsWith("https://"))
-            lower.substringAfter("://")
-          else return !lower.startsWith("data:")
-        else -> return false
-      }
-      .substringBefore('/')
-      .substringBefore(':')
-  return host !in ownHosts
+      lower.startsWith("//") -> lower.removePrefix("//")
+      lower.startsWith("http://") || lower.startsWith("https://") -> lower.substringAfter("://")
+      else -> return null
+    }
+  return rest.substringBefore('/').substringBefore(':').substringBefore('?').substringBefore('#')
 }

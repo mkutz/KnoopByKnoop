@@ -6,6 +6,7 @@ import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class SiteTest {
@@ -25,9 +26,17 @@ class SiteTest {
    */
   private fun copyOfSources(): File {
     val copy = Files.createTempDirectory("website-sources").toFile()
-    listOf("fastlane/metadata/ios", "website/content", "website/static", "design/icon").forEach {
-      repository.resolve(it).copyRecursively(copy.resolve(it))
-    }
+    listOf(
+        "fastlane/metadata/ios",
+        "website/content",
+        "website/static",
+        "design/icon",
+        "web/build/planner",
+        "map-styles",
+      )
+      .forEach {
+        repository.resolve(it).copyRecursively(copy.resolve(it))
+      }
     listOf("PRIVACY.md", "TERMS.md").forEach { repository.resolve(it).copyTo(copy.resolve(it)) }
     return copy
   }
@@ -198,5 +207,110 @@ class SiteTest {
   @Test
   fun `the built site loads nothing from other sites`() {
     assertEquals(emptyList(), foreignResources(site))
+  }
+
+  @Test
+  fun `Planner in the navigation - the French home page links to the French planner`() {
+    assertContains(site.getValue("fr/index.html"), """<a href="../fr/plan/">Planificateur</a>""")
+    assertContains(site.getValue("help/index.html"), """<a href="../plan/">Planner</a>""")
+  }
+
+  @Test
+  fun `Planner in Dutch - the Dutch planner page has the Dutch texts`() {
+    val dutchPlanner = site.getValue("nl/plan/index.html")
+
+    assertContains(dutchPlanner, """<html lang="nl">""")
+    assertContains(dutchPlanner, """data-language="nl"""")
+    assertContains(dutchPlanner, """"title":"Routeplanner"""")
+    assertContains(dutchPlanner, """"share.copyLink":"Link kopiëren"""")
+  }
+
+  @Test
+  fun `JavaScript turned off - the German planner page says so and links to the stores`() {
+    val germanPlanner = site.getValue("de/plan/index.html")
+    val noscript = germanPlanner.substringAfter("<noscript>").substringBefore("</noscript>")
+
+    assertContains(noscript, "Der Planer braucht einen aktuellen Browser mit JavaScript.")
+    assertContains(noscript, """<a href="$APP_STORE_URL">""")
+    assertContains(noscript, """<a href="$GOOGLE_PLAY_URL&amp;hl=de">""")
+  }
+
+  @Test
+  fun `a planner text missing in a language fails naming it`() {
+    val sources = copyOfSources()
+    val french = sources.resolve("website/content/fr/planner.properties")
+    french.writeText(
+      french.readLines().filterNot { it.startsWith("share.gpx=") }.joinToString("\n")
+    )
+
+    assertEquals(
+      listOf("French planner text missing: share.gpx in website/content/fr/planner.properties"),
+      sourceProblems(Sources(sources)),
+    )
+  }
+
+  @Test
+  fun `Base map on the planner only - the help page may not load OpenFreeMap tiles`() {
+    val tile = """<img src="https://tiles.openfreemap.org/planet/14/8.png" alt="">"""
+
+    val problems = foreignResources(mapOf("help/index.html" to tile, "plan/index.html" to tile))
+
+    assertEquals(
+      listOf(
+        "help/index.html loads https://tiles.openfreemap.org/planet/14/8.png from another site"
+      ),
+      problems,
+    )
+  }
+
+  @Test
+  fun `Script from another site on the planner - fails naming the page and the address`() {
+    val problems =
+      foreignResources(
+        mapOf(
+          "de/plan/index.html" to
+            """<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@6.18.0/dist/maplibre-gl.js"></script>"""
+        )
+      )
+
+    assertEquals(
+      listOf(
+        "de/plan/index.html loads https://cdn.jsdelivr.net/npm/maplibre-gl@6.18.0/dist/maplibre-gl.js from another site"
+      ),
+      problems,
+    )
+  }
+
+  @Test
+  fun `the planner script may name the base map and search but no other site`() {
+    val script =
+      """fetch("https://photon.komoot.io/api/?q=x");s="https://tiles.openfreemap.org/styles/liberty";""" +
+        """ns="http://www.w3.org/2000/svg";t="https://tracker.example.com/t.gif""""
+
+    assertEquals(
+      listOf("planner.js loads https://tracker.example.com/t.gif from another site"),
+      foreignResources(mapOf("planner.js" to script)),
+    )
+  }
+
+  @Test
+  fun `the route page sends route links on to the planner`() {
+    val routePage = String(buildSite(Sources(repository)).getValue("route/index.html"))
+
+    assertContains(routePage, """id="route-forward"""")
+    assertContains(routePage, """<script src="../planner.js" defer></script>""")
+  }
+
+  @Test
+  fun `Opening the planner - its code never asks for the location`() {
+    // MapLibre's bundled locate control would, but the planner never creates it.
+    val sources =
+      repository.resolve("web/src/jsMain/kotlin").walkTopDown().filter { it.extension == "kt" }
+    for (file in sources) {
+      val code = file.readText()
+      listOf("geolocation", "GeolocateControl", "getCurrentPosition", "watchPosition").forEach {
+        assertFalse(it in code, "${file.name} uses $it")
+      }
+    }
   }
 }

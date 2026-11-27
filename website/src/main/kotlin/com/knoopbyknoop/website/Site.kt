@@ -90,7 +90,9 @@ fun buildSite(sources: Sources): Map<String, ByteArray> {
     .forEach { files[it.relativeTo(sources.static).invariantSeparatorsPath] = it.readBytes() }
   val texts =
     files
-      .filterKeys { it.endsWith(".html") || it.endsWith(".css") || it.endsWith(".svg") }
+      .filterKeys { path ->
+        listOf(".html", ".css", ".svg", ".js", ".json").any { path.endsWith(it) }
+      }
       .mapValues { String(it.value) }
   foreignResources(texts).let { if (it.isNotEmpty()) throw SiteProblems(it) }
   return files

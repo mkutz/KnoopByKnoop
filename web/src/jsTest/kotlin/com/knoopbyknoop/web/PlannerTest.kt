@@ -144,6 +144,7 @@ class PlannerTest {
     assertTrue(planner.canUndo)
   }
 
+  // Scenario: Reload
   @Test
   fun `Reload - the route and its undo history come back`() = runTest {
     val storage = TestNetwork.Storage()
@@ -205,6 +206,7 @@ class PlannerTest {
     return RouteFile.write(route, RouteFile.titleOf(route))
   }
 
+  // Scenario: Dropped file
   @Test
   fun `Dropped file - a hiking route opened while planning cycling`() = runTest {
     val planner = ready()
