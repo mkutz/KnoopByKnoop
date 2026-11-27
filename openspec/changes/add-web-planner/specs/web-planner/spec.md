@@ -10,8 +10,8 @@ The route planner in the browser at knoopbyknoop.com: planning a route on the kn
 The website SHALL offer the planner at `/plan/` in English and at `/de/plan/`, `/nl/plan/` and `/fr/plan/`, with every text, number and distance in the page's language. The language switch SHALL keep the route being planned.
 
 #### Scenario: Planner in Dutch
-- **WHEN** a visitor opens `/nl/plan/` and plans a route of 23.4 km
-- **THEN** the planner's texts are Dutch and the distance reads "23,4 km"
+- **WHEN** a visitor opens `/nl/plan/` and plans a route of 3.4 km
+- **THEN** the planner's texts are Dutch and the distance reads "3,4 km"
 
 #### Scenario: Language switch keeps the route
 - **WHEN** a visitor plans a route on `/plan/` and chooses Deutsch
