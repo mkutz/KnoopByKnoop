@@ -9,6 +9,12 @@ on:
       - main
     paths:
       - 'website/**'
+      # The planner and the core it is built from, see `web-planner`.
+      - 'web/**'
+      - 'modules/core/**'
+      - 'map-styles/**'
+      - 'gradle/**'
+      - '*.gradle.kts'
       - 'fastlane/metadata/**'
       - 'fastlane/screenshots/**'
       - 'design/icon/**'
