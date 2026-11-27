@@ -12,6 +12,7 @@ Scenario names of one or two words need a `// Scenario: <name>` mark on their te
 ## 2. Data on the website
 
 - [ ] 2.1 `.github/workflows/website.yml`: download the latest `network-data` release with `gh release download` into `data/<publication>/` of the site, with `data/index.json` naming that folder; also run after a successful `Update network data` run (`workflow_run`). A site check fails when a file named in the index is missing. Verify: `actionlint` in Build, and the first run serves `https://knoopbyknoop.com/data/index.json`. "New publication" goes into `openspec/checked-by-hand.md` (the next weekly run).
+  - Done 2026-11-27: the download, the check of every file against the index and the copy into `data/<publication>/` (tests in `NetworkDataTest`, and a build with the real publication of 2026-11-23). Left: the first run after the push.
 - [ ] 2.2 Data loading in `web`: read `data/index.json`, then the graph and courses of the chosen network, and path data and place details in squares by range, checking each against the index's checksum with the core's checks. Tests "Data of the latest publication" (a fake fetch only ever requests files under the index's folder) and "File not matching the index" (a wrong checksum leaves the data unused and sets the message).
 
 ## 3. Planner module and pages

@@ -15,6 +15,12 @@ on:
       - 'PRIVACY.md'
       - 'TERMS.md'
       - '.github/workflows/website.yml'
+  # New network data for the planner, see `web-planner` "Data updated with the weekly publication".
+  workflow_run:
+    workflows:
+      - Update Network Data
+    types:
+      - completed
   workflow_dispatch:
 
 permissions:
@@ -28,6 +34,8 @@ jobs:
   build:
     name: Build and check
     runs-on: ubuntu-latest
+    # After the data workflow only when it published, see `web-planner`.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
 
     steps:
 
@@ -40,7 +48,14 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v6
 
-      - run: ./gradlew :website:test :website:site
+      # The latest publication, checked against its index by the site build and copied into its
+      # own folder, see `web-planner` "Network data from the website".
+      - name: Download the network data
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download network-data --dir "$RUNNER_TEMP/network-data"
+
+      - run: ./gradlew :website:test :website:site -PnetworkData="$RUNNER_TEMP/network-data"
 
       - uses: actions/upload-pages-artifact@v5
         with:

@@ -393,6 +393,10 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Push changes the help — by a push to main changing a help page: the Website workflow runs and the published page shows the change within minutes
 - Failing check — by a test push to main that removes a page in one language: the Website workflow fails before Publish and the site stays as it was (then revert the push)
 
+## web-planner
+
+- New publication — by the next run of Update Network Data: the Website workflow runs after it, and https://knoopbyknoop.com/data/index.json names the new publication's folder within two hours
+
 ## release-delivery
 
 - Successful release — by a release run

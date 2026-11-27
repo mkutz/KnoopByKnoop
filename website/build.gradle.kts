@@ -8,6 +8,7 @@ kotlin { jvmToolchain(21) }
 application { mainClass = "com.knoopbyknoop.website.MainKt" }
 
 dependencies {
+  implementation(project(":modules:core"))
   implementation(libs.commonmark)
   implementation(libs.commonmark.ext.gfm.tables)
   testImplementation(libs.kotlin.test)
@@ -43,5 +44,9 @@ tasks.register<JavaExec>("site") {
   )
   classpath = sourceSets.main.get().runtimeClasspath
   mainClass = application.mainClass
-  args(rootDir.absolutePath, output.get().asFile.absolutePath)
+  // The published network data for the planner, e.g. from `gh release download network-data`; the
+  // site builds without it, but the planner then finds no data.
+  val networkData = providers.gradleProperty("networkData").orNull?.let { file(it).absolutePath }
+  networkData?.let { inputs.dir(it) }
+  args(listOfNotNull(rootDir.absolutePath, output.get().asFile.absolutePath, networkData))
 }
