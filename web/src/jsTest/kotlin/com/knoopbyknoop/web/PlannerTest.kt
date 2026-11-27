@@ -410,7 +410,7 @@ class RoutesPerNetworkTest {
   }
 
   @Test
-  fun `Opened route on the other network - Undo brings back that network's route`() = runTest {
+  fun `Hiking file opened while cycling - Undo brings back the hiking route`() = runTest {
     val planner = TestNetwork.planner(this)
     advanceUntilIdle()
     planner.switchNetwork(IndexedNetworkType.HIKING)

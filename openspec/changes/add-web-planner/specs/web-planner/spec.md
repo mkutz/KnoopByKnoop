@@ -42,7 +42,7 @@ The planner SHALL keep a route and its undo history for each network. Switching 
 - **WHEN** the visitor plans the cycling route 02 → 83, switches to hiking, plans there and switches back to cycling
 - **THEN** the cycling route is 02 → 83 again, and Undo takes back its last edit
 
-#### Scenario: Opened route on the other network
+#### Scenario: Hiking file opened while cycling
 - **WHEN** the visitor plans cycling, opens a hiking route file, and chooses Undo
 - **THEN** the hiking route is the one planned before the file was opened, and the cycling route is kept
 
