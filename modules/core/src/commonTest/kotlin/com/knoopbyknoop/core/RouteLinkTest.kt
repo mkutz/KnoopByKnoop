@@ -46,7 +46,7 @@ class RouteLinkTest {
   }
 
   @Test
-  fun `other links, empty routes and broken escapes are no route links`() {
+  fun `other links and empty routes and broken escapes are no route links`() {
     assertNull(RouteLink.textOf("https://knoopbyknoop.com/plan/#abc"))
     assertNull(RouteLink.textOf("https://example.com/route/#abc"))
     assertNull(RouteLink.textOf("https://knoopbyknoop.com/route/#"))

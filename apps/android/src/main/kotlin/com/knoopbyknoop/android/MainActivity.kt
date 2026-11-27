@@ -22,6 +22,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.knoopbyknoop.core.Language
+import com.knoopbyknoop.core.RouteLink
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -112,11 +113,18 @@ class MainActivity : AppCompatActivity() {
     openRouteFile(intent)
   }
 
-  /** Opens the route file [intent] views, see `route-sharing` "Open a route file". */
+  /**
+   * Opens the route file or route link [intent] views, see `route-sharing` "Open a route file" and
+   * "Open a route link in the app".
+   */
   private fun openRouteFile(intent: Intent?) {
     val uri = intent?.takeIf { it.action == Intent.ACTION_VIEW }?.data ?: return
     // Opened once, not again when the activity is recreated.
     intent.data = null
+    if (uri.scheme == "https" || uri.scheme == "http") {
+      appViewModel.openRouteFile(RouteLink.textOf(uri.toString()).orEmpty())
+      return
+    }
     lifecycleScope.launch {
       val text =
         withContext(Dispatchers.IO) {

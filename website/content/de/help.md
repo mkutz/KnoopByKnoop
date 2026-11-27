@@ -41,6 +41,13 @@ Die Knotenpunktnetze, die die App kennt, liegen in den **Niederlanden**, in **Be
 Die Netze, die Karte entlang deiner Route und die Wege drumherum sind auf deinem Telefon gespeichert, so funktionieren Planen und Fahren ohne Verbindung. Die Ortssuche und die Karte abseits deiner Route brauchen eine.
 
 
+## Im Browser planen
+
+Am Computer plant der [Routenplaner](../plan/) wie die App auf einer großen Karte: Knotenpunkte anklicken, Orte hinzufügen, Strecke und Fähren sehen.
+Um die Route mitzunehmen, scanne ihren QR-Code mit der Kamera deines Handys, kopiere ihren Link oder lade sie als Routendatei oder GPX herunter.
+Ein Routenlink öffnet die Route auf einem Handy mit der App in der App und sonst im Planer.
+Der Planer behält deine Route in deinem Browser, damit sie beim nächsten Besuch noch da ist.
+
 ## Kontakt
 
 Einen Fehler gefunden oder etwas vermisst? Schreib an [mail@knoopbyknoop.com](mailto:mail@knoopbyknoop.com) oder eröffne ein Issue auf [GitHub](https://github.com/mkutz/knoopbyknoop/issues).

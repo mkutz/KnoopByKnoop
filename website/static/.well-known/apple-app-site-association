@@ -1,0 +1,13 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["7TZ5829C8J.com.knoopbyknoop"],
+        "components": [
+          { "/": "/route", "comment": "Route links, see route-sharing \"Route link\"" },
+          { "/": "/route/*", "comment": "Route links, see route-sharing \"Route link\"" }
+        ]
+      }
+    ]
+  }
+}

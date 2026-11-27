@@ -41,6 +41,13 @@ Les réseaux de points-nœuds que connaît l'application se trouvent aux **Pays-
 Les réseaux, la carte le long de votre itinéraire et les chemins autour sont enregistrés sur votre téléphone : planifier et rouler fonctionnent sans connexion. La recherche de lieux et la carte en dehors de votre itinéraire en ont besoin.
 
 
+## Planifier dans le navigateur
+
+Sur un ordinateur, le [planificateur d'itinéraire](../plan/) planifie comme l'app sur une grande carte : cliquez sur des points-nœuds, ajoutez des lieux, voyez la distance et les bacs.
+Pour emporter l'itinéraire, scannez son code QR avec l'appareil photo de votre téléphone, copiez son lien ou téléchargez-le comme fichier d'itinéraire ou GPX.
+Un lien d'itinéraire ouvre l'itinéraire dans l'app sur un téléphone qui l'a, et dans le planificateur ailleurs.
+Le planificateur garde votre itinéraire dans votre navigateur, pour qu'il soit encore là à votre retour.
+
 ## Contact
 
 Vous avez trouvé une erreur ou il vous manque quelque chose ? Écrivez à [mail@knoopbyknoop.com](mailto:mail@knoopbyknoop.com) ou ouvrez un ticket sur [GitHub](https://github.com/mkutz/knoopbyknoop/issues).

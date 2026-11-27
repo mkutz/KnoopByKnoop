@@ -445,6 +445,11 @@ final class AppModel: ObservableObject {
 
   /// Opens the route file at `url`, handed over by another app, see "Open a route file".
   func openRouteFile(at url: URL) {
+    // A route link, see `route-sharing` "Open a route link in the app".
+    if url.scheme == "https" || url.scheme == "http" {
+      openRouteFile(RouteLink.shared.textOf(link: url.absoluteString) ?? "")
+      return
+    }
     let accessing = url.startAccessingSecurityScopedResource()
     defer { if accessing { url.stopAccessingSecurityScopedResource() } }
     // More than any route file holds; a bigger file is no route.

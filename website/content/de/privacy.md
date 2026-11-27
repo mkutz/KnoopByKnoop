@@ -65,7 +65,14 @@ Rechtsgrundlage sind Art. 6 Abs. 1 lit. b DSGVO (Bereitstellung der Funktionen, 
 
 Die Website knoopbyknoop.com wird von [GitHub Pages](https://pages.github.com) (GitHub, Inc., USA) bereitgestellt.
 Wenn du eine Seite öffnest, erhält GitHub deine IP-Adresse und was dein Browser mit der Anfrage sendet, etwa die Seite, die Uhrzeit und den User-Agent des Browsers, und kann sie zur Sicherheit in seinen Protokollen aufbewahren, nach [GitHubs Datenschutzerklärung](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement).
-Die Website setzt keine Cookies, nutzt keine Analyse und kein Tracking und lädt nichts von anderen Seiten.
+Die Website setzt keine Cookies, nutzt keine Analyse und kein Tracking und lädt nichts von anderen Seiten, außer dem Routenplaner.
+
+**Der Routenplaner** unter [knoopbyknoop.com/de/plan](https://knoopbyknoop.com/de/plan/) läuft in deinem Browser.
+Er lädt die Netzdaten von knoopbyknoop.com und mit ihnen die Wegedaten und Ortsdetails rund um eine geplante Route, wodurch GitHub das ungefähre Gebiet der Route sieht.
+Wie die App lädt er die Grundkarte von [OpenFreeMap](https://openfreemap.org), das deine IP-Adresse und den gezeigten Kartenausschnitt erhält, und sucht Orte mit [Photon](https://photon.komoot.io) von komoot, das deine IP-Adresse, den Text, den du ins Suchfeld tippst, und die Mitte der Karte erhält.
+Er fragt nie nach deinem Standort.
+Die Route, die du planst, wird im Speicher deines Browsers auf deinem Gerät aufbewahrt, damit sie beim nächsten Besuch noch da ist; sie wird nie an uns gesendet.
+Ein Routenlink trägt die Route nach dem `#`, das Browser an keinen Server senden.
 Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (unser berechtigtes Interesse, die Website sicher anzuzeigen).
 
 

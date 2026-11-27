@@ -41,6 +41,13 @@ The knot networks the app knows are in the **Netherlands**, **Belgium** and **No
 The networks, the map along your route and the paths around it are stored on your phone, so planning and riding work without a connection. Searching places and the map away from your route need one.
 
 
+## Planning in the browser
+
+On a computer, the [route planner](../plan/) plans like the app on a big map: click knots, add places, see the distance and the ferries.
+To take the route along, scan its QR code with your phone's camera, copy its link, or download it as a route file or GPX.
+A route link opens the route in the app on a phone that has it, and in the planner everywhere else.
+The planner keeps your route in your browser, so it is still there when you come back.
+
 ## Contact
 
 Found a mistake, or missing something? Write to [mail@knoopbyknoop.com](mailto:mail@knoopbyknoop.com) or open an issue on [GitHub](https://github.com/mkutz/knoopbyknoop/issues).

@@ -65,7 +65,14 @@ De rechtsgrond is art. 6, lid 1, onder b, AVG (het leveren van de functies die j
 
 De website knoopbyknoop.com wordt gehost door [GitHub Pages](https://pages.github.com) (GitHub, Inc., VS).
 Als je een pagina opent, ontvangt GitHub je IP-adres en wat je browser met het verzoek meestuurt, zoals de pagina, het tijdstip en de user-agent van de browser, en kan die voor de veiligheid in zijn logboeken bewaren, volgens [het privacybeleid van GitHub](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement).
-De website plaatst geen cookies, gebruikt geen analyse of tracking en laadt niets van andere sites.
+De website plaatst geen cookies, gebruikt geen analyse of tracking en laadt niets van andere sites, behalve de routeplanner.
+
+**De routeplanner** op [knoopbyknoop.com/nl/plan](https://knoopbyknoop.com/nl/plan/) werkt in je browser.
+Hij laadt de netwerkgegevens van knoopbyknoop.com en daarmee de padgegevens en plaatsdetails rond een route die je plant, waardoor GitHub het globale gebied van de route ziet.
+Net als de app laadt hij de basiskaart van [OpenFreeMap](https://openfreemap.org), dat je IP-adres en het getoonde kaartgebied ontvangt, en zoekt hij plaatsen met [Photon](https://photon.komoot.io) van komoot, dat je IP-adres, de tekst die je in het zoekveld typt en het midden van de kaart ontvangt.
+Hij vraagt nooit naar je locatie.
+De route die je plant, wordt in de opslag van je browser op je apparaat bewaard, zodat hij er nog is als je terugkomt; hij wordt nooit naar ons gestuurd.
+Een routelink draagt de route na het `#`, dat browsers naar geen enkele server sturen.
 De rechtsgrond is art. 6, lid 1, onder f, AVG (ons gerechtvaardigd belang om de website veilig te tonen).
 
 

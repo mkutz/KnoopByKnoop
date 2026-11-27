@@ -1,7 +1,7 @@
 # Knoop by Knoop
 
 A navigator and route planner for the knooppunt networks for cycling and hiking in the Netherlands, Belgium and beyond.
-Website, help and store links: [knoopbyknoop.com](https://knoopbyknoop.com).
+Website, help and store links: [knoopbyknoop.com](https://knoopbyknoop.com); plan in the browser at [knoopbyknoop.com/plan](https://knoopbyknoop.com/plan/).
 
 - **Plan freely:** set a start and an end, then add, move and remove stops anywhere in between.
 - **Navigate knoop by knoop:** the app only tells you the next knot, so the screen can stay off and the battery lasts.
@@ -32,6 +32,7 @@ Network data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contrib
 | [`apps/ios`](apps/ios) | iOS app (SwiftUI), project generated with XcodeGen |
 | [`pipeline`](pipeline) | CLI turning OpenStreetMap data into graph files for the apps |
 | [`website`](website) | knoopbyknoop.com: help and legal texts in `content/`, built with the store texts by `./gradlew :website:site` |
+| [`web`](web) | The route planner in the browser (Kotlin/JS with MapLibre GL JS), bundled by `./gradlew :web:plannerFiles` for the website |
 
 
 ## Building

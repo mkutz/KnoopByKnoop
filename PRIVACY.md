@@ -62,7 +62,14 @@ The legal basis is Art. 6(1)(b) GDPR (providing the features you use) and Art. 6
 
 The website knoopbyknoop.com is hosted by [GitHub Pages](https://pages.github.com) (GitHub, Inc., USA).
 When you open a page, GitHub receives your IP address and what your browser sends with the request, such as the page, the time and the browser's user agent, and may keep them in its logs for security, under [GitHub's privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement).
-The website sets no cookies, uses no analytics or tracking, and loads nothing from other sites.
+The website sets no cookies, uses no analytics or tracking, and loads nothing from other sites, apart from the route planner.
+
+**The route planner** at [knoopbyknoop.com/plan](https://knoopbyknoop.com/plan/) works in your browser.
+It loads the network data from knoopbyknoop.com, and with it the path data and place details around a route you plan, which shows GitHub the rough area of the route.
+Like the app, it loads the base map from [OpenFreeMap](https://openfreemap.org), which receives your IP address and the map area being shown, and searches places with [Photon](https://photon.komoot.io) by komoot, which receives your IP address, the text you type into the search field and the centre of the map.
+It never asks for your location.
+The route you plan is kept in your browser's storage on your device, so it is still there when you come back; it is never sent to us.
+A route link carries the route after the `#`, which browsers don't send to any server.
 The legal basis is Art. 6(1)(f) GDPR (our legitimate interest in showing the website securely).
 
 

@@ -50,6 +50,17 @@
         <data android:pathPattern=".*\\.knoop" />
         <data android:pathPattern=".*\\..*\\.knoop" />
       </intent-filter>
+      <!-- Opens route links, see `route-sharing` "Open a route link in the app". Verified by
+           https://knoopbyknoop.com/.well-known/assetlinks.json. -->
+      <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="https" />
+        <data android:host="knoopbyknoop.com" />
+        <data android:host="www.knoopbyknoop.com" />
+        <data android:pathPrefix="/route" />
+      </intent-filter>
     </activity>
 
     <!-- Shares the exported GPX files and route files, see `map-planning` "Export the route as GPX"

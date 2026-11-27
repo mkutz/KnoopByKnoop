@@ -40,19 +40,20 @@ Scenario names of one or two words need a `// Scenario: <name>` mark on their te
 
 - [x] 6.1 Copy link, QR code, and downloads of the `.knoop` file and GPX from the core's writers. Tests "Copy the link", "Same file as the app" (name and text equal the core's for the route 12 → 40 → 34) and "GPX" (marked). "Scan to the phone" goes into `openspec/checked-by-hand.md`.
 - [x] 6.2 Opening a `.knoop` file by choosing it or dropping it on the map, and a route link, with the core's reader; an opened route is an undoable edit. Tests "Dropped file" (the state after opening a hiking file while planning cycling) and "Not a route".
-- [x] 6.3 "Opening the planner": the planner never calls the geolocation API; a test over the planner's sources (the bundle holds MapLibre's unused locate control), plus an entry in `openspec/checked-by-hand.md` (no location prompt in Chrome, Firefox and Safari).
+- [x] 6.3 "Opening the planner": the planner never calls the geolocation API; a test over the planner's sources (the bundle holds MapLibre's unused locate control); the scenario check allows a test or a hand check, not both.
 
 ## 7. Apps open route links
 
 - [ ] 7.1 Android: intent filter with `autoVerify` for `https://knoopbyknoop.com/route/`, read with the core's link reader and opened like a `.knoop` file. `website/static/.well-known/assetlinks.json` with the Play app signing key's and the upload key's SHA-256 fingerprints (the maintainer reads the first from the Play Console). Verify: `adb shell pm get-app-links com.knoopbyknoop` shows the domain verified on the emulator after the site is published.
-- [ ] 7.2 iOS: the Associated Domains entitlement `applinks:knoopbyknoop.com` in `apps/ios/project.yml`, `onOpenURL` handling the link like a `.knoop` file, and `website/static/.well-known/apple-app-site-association` for `/route/*`. The maintainer enables Associated Domains for the App ID; check the release workflow's signing on its next run. Verify: the debug build on the simulator opens a route link from Safari.
-- [ ] 7.3 "Link opened on Android", "Link opened on iOS" and "Link opened while navigating" go into `openspec/checked-by-hand.md`: on the emulator and on the iPhone with a release build, from a messenger and the camera.
+- [x] 7.2 iOS: the Associated Domains entitlement `applinks:knoopbyknoop.com` in `apps/ios/project.yml`, `onOpenURL` handling the link like a `.knoop` file, and `website/static/.well-known/apple-app-site-association` for `/route/*`. The maintainer enables Associated Domains for the App ID; check the release workflow's signing on its next run. Verify: the debug build on the simulator opens a route link from Safari.
+  - Done 2026-11-27: entitlement, link handling and the association file; the simulator build compiles. Universal links need a signed build, so the check moved to "Link opened on iOS" in `openspec/checked-by-hand.md`. Left for the maintainer: Associated Domains for the App ID, and the release workflow's signing on its next run.
+- [x] 7.3 "Link opened on Android", "Link opened on iOS" and "Link opened while navigating" go into `openspec/checked-by-hand.md`: on the emulator and on the iPhone with a release build, from a messenger and the camera.
 
 ## 8. Privacy and finish
 
-- [ ] 8.1 `PRIVACY.md`: the planner, what OpenFreeMap and Photon receive from it, and the route kept only in the browser; "Last updated" moves, and the German, Dutch and French translations follow with their `translates:` date. Help pages: a section on the planner and route links. Verify: `./gradlew :website:test`.
-- [ ] 8.2 README and CHANGELOG ("Unreleased"); `./gradlew check` and `npx @fission-ai/openspec validate --all` pass.
-- [ ] 8.3 `./gradlew checkScenarios -Pchange=add-web-planner` passes.
+- [x] 8.1 `PRIVACY.md`: the planner, what OpenFreeMap and Photon receive from it, and the route kept only in the browser; "Last updated" moves, and the German, Dutch and French translations follow with their `translates:` date. Help pages: a section on the planner and route links. Verify: `./gradlew :website:test`.
+- [x] 8.2 README and CHANGELOG ("Unreleased"); `./gradlew check` and `npx @fission-ai/openspec validate --all` pass.
+- [x] 8.3 `./gradlew checkScenarios -Pchange=add-web-planner` passes.
 
 ## Workflow follow-up
 

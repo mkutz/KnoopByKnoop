@@ -66,6 +66,14 @@ targets:
         LSSupportsOpeningDocumentsInPlace: false
         # Only standard HTTPS, which is exempt: Apple then doesn't ask about encryption per build.
         ITSAppUsesNonExemptEncryption: false
+    # Route links open the app, see `route-sharing` "Open a route link in the app"; the website
+    # serves the matching apple-app-site-association.
+    entitlements:
+      path: KnoopByKnoop/KnoopByKnoop.entitlements
+      properties:
+        com.apple.developer.associated-domains:
+          - applinks:knoopbyknoop.com
+          - applinks:www.knoopbyknoop.com
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.knoopbyknoop

@@ -41,6 +41,13 @@ De knooppuntnetwerken die de app kent, liggen in **Nederland**, **België** en *
 De netwerken, de kaart langs je route en de paden eromheen worden op je telefoon bewaard, dus plannen en rijden werken zonder verbinding. Plaatsen zoeken en de kaart buiten je route hebben er een nodig.
 
 
+## Plannen in de browser
+
+Op een computer plant de [routeplanner](../plan/) zoals de app op een grote kaart: klik op knooppunten, voeg plaatsen toe, zie de afstand en de veerponten.
+Om de route mee te nemen, scan je de QR-code met de camera van je telefoon, kopieer je de link of download je hem als routebestand of GPX.
+Een routelink opent de route in de app op een telefoon die hem heeft, en verder in de planner.
+De planner bewaart je route in je browser, zodat hij er nog is als je terugkomt.
+
 ## Contact
 
 Een fout gevonden of mis je iets? Schrijf naar [mail@knoopbyknoop.com](mailto:mail@knoopbyknoop.com) of open een issue op [GitHub](https://github.com/mkutz/knoopbyknoop/issues).

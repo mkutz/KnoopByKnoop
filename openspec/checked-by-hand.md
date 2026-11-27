@@ -399,7 +399,6 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Dark setting — with the system set to dark, the planner shows the dark base map and a dark panel; switching back to light while it is open switches it without moving the map or losing the route
 - First visit — in Chrome's developer tools with the cache disabled and the network throttled to 50 Mbit/s: the knots show within five seconds of opening the planner
 - Scan to the phone — plan a route on a computer and scan the QR code with an iPhone and an Android phone that have the app: the app opens with the route
-- Opening the planner — in Chrome, Firefox and Safari: opening the planner never asks for the location
 - New publication — by the next run of Update Network Data: the Website workflow runs after it, and https://knoopbyknoop.com/data/index.json names the new publication's folder within two hours
 
 ## release-delivery
@@ -417,6 +416,9 @@ A scenario gets a test as soon as one can check it; its line goes then.
 - Opened on the other network — on the devices: a hiking file opened while cycling is shown
 - Opened while navigating — on the devices
 - Undo an opened route — on the emulator and in the simulator
+- Link opened on Android — with a release build from Play once https://knoopbyknoop.com/.well-known/assetlinks.json is published: `adb shell pm get-app-links com.knoopbyknoop` shows knoopbyknoop.com verified, and a route link tapped in a messenger opens the route in the app
+- Link opened on iOS — with a release build on the iPhone: a route link's QR code scanned with the camera opens the route in the app (Apple's CDN fetches apple-app-site-association, which can take a day after it is published)
+- Link opened while navigating — on both phones: a route link opened while navigating says to stop navigating first, and navigation goes on
 
 ## store-listing
 

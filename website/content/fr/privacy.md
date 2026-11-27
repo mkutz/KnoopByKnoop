@@ -65,7 +65,14 @@ La base légale est l'art. 6, paragraphe 1, point b), du RGPD (fournir les fonct
 
 Le site knoopbyknoop.com est hébergé par [GitHub Pages](https://pages.github.com) (GitHub, Inc., États-Unis).
 Quand vous ouvrez une page, GitHub reçoit votre adresse IP et ce que votre navigateur envoie avec la requête, comme la page, l'heure et l'agent utilisateur du navigateur, et peut les conserver dans ses journaux pour des raisons de sécurité, selon [la déclaration de confidentialité de GitHub](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement).
-Le site ne dépose aucun cookie, n'utilise ni analyse d'audience ni pistage, et ne charge rien depuis d'autres sites.
+Le site ne dépose aucun cookie, n'utilise ni analyse d'audience ni pistage, et ne charge rien depuis d'autres sites, sauf le planificateur d'itinéraire.
+
+**Le planificateur d'itinéraire** sur [knoopbyknoop.com/fr/plan](https://knoopbyknoop.com/fr/plan/) fonctionne dans votre navigateur.
+Il charge les données du réseau depuis knoopbyknoop.com, et avec elles les données de chemins et les détails des lieux autour d'un itinéraire que vous planifiez, ce qui montre à GitHub la zone approximative de l'itinéraire.
+Comme l'app, il charge le fond de carte depuis [OpenFreeMap](https://openfreemap.org), qui reçoit votre adresse IP et la zone de carte affichée, et cherche des lieux avec [Photon](https://photon.komoot.io) de komoot, qui reçoit votre adresse IP, le texte que vous tapez dans le champ de recherche et le centre de la carte.
+Il ne demande jamais votre position.
+L'itinéraire que vous planifiez est conservé dans le stockage de votre navigateur sur votre appareil, pour qu'il soit encore là à votre retour ; il ne nous est jamais envoyé.
+Un lien d'itinéraire porte l'itinéraire après le `#`, que les navigateurs n'envoient à aucun serveur.
 La base légale est l'art. 6, paragraphe 1, point f), du RGPD (notre intérêt légitime à afficher le site de manière sûre).
 
 
