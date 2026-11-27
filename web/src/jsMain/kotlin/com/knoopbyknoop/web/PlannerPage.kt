@@ -1,13 +1,11 @@
 package com.knoopbyknoop.web
 
-import com.knoopbyknoop.core.CalendarDay
 import com.knoopbyknoop.core.GeoBounds
 import com.knoopbyknoop.core.GeoPoint
 import com.knoopbyknoop.core.IndexedNetworkType
 import com.knoopbyknoop.core.Knot
 import com.knoopbyknoop.core.KnotPlate
 import com.knoopbyknoop.core.Language
-import com.knoopbyknoop.core.LocalMoment
 import com.knoopbyknoop.core.MapPlace
 import com.knoopbyknoop.core.MapTap
 import com.knoopbyknoop.core.RouteDescription
@@ -92,23 +90,6 @@ private class WebNetworkSource(private val data: PublishedData) : NetworkSource 
     }
 }
 
-/** Now in the local time of the covered area, for opening hours and ferries. */
-fun nowInCoveredArea(): LocalMoment {
-  val parts: dynamic =
-    js(
-      "new Intl.DateTimeFormat('en-CA', {timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'}).formatToParts(new Date())"
-    )
-  val values = mutableMapOf<String, Int>()
-  for (index in 0 until (parts.length as Int)) {
-    val part = parts[index]
-    (part.value as String).toIntOrNull()?.let { values[part.type as String] = it }
-  }
-  return LocalMoment(
-    CalendarDay(values.getValue("year"), values.getValue("month"), values.getValue("day")),
-    values.getValue("hour") * 60 + values.getValue("minute"),
-  )
-}
-
 /** Shorthand for building the page. */
 private fun element(
   tag: String,
@@ -191,6 +172,13 @@ class PlannerPage(private val root: HTMLElement) {
       append(input, searchResults)
     }
   private val mapElement = element("div", "planner-map")
+
+  /** Over the map while the network or its courses load, see `web-planner` "Loading shown". */
+  private val mapStatus =
+    element("p", "map-status") {
+      setAttribute("role", "status")
+      setAttribute("aria-live", "polite")
+    }
   private val darkQuery = window.matchMedia("(prefers-color-scheme: dark)")
   private val mapView =
     MapView(mapElement, siteRoot, darkQuery.matches, text("map.label")) {
@@ -218,6 +206,7 @@ class PlannerPage(private val root: HTMLElement) {
   init {
     root.textContent = ""
     root.append(panel, mapElement)
+    mapElement.append(mapStatus)
     darkQuery.addEventListener("change", { mapView.setDark(darkQuery.matches) })
     planner.onChange = { render() }
     planner.onDetails = { render() }
@@ -352,17 +341,30 @@ class PlannerPage(private val root: HTMLElement) {
       fittedOpened = planner.openedRoutes
       routeBounds()?.let { mapView.fit(it) }
     }
+    val loadingText =
+      when (planner.loadingStage) {
+        Planner.Loading.NETWORK -> text("data.loading")
+        Planner.Loading.COURSES -> text("data.loadingCourses")
+        Planner.Loading.NOTHING -> null
+      }
+    mapStatus.textContent = loadingText ?: ""
+    mapStatus.hidden = loadingText == null
     panel.textContent = ""
     panel.append(networkSwitch(), searchBox)
     planner.dataProblem?.let { panel.append(element("p", "message problem", text("data.problem"))) }
-    if (network == null && planner.dataProblem == null) {
-      panel.append(element("p", "message", text("data.loading")) { setAttribute("role", "status") })
-    }
     planner.message?.let {
       panel.append(element("p", "message", it) { setAttribute("role", "status") })
     }
-    card?.let { panel.append(cardOf(it)) }
-    panel.append(route(), handOff(), placesSwitch())
+    // Each part on its own, so one that fails to draw leaves the others.
+    val parts: List<() -> Element?> =
+      listOf({ card?.let { cardOf(it) } }, { route() }, { handOff() }, { placesSwitch() })
+    for (part in parts) {
+      try {
+        part()?.let { panel.append(it) }
+      } catch (exception: Throwable) {
+        console.error("Knoop by Knoop: drawing the panel failed", exception)
+      }
+    }
   }
 
   private fun routeBounds(): GeoBounds? {

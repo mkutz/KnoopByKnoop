@@ -302,4 +302,76 @@ class PlannerTest {
     assertIs<Clicked.Done>(planner.click(far.latitude, far.longitude, 30.0, null))
     assertEquals(true, planner.message?.startsWith("No cycling knots within"))
   }
+
+  /** A source whose courses arrive only when [courses] completes. */
+  private class SlowCourses(private val courses: kotlinx.coroutines.CompletableDeferred<Unit>) :
+    NetworkSource {
+    private val source = TestNetwork.Source()
+
+    override suspend fun graph(network: IndexedNetworkType) = source.graph(network)
+
+    override suspend fun courses(loaded: NetworkSource.Loaded): LoadedNetwork {
+      courses.await()
+      return source.courses(loaded)
+    }
+
+    override suspend fun <T> withSquares(load: (com.knoopbyknoop.core.PathDataOrigin) -> T): T? =
+      null
+  }
+
+  @Test
+  fun `Network still loading - and then the courses, and then nothing`() = runTest {
+    val courses = kotlinx.coroutines.CompletableDeferred<Unit>()
+    val planner =
+      Planner(
+        SlowCourses(courses),
+        TestNetwork.Storage(),
+        Language.EN,
+        TestNetwork.texts,
+        this,
+        nowMillis = { 0L },
+      )
+
+    planner.start()
+    assertEquals(Planner.Loading.NETWORK, planner.loadingStage)
+    testScheduler.runCurrent()
+    // Scenario: Courses still loading
+    assertEquals(Planner.Loading.COURSES, planner.loadingStage)
+    courses.complete(Unit)
+    advanceUntilIdle()
+
+    assertEquals(Planner.Loading.NOTHING, planner.loadingStage)
+  }
+
+  @Test
+  fun `Kept route with a ferry - a redraw failing on it still lets the courses load`() = runTest {
+    val storage = TestNetwork.Storage()
+    val first = ready(TestNetwork.planner(this, storage))
+    listOf(K02, K73).forEach { first.clickOn(it) }
+
+    val reopened = TestNetwork.planner(this, storage)
+    reopened.onChange = {
+      if (reopened.description is RouteDescription.Complete) error("panel failed")
+    }
+    advanceUntilIdle()
+
+    assertEquals(listOf("02", "73"), reopened.waypoints)
+    assertEquals(Planner.Loading.NOTHING, reopened.loadingStage)
+    assertTrue(reopened.loaded!!.hasGeometry)
+  }
+}
+
+class LocalTimeTest {
+
+  @Test
+  fun `the covered area's local time, in summer and winter`() {
+    // 2026-07-01 10:00 UTC is 12:00 in Amsterdam (CEST), 2026-12-01 10:00 UTC is 11:00 (CET).
+    val summer = nowInCoveredArea(1_782_900_000_000.0)
+    val winter = nowInCoveredArea(1_796_119_200_000.0)
+
+    assertEquals(com.knoopbyknoop.core.CalendarDay(2026, 7, 1), summer.day)
+    assertEquals(12 * 60, summer.minute)
+    assertEquals(com.knoopbyknoop.core.CalendarDay(2026, 12, 1), winter.day)
+    assertEquals(11 * 60, winter.minute)
+  }
 }

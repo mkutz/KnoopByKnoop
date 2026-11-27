@@ -98,6 +98,34 @@ class Planner(
   /** Called after every change, to redraw. */
   var onChange: () -> Unit = {}
 
+  /**
+   * Tells [onChange], which must never stop the planner: a page that fails to draw something still
+   * loads the courses and keeps the route.
+   */
+  private fun changed() {
+    try {
+      onChange()
+    } catch (exception: Throwable) {
+      console.error("Knoop by Knoop: redrawing failed", exception)
+    }
+  }
+
+  /** What is loading, to say so, see `web-planner` "Loading shown". */
+  val loadingStage: Loading
+    get() =
+      when {
+        dataProblem != null -> Loading.NOTHING
+        loaded == null -> Loading.NETWORK
+        loaded?.hasGeometry == false -> Loading.COURSES
+        else -> Loading.NOTHING
+      }
+
+  enum class Loading {
+    NOTHING,
+    NETWORK,
+    COURSES,
+  }
+
   var network: IndexedNetworkType = IndexedNetworkType.CYCLING
     private set
 
@@ -166,14 +194,14 @@ class Planner(
     loaded = null
     session = null
     loading?.cancel()
-    onChange()
+    changed()
     loading = scope.launch {
       val graph =
         try {
           source.graph(other)
         } catch (problem: DataProblem) {
           dataProblem = problem.message
-          onChange()
+          changed()
           return@launch
         }
       dataProblem = null
@@ -187,20 +215,20 @@ class Planner(
           message = text("waypointRemoved", it.joinToString())
         }
       save()
-      onChange()
+      changed()
       pendingFile?.let { open(it, asEdit = false) }
       val withCourses =
         try {
           source.courses(graph)
         } catch (problem: DataProblem) {
           dataProblem = problem.message
-          onChange()
+          changed()
           return@launch
         }
       loaded = withCourses
       session?.let { current ->
         val reattached = current.reattached(withCourses.geometry)
-        if (reattached !== current) update(reattached) else onChange()
+        if (reattached !== current) update(reattached) else changed()
       }
       afterChange()
     }
@@ -238,7 +266,7 @@ class Planner(
             else "noHikingKnotsWithin",
             (tapped.limitMeters / 1000).toInt().toString(),
           )
-        onChange()
+        changed()
         Clicked.Done
       }
     }
@@ -303,12 +331,12 @@ class Planner(
           source.graph(otherNetwork)
         } catch (problem: DataProblem) {
           dataProblem = problem.message
-          onChange()
+          changed()
           return@launch
         }
       if (RouteFile.resolve(parsed, graph.network.graph) == null) {
         message = text("routeFileNone")
-        onChange()
+        changed()
         return@launch
       }
       remember(RouteHistory())
@@ -322,7 +350,7 @@ class Planner(
     val resolved = RouteFile.resolve(parsed, current.graph)
     if (resolved == null) {
       message = text("routeFileNone")
-      onChange()
+      changed()
       return
     }
     val restored = resolved.snapshot.restore(current.graph).session
@@ -336,7 +364,7 @@ class Planner(
         else -> message
       }
     openedRoutes++
-    onChange()
+    changed()
   }
 
   /** Goes up with every route opened, so the page shows the whole route. */
@@ -377,7 +405,7 @@ class Planner(
       source.withSquares { origin ->
         PlaceDownloader(places, origin).loadSquare(square, plannedCourse(), nowMillis())
       }
-      onDetails(place)
+      runCatching { onDetails(place) }
     }
   }
 
@@ -400,7 +428,7 @@ class Planner(
   private fun update(after: PlanningSession) {
     session = after
     save()
-    onChange()
+    changed()
     afterChange()
   }
 

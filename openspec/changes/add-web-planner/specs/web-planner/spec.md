@@ -35,6 +35,21 @@ The planner SHALL show the knots of the cycling or the hiking network with their
 - **WHEN** the visitor switches to hiking
 - **THEN** the hiking knots and courses show instead, and the route is empty
 
+### Requirement: Loading shown
+While the network or its courses load, the planner SHALL say so over the map, with what is loading, until it is there. A failure to show one part of the planner SHALL NOT keep the network or its courses from loading.
+
+#### Scenario: Network still loading
+- **WHEN** a visitor opens the planner for the first time and the network has not arrived yet
+- **THEN** the map says that the network is loading
+
+#### Scenario: Courses still loading
+- **WHEN** the knots are in but the courses are not
+- **THEN** the map says that the courses are loading, and the notice goes once they are in
+
+#### Scenario: Kept route with a ferry
+- **WHEN** the planner is opened again with a kept route that crosses the Rhine by ferry
+- **THEN** the route shows in the panel with its ferry, and the courses load
+
 ### Requirement: Network data from the website
 The planner SHALL read the network data only from knoopbyknoop.com: the graphs, the courses, the path data and the place details of the latest weekly publication, each file checked against the published index as the apps check it. Path data and place details SHALL be read in the squares needed, not as whole files.
 
