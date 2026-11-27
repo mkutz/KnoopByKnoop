@@ -9,6 +9,12 @@ kotlin {
   // The JVM target is consumed by the Android app and the data pipeline.
   jvm { testRuns["test"].executionTask.configure { useJUnitPlatform() } }
 
+  // The web planner, see `web-planner`. Tests run on Node, which needs no browser.
+  js {
+    browser { testTask { enabled = false } }
+    nodejs()
+  }
+
   // The iOS app links this framework, see apps/ios/project.yml.
   listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
     target.binaries.framework {
@@ -20,5 +26,6 @@ kotlin {
   sourceSets {
     commonMain.dependencies { implementation(libs.kotlinx.serialization.json) }
     commonTest.dependencies { implementation(libs.kotlin.test) }
+    jsMain.dependencies { implementation(npm("pako", libs.versions.pako.get())) }
   }
 }

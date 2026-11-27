@@ -57,7 +57,8 @@ data class PlaceDetails(val website: String?, val phone: String?, val openingHou
 
   companion object {
 
-    private val EXTENSION = Regex("""(?i)\s*(x|ext\.?|extension|tst\.?|dw\.?)\s*\d""")
+    private val EXTENSION =
+      Regex("""\s*(x|ext\.?|extension|tst\.?|dw\.?)\s*\d""", RegexOption.IGNORE_CASE)
 
     /**
      * The details in OpenStreetMap [tags], `null` without any, see `network-data` "Contact keys".

@@ -120,7 +120,9 @@ object PlaceSearch {
           listOf(area.minLongitude, area.minLatitude, area.maxLongitude, area.maxLatitude)
             .joinToString(","),
       )
-    return BASE_URL + "?" + parameters.joinToString("&") { (key, value) -> "$key=${encode(value)}" }
+    return BASE_URL +
+      "?" +
+      parameters.joinToString("&") { (key, value) -> "$key=${percentEncoded(value)}" }
   }
 
   /**
@@ -248,20 +250,4 @@ object PlaceSearch {
 
   private fun JsonObject.text(key: String): String? =
     this[key]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() }
-
-  /** Percent-encodes [value] as UTF-8, like `application/x-www-form-urlencoded` without `+`. */
-  private fun encode(value: String): String = buildString {
-    for (byte in value.encodeToByteArray()) {
-      val char = byte.toInt().toChar()
-      if (char.isLetterOrDigit() && byte >= 0 || char in "-._~") {
-        append(char)
-      } else {
-        append('%')
-        append(HEX[(byte.toInt() shr 4) and 0xF])
-        append(HEX[byte.toInt() and 0xF])
-      }
-    }
-  }
-
-  private const val HEX = "0123456789ABCDEF"
 }
