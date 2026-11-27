@@ -18,9 +18,10 @@
 
 ## 3. Publishing
 
-- [ ] 3.1 Workflow `.github/workflows/website.yml`: on pushes to main touching `website/`, `fastlane/metadata/`, `fastlane/screenshots/`, `PRIVACY.md` or `TERMS.md`, and by hand. It runs `./gradlew :website:test :website:site`, then `actions/upload-pages-artifact` and `actions/deploy-pages`. Verify: `actionlint`, if available, and the first run.
-  - Done 2026-11-27: the workflow (actionlint runs in Build on push; the local run was not allowed). Left: the first run after the push.
-- [ ] 3.2 Maintainer: enable GitHub Pages with source "GitHub Actions" and push the change. Verify: the site is reachable at https://mkutz.github.io/knoopbyknoop/.
+- [x] 3.1 Workflow `.github/workflows/website.yml`: on pushes to main touching `website/`, `fastlane/metadata/`, `fastlane/screenshots/`, `PRIVACY.md` or `TERMS.md`, and by hand. It runs `./gradlew :website:test :website:site`, then `actions/upload-pages-artifact` and `actions/deploy-pages`. Verify: `actionlint`, if available, and the first run.
+  - Done 2026-11-27: the workflow (actionlint runs in Build on push; the local run was not allowed). The first run after the push (cf70cf0) built, checked and published the site.
+- [x] 3.2 Maintainer: enable GitHub Pages with source "GitHub Actions" and push the change. Verify: the site is reachable at https://mkutz.github.io/knoopbyknoop/.
+  - Done 2026-11-27: Pages enabled and pushed. The custom domain was already set, so the github.io address redirects to knoopbyknoop.com; the site itself is checked there in 3.3.
 - [ ] 3.3 Maintainer, guided: in the Pages settings, set the custom domain knoopbyknoop.com. At Hostinger, replace the A records with GitHub Pages' four addresses, add `www` CNAME `mkutz.github.io`, and leave the MX records. Then turn on "Enforce HTTPS". Verify: https://knoopbyknoop.com and https://www.knoopbyknoop.com show the site with a valid certificate, and mail still arrives.
 
 ## 4. Store URLs
