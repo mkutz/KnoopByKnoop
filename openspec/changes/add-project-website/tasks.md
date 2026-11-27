@@ -29,6 +29,7 @@
 
 - [x] 4.1 `store-listing-check.sh` checks that each locale's `privacy_url.txt` and `support_url.txt` are the website's privacy and help pages in its language; `-test.sh` gets `# Scenario: Privacy URL in the listing's language`. Then set the eight URL files. Verify: `./gradlew check`.
 - [ ] 4.2 After 3.3, one run of Release store listing brings the URLs to the App Store. The maintainer sets the Google Play privacy URL in the Play Console to https://knoopbyknoop.com/privacy/. Verify: App Store Connect shows the new URLs in all four languages.
+  - 2026-11-27: 1.0.0 is live and has no editable version, so the maintainer chose to wait: the URLs move with the next release's Release store listing run (and the Play privacy URL is set then). The old URLs keep working meanwhile.
 
 ## 5. Finish
 
