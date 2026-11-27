@@ -23,6 +23,8 @@ include("pipeline")
 
 include("tools:scenario-check")
 
+include("website")
+
 // The Android app needs an Android SDK. Machines without one (e.g. for core-only work) skip it.
 if (
   providers.environmentVariable("ANDROID_HOME").isPresent ||

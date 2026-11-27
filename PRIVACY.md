@@ -1,8 +1,8 @@
 # Privacy Policy
 
-Last updated: 13 November 2026
+Last updated: 27 November 2026
 
-This policy covers the Knoop by Knoop apps for Android and iOS.
+This policy covers the Knoop by Knoop apps for Android and iOS and the website [knoopbyknoop.com](https://knoopbyknoop.com).
 
 
 ## In short
@@ -15,8 +15,8 @@ When you plan a route or tap a place while planning, GitHub can also see its rou
 
 ## Who is responsible
 
-Michael Kutz
-Wellenstr. 52, 53721 Siegburg
+Michael Kutz\
+Wellenstr. 52, 53721 Siegburg\
 mail@knoopbyknoop.com
 
 
@@ -56,6 +56,14 @@ The legal basis is Art. 6(1)(b) GDPR (providing the features you use) and Art. 6
 - **Location** to navigate. Planning routes works without it.
 - **Notifications** to show the next knot on the lock screen while navigating.
 - **Internet** for the services above.
+
+
+## This website
+
+The website knoopbyknoop.com is hosted by [GitHub Pages](https://pages.github.com) (GitHub, Inc., USA).
+When you open a page, GitHub receives your IP address and what your browser sends with the request, such as the page, the time and the browser's user agent, and may keep them in its logs for security, under [GitHub's privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement).
+The website sets no cookies, uses no analytics or tracking, and loads nothing from other sites.
+The legal basis is Art. 6(1)(f) GDPR (our legitimate interest in showing the website securely).
 
 
 ## Your rights

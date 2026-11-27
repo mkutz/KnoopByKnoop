@@ -13,8 +13,8 @@ It helps you plan and follow routes over knooppunt networks, but it can be wrong
 
 ## Who offers the app
 
-Michael Kutz
-Wellenstr. 52, 53721 Siegburg
+Michael Kutz\
+Wellenstr. 52, 53721 Siegburg\
 mail@knoopbyknoop.com
 
 

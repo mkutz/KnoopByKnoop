@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- New website at knoopbyknoop.com, in English, German, Dutch and French: what the app does, help, and the privacy policy and terms of use, now also in German, Dutch and French
 - iPhone: the Dynamic Island no longer cuts off the small corner symbol of the start, a stop or the end, and shows the distance larger, without changing its width as it counts down
 
 ## 1.0.0

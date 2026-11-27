@@ -1,6 +1,7 @@
 #!/bin/sh
 # Checks the store listing in fastlane/, see `store-listing`: every app language has every text,
-# each within its store's limit in characters, the same description on both stores, and five
+# each within its store's limit in characters, the support and privacy URLs on the website in the
+# listing's language, the same description on both stores, and five
 # screenshots per platform in sizes the stores take.
 # Names each file at fault and fails if there is one. Run from the repository root.
 # Usage: store-listing-check.sh [fastlane directory]
@@ -31,6 +32,16 @@ text() {
   fi
 }
 
+url() {
+  file=$1
+  expected=$2
+  [ -s "$file" ] || return 0
+  actual=$(tr -d '\n' < "$file")
+  if [ "$actual" != "$expected" ]; then
+    problem "$file: $actual, needs $expected"
+  fi
+}
+
 for locale in $locales; do
   ios="$root/metadata/ios/$locale"
   android="$root/metadata/android/$locale"
@@ -46,6 +57,14 @@ for locale in $locales; do
   text "$android/title.txt" 30
   text "$android/short_description.txt" 80
   text "$android/full_description.txt" 4000
+
+  # The website's help and privacy pages in the listing's language, see `project-website`.
+  case $locale in
+    en-US) site="https://knoopbyknoop.com/" ;;
+    *) site="https://knoopbyknoop.com/${locale%%-*}/" ;;
+  esac
+  url "$ios/support_url.txt" "${site}help/"
+  url "$ios/privacy_url.txt" "${site}privacy/"
 
   if [ -s "$ios/description.txt" ] && [ -s "$android/full_description.txt" ] &&
     ! cmp -s "$ios/description.txt" "$android/full_description.txt"; then

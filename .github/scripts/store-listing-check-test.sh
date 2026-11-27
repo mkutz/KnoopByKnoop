@@ -23,8 +23,12 @@ reset() {
     echo "knooppunt,cycling" > "$ios/keywords.txt"
     echo "Plan and ride" > "$ios/promotional_text.txt"
     echo "A navigator for knot networks." > "$ios/description.txt"
-    echo "https://example.com/issues" > "$ios/support_url.txt"
-    echo "https://example.com/privacy" > "$ios/privacy_url.txt"
+    case $locale in
+      en-US) site="https://knoopbyknoop.com/" ;;
+      *) site="https://knoopbyknoop.com/${locale%%-*}/" ;;
+    esac
+    echo "${site}help/" > "$ios/support_url.txt"
+    echo "${site}privacy/" > "$ios/privacy_url.txt"
     echo "Knoop by Knoop" > "$android/title.txt"
     echo "Plan and ride the knot networks" > "$android/short_description.txt"
     ln -s "../../ios/$locale/description.txt" "$android/full_description.txt"
@@ -52,6 +56,12 @@ reset
 rm "$listing/metadata/ios/nl-NL/subtitle.txt"
 if output=$(sh "$script" "$listing" 2>&1); then fail "a missing subtitle fails"; fi
 case "$output" in *"ios/nl-NL/subtitle.txt: missing"*) ;; *) fail "names the Dutch subtitle, got: $output" ;; esac
+
+# Scenario: Privacy URL in the listing's language
+reset
+echo "https://knoopbyknoop.com/privacy/" > "$listing/metadata/ios/de-DE/privacy_url.txt"
+if output=$(sh "$script" "$listing" 2>&1); then fail "an English privacy URL in the German listing fails"; fi
+case "$output" in *"ios/de-DE/privacy_url.txt: https://knoopbyknoop.com/privacy/, needs https://knoopbyknoop.com/de/privacy/"*) ;; *) fail "names the German privacy URL, got: $output" ;; esac
 
 # Scenario: Text over the limit
 reset

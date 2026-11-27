@@ -1,0 +1,65 @@
+name: Website
+
+# Builds knoopbyknoop.com from the repository and publishes it with GitHub Pages, see
+# `project-website` "Published from main". A failing check stops the run before the deploy, so the
+# site online stays as it was.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'website/**'
+      - 'fastlane/metadata/**'
+      - 'fastlane/screenshots/**'
+      - 'design/icon/**'
+      - 'PRIVACY.md'
+      - 'TERMS.md'
+      - '.github/workflows/website.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: website
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build and check
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          java-version: 21
+          distribution: temurin
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - run: ./gradlew :website:test :website:site
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: website/build/site
+
+  deploy:
+    name: Publish
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+
+      - id: deployment
+        uses: actions/deploy-pages@v5
