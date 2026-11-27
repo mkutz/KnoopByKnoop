@@ -25,15 +25,26 @@ A browser without JavaScript, or one too old for the planner, SHALL see a page t
 - **THEN** the page says in German that the planner needs JavaScript and shows the App Store and Google Play badges
 
 ### Requirement: Networks on the map
-The planner SHALL show the knots of the cycling or the hiking network with their numbers, and the courses between them, over a base map, as the apps draw them, with a switch between the two networks. Switching SHALL start a new route, as in the apps.
+The planner SHALL show the knots of the cycling or the hiking network with their numbers, and the courses between them, over a base map, as the apps draw them, with a switch between the two networks. Switching SHALL keep the map where it is.
 
 #### Scenario: Cycling network around Siegburg
 - **WHEN** a visitor opens the planner and moves the map to Siegburg
 - **THEN** the cycling knots, among them 02, show with their numbers, joined by their courses
 
 #### Scenario: Switch to hiking
-- **WHEN** the visitor switches to hiking
-- **THEN** the hiking knots and courses show instead, and the route is empty
+- **WHEN** the visitor plans a cycling route in Zutphen and switches to hiking
+- **THEN** the hiking knots and courses show instead, the map stays on Zutphen, and the route is the hiking route planned before, or empty
+
+### Requirement: Routes per network
+The planner SHALL keep a route and its undo history for each network. Switching the network SHALL keep the route of the network left, and switching back SHALL bring it back with its undo history. Opening a route of the other network SHALL be an edit of that network's route.
+
+#### Scenario: Back to cycling
+- **WHEN** the visitor plans the cycling route 02 → 83, switches to hiking, plans there and switches back to cycling
+- **THEN** the cycling route is 02 → 83 again, and Undo takes back its last edit
+
+#### Scenario: Opened route on the other network
+- **WHEN** the visitor plans cycling, opens a hiking route file, and chooses Undo
+- **THEN** the hiking route is the one planned before the file was opened, and the cycling route is kept
 
 ### Requirement: Loading shown
 While the network or its courses load, the planner SHALL say so over the map, with what is loading, until it is there. A failure to show one part of the planner SHALL NOT keep the network or its courses from loading.
@@ -130,7 +141,7 @@ Undo SHALL take back the last edit of the route, and each further Undo the edit 
 - **THEN** the route is 02 → 83 → 73 again
 
 ### Requirement: Route kept in the browser
-The route being planned and its undo history SHALL be kept in the visitor's browser and restored when the planner is opened again in that browser. Nothing of the route SHALL be sent to knoopbyknoop.com.
+The route of each network with its undo history, and the network shown last, SHALL be kept in the visitor's browser and restored when the planner is opened again in that browser. Nothing of the route SHALL be sent to knoopbyknoop.com.
 
 #### Scenario: Reload
 - **WHEN** the visitor plans 02 → 83 → 73 and reloads the page

@@ -187,7 +187,7 @@ class PlannerTest {
   }
 
   @Test
-  fun `Switch to hiking - an empty hiking route`() = runTest {
+  fun `Switch to hiking - the hiking route, empty before any was planned`() = runTest {
     val planner = ready()
     listOf(K02, K83).forEach { planner.clickOn(it) }
 
@@ -358,6 +358,110 @@ class PlannerTest {
     assertEquals(listOf("02", "73"), reopened.waypoints)
     assertEquals(Planner.Loading.NOTHING, reopened.loadingStage)
     assertTrue(reopened.loaded!!.hasGeometry)
+  }
+}
+
+class RoutesPerNetworkTest {
+
+  private val graph = TestNetwork.graph()
+
+  private fun Planner.clickOn(id: Long) {
+    val knot = graph.knots.getValue(id)
+    click(knot.latitude, knot.longitude, 30.0, null)
+  }
+
+  private val Planner.waypoints: List<String>
+    get() = session!!.waypoints.map { it.ref }
+
+  @Test
+  fun `Back to cycling - the cycling route and its undo history come back`() = runTest {
+    val planner = TestNetwork.planner(this)
+    advanceUntilIdle()
+    listOf(TestNetwork.K02, TestNetwork.K83).forEach { planner.clickOn(it) }
+
+    planner.switchNetwork(IndexedNetworkType.HIKING)
+    advanceUntilIdle()
+    listOf(TestNetwork.K12, TestNetwork.K34).forEach { planner.clickOn(it) }
+    planner.switchNetwork(IndexedNetworkType.CYCLING)
+    advanceUntilIdle()
+
+    assertEquals(listOf("02", "83"), planner.waypoints)
+    planner.undo()
+    assertEquals(listOf("02"), planner.waypoints)
+    planner.switchNetwork(IndexedNetworkType.HIKING)
+    advanceUntilIdle()
+    assertEquals(listOf("12", "34"), planner.waypoints)
+  }
+
+  @Test
+  fun `the network shown last opens with its route after a reload`() = runTest {
+    val storage = TestNetwork.Storage()
+    val planner = TestNetwork.planner(this, storage)
+    advanceUntilIdle()
+    planner.switchNetwork(IndexedNetworkType.HIKING)
+    advanceUntilIdle()
+    listOf(TestNetwork.K12, TestNetwork.K34).forEach { planner.clickOn(it) }
+
+    val reloaded = TestNetwork.planner(this, storage)
+    advanceUntilIdle()
+
+    assertEquals(IndexedNetworkType.HIKING, reloaded.network)
+    assertEquals(listOf("12", "34"), reloaded.waypoints)
+  }
+
+  @Test
+  fun `Opened route on the other network - Undo brings back that network's route`() = runTest {
+    val planner = TestNetwork.planner(this)
+    advanceUntilIdle()
+    planner.switchNetwork(IndexedNetworkType.HIKING)
+    advanceUntilIdle()
+    listOf(TestNetwork.K12, TestNetwork.K34).forEach { planner.clickOn(it) }
+    planner.switchNetwork(IndexedNetworkType.CYCLING)
+    advanceUntilIdle()
+    listOf(TestNetwork.K02, TestNetwork.K83).forEach { planner.clickOn(it) }
+
+    planner.open("# Hike\nNetwork: hiking\n\n- 02 ${TestNetwork.K02} Siegburg\n- 28\n")
+    advanceUntilIdle()
+    assertEquals(listOf("02", "28"), planner.waypoints)
+    planner.undo()
+
+    assertEquals(IndexedNetworkType.HIKING, planner.network)
+    assertEquals(listOf("12", "34"), planner.waypoints)
+    planner.switchNetwork(IndexedNetworkType.CYCLING)
+    advanceUntilIdle()
+    assertEquals(listOf("02", "83"), planner.waypoints)
+  }
+
+  @Test
+  fun `a route kept before routes were kept per network still opens`() = runTest {
+    val storage = TestNetwork.Storage()
+    val old = TestNetwork.planner(this, storage)
+    advanceUntilIdle()
+    listOf(TestNetwork.K02, TestNetwork.K83).forEach { old.clickOn(it) }
+    storage.values[Planner.LEGACY_ROUTE_KEY] =
+      storage.values.getValue(Planner.routeKey(IndexedNetworkType.CYCLING))
+    storage.values.remove(Planner.routeKey(IndexedNetworkType.CYCLING))
+    storage.values.remove(Planner.NETWORK_KEY)
+
+    val reloaded = TestNetwork.planner(this, storage)
+    advanceUntilIdle()
+
+    assertEquals(listOf("02", "83"), reloaded.waypoints)
+  }
+}
+
+class QrCodeTest {
+
+  @Test
+  fun `a route link fits a QR code`() {
+    val svg = qrSvg("https://knoopbyknoop.com/route/#" + "%20-%2028%0A".repeat(60))
+
+    assertTrue(svg != null && svg.startsWith("<svg"), svg)
+  }
+
+  @Test
+  fun `a link too long for a QR code gives none instead of failing`() {
+    assertEquals(null, qrSvg("https://knoopbyknoop.com/route/#" + "%20-%2028%0A".repeat(400)))
   }
 }
 

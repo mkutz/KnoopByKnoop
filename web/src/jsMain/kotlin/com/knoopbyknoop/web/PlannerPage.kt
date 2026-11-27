@@ -85,7 +85,7 @@ private class WebNetworkSource(private val data: PublishedData) : NetworkSource 
   override suspend fun <T> withSquares(load: (com.knoopbyknoop.core.PathDataOrigin) -> T): T? =
     try {
       data.withSquares(load)
-    } catch (exception: Throwable) {
+    } catch (exception: dynamic) {
       null
     }
 }
@@ -258,8 +258,10 @@ class PlannerPage(private val root: HTMLElement) {
       "drop",
       { event ->
         event.preventDefault()
-        val files = event.asDynamic().dataTransfer?.files
-        val file = files?.get(0).unsafeCast<File?>() ?: return@addEventListener
+        // The browser's file list, read by index: it has no get() of its own.
+        val file =
+          event.unsafeCast<org.w3c.dom.DragEvent>().dataTransfer?.files?.get(0)
+            ?: return@addEventListener
         openFile(file)
       },
     )
@@ -333,7 +335,8 @@ class PlannerPage(private val root: HTMLElement) {
     val network = planner.loaded
     val session = planner.session
     mapView.show(network, session)
-    if (network != null && fittedNetwork !== network.graph && session != null) {
+    // Only on the first load: switching the network keeps the map where it is.
+    if (network != null && fittedNetwork == null && session != null) {
       fittedNetwork = network.graph
       val bounds = routeBounds() ?: GeoBounds.of(network.graph)
       bounds?.let { mapView.fit(it) }
@@ -356,7 +359,7 @@ class PlannerPage(private val root: HTMLElement) {
     for (part in parts) {
       try {
         part()?.let { panel.append(it) }
-      } catch (exception: Throwable) {
+      } catch (exception: dynamic) {
         console.error("Knoop by Knoop: drawing the panel failed", exception)
       }
     }
@@ -744,17 +747,13 @@ class PlannerPage(private val root: HTMLElement) {
 
   private fun qrCode(link: String): Element =
     element("figure", "qr") {
-      val factory: dynamic = js("require('qrcode-generator')")
-      try {
-        val code = factory(0, "L")
-        code.addData(link, "Byte")
-        code.make()
-        innerHTML =
-          code.createSvgTag(json("cellSize" to 3, "margin" to 3, "scalable" to true)) as String
+      val svg = qrSvg(link)
+      if (svg != null) {
+        innerHTML = svg
         firstElementChild?.setAttribute("role", "img")
         firstElementChild?.setAttribute("aria-label", text("share.qrLabel"))
         append(element("figcaption", text = text("share.qr")))
-      } catch (exception: Throwable) {
+      } else {
         append(element("figcaption", text = text("share.qrTooLong")))
       }
     }

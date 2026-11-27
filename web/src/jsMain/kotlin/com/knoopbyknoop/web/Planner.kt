@@ -105,7 +105,7 @@ class Planner(
   private fun changed() {
     try {
       onChange()
-    } catch (exception: Throwable) {
+    } catch (exception: dynamic) {
       console.error("Knoop by Knoop: redrawing failed", exception)
     }
   }
@@ -170,20 +170,47 @@ class Planner(
 
   /** Starts with the kept route's network and route, or an empty cycling route. */
   fun start() {
-    val snapshot = keptSnapshot()
-    history = kept.read(HISTORY_KEY)?.let(RouteHistory::parse) ?: RouteHistory()
-    load(snapshot?.network ?: IndexedNetworkType.CYCLING, snapshot, pendingFile = null)
+    migrateKeptRoute()
+    val last =
+      kept.read(NETWORK_KEY)?.let { name ->
+        IndexedNetworkType.entries.firstOrNull { it.name == name }
+      }
+    val first = last ?: IndexedNetworkType.CYCLING
+    history = keptHistory(first)
+    load(first, keptSnapshot(first), pendingFile = null)
+  }
+
+  /** The kept route of one network before routes were kept per network, moved to its own keys. */
+  private fun migrateKeptRoute() {
+    val route = kept.read(LEGACY_ROUTE_KEY)?.takeIf { it.isNotEmpty() } ?: return
+    val snapshot = runCatching { RouteSnapshot.parse(route) }.getOrNull()
+    if (snapshot != null && kept.read(routeKey(snapshot.network)) == null) {
+      kept.write(routeKey(snapshot.network), route)
+      kept.read(LEGACY_HISTORY_KEY)?.let { kept.write(historyKey(snapshot.network), it) }
+      kept.write(NETWORK_KEY, snapshot.network.name)
+    }
+    kept.write(LEGACY_ROUTE_KEY, "")
   }
 
   /** Switches to [other], starting a new route, see `web-planner` "Networks on the map". */
+  /**
+   * Switches to [other] with the route and undo history kept for it, while the route of this
+   * network stays kept for switching back, see `web-planner` "Routes per network".
+   */
   fun switchNetwork(other: IndexedNetworkType) {
     if (other == network && loaded != null) return
-    remember(RouteHistory())
-    load(other, null, pendingFile = null)
+    history = keptHistory(other)
+    load(other, keptSnapshot(other), pendingFile = null)
   }
 
-  private fun keptSnapshot(): RouteSnapshot? =
-    kept.read(ROUTE_KEY)?.let { runCatching { RouteSnapshot.parse(it) }.getOrNull() }
+  private fun keptSnapshot(network: IndexedNetworkType): RouteSnapshot? =
+    kept
+      .read(routeKey(network))
+      ?.let { runCatching { RouteSnapshot.parse(it) }.getOrNull() }
+      ?.takeIf { it.network == network }
+
+  private fun keptHistory(network: IndexedNetworkType): RouteHistory =
+    kept.read(historyKey(network))?.let(RouteHistory::parse) ?: RouteHistory()
 
   private fun load(
     other: IndexedNetworkType,
@@ -191,6 +218,7 @@ class Planner(
     pendingFile: RouteFile.Parsed?,
   ) {
     network = other
+    kept.write(NETWORK_KEY, other.name)
     loaded = null
     session = null
     loading?.cancel()
@@ -216,7 +244,8 @@ class Planner(
         }
       save()
       changed()
-      pendingFile?.let { open(it, asEdit = false) }
+      // An edit of the other network's route, which Undo takes back there.
+      pendingFile?.let { open(it, asEdit = true) }
       val withCourses =
         try {
           source.courses(graph)
@@ -339,8 +368,8 @@ class Planner(
         changed()
         return@launch
       }
-      remember(RouteHistory())
-      load(otherNetwork, null, parsed)
+      history = keptHistory(otherNetwork)
+      load(otherNetwork, keptSnapshot(otherNetwork), parsed)
     }
   }
 
@@ -433,12 +462,12 @@ class Planner(
   }
 
   private fun save() {
-    session?.let { kept.write(ROUTE_KEY, RouteSnapshot.of(it).toJson()) }
+    session?.let { kept.write(routeKey(network), RouteSnapshot.of(it).toJson()) }
   }
 
   private fun remember(newHistory: RouteHistory) {
     history = newHistory
-    kept.write(HISTORY_KEY, newHistory.toJson())
+    kept.write(historyKey(network), newHistory.toJson())
   }
 
   private fun plannedCourse(): List<GeoPoint>? {
@@ -486,7 +515,16 @@ class Planner(
   }
 
   companion object {
-    const val ROUTE_KEY = "knoopbyknoop.route"
-    const val HISTORY_KEY = "knoopbyknoop.history"
+    /** The network shown last. */
+    const val NETWORK_KEY = "knoopbyknoop.network"
+
+    /** The route and undo history of each network, see "Routes per network". */
+    fun routeKey(network: IndexedNetworkType) = "knoopbyknoop.route.${network.name.lowercase()}"
+
+    fun historyKey(network: IndexedNetworkType) = "knoopbyknoop.history.${network.name.lowercase()}"
+
+    /** Where the one kept route was before routes were kept per network. */
+    const val LEGACY_ROUTE_KEY = "knoopbyknoop.route"
+    const val LEGACY_HISTORY_KEY = "knoopbyknoop.history"
   }
 }
