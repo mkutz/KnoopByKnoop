@@ -196,3 +196,5 @@ a:hover { color: var(--link-hover); }
 .map-status[hidden] { display: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .map-status::before { animation: none; } }
+.map-status:not(.busy) { padding-left: 16px; }
+.map-status:not(.busy)::before { display: none; }

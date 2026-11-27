@@ -68,6 +68,24 @@ After each weekly publication of the network data, the website SHALL serve the n
 - **WHEN** the weekly workflow publishes new network data
 - **THEN** within two hours, knoopbyknoop.com serves the new index and its files, and no page mixes files of two publications
 
+### Requirement: First view
+Without a kept route, the planner SHALL show the area of all networks. While the map is zoomed out too far to draw the knots, it SHALL say over the map to zoom in or search a place, and a click on the map SHALL zoom in on the clicked spot until the knots show.
+
+#### Scenario: Click while zoomed out
+- **WHEN** a visitor opens the planner for the first time and clicks near Siegburg
+- **THEN** the map zooms in on Siegburg so its knots show, and the route stays empty
+
+#### Scenario: Hint to zoom in
+- **WHEN** the map is zoomed out too far to draw the knots
+- **THEN** the map says to zoom in or search a place to see the knots
+
+### Requirement: Panel keeps the focus
+When the route changes, the panel SHALL keep the keyboard focus on the control that was used, or on the same control of the next waypoint where its own went away, and SHALL keep its scroll position, opened lists and the text typed into the search field.
+
+#### Scenario: Moving a stop with the keyboard
+- **WHEN** a keyboard user moves the stop 83 down with its button
+- **THEN** the focus stays on a move button in the list, so the next key press goes on from there
+
 ### Requirement: Plan by clicking knots
 Clicking a knot SHALL change the route as tapping it does in the apps (see `map-planning` "Plan by tapping knots"), with the route computed by the same rules as in the apps, so the same waypoints on the same data give the same route in the planner and in the apps.
 

@@ -108,3 +108,14 @@ class RoutePageTest {
     assertEquals("plan/", plannerPathFor(listOf("en-GB", "fr")))
   }
 }
+
+class FirstViewTest {
+
+  @Test
+  fun `Click while zoomed out - zooms in on the spot until the knots show`() {
+    assertEquals(CLICK_ZOOM, zoomForClick(7.0))
+    assertEquals(CLICK_ZOOM, zoomForClick(9.9))
+    assertEquals(null, zoomForClick(KNOT_MIN_ZOOM))
+    assertTrue(CLICK_ZOOM >= KNOT_MIN_ZOOM, "the knots show after the zoom")
+  }
+}

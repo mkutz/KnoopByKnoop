@@ -19,7 +19,17 @@ private const val GREEN = "#2E9E5B"
 private const val ORANGE = "#F28C28"
 private const val PROBLEM_ON_LIGHT = "#263238"
 private const val PROBLEM_ON_DARK = "#ECEFF1"
-private const val KNOT_MIN_ZOOM = 10.0
+const val KNOT_MIN_ZOOM = 10.0
+
+/** The zoom a click zooms in to while the knots are not drawn yet. */
+const val CLICK_ZOOM = 12.0
+
+/**
+ * Where a click at [zoom] zooms in to: while the knots are not drawn, a click can't plan, so it
+ * zooms in on the spot, see `web-planner` "First view"; `null` once they are.
+ */
+fun zoomForClick(zoom: Double): Double? = if (zoom < KNOT_MIN_ZOOM) CLICK_ZOOM else null
+
 private const val ROUTE_OFFSET = 4.0
 
 /** The base map from OpenFreeMap, as in the apps; the dark style is the apps' own. */
@@ -105,6 +115,7 @@ class MapView(
     }
     map.on("style.load") { _: dynamic -> addLayers() }
     map.on("click") { event: dynamic -> click(event) }
+    map.on("zoomend") { _: dynamic -> onZoom() }
     map.on("mousemove") { event: dynamic ->
       val features: dynamic =
         map.queryRenderedFeatures(event.point, json("layers" to clickableLayers()))
@@ -127,10 +138,21 @@ class MapView(
       (if (placesShown) arrayOf(PlaceKind.LAYER_ID, PlaceKind.NAMED_LAYER_ID) else arrayOf())
         .filter { map.getLayer(it) != undefined }
 
+  /** Whether the knots are drawn at the map's zoom, see `web-planner` "First view". */
+  val knotsShown: Boolean
+    get() = (map.getZoom() as Double) >= KNOT_MIN_ZOOM
+
+  /** Called when the map has zoomed. */
+  var onZoom: () -> Unit = {}
+
   private fun click(event: dynamic) {
     val latitude = event.lngLat.lat as Double
     val longitude = event.lngLat.lng as Double
     val zoom = map.getZoom() as Double
+    zoomForClick(zoom)?.let { target ->
+      map.easeTo(json("center" to arrayOf(longitude, latitude), "zoom" to target))
+      return
+    }
     val metersPerPixel = 40_075_016.686 * cos(latitude * PI / 180) / (512 * 2.0.pow(zoom))
     val point = event.point
     val box = arrayOf(arrayOf(point.x - 8, point.y - 8), arrayOf(point.x + 8, point.y + 8))

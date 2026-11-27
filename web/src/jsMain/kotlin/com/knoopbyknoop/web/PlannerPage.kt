@@ -208,6 +208,7 @@ class PlannerPage(private val root: HTMLElement) {
     root.append(panel, mapElement)
     mapElement.append(mapStatus)
     darkQuery.addEventListener("change", { mapView.setDark(darkQuery.matches) })
+    mapView.onZoom = { showMapStatus() }
     planner.onChange = { render() }
     planner.onDetails = { render() }
     enableDropping()
@@ -341,14 +342,8 @@ class PlannerPage(private val root: HTMLElement) {
       fittedOpened = planner.openedRoutes
       routeBounds()?.let { mapView.fit(it) }
     }
-    val loadingText =
-      when (planner.loadingStage) {
-        Planner.Loading.NETWORK -> text("data.loading")
-        Planner.Loading.COURSES -> text("data.loadingCourses")
-        Planner.Loading.NOTHING -> null
-      }
-    mapStatus.textContent = loadingText ?: ""
-    mapStatus.hidden = loadingText == null
+    showMapStatus()
+    val kept = keepFocus()
     panel.textContent = ""
     panel.append(networkSwitch(), searchBox)
     planner.dataProblem?.let { panel.append(element("p", "message problem", text("data.problem"))) }
@@ -365,6 +360,74 @@ class PlannerPage(private val root: HTMLElement) {
         console.error("Knoop by Knoop: drawing the panel failed", exception)
       }
     }
+    kept()
+  }
+
+  /**
+   * The notice over the map: what is loading, else a hint to zoom in while the knots aren't drawn,
+   * see `web-planner` "Loading shown" and "First view".
+   */
+  private fun showMapStatus() {
+    val (status, busy) =
+      when (planner.loadingStage) {
+        Planner.Loading.NETWORK -> text("data.loading") to true
+        Planner.Loading.COURSES -> text("data.loadingCourses") to true
+        Planner.Loading.NOTHING ->
+          (if (planner.loaded != null && !mapView.knotsShown) text("map.zoomIn") else null) to false
+      }
+    mapStatus.textContent = status ?: ""
+    mapStatus.hidden = status == null
+    mapStatus.classList.toggle("busy", busy)
+  }
+
+  /**
+   * What redrawing the panel would lose: the control with the keyboard focus (with the place of the
+   * cursor in a text field), the lists opened and how far the panel is scrolled. Returns what puts
+   * them back after the redraw, see `web-planner` "Panel keeps the focus". Controls are known by
+   * their kind and name, and the how-manyth of that name they are.
+   */
+  private fun keepFocus(): () -> Unit {
+    fun keysOf(selector: String): List<Pair<String, Element>> {
+      val counts = mutableMapOf<String, Int>()
+      val elements = panel.querySelectorAll(selector)
+      return (0 until elements.length).map { index ->
+        val element = elements.item(index) as Element
+        val name =
+          element.getAttribute("aria-label")
+            ?: (if (element.tagName == "DETAILS") element.querySelector("summary")?.textContent
+            else null)
+            ?: element.textContent
+            ?: ""
+        val base = element.tagName + "|" + name
+        val count = counts[base] ?: 0
+        counts[base] = count + 1
+        "$base|$count" to element
+      }
+    }
+    val active = document.activeElement
+    val focused = keysOf(FOCUSABLE).firstOrNull { it.second === active }?.first
+    val input = active as? HTMLInputElement
+    val selection = input?.let { (it.selectionStart ?: 0) to (it.selectionEnd ?: 0) }
+    val opened =
+      keysOf("details").filter { it.second.hasAttribute("open") }.map { it.first }.toSet()
+    val scroll = panel.scrollTop
+    val windowScroll = window.scrollY
+    return {
+      keysOf("details").filter { it.first in opened }.forEach { it.second.setAttribute("open", "") }
+      panel.scrollTop = scroll
+      if (focused != null) {
+        val again = keysOf(FOCUSABLE).firstOrNull { it.first == focused }?.second as? HTMLElement
+        again?.asDynamic()?.focus(json("preventScroll" to true))
+        if (again is HTMLInputElement && selection != null) {
+          runCatching { again.setSelectionRange(selection.first, selection.second) }
+        }
+      }
+      window.scrollTo(window.scrollX, windowScroll)
+    }
+  }
+
+  private companion object {
+    const val FOCUSABLE = "button, input, a[href], summary"
   }
 
   private fun routeBounds(): GeoBounds? {
