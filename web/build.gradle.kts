@@ -30,3 +30,20 @@ kotlin {
     }
   }
 }
+
+// What the planner pages load: the bundle, and MapLibre's worker and stylesheet, which it can't
+// bundle. The worker gets a .js name, which every host serves as JavaScript.
+val plannerFiles by
+  tasks.registering(Sync::class) {
+    description = "Collects the planner's files for the website"
+    group = "build"
+    dependsOn("jsBrowserProductionWebpack")
+    from(layout.buildDirectory.dir("kotlin-webpack/js/productionExecutable")) {
+      include("planner.js")
+    }
+    from(rootProject.layout.buildDirectory.dir("js/node_modules/maplibre-gl/dist")) {
+      include("maplibre-gl-worker.mjs", "maplibre-gl.css", "LICENSE.txt")
+      rename("maplibre-gl-worker.mjs", "maplibre-gl-worker.js")
+    }
+    into(layout.buildDirectory.dir("planner"))
+  }

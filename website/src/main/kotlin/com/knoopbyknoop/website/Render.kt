@@ -43,6 +43,7 @@ fun pageHtml(
   title: String,
   description: String,
   main: String,
+  head: String = "",
 ): String {
   val from = page.path(language)
   fun link(to: String) = relativeLink(from, to)
@@ -71,8 +72,8 @@ $alternates
   <link rel="alternate" hreflang="x-default" href="$SITE_URL${page.path(Language.ENGLISH)}">
   <link rel="icon" href="${link("icon.svg")}" type="image/svg+xml">
   <link rel="stylesheet" href="${link("style.css")}">
-</head>
-<body>
+$head</head>
+<body${if (page == Page.PLAN) " class=\"planner-page\"" else ""}>
   <a class="skip" href="#main">${text("skip")}</a>
   <header class="site-header">
     <div class="wrap header-row">
@@ -82,6 +83,7 @@ $alternates
       </a>
       <nav class="main-nav" aria-label="${text("nav.main")}">
         ${navLink(Page.HOME)}
+        ${navLink(Page.PLAN)}
         ${navLink(Page.HELP)}
       </nav>
       <nav class="languages" aria-label="${text("nav.language")}">
@@ -202,3 +204,81 @@ fun articleMain(html: String, note: String?): String {
 /** The page's title: its first heading, else its name. */
 fun titleOf(markdown: String, fallback: String) =
   Regex("^# (.+)$", RegexOption.MULTILINE).find(markdown)?.groupValues?.get(1)?.trim() ?: fallback
+
+/**
+ * The planner page's main content, see `web-planner`: the element the planner fills, its texts as
+ * JSON, and for browsers without JavaScript a note with the store badges.
+ */
+fun plannerMain(
+  language: Language,
+  strings: Map<String, String>,
+  plannerTexts: Map<String, String>,
+): String {
+  val from = Page.PLAN.path(language)
+  fun text(key: String) = escape(strings.getValue(key))
+  val texts =
+    plannerTexts.toSortedMap().entries.joinToString(",", "{", "}") { (key, value) ->
+      "${jsonString(key)}:${jsonString(value)}"
+    }
+  val googlePlay = "$GOOGLE_PLAY_URL&amp;hl=${language.code}"
+  return """    <h1 class="visually-hidden">${escape(plannerTexts.getValue("title"))}</h1>
+    <div id="planner" class="planner" data-root="${relativeLink(from, "")}" data-language="${language.code}">
+      <noscript>
+        <div class="wrap prose noscript">
+          <p>${escape(plannerTexts.getValue("noscript"))}</p>
+          <div class="badges">
+            <a href="$APP_STORE_URL"><img src="${relativeLink(from, "badges/app-store-${language.code}.svg")}" alt="${text("badge.appStore")}" height="56"></a>
+            <a href="$googlePlay"><img src="${relativeLink(from, "badges/google-play-${language.code}.png")}" alt="${text("badge.googlePlay")}" height="83"></a>
+          </div>
+        </div>
+      </noscript>
+    </div>
+    <script type="application/json" id="planner-texts">${texts.replace("</", "<\\/")}</script>
+    <script src="${relativeLink(from, "planner.js")}" defer></script>"""
+}
+
+/** The head of the planner page: MapLibre's stylesheet. */
+fun plannerHead(language: Language) =
+  """  <link rel="stylesheet" href="${relativeLink(Page.PLAN.path(language), "maplibre-gl.css")}">
+"""
+
+/**
+ * The page of route links, `/route/`, which sends the visitor on to the planner in their browser's
+ * language, keeping the route after `#`, see `route-sharing` "Route link". The apps open these
+ * links themselves.
+ */
+fun routePage(strings: Map<String, String>, plannerTexts: Map<String, String>): String =
+  """<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>${escape(plannerTexts.getValue("route.forward"))}</title>
+  <link rel="icon" href="../icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <main id="route-forward" class="wrap prose" data-root="../">
+    <p>${escape(plannerTexts.getValue("route.forward"))}</p>
+    <noscript><p><a href="../plan/">${escape(strings.getValue("page.plan"))}</a></p></noscript>
+  </main>
+  <script src="../planner.js" defer></script>
+</body>
+</html>
+"""
+
+/** [text] as a JSON string. */
+fun jsonString(text: String): String = buildString {
+  append('"')
+  for (char in text) {
+    when (char) {
+      '"' -> append("\\\"")
+      '\\' -> append("\\\\")
+      '\n' -> append("\\n")
+      else ->
+        if (char < ' ') append("\\u" + char.code.toString(16).padStart(4, '0')) else append(char)
+    }
+  }
+  append('"')
+}

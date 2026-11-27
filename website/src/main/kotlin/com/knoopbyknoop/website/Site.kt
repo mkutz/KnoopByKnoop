@@ -45,7 +45,20 @@ fun buildSite(sources: Sources): Map<String, ByteArray> {
           homeMain(language, listing, strings, screenshots),
         )
         .toByteArray()
-    for (page in Page.entries - Page.HOME) {
+    val plannerTexts = sources.plannerTexts(language)
+    files[Page.PLAN.file(language)] =
+      pageHtml(
+          language,
+          Page.PLAN,
+          strings,
+          listing.name,
+          plannerTexts.getValue("title"),
+          plannerTexts.getValue("description"),
+          plannerMain(language, strings, plannerTexts),
+          plannerHead(language),
+        )
+        .toByteArray()
+    for (page in Page.entries - Page.HOME - Page.PLAN) {
       val markdown = sources.markdown(language, page).markdown
       val title = titleOf(markdown, strings.getValue(page.nameKey))
       val isTranslation =
@@ -66,6 +79,11 @@ fun buildSite(sources: Sources): Map<String, ByteArray> {
     }
   }
   files["icon.svg"] = sources.icon.readBytes()
+  files["route/index.html"] =
+    routePage(sources.strings(Language.ENGLISH), sources.plannerTexts(Language.ENGLISH))
+      .toByteArray()
+  PLANNER_FILES.forEach { files[it] = sources.planner.resolve(it).readBytes() }
+  files["map-styles/liberty-dark.json"] = sources.darkMapStyle.readBytes()
   sources.static
     .walkTopDown()
     .filter { it.isFile }

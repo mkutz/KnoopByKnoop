@@ -8,7 +8,32 @@ import java.time.LocalDate
  * legal texts.
  */
 fun sourceProblems(sources: Sources): List<String> =
-  missingPages(sources).ifEmpty { staleTranslations(sources) + differingContactDetails(sources) }
+  missingPages(sources).ifEmpty {
+    staleTranslations(sources) + differingContactDetails(sources) + plannerProblems(sources)
+  }
+
+/**
+ * The planner's texts missing in a language, compared with English, and its files not built, see
+ * `web-planner` "Planner page in every language".
+ */
+fun plannerProblems(sources: Sources): List<String> {
+  val english = sources.plannerTexts(Language.ENGLISH).keys
+  val missingTexts =
+    Language.entries.flatMap { language ->
+      (english - sources.plannerTexts(language).keys).sorted().map {
+        "${language.englishName} planner text missing: $it in ${sources.file(language, Page.PLAN).relativeTo(sources.root)}"
+      }
+    }
+  val missingFiles =
+    PLANNER_FILES.filterNot { sources.planner.resolve(it).isFile }
+      .map {
+        "Planner file missing: web/build/planner/$it (./gradlew :web:plannerFiles)"
+      }
+  return missingTexts + missingFiles
+}
+
+/** What `./gradlew :web:plannerFiles` puts into `web/build/planner/`. */
+val PLANNER_FILES = listOf("planner.js", "maplibre-gl-worker.js", "maplibre-gl.css")
 
 /** A page missing in a language, named with its source file; the page frame's texts too. */
 fun missingPages(sources: Sources): List<String> =

@@ -35,6 +35,7 @@ enum class Page(
   val englishName: String,
 ) {
   HOME("", "page.home", "home page"),
+  PLAN("plan/", "page.plan", "planner"),
   HELP("help/", "page.help", "help"),
   PRIVACY("privacy/", "page.privacy", "privacy policy"),
   TERMS("terms/", "page.terms", "terms of use"),

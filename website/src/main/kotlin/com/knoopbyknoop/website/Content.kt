@@ -90,6 +90,7 @@ class Sources(val root: File) {
     when {
       page == Page.HOME ->
         root.resolve("fastlane/metadata/ios/${language.storeLocale}/description.txt")
+      page == Page.PLAN -> content.resolve("${language.code}/planner.properties")
       page == Page.PRIVACY && language == Language.ENGLISH -> root.resolve("PRIVACY.md")
       page == Page.TERMS && language == Language.ENGLISH -> root.resolve("TERMS.md")
       else ->
@@ -100,19 +101,30 @@ class Sources(val root: File) {
               Page.PRIVACY -> "privacy.md"
               Page.TERMS -> "terms.md"
               Page.LEGAL_NOTICE -> "legal-notice.md"
-              Page.HOME -> error("unreachable")
+              Page.HOME,
+              Page.PLAN -> error("unreachable")
             }
         )
     }
 
   fun markdown(language: Language, page: Page) = parseMarkdownPage(file(language, page).readText())
 
+  /** The planner's files, built by `./gradlew :web:plannerFiles`, see `web-planner`. */
+  val planner = root.resolve("web/build/planner")
+
+  /** The apps' dark base map, which the planner uses too. */
+  val darkMapStyle = root.resolve("map-styles/liberty-dark.json")
+
+  /** The planner's texts in [language], see "Planner page in every language". */
+  fun plannerTexts(language: Language): Map<String, String> = properties(file(language, Page.PLAN))
+
   /** The language's texts of the page frame: page names, the language note, the badges' text. */
-  fun strings(language: Language): Map<String, String> {
+  fun strings(language: Language): Map<String, String> =
+    properties(content.resolve("${language.code}/site.properties"))
+
+  private fun properties(file: File): Map<String, String> {
     val properties = Properties()
-    content.resolve("${language.code}/site.properties").reader(Charsets.UTF_8).use {
-      properties.load(it)
-    }
+    file.reader(Charsets.UTF_8).use { properties.load(it) }
     return properties.stringPropertyNames().associateWith { properties.getProperty(it) }
   }
 }

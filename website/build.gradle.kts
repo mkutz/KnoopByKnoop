@@ -17,6 +17,9 @@ dependencies {
 // The tests build the site from the real repository content, see `project-website`.
 tasks.test {
   useJUnitPlatform()
+  dependsOn(":web:plannerFiles")
+  inputs.dir(rootDir.resolve("web/build/planner"))
+  inputs.file(rootDir.resolve("map-styles/liberty-dark.json"))
   systemProperty("repositoryRoot", rootDir.absolutePath)
   inputs.dir("content")
   inputs.dir("static")
@@ -34,6 +37,9 @@ tasks.register<JavaExec>("site") {
   group = "build"
   val output = layout.buildDirectory.dir("site")
   outputs.dir(output)
+  dependsOn(":web:plannerFiles")
+  inputs.dir(rootDir.resolve("web/build/planner"))
+  inputs.file(rootDir.resolve("map-styles/liberty-dark.json"))
   inputs.dir("content")
   inputs.dir("static")
   inputs.dir(rootDir.resolve("fastlane"))
