@@ -40,6 +40,15 @@ The generator is tested like the rest of the project, with JUnit tests named aft
 ### Paths and languages
 English is at `/`, the others at `/de/`, `/nl/` and `/fr/`. Each language has the same pages: `index.html`, `help/`, `privacy/`, `terms/` and `legal-notice/`. Paths stay in English in every language, so the language switch only swaps the prefix. The store locales map to the site's languages: `en-US` to English, `de-DE` to `de`, `nl-NL` to `nl` and `fr-FR` to `fr`.
 
+### The look
+The look follows the mockups the maintainer approved on 2026-11-27 (canvas "Knoop by Knoop website": home on desktop and phone, German privacy page).
+- **Colours:** those of the app icon, green #2E9E5B with orange #F28C28 for the end knot, and the knot plates' red #C8102E. Links use a darker green, #1F7A44, for contrast on the light ground (#FAFBF8, text #16201A). Dark mode uses the same accents on #111713.
+- **Motif:** a short chain of knot plates above the headline. The sections are a hero (subtitle as headline, promotional text, badges, planning screenshot in a phone frame), three features, the screenshot strip, "Where it works" with "Free and private", then the footer.
+- **Fonts:** the system font stack, no web fonts.
+- **Language switch:** in the header (EN · DE · NL · FR), marking the current language.
+- **Translations:** a note right below the title says the English version is binding.
+- **Phone width:** everything stacks, the store badges fill the width, and the screenshots scroll sideways.
+
 ### Translated legal texts carry the date they translate
 Each translated `privacy.md` and `terms.md` starts with front matter `translates: 2026-11-13`. The generator reads the English date from the "Last updated:" line, and the check compares the two. Below the title, each translation says that the English version is binding and links to it. The translations are drafted from the English text and reviewed by the maintainer before publishing. The German review is by the maintainer; for Dutch and French, the maintainer decides whether a reviewer is needed.
 
