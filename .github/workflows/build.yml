@@ -78,7 +78,7 @@ jobs:
 
   ios:
     name: Core on iOS and iOS app
-    runs-on: macos-latest
+    runs-on: xcode-27
 
     steps:
 

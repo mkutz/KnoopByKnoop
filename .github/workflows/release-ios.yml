@@ -20,7 +20,7 @@ permissions:
 jobs:
   release:
     name: TestFlight
-    runs-on: macos-latest
+    runs-on: xcode-27
     # Includes waiting for TestFlight to process the build.
     timeout-minutes: 90
 

@@ -70,7 +70,7 @@ jobs:
 
   ios:
     name: iOS
-    runs-on: macos-latest
+    runs-on: xcode-27
     timeout-minutes: 120
 
     steps:
